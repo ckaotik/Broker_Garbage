@@ -32,7 +32,7 @@ if not BG_GlobalDB or BG_GlobalDB == {} then
 end
 
 -- internal locals
-local debug = true
+local debug = false
 local locked = false
 local loaded = false
 local oldMoney
@@ -241,7 +241,7 @@ function BrokerGarbage:Tooltip(wut)
 	-- Use smart anchoring code to anchor the tooltip to our frame
 	BrokerGarbage.tt:SmartAnchorTo(wut)
 
-	-- Show it, et voilà !
+	-- Show it, et voilï¿½ !
 	BrokerGarbage.tt:Show()
 	BrokerGarbage.tt:UpdateScrolling(BG_GlobalDB.tooltipMaxHeight)
 end
