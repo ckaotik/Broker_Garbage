@@ -4,7 +4,7 @@ BrokerGarbage.locale = {
 	label = "Junk, be gone!",
 	
 	-- Chat Messages
-	sellAndRepair = "Sold trash for %1$s, repaired for %1$s. Change: %1$s.",
+	sellAndRepair = "Sold trash for %1$s, repaired for %2$s. Change: %3$s.",
 	repair = "Repaired for %s.",
 	sell = "Sold trash for %s.",
 	

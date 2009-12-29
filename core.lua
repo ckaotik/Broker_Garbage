@@ -37,7 +37,7 @@ end
 local debug = false
 local locked = false
 local loaded = false
-local oldMoney
+local sellValue
 local cost = 0
 
 BrokerGarbage.tt = nil
@@ -52,7 +52,7 @@ local function eventHandler(self, event, ...)
 		
 	elseif (locked or cost ~=0) and event == "PLAYER_MONEY" then
 		-- regular unlock		
-		local profit = oldMoney and (GetMoney() - oldMoney) or nil
+		local profit = sellValue and (GetMoney() - sellValue) or nil
 		BrokerGarbage:Debug("Current: "..BrokerGarbage:FormatMoney(GetMoney()))
 		
 		-- wrong player_money event
@@ -67,7 +67,7 @@ local function eventHandler(self, event, ...)
 		if profit and cost ~= 0 and BG_GlobalDB.autoRepairAtVendor and BG_GlobalDB.autoSellToVendor then
 			-- repair & auto-sell
 			BrokerGarbage:Print(format(BrokerGarbage.locale.sellAndRepair, 
-					BrokerGarbage:FormatMoney(profit+cost), 
+					BrokerGarbage:FormatMoney(sellValue), 
 					BrokerGarbage:FormatMoney(cost), 
 					BrokerGarbage:FormatMoney(profit)
 			))
@@ -78,10 +78,10 @@ local function eventHandler(self, event, ...)
 			
 		elseif profit and profit ~= 0 and BG_GlobalDB.autoSellToVendor then
 			-- autosell only
-			BrokerGarbage:Print(format(BrokerGarbage.locale.sell, BrokerGarbage:FormatMoney(profit)))
+			BrokerGarbage:Print(format(BrokerGarbage.locale.sell, BrokerGarbage:FormatMoney(sellValue)))
 		end
 		
-		oldMoney = nil
+		sellValue = nil
 		cost = 0
 		locked = false
 		BrokerGarbage:Debug("lock released")
@@ -90,7 +90,7 @@ local function eventHandler(self, event, ...)
 		
 	elseif locked and event == "MERCHANT_CLOSED" then
 		-- fallback unlock
-		oldMoney = nil
+		sellValue = nil
 		cost = 0
 		locked = false
 		BrokerGarbage:Debug("lock released")
@@ -442,16 +442,15 @@ end
 function BrokerGarbage:AutoSell()
 	if BG_GlobalDB.autoSellToVendor then		
 		local i = 1
+		sellValue = 0
 		for _, itemTable in pairs(BrokerGarbage.inventory) do
 			if (itemTable.quality == 0 and not BrokerGarbage:Find(BG_GlobalDB.exclude, itemTable.itemID)) 
 			  or BrokerGarbage:Find(BG_GlobalDB.include, itemTable.itemID) then
-				if i == 1 then
-					oldMoney = GetMoney()
-					
+				if i == 1 then					
 					BrokerGarbage:Debug("locked")
-					BrokerGarbage:Debug("oldMoney: ",BrokerGarbage:FormatMoney(oldMoney))
 					locked = true
 				end
+				sellValue = sellValue + (itemTable.value * itemTable.count)
 				UseContainerItem(itemTable.bag, itemTable.slot)
 				i = i+1
 			end

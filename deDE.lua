@@ -10,7 +10,7 @@ BrokerGarbage.locale = {
 	label = "Kein Junk",
 	
 	-- Chat Messages
-	sellAndRepair = "M\195\188ll f\195\188r %1$s verkauft, repariert f\195\188r %1$s. \195\132nderung: %1$s.",
+	sellAndRepair = "M\195\188ll f\195\188r %1$s verkauft, repariert f\195\188r %2$s. \195\132nderung: %3$s.",
 	repair = "Repariert f\195\188r %s.",
 	sell = "M\195\188ll verkauft f\195\188r %s.",
 	
