@@ -27,6 +27,9 @@ BrokerGarbage.locale = {
 	autoRepairTitle = "Auto Repair",
 	autoRepairText = "Toggles whether to automatically repair your gear when at a vendor.",
 	
+	autoRepairGuildTitle = "No Guild Repair", 
+	autoRepairGuildText = "If selected, Broker_Garbage will never try to repair using the guild bank's money",
+	
 	dropQualityTitle = "Drop Quality",
 	dropQualityText = "Select up to which treshold items may be listed as deletable. Default: Poor (0)",
 	

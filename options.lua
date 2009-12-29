@@ -35,8 +35,18 @@ BrokerGarbage.options:SetScript("OnShow", function(self)
 		checksound(self)
 		BG_GlobalDB.autoRepairAtVendor = not BG_GlobalDB.autoRepairAtVendor
 	end)
+	
+	local guildrepair = LibStub("tekKonfig-Checkbox").new(self, nil, BrokerGarbage.locale.autoRepairGuildTitle, "TOPLEFT", autorepair, "BOTTOMLEFT", 0, 0)
+	guildrepair.tiptext = BrokerGarbage.locale.autoRepairGuildText
+	guildrepair:SetChecked(BG_GlobalDB.neverRepairGuildBank)
+	local checksound = guildrepair:GetScript("OnClick")
+	guildrepair:SetScript("OnClick", function(self)
+		checksound(self)
+		BG_GlobalDB.neverRepairGuildBank = not BG_GlobalDB.neverRepairGuildBank
+	end)
+	
 
-	local quality = LibStub("tekKonfig-Slider").new(self, BrokerGarbage.locale.dropQualityTitle, 0, 6, "TOPLEFT", autosell, "BOTTOMLEFT", 2, -10)
+	local quality = LibStub("tekKonfig-Slider").new(self, BrokerGarbage.locale.dropQualityTitle, 0, 6, "TOPLEFT", autosell, "BOTTOMLEFT", 2, -25)
 	quality.tiptext = BrokerGarbage.locale.dropQualityText
 	quality:SetWidth(200)
 	quality:SetValueStep(1);

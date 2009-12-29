@@ -33,6 +33,9 @@ BrokerGarbage.locale = {
 	autoRepairTitle = "Automatisch Reparieren",
 	autoRepairText = "Wenn ausgew\195\164hlt, wird deine Ausr\195\188stung automatisch repariert wenn m\195\182glich.",
 	
+	autoRepairGuildTitle = "Reparatur selbst zahlen", 
+	autoRepairGuildText = "Wenn ausgew\195\164hlt wird Broker_Garbage nicht auf Gildenkosten reparieren.",
+	
 	dropQualityTitle = "Item Qualit\195\164t",
 	dropQualityText = "W\195\164hle, bis zu welcher Qualit\195\164t Items zum L\195\182schen vorgeschlagen werden. Standard: Schlecht (0)",
 	

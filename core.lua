@@ -30,6 +30,7 @@ if not BG_GlobalDB or BG_GlobalDB == {} then
 		tooltipMaxHeight = 220,
 		tooltipNumItems = 10,
 		moneyLostByDeleting = 0,
+		neverRepairGuildBank = false,
 	}
 end
 
@@ -446,7 +447,7 @@ function BrokerGarbage:AutoSell()
 					BrokerGarbage:Debug("locked")
 					locked = true
 				end
-				sellValue = sellValue + (itemTable.value * itemTable.count)
+				sellValue = sellValue + itemTable.value
 				UseContainerItem(itemTable.bag, itemTable.slot)
 				i = i+1
 			end
@@ -459,7 +460,7 @@ function BrokerGarbage:AutoRepair()
 	if BG_GlobalDB.autoRepairAtVendor and CanMerchantRepair() then
 		cost = GetRepairAllCost()
 
-		if cost > 0 and GetGuildBankWithdrawMoney() >= cost  then
+		if cost > 0 and GetGuildBankWithdrawMoney() >= cost and not BG_GlobalDB.neverRepairGuildBank then
 			RepairAllItems(CanGuildBankRepair())
 		elseif cost > 0 then
 			RepairAllItems(0)
