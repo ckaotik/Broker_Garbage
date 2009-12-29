@@ -51,32 +51,28 @@ local function eventHandler(self, event, ...)
 		end
 		
 	elseif (locked or cost ~=0) and event == "PLAYER_MONEY" then
-		-- regular unlock		
-		local profit = sellValue and (GetMoney() - sellValue) or nil
-		BrokerGarbage:Debug("Current: "..BrokerGarbage:FormatMoney(GetMoney()))
+		-- regular unlock
 		
 		-- wrong player_money event
 		-- testing: add a span for wich we recognize this one as repair bill
-		if profit and cost ~= 0 and ((-1)*profit <= cost+2 and (-1)*profit >= cost-2) then 
+		if sellValue and cost ~= 0 and ((-1)*sellValue <= cost+2 and (-1)*sellValue >= cost-2) then 
 			BrokerGarbage:Debug("Not yet ... Waiting for actual money change.")
 			return 
 		end
 		
-		BrokerGarbage:Debug("Profit", profit, "Cost", cost)
-		
-		if profit and cost ~= 0 and BG_GlobalDB.autoRepairAtVendor and BG_GlobalDB.autoSellToVendor then
+		if sellValue and cost ~= 0 and BG_GlobalDB.autoRepairAtVendor and BG_GlobalDB.autoSellToVendor then
 			-- repair & auto-sell
 			BrokerGarbage:Print(format(BrokerGarbage.locale.sellAndRepair, 
 					BrokerGarbage:FormatMoney(sellValue), 
 					BrokerGarbage:FormatMoney(cost), 
-					BrokerGarbage:FormatMoney(profit)
+					BrokerGarbage:FormatMoney(sellValue - cost)
 			))
 			
 		elseif cost ~= 0 and BG_GlobalDB.autoRepairAtVendor then
 			-- repair only
 			BrokerGarbage:Print(format(BrokerGarbage.locale.repair, BrokerGarbage:FormatMoney(cost)))
 			
-		elseif profit and profit ~= 0 and BG_GlobalDB.autoSellToVendor then
+		elseif sellValue and BG_GlobalDB.autoSellToVendor then
 			-- autosell only
 			BrokerGarbage:Print(format(BrokerGarbage.locale.sell, BrokerGarbage:FormatMoney(sellValue)))
 		end
@@ -463,9 +459,10 @@ function BrokerGarbage:AutoRepair()
 	if BG_GlobalDB.autoRepairAtVendor and CanMerchantRepair() then
 		cost = GetRepairAllCost()
 
-		if cost > 0 then
-			RepairAllItems(0) -- CanGuildBankRepair() and 1 or 0)
-			-- GetGuildBankWithdrawMoney()
+		if cost > 0 and GetGuildBankWithdrawMoney() >= cost  then
+			RepairAllItems(CanGuildBankRepair())
+		elseif cost > 0 then
+			RepairAllItems(0)
 		end
 	else
 		cost = 0
