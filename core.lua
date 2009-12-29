@@ -1,20 +1,22 @@
 -- Broker_Garbage
 --   Author: Ckaotik (Raisa@EU-Die Todeskrallen)
--- created to replace/update GarbageFu for 3.2 and further provide LDB support
+-- created to replace/update GarbageFu for 3.x and further provide LDB support
+_, BrokerGarbage = ...
 
 -- setting up the LDB
 -- ---------------------------------------------------------
 local LibQTip = LibStub('LibQTip-1.0')
 
-BrokerGarbage = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Garbage")
-BrokerGarbage.type 	= "data source"
-BrokerGarbage.icon 	= "Interface\\Icons\\achievement_bg_returnxflags_def_wsg"
-BrokerGarbage.label = "Garbage"
-BrokerGarbage.text 	= "Junk, be gone!"
-BrokerGarbage.OnClick = function(...) BrokerGarbage:OnClick(...) end
-BrokerGarbage.OnEnter = function(self) BrokerGarbage:Tooltip(self) end
-BrokerGarbage.OnLeave = function(self) BrokerGarbage:HideTT(self)	end
-BrokerGarbage.OnTooltipShow = function(self,...) BrokerGarbage:Tooltip(self) end
+local LDB = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Garbage")
+LDB.type 	= "data source"
+LDB.icon 	= "Interface\\Icons\\achievement_bg_returnxflags_def_wsg"
+LDB.label	= "Garbage"
+LDB.text 	= BrokerGarbage.locale.label
+LDB.OnClick = function(...) BrokerGarbage:OnClick(...) end
+LDB.OnEnter = function(...) BrokerGarbage:Tooltip(...) end
+LDB.OnLeave = function(...) BrokerGarbage:HideTT(...) end
+LDB.OnTooltipShow = function(...) BrokerGarbage:Tooltip(...) end
+
 
 -- default saved variables
 if not BG_GlobalDB or BG_GlobalDB == {} then
@@ -32,7 +34,7 @@ if not BG_GlobalDB or BG_GlobalDB == {} then
 end
 
 -- internal locals
-local debug = true
+local debug = false
 local locked = false
 local loaded = false
 local oldMoney
@@ -43,8 +45,10 @@ BrokerGarbage.tt = nil
 -- event handler
 local function eventHandler(self, event, ...)
 	if event == "MERCHANT_SHOW" then
-		BrokerGarbage:AutoRepair()
-		BrokerGarbage:AutoSell()
+		if not IsShiftKeyDown() then
+			BrokerGarbage:AutoRepair()
+			BrokerGarbage:AutoSell()
+		end
 		
 	elseif (locked or cost ~=0) and event == "PLAYER_MONEY" then
 		-- regular unlock		
@@ -60,29 +64,21 @@ local function eventHandler(self, event, ...)
 		
 		BrokerGarbage:Debug("Profit", profit, "Cost", cost)
 		
-		if profit and cost ~= 0 then
+		if profit and cost ~= 0 and BG_GlobalDB.autoRepairAtVendor and BG_GlobalDB.autoSellToVendor then
 			-- repair & auto-sell
-			if abs(profit) > cost then
-				BrokerGarbage:Print(format("Sold trash for %s, repaired for %s. Profit made: %s.", 
-					BrokerGarbage:FormatMoney(profit), 
+			BrokerGarbage:Print(format(BrokerGarbage.locale.sellAndRepair, 
+					BrokerGarbage:FormatMoney(profit+cost), 
 					BrokerGarbage:FormatMoney(cost), 
-					BrokerGarbage:FormatMoney(profit-cost)
-				))
-			else
-				BrokerGarbage:Print(format("Sold trash for %s, repaired for %s. Lost %s.", 
-					BrokerGarbage:FormatMoney(cost+profit), 	-- profit
-					BrokerGarbage:FormatMoney(cost), 			-- cost
-					BrokerGarbage:FormatMoney((-1)*profit)		-- cost - profit
-				))
-			end
+					BrokerGarbage:FormatMoney(profit)
+			))
 			
-		elseif cost ~= 0 then
+		elseif cost ~= 0 and BG_GlobalDB.autoRepairAtVendor then
 			-- repair only
-			BrokerGarbage:Print(format("Repaired for %s.", BrokerGarbage:FormatMoney(cost)))
+			BrokerGarbage:Print(format(BrokerGarbage.locale.repair, BrokerGarbage:FormatMoney(cost)))
 			
-		elseif profit and profit ~= 0 then
+		elseif profit and profit ~= 0 and BG_GlobalDB.autoSellToVendor then
 			-- autosell only
-			BrokerGarbage:Print(format("Sold trash for %s.", BrokerGarbage:FormatMoney(profit)))
+			BrokerGarbage:Print(format(BrokerGarbage.locale.sell, BrokerGarbage:FormatMoney(profit)))
 		end
 		
 		oldMoney = nil
@@ -137,7 +133,12 @@ function BrokerGarbage:FormatMoney(amount)
 	if not amount then return "" end
 	
 	local signum
-	if amount < 0 then signum = "-" else signum = "" end
+	if amount < 0 then 
+		signum = "-"
+		amount = -amount
+	else 
+		signum = "" 
+	end
 	
 	local gold   = floor(amount / (100 * 100))
 	local silver = math.fmod(floor(amount / 100), 100)
@@ -151,14 +152,14 @@ function BrokerGarbage:FormatMoney(amount)
 
 	-- copied from Ara Broker Money
 	elseif BG_GlobalDB.showMoney == 2 then
-		if amount>9999 or amount<-9999 then
-			return format("|cffeeeeee%i|r|cffffd700g|r |cffeeeeee%.2i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r", floor(amount*.0001), floor(amount*.01)%100, amount%100 )
+		if amount>9999 then
+			return format(signum.."|cffeeeeee%i|r|cffffd700g|r |cffeeeeee%.2i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r", floor(amount*.0001), floor(amount*.01)%100, amount%100 )
 		
-		elseif amount > 99 or amount<  -99 then
-			return format("|cffeeeeee%i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r", floor(amount*.01), amount%100 )
+		elseif amount > 99 then
+			return format(signum.."|cffeeeeee%i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r", floor(amount*.01), amount%100 )
 		
 		else
-			return format("|cffeeeeee%i|r|cffeda55fc|r", amount)
+			return format(signum.."|cffeeeeee%i|r|cffeda55fc|r", amount)
 		end
 	
 	-- copied from Haggler
@@ -198,7 +199,7 @@ end
 
 -- basic functionality from here
 -- ---------------------------------------------------------
-function BrokerGarbage:Tooltip(wut)	
+function BrokerGarbage:Tooltip(wut)
 	-- Acquire a tooltip with 3 columns, respectively aligned to left, center and right	
 	BrokerGarbage.tt = LibQTip:Acquire("BrokerGarbage_TT", 3, "LEFT", "RIGHT", "RIGHT")
 	BrokerGarbage.tt:Clear()
@@ -214,11 +215,11 @@ function BrokerGarbage:Tooltip(wut)
 	
 	-- add header lines
 	BrokerGarbage.tt:SetHeaderFont(tooltipHFont)
-	BrokerGarbage.tt:AddHeader('Broker_Garbage', '', 'Right-Click for options')
+	BrokerGarbage.tt:AddHeader('Broker_Garbage', '', BrokerGarbage.locale.headerRightClick)
    
 	-- add info lines
 	BrokerGarbage.tt:SetFont(tooltipFont)
-	BrokerGarbage.tt:AddLine('SHIFT-Click: Destroy', '', 'CTRL-Click: Keep')
+	BrokerGarbage.tt:AddLine(BrokerGarbage.locale.headerShiftClick, '', BrokerGarbage.locale.headerCtrlClick)
 	BrokerGarbage.tt:AddSeparator(2)
    
 	-- shows up to n lines of deletable items
@@ -235,7 +236,7 @@ function BrokerGarbage:Tooltip(wut)
 	
 	-- add useful(?) information
 	BrokerGarbage.tt:AddSeparator(2)
-	BrokerGarbage.tt:AddLine('Money Lost:', '', BrokerGarbage:FormatMoney(BG_GlobalDB.moneyLostByDeleting))
+	BrokerGarbage.tt:AddLine(BrokerGarbage.locale.moneyLost, '', BrokerGarbage:FormatMoney(BG_GlobalDB.moneyLostByDeleting))
 	
 	
 	-- Use smart anchoring code to anchor the tooltip to our frame
@@ -278,7 +279,7 @@ function BrokerGarbage:OnClick(itemTable)
 		-- add to exclude list
 		BrokerGarbage:Debug("CTRL-Click!")
 		tinsert(BG_GlobalDB.exclude, itemTable.itemID)
-		BrokerGarbage:Print(select(2,GetItemInfo(itemTable.itemID)).." added to save list.")
+		BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSaveList, select(2,GetItemInfo(itemTable.itemID))))
 		BrokerGarbage:ScanInventory()
 		
 	elseif GetMouseButtonClicked() == "RightButton" then
@@ -359,7 +360,7 @@ function BrokerGarbage:Delete(itemLink, bag, slot)
 	PickupContainerItem(bag, slot)
 	DeleteCursorItem()					-- comment this line to prevent item deletion
 	
-	BrokerGarbage:Print(itemLink.." has been deleted.")
+	BrokerGarbage:Print(format(BrokerGarbage.locale.itemDeleted, itemLink))
 	BrokerGarbage:Debug(itemLink.." deleted. (bag "..bag..", slot "..slot..")")
 end
 
@@ -377,7 +378,7 @@ function BrokerGarbage:ScanInventory()
 				local quality = select(3,GetItemInfo(itemID))
 				
 				if canOpen and showSpam then
-					BrokerGarbage:Print("Please open your ".. select(2,GetItemInfo(itemID)) ..". It's in your bags, stealing your space!")
+					BrokerGarbage:Print(format(BrokerGarbage.locale.openPlease, select(2,GetItemInfo(itemID))))
 				end
 				
 				if quality and (quality <= BG_GlobalDB.dropQuality or BrokerGarbage:Find(BG_GlobalDB.include, itemID)) 
@@ -404,9 +405,9 @@ function BrokerGarbage:ScanInventory()
 	end
 
 	if cheapestItem then
-		BrokerGarbage.text = select(2,GetItemInfo(cheapestItem.itemID)).."x".. cheapestItem.count .." (".. BrokerGarbage:FormatMoney(cheapestItem.value) ..")"
+		LDB.text = select(2,GetItemInfo(cheapestItem.itemID)).."x".. cheapestItem.count .." (".. BrokerGarbage:FormatMoney(cheapestItem.value) ..")"
 	else
-		BrokerGarbage.text = "Junk, be gone!"
+		LDB.text = BrokerGarbage.locale.label
 	end
 end
 
@@ -475,6 +476,7 @@ end
 
 -- Wishlist
 -- ---------------------------------------------------------
+-- Notice: When trying to stop BG from auto selling/repairing, hold Shift when adressing a merchant
 -- show lootable containers in your bag! make "open items" not as spammy
 -- increase/decrease loot treshold with mousewheel
 -- restack if necessary

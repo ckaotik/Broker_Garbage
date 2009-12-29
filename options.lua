@@ -1,3 +1,5 @@
+_, BrokerGarbage = ...
+
 BrokerGarbage.options = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
 BrokerGarbage.options.name = "Broker_Garbage"
 -- no, you don't want to see this until it's done
@@ -14,10 +16,10 @@ BrokerGarbage.quality = {
 	}
 
 BrokerGarbage.options:SetScript("OnShow", function(self)
-	local title, subtitle = LibStub("tekKonfig-Heading").new(self, "Broker_Garbage", "Suit yourself to adjust these settings to your liking.")
+	local title, subtitle = LibStub("tekKonfig-Heading").new(self, "Broker_Garbage", BrokerGarbage.locale.subTitle)
 
-	local autosell = LibStub("tekKonfig-Checkbox").new(self, nil, "Auto sell", "TOPLEFT", subtitle, "BOTTOMLEFT", -2, -4)
-	autosell.tiptext = "Toggles whether to automatically sell your gray items when at a vendor."
+	local autosell = LibStub("tekKonfig-Checkbox").new(self, nil, BrokerGarbage.locale.autoSellTitle, "TOPLEFT", subtitle, "BOTTOMLEFT", -2, -4)
+	autosell.tiptext = BrokerGarbage.locale.autoSellText
 	autosell:SetChecked(BG_GlobalDB.autoSellToVendor)
 	local checksound = autosell:GetScript("OnClick")
 	autosell:SetScript("OnClick", function(self)
@@ -25,8 +27,8 @@ BrokerGarbage.options:SetScript("OnShow", function(self)
 		BG_GlobalDB.autoSellToVendor = not BG_GlobalDB.autoSellToVendor
 	end)
 	
-	local autorepair = LibStub("tekKonfig-Checkbox").new(self, nil, "Auto repair", "TOPLEFT", subtitle, "BOTTOMLEFT", 178, -4)
-	autorepair.tiptext = "Toggles whether to automatically repair your gear when at a vendor."
+	local autorepair = LibStub("tekKonfig-Checkbox").new(self, nil, BrokerGarbage.locale.autoRepairTitle, "TOPLEFT", subtitle, "BOTTOMLEFT", 178, -4)
+	autorepair.tiptext = BrokerGarbage.locale.autoRepairText
 	autorepair:SetChecked(BG_GlobalDB.autoRepairAtVendor)
 	local checksound = autorepair:GetScript("OnClick")
 	autorepair:SetScript("OnClick", function(self)
@@ -34,8 +36,8 @@ BrokerGarbage.options:SetScript("OnShow", function(self)
 		BG_GlobalDB.autoRepairAtVendor = not BG_GlobalDB.autoRepairAtVendor
 	end)
 
-	local quality = LibStub("tekKonfig-Slider").new(self, "Maximum drop quality", 0, 6, "TOPLEFT", autosell, "BOTTOMLEFT", 2, -10)
-	quality.tiptext = "Select up to which treshold items may be listed as deletable. Default: Poor (0)"
+	local quality = LibStub("tekKonfig-Slider").new(self, BrokerGarbage.locale.dropQualityTitle, 0, 6, "TOPLEFT", autosell, "BOTTOMLEFT", 2, -10)
+	quality.tiptext = BrokerGarbage.locale.dropQualityText
 	quality:SetWidth(200)
 	quality:SetValueStep(1);
 	quality:SetValue(BG_GlobalDB.dropQuality)
@@ -49,22 +51,22 @@ BrokerGarbage.options:SetScript("OnShow", function(self)
 	end)
 	
 	local testValue = 130007
-	local moneyFormat = LibStub("tekKonfig-Slider").new(self, "Money Format", 0, 4, "LEFT", quality, "RIGHT", 40, 0)
-	moneyFormat.tiptext = "Change the way money (i.e. gold/silver/copper) is being displayed. Default: 2"
+	local moneyFormat = LibStub("tekKonfig-Slider").new(self, BrokerGarbage.locale.moneyFormatTitle, 0, 4, "LEFT", quality, "RIGHT", 40, 0)
+	moneyFormat.tiptext = BrokerGarbage.locale.moneyFormatText
 	moneyFormat:SetWidth(200)
 	moneyFormat:SetValueStep(1);
 	moneyFormat:SetValue(BG_GlobalDB.showMoney)
 	moneyFormat.text = moneyFormat:CreateFontString("$parentCenterText", "ARTWORK", "GameFontHighlightSmall")
 	moneyFormat.text:SetPoint("TOP", moneyFormat, "BOTTOM", 0, 3)
-	moneyFormat.text:SetText(BrokerGarbage.FormatMoney(testValue))
+	moneyFormat.text:SetText(BrokerGarbage:FormatMoney(testValue))
 	moneyFormat:SetScript("OnValueChanged", function(self)
 		BG_GlobalDB.showMoney = self:GetValue()
-		self.text:SetText(BrokerGarbage.FormatMoney(testValue))
+		self.text:SetText(BrokerGarbage:FormatMoney(testValue))
 	end)
 	
 	
-	local ttMaxItems = LibStub("tekKonfig-Slider").new(self, "Max. Items", 0, 50, "TOPLEFT", quality, "BOTTOMLEFT", 2, -15)
-	ttMaxItems.tiptext = "Set how many lines you would like to have displayed in the tooltip. Default: 10"
+	local ttMaxItems = LibStub("tekKonfig-Slider").new(self, BrokerGarbage.locale.maxItemsTitle, 0, 50, "TOPLEFT", quality, "BOTTOMLEFT", 2, -15)
+	ttMaxItems.tiptext = BrokerGarbage.locale.maxItemsText
 	ttMaxItems:SetWidth(200)
 	ttMaxItems:SetValueStep(1);
 	ttMaxItems:SetValue(BG_GlobalDB.tooltipNumItems)
@@ -77,8 +79,8 @@ BrokerGarbage.options:SetScript("OnShow", function(self)
 	end)
 	
 	
-	local ttMaxHeight = LibStub("tekKonfig-Slider").new(self, "Max. Height", 0, 400, "LEFT", ttMaxItems, "RIGHT", 40, 0)
-	ttMaxHeight.tiptext = "Set the height of the tooltip. Default: 220"
+	local ttMaxHeight = LibStub("tekKonfig-Slider").new(self, BrokerGarbage.locale.maxHeightTitle, 0, 400, "LEFT", ttMaxItems, "RIGHT", 40, 0)
+	ttMaxHeight.tiptext = BrokerGarbage.locale.maxHeightText
 	ttMaxHeight:SetWidth(200)
 	ttMaxHeight:SetValueStep(10);
 	ttMaxHeight:SetValue(BG_GlobalDB.tooltipMaxHeight)
@@ -92,16 +94,16 @@ BrokerGarbage.options:SetScript("OnShow", function(self)
 	
 	
 	local rescan = LibStub("tekKonfig-Button").new_small(self, "TOPLEFT", ttMaxItems, "BOTTOMLEFT", 0, -50)
-	rescan:SetText("Rescan Inventory")
-	rescan.tiptext = "Click to manually rescan you inventory. Should generally not be needed."
+	rescan:SetText(BrokerGarbage.locale.rescanInventory)
+	rescan.tiptext = BrokerGarbage.locale.rescanInventoryText
 	rescan:SetWidth(150) rescan:SetHeight(18)
 	rescan:SetScript("OnClick", function()
 		BrokerGarbage:ScanInventory()
 	end)
 	
 	local resetmoneylost = LibStub("tekKonfig-Button").new_small(self, "LEFT", rescan, "RIGHT", 40, 0)
-	resetmoneylost:SetText("Reset Money Lost Data")
-	resetmoneylost.tiptext = "Click to reset the amount of money lost by deleting items."
+	resetmoneylost:SetText(BrokerGarbage.locale.resetMoneyLost)
+	resetmoneylost.tiptext = BrokerGarbage.locale.resetMoneyLostText
 	resetmoneylost:SetWidth(150) resetmoneylost:SetHeight(18)
 	resetmoneylost:SetScript("OnClick", function()
 		BrokerGarbage:ResetMoneyLost()
@@ -109,16 +111,16 @@ BrokerGarbage.options:SetScript("OnShow", function(self)
 	
 	
 	local excludeReset = LibStub("tekKonfig-Button").new_small(self, "TOPLEFT", rescan, "BOTTOMLEFT", 0, -50)
-	excludeReset:SetText("Empty Exclude List")
-	excludeReset.tiptext = "Click to clear your exclude list."
+	excludeReset:SetText(BrokerGarbage.locale.emptyExcludeList)
+	excludeReset.tiptext = BrokerGarbage.locale.emptyExcludeListText
 	excludeReset:SetWidth(150) excludeReset:SetHeight(18)
 	excludeReset:SetScript("OnClick", function()
 		BG_GlobalDB.exclude = {}
 	end)
 
 	local includeReset = LibStub("tekKonfig-Button").new_small(self, "TOPLEFT", excludeReset, "BOTTOMLEFT", 0, -10)
-	includeReset:SetText("Empty Include List")
-	includeReset.tiptext = "Click to clear your include list."
+	includeReset:SetText(BrokerGarbage.locale.emptyIncludeList)
+	includeReset.tiptext = BrokerGarbage.locale.emptyIncludeListText
 	includeReset:SetWidth(150) includeReset:SetHeight(18)
 	includeReset:SetScript("OnClick", function()
 		BG_GlobalDB.include = {}
@@ -133,5 +135,3 @@ end)
 
 InterfaceOptions_AddCategory(BrokerGarbage.options)
 LibStub("tekKonfig-AboutPanel").new("Broker_Garbage", "Broker_Garbage")
-
--- formatmoney is weird - how is testValue never handed over?
