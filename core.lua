@@ -36,7 +36,7 @@ end
 if not BG_GlobalDB.neverRepairGuildBank then BG_GlobalDB.neverRepairGuildBank = false end
 
 -- internal locals
-local debug = true
+local debug = false
 local locked = false
 local loaded = false
 local sellValue = 0
