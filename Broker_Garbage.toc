@@ -1,4 +1,4 @@
-## Interface: 30300
+﻿## Interface: 30300
 ## Dependencies: 
 ## OptionalDeps: Auctionator, AuctionLite, Auctioneer
 ## SavedVariables: BG_GlobalDB
@@ -6,11 +6,11 @@
 
 ## Title: Broker_Garbage
 ## Notes: Full bags no more! Find your least valuable item .. and destroy it!
-## Notes-deDE: Endlich wieder Platz! Finde dein billigstes Item ... und zerst�re es.
-## Author: ckaotik (Raisa@EU-Die Todeskrallen)
-## Version: 3.3v1
+## Notes-deDE: Endlich wieder Platz! Finde dein billigstes Item ... und zerstöre es.
+## Author: ckaotik
+## Version: 3.3v4
 ## X-Category: Inventory
-## X-Credits: GarbageFu
+## X-Credits: GarbageFu, Tekkub
 
 Libs\LibStub.lua
 Libs\LibQTip-1.0.lua

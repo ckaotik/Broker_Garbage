@@ -15,6 +15,7 @@ BrokerGarbage.locale = {
 	sell = "M\195\188ll verkauft f\195\188r %s.",
 	
 	addedToSaveList = "%s zur Ausnahmeliste hinzugef\195\188gt.",
+	addedToDestroyList = "%s zur Einschlussliste hinzugef\195\188gt.",
 	itemDeleted = "%s wurde gel\195\182scht.",
 	
 	openPlease = "Bitte \195\182ffne %s - es nimmt unn\195\182tig Platz weg.",
@@ -51,7 +52,7 @@ BrokerGarbage.locale = {
 	rescanInventory = "Inventar neu scannen",
 	rescanInventoryText = "Klicke um dein Inventar neu zu scannen. Dies sollte normalerweise nicht n\195\182tig sein!",
 	
-	resetMoneyLost = "'Verlorenes Geld' zur\195\188cksetzen",
+	resetMoneyLost = "'Verlorenes Geld' leeren",
 	resetMoneyLostText = "Klicke um die Statistik 'Verlorenes Geld' zur\195\188ckzusetzen.",
 	
 	emptyExcludeList = "Ausschlussliste leeren",
@@ -59,6 +60,22 @@ BrokerGarbage.locale = {
 	
 	emptyIncludeList = "Einschlussliste leeren",
 	emptyIncludeListText = "Klicke um deine Einschlussliste zu leeren.",
+	
+	-- List Options Panel
+	LOTitle = "Listen-Optionen",
+	LOSubTitle = "Stelle hier deine Listen ein. Um Items hinzuzuf\195\188gen, zieh sie auf das jeweilige '+'. Um sie zu entfernen, w\195\164hle sie aus und klicke auf '-'.",
+	
+	LOExcludeHeader = "Ausschlussliste - Items hier werden nie verkauft/gel\195\182scht.",
+	LOExcludePlusTT = "Items hinzuf\195\188gen, indem du sie hierher ziehst/hier ablegst",
+	LOExcludeRefreshTT = "Klicke, um die Anzeige zu aktualisieren",
+	LOExcludeMinusTT = "W\195\164hle Items, die du entfernen willst. Dann klicke hier.",
+	LOExcludeEmptyTT = "Klicke, um die Ausschlussliste v\195\182llig zu leeren.\nAchtung!",
+	
+	LOIncludeHeader = "Einschlussliste - Items hier werden zum L\195\182schen vorgeschlagen.",
+	LOIncludePlusTT = "Items hinzuf\195\188gen, indem du sie hierher ziehst/hier ablegst",
+	LOIncludeRefreshTT = "Klicke, um die Anzeige zu aktualisieren",
+	LOIncludeMinusTT = "W\195\164hle Items, die du entfernen willst. Dann klicke hier.",
+	LOIncludeEmptyTT = "Klicke, um die Einschlussliste v\195\182llig zu leeren.\nAchtung!",
 }
 
 end

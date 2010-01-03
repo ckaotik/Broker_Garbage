@@ -14,8 +14,7 @@ LDB.label	= "Garbage"
 LDB.text 	= BrokerGarbage.locale.label
 LDB.OnClick = function(...) BrokerGarbage:OnClick(...) end
 LDB.OnEnter = function(...) BrokerGarbage:Tooltip(...) end
-LDB.OnLeave = function(...) BrokerGarbage:HideTT(...) end
-LDB.OnTooltipShow = function(...) BrokerGarbage:Tooltip(...) end
+LDB.OnMouseWheel = function(...) BrokerGarbage:OnScroll(...) end
 
 
 -- default saved variables
@@ -34,11 +33,13 @@ if not BG_GlobalDB or BG_GlobalDB == {} then
 	}
 end
 
+if not BG_GlobalDB.neverRepairGuildBank then BG_GlobalDB.neverRepairGuildBank = false end
+
 -- internal locals
-local debug = false
+local debug = true
 local locked = false
 local loaded = false
-local sellValue
+local sellValue = 0
 local cost = 0
 
 BrokerGarbage.tt = nil
@@ -56,12 +57,12 @@ local function eventHandler(self, event, ...)
 		
 		-- wrong player_money event
 		-- testing: add a span for wich we recognize this one as repair bill
-		if sellValue and cost ~= 0 and ((-1)*sellValue <= cost+2 and (-1)*sellValue >= cost-2) then 
+		if sellValue ~= 0 and cost ~= 0 and ((-1)*sellValue <= cost+2 and (-1)*sellValue >= cost-2) then 
 			BrokerGarbage:Debug("Not yet ... Waiting for actual money change.")
 			return 
 		end
 		
-		if sellValue and cost ~= 0 and BG_GlobalDB.autoRepairAtVendor and BG_GlobalDB.autoSellToVendor then
+		if sellValue ~= 0 and cost ~= 0 and BG_GlobalDB.autoRepairAtVendor and BG_GlobalDB.autoSellToVendor then
 			-- repair & auto-sell
 			BrokerGarbage:Print(format(BrokerGarbage.locale.sellAndRepair, 
 					BrokerGarbage:FormatMoney(sellValue), 
@@ -73,12 +74,12 @@ local function eventHandler(self, event, ...)
 			-- repair only
 			BrokerGarbage:Print(format(BrokerGarbage.locale.repair, BrokerGarbage:FormatMoney(cost)))
 			
-		elseif sellValue and BG_GlobalDB.autoSellToVendor then
+		elseif sellValue ~= 0 and BG_GlobalDB.autoSellToVendor then
 			-- autosell only
 			BrokerGarbage:Print(format(BrokerGarbage.locale.sell, BrokerGarbage:FormatMoney(sellValue)))
 		end
 		
-		sellValue = nil
+		sellValue = 0
 		cost = 0
 		locked = false
 		BrokerGarbage:Debug("lock released")
@@ -87,7 +88,7 @@ local function eventHandler(self, event, ...)
 		
 	elseif locked and event == "MERCHANT_CLOSED" then
 		-- fallback unlock
-		sellValue = nil
+		sellValue = 0
 		cost = 0
 		locked = false
 		BrokerGarbage:Debug("lock released")
@@ -190,6 +191,12 @@ function BrokerGarbage:Find(table, value)
 	return false
 end
 
+function BrokerGarbage:Count(table)
+  local i = 0
+  for _, _ in pairs(table) do i = i + 1 end
+  return i
+end
+
 function BrokerGarbage:ResetMoneyLost()
 	BG_GlobalDB.moneyLostByDeleting = 0
 end
@@ -226,7 +233,7 @@ function BrokerGarbage:Tooltip(wut)
 		-- adds lines: itemLink, count, itemPrice
 		lineNum = BrokerGarbage.tt:AddLine(
 			select(2,GetItemInfo(cheapList[i].itemID)), 
-			cheapList[i].count, 
+			cheapList[i].count,
 			BrokerGarbage:FormatMoney(cheapList[i].value))
 		BrokerGarbage.tt:SetLineScript(lineNum, "OnMouseDown", BrokerGarbage.OnClick, cheapList[i])
 	end
@@ -238,6 +245,7 @@ function BrokerGarbage:Tooltip(wut)
 	
 	-- Use smart anchoring code to anchor the tooltip to our frame
 	BrokerGarbage.tt:SmartAnchorTo(wut)
+	BrokerGarbage.tt:SetAutoHideDelay(0.25, wut)
 
 	-- Show it, et voilà !
 	BrokerGarbage.tt:Show()
@@ -245,7 +253,9 @@ function BrokerGarbage:Tooltip(wut)
 end
 
 function BrokerGarbage:HideTT()
-	if BrokerGarbage.tt and MouseIsOver(BrokerGarbage.tt) then return end
+	if BrokerGarbage.tt and BrokerGarbage.tt:IsMouseOver() then 
+		return 
+	end
 	BrokerGarbage.tt:Hide()
 	
 	-- Release the tooltip
@@ -253,8 +263,14 @@ function BrokerGarbage:HideTT()
 	BrokerGarbage.tt = nil
 end
 
+function BrokerGarbage:OnScroll(self, direction)
+	BrokerGarbage:Debug("Scroll!", direction)
+	--BG_GlobalDB.dropQuality
+end
+
 -- onClick function for when you ... click
-function BrokerGarbage:OnClick(itemTable)
+function BrokerGarbage:OnClick(itemTable, button)
+	BrokerGarbage:Debug("Click!", button)
 	-- just in case our drop list is empty
 	if not itemTable then itemTable = {} end
 
@@ -275,17 +291,19 @@ function BrokerGarbage:OnClick(itemTable)
 	elseif itemTable ~= {} and IsControlKeyDown() then
 		-- add to exclude list
 		BrokerGarbage:Debug("CTRL-Click!")
-		tinsert(BG_GlobalDB.exclude, itemTable.itemID)
+		--if not BrokerGarbage:Find(BG_GlobalDB.exclude, itemTable.itemID) then tinsert(BG_GlobalDB.exclude, itemTable.itemID) end
+		BG_GlobalDB.exclude[itemTable.itemID] = true
 		BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSaveList, select(2,GetItemInfo(itemTable.itemID))))
 		BrokerGarbage:ScanInventory()
 		
-	elseif GetMouseButtonClicked() == "RightButton" then
+	elseif button == "RightButton" then
 		-- open config
 		InterfaceOptionsFrame_OpenToCategory(BrokerGarbage.options)
 		BrokerGarbage:ScanInventory()
 		
 	else
 		-- do nothing
+		BrokerGarbage:ScanInventory()
 	end
 end
 
@@ -379,8 +397,10 @@ function BrokerGarbage:ScanInventory()
 				end
 				
 				if quality and (quality <= BG_GlobalDB.dropQuality or BrokerGarbage:Find(BG_GlobalDB.include, itemID)) 
-				  and not BrokerGarbage:Find(BG_GlobalDB.exclude, itemID) then
+				  and not BG_GlobalDB.exclude[itemID] then
+				  --and not BrokerGarbage:Find(BG_GlobalDB.exclude, itemID) then
 					local value = BrokerGarbage:GetItemValue(itemLink,count)
+					if BrokerGarbage:Find(BG_GlobalDB.include, itemID) then value = 1 end
 					if value ~= 0 then
 						local currentItem = {
 							bag = container,
@@ -477,6 +497,7 @@ end
 -- show lootable containers in your bag! make "open items" not as spammy
 -- increase/decrease loot treshold with mousewheel
 -- restack if necessary
+-- force vendor price (food and stuff extremely overprice in the AH)
 -- make "autosell" list - e.g. mages selling dropped water/food [quickfix: use include list]
 
 -- local selectiveLooting = false

@@ -8,7 +8,8 @@ BrokerGarbage.locale = {
 	repair = "Repaired for %s.",
 	sell = "Sold trash for %s.",
 	
-	addedToSaveList = "%s added to save list.",
+	addedToSaveList = "%s has been added to the save list.",
+	addedToDestroyList = "%s has been added to the destroy list.",
 	itemDeleted = "%s has been deleted.",
 	
 	openPlease = "Please open your %s. It's in your bags, stealing your space!",
@@ -53,4 +54,20 @@ BrokerGarbage.locale = {
 	
 	emptyIncludeList = "Empty Include List",
 	emptyIncludeListText = "Click to clear your include list.",
+	
+	-- List Options Panel
+	LOTitle = "List Options",
+	LOSubTitle = "Set up your master lists here. To add Items, drag them over the corresponding '+' icon, to remove them select them and klick the '-'.",
+	
+	LOExcludeHeader = "Exclude List - these items will never be sold/deleted.",
+	LOExcludePlusTT = "Add items to the list by dragging/placing them on me!",
+	LOExcludeRefreshTT = "Click to refresh the Exclude List display",
+	LOExcludeMinusTT = "Select items you want to remove, then click here.",
+	LOExcludeEmptyTT = "Click to fully empty your Exclude List. Caution!",
+	
+	LOIncludeHeader = "Include List - these items will be suggested to be deleted.",
+	LOIncludePlusTT = "Add items to the list by dragging/placing them on me!",
+	LOIncludeRefreshTT = "Click to refresh the Include List display",
+	LOIncludeMinusTT = "Select items you want to remove, then click here.",
+	LOIncludeEmptyTT = "Click to fully empty your Include List. Caution!",
 }
