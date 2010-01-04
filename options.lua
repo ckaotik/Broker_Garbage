@@ -258,7 +258,6 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	
 	
 	local numCols = 8
-	local offset = 0
 	local function ListOptionsUpdate(listName)
 		local list, box, parent, buttonList
 		if listName == "include" then
@@ -303,7 +302,6 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 
 				iconbutton:SetScript("OnEnter", ShowTooltip)
 				iconbutton:SetScript("OnLeave", HideTooltip)
-				--iconbutton:SetScript("OnClick", OnClick)
 
 				if index == 1 then
 					-- place first icon
@@ -317,6 +315,7 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 				end
 				
 				buttonList[index] = iconbutton
+				ListOptionsUpdate(listName)
 			end
 			
 			index = index + 1
@@ -331,7 +330,8 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	end
 	
 	local function ItemDrop(self)
-		_, itemID, link = GetCursorInfo()
+		local type, itemID, link = GetCursorInfo()
+		if not type == "item" then return end
 		
 		if self == group2 or self == includeBox or self == plus2 then
 			BG_GlobalDB.include[itemID] = true
@@ -340,7 +340,7 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 			ClearCursor()
 		elseif self == group or self == excludeBox or self == plus then
 			BG_GlobalDB.exclude[itemID] = true
-			BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSaveList), link)
+			BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSaveList, link))
 			ListOptionsUpdate("exclude")
 			ClearCursor()
 		end
@@ -384,13 +384,15 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 		elseif self == plus then
 			BrokerGarbage:Debug("Include1")
 			ItemDrop(self)
+			ListOptionsUpdate("exclude")
 		elseif self == plus2 then
 			BrokerGarbage:Debug("Include2")
+			ListOptionsUpdate("include")
 			ItemDrop(self)
 		end
 		
-		ListOptionsUpdate("include")
-		ListOptionsUpdate("exclude")
+		--ListOptionsUpdate("include")
+		--ListOptionsUpdate("exclude")
 	end
 	
 	refresh:SetScript("OnClick", OnClick)
@@ -434,7 +436,8 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	plus2:SetScript("OnMouseDown", ItemDrop)
 	
 	buttons = {}
-	ListOptionsUpdate()
+	ListOptionsUpdate("include")
+	ListOptionsUpdate("exclude")
 	frame:SetScript("OnShow", nil)
 	BrokerGarbage.listOptions:SetScript("OnShow", ListOptionsUpdate)
 end)

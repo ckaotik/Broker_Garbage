@@ -16,24 +16,27 @@ LDB.OnClick = function(...) BrokerGarbage:OnClick(...) end
 LDB.OnEnter = function(...) BrokerGarbage:Tooltip(...) end
 LDB.OnMouseWheel = function(...) BrokerGarbage:OnScroll(...) end
 
-
 -- default saved variables
-if not BG_GlobalDB or BG_GlobalDB == {} then
-	BG_GlobalDB = {
-		dropQuality = 0,
-		exclude = {},
-		include = {},
-		showMoney = 2,
-		autoSellToVendor = true,
-		autoRepairAtVendor = true,
-		tooltipMaxHeight = 220,
-		tooltipNumItems = 10,
-		moneyLostByDeleting = 0,
-		neverRepairGuildBank = false,
-	}
-end
+BrokerGarbage.defaultSettings = {
+	dropQuality = 0,
+	exclude = {},
+	include = {},
+	showMoney = 2,
+	autoSellToVendor = true,
+	autoRepairAtVendor = true,
+	tooltipMaxHeight = 220,
+	tooltipNumItems = 10,
+	moneyLostByDeleting = 0,
+	neverRepairGuildBank = false,
+}
 
-if not BG_GlobalDB.neverRepairGuildBank then BG_GlobalDB.neverRepairGuildBank = false end
+-- check for settings
+if not BG_GlobalDB then BG_GlobalDB = {} end
+for key, value in pairs(BrokerGarbage.defaultSettings) do
+	if BG_GlobalDB[key] == nil then
+		BG_GlobalDB[key] = value
+	end
+end
 
 -- internal locals
 local debug = false
@@ -204,7 +207,7 @@ end
 -- basic functionality from here
 -- ---------------------------------------------------------
 function BrokerGarbage:Tooltip(wut)
-	-- Acquire a tooltip with 3 columns, respectively aligned to left, center and right	
+	-- Acquire a tooltip with 3 columns, respectively aligned to left, right and right	
 	BrokerGarbage.tt = LibQTip:Acquire("BrokerGarbage_TT", 3, "LEFT", "RIGHT", "RIGHT")
 	BrokerGarbage.tt:Clear()
    
@@ -271,30 +274,27 @@ end
 -- onClick function for when you ... click
 function BrokerGarbage:OnClick(itemTable, button)
 	BrokerGarbage:Debug("Click!", button)
-	-- just in case our drop list is empty
-	if not itemTable then itemTable = {} end
-
-	if type(itemTable) ~= "table" then
+	
+	if itemTable.data.label == "Garbage" then
 		cheapList = BrokerGarbage:GetCheapest()
-		BrokerGarbage:OnClick(cheapList[1])
-		return
-	end
+		itemTable = cheapList[1] or nil
+	end	
 	
 	-- handle different clicks
-	if itemTable ~= {} and IsShiftKeyDown() then
+	if itemTable and IsShiftKeyDown() then
 		-- delete item
 		BrokerGarbage:Debug("SHIFT-Click!")
 		BrokerGarbage:Delete(select(2,GetItemInfo(itemTable.itemID)), itemTable.bag, itemTable.slot)
 		BG_GlobalDB.moneyLostByDeleting = BG_GlobalDB.moneyLostByDeleting + itemTable.value
 		BrokerGarbage:ScanInventory()
 		
-	elseif itemTable ~= {} and IsControlKeyDown() then
+	elseif itemTable and IsControlKeyDown() then
 		-- add to exclude list
 		BrokerGarbage:Debug("CTRL-Click!")
-		--if not BrokerGarbage:Find(BG_GlobalDB.exclude, itemTable.itemID) then tinsert(BG_GlobalDB.exclude, itemTable.itemID) end
 		BG_GlobalDB.exclude[itemTable.itemID] = true
 		BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSaveList, select(2,GetItemInfo(itemTable.itemID))))
 		BrokerGarbage:ScanInventory()
+		BrokerGarbage:Debug("CTRL-Click!", "Ende")
 		
 	elseif button == "RightButton" then
 		-- open config
@@ -396,11 +396,11 @@ function BrokerGarbage:ScanInventory()
 					BrokerGarbage:Print(format(BrokerGarbage.locale.openPlease, select(2,GetItemInfo(itemID))))
 				end
 				
-				if quality and (quality <= BG_GlobalDB.dropQuality or BrokerGarbage:Find(BG_GlobalDB.include, itemID)) 
+				if quality and (quality <= BG_GlobalDB.dropQuality or BG_GlobalDB.include[itemID]) 
 				  and not BG_GlobalDB.exclude[itemID] then
 				  --and not BrokerGarbage:Find(BG_GlobalDB.exclude, itemID) then
 					local value = BrokerGarbage:GetItemValue(itemLink,count)
-					if BrokerGarbage:Find(BG_GlobalDB.include, itemID) then value = 1 end
+					if BG_GlobalDB.include[itemID] then value = 1 end
 					if value ~= 0 then
 						local currentItem = {
 							bag = container,
@@ -462,7 +462,7 @@ function BrokerGarbage:AutoSell()
 		sellValue = 0
 		for _, itemTable in pairs(BrokerGarbage.inventory) do
 			if (itemTable.quality == 0 and not BrokerGarbage:Find(BG_GlobalDB.exclude, itemTable.itemID)) 
-			  or BrokerGarbage:Find(BG_GlobalDB.include, itemTable.itemID) then
+			  or BG_GlobalDB.include[itemTable.itemID] then
 				if i == 1 then					
 					BrokerGarbage:Debug("locked")
 					locked = true
