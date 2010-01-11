@@ -24,18 +24,31 @@ BrokerGarbage.locale = {
 	headerRightClick = "Rechts-Klick \195\182ffnet Optionen",
 	headerShiftClick = "SHIFT-Klick: Zerst\195\182ren",
 	headerCtrlClick = "STRG-Klick: Behalten",
-	moneyLost = "Geld verloren:",
+	moneyLost = "Gold verloren:",
+	moneyEarned = "Gold verdient:",
+	noItems = "Keine Items zum L\195\182schen.",
+	
+	autoSellTooltip = "Graue Items verkaufen.",
 	
 	-- Options Frame
 	subTitle = "M\195\182chtest du einmal nicht automatisch verkaufen / reparieren? \nHalte SHIFT gedr\195\188ckt, wenn du den H\195\164ndler ansprichst!",
 	autoSellTitle = "Automatisch Verkaufen",
 	autoSellText = "Wenn ausgew\195\164hlt, werden graue Gegenst\195\164nde automatisch beim H\195\164ndler verkauft.",
 	
+	showAutoSellIconTitle = "Icon anzeigen",
+	showAutoSellIconText = "Wenn ausgew\195\164hlt, wird bei H\195\164ndlern ein Icon zum automatischen Verkaufen angezeigt.",
+	
 	autoRepairTitle = "Automatisch Reparieren",
 	autoRepairText = "Wenn ausgew\195\164hlt, wird deine Ausr\195\188stung automatisch repariert wenn m\195\182glich.",
 	
 	autoRepairGuildTitle = "Reparatur selbst zahlen", 
-	autoRepairGuildText = "Wenn ausgew\195\164hlt wird Broker_Garbage nicht auf Gildenkosten reparieren.",
+	autoRepairGuildText = "Wenn ausgew\195\164hlt, wird Broker_Garbage nicht auf Gildenkosten reparieren.",
+	
+	showLostTitle = "'Verlorenes Gold' zeigen",
+	showLostText = "Wenn ausgew\195\164hlt, wird im Tooltip die Zeile 'Verlorenes Gold' gezeigt.",
+	
+	showEarnedTitle = "'Verdientes Gold' zeigen",
+	showEarnedText = "Wenn ausgew\195\164hlt, wird im Tooltip die Zeile 'Verdientes Gold' gezeigt.",
 	
 	dropQualityTitle = "Item Qualit\195\164t",
 	dropQualityText = "W\195\164hle, bis zu welcher Qualit\195\164t Items zum L\195\182schen vorgeschlagen werden. Standard: Schlecht (0)",
@@ -54,6 +67,9 @@ BrokerGarbage.locale = {
 	
 	resetMoneyLost = "'Verlorenes Geld' leeren",
 	resetMoneyLostText = "Klicke um die Statistik 'Verlorenes Geld' zur\195\188ckzusetzen.",
+	
+	resetMoneyEarned = "'Verdientes Geld' leeren",
+	resetMoneyEarnedText = "Klicke um die Statistik 'Verdientes Geld' zur\195\188ckzusetzen.",
 	
 	emptyExcludeList = "Ausschlussliste leeren",
 	emptyExcludeListText = "Klicke um deine Ausschlussliste zu leeren.",

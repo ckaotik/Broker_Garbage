@@ -15,6 +15,7 @@ BrokerGarbage.options = CreateFrame("Frame", "BrokerGarbageOptionsFrame", Interf
 BrokerGarbage.options.name = addonName
 BrokerGarbage.options:Hide()
 
+-- list options panel
 BrokerGarbage.listOptions = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
 BrokerGarbage.listOptions.name = BrokerGarbage.locale.LOTitle
 BrokerGarbage.listOptions.parent = addonName
@@ -25,6 +26,7 @@ BrokerGarbage.listButtons = {
 	exclude = {},
 }
 
+-- show me!
 BrokerGarbage.options:SetScript("OnShow", function(frame)
 
 	local title, subtitle = LibStub("tekKonfig-Heading").new(BrokerGarbage.options, addonName, BrokerGarbage.locale.subTitle)
@@ -34,8 +36,17 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	autosell:SetChecked(BG_GlobalDB.autoSellToVendor)
 	local checksound = autosell:GetScript("OnClick")
 	autosell:SetScript("OnClick", function(checksound)
-		checksound(checksound)
+		checksound(autosell)
 		BG_GlobalDB.autoSellToVendor = not BG_GlobalDB.autoSellToVendor
+	end)
+	
+	local autosellicon = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.showAutoSellIconTitle, "TOPLEFT", autosell, "BOTTOMLEFT", 14, 0)
+	autosellicon.tiptext = BrokerGarbage.locale.showAutoSellIconText
+	autosellicon:SetChecked(BG_GlobalDB.showAutoSellIcon)
+	local checksound = autosellicon:GetScript("OnClick")
+	autosellicon:SetScript("OnClick", function(autosellicon)
+		checksound(autosellicon)
+		BG_GlobalDB.showAutoSellIcon = not BG_GlobalDB.showAutoSellIcon
 	end)
 
 	local autorepair = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.autoRepairTitle, "LEFT", autosell, "LEFT", 200, 0)
@@ -47,7 +58,7 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 		BG_GlobalDB.autoRepairAtVendor = not BG_GlobalDB.autoRepairAtVendor
 	end)
 
-	local guildrepair = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.autoRepairGuildTitle, "TOPLEFT", autorepair, "BOTTOMLEFT", 0, 0)
+	local guildrepair = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.autoRepairGuildTitle, "TOPLEFT", autorepair, "BOTTOMLEFT", 14, 0)
 	guildrepair.tiptext = BrokerGarbage.locale.autoRepairGuildText
 	guildrepair:SetChecked(BG_GlobalDB.neverRepairGuildBank)
 	local checksound = guildrepair:GetScript("OnClick")
@@ -55,8 +66,26 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 		checksound(guildrepair)
 		BG_GlobalDB.neverRepairGuildBank = not BG_GlobalDB.neverRepairGuildBank
 	end)
+	
+	local showlost = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.showLostTitle, "TOPLEFT", autosellicon, "BOTTOMLEFT", -14, -10)
+	showlost.tiptext = BrokerGarbage.locale.showLostText
+	showlost:SetChecked(BG_GlobalDB.showLost)
+	local checksound = showlost:GetScript("OnClick")
+	showlost:SetScript("OnClick", function(showlost)
+		checksound(showlost)
+		BG_GlobalDB.showLost = not BG_GlobalDB.showLost
+	end)
+	
+	local showearned = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.showEarnedTitle, "LEFT", showlost, "LEFT", 200, 0)
+	showearned.tiptext = BrokerGarbage.locale.showEarnedText
+	showearned:SetChecked(BG_GlobalDB.showEarned)
+	local checksound = showearned:GetScript("OnClick")
+	showearned:SetScript("OnClick", function(showearned)
+		checksound(showearned)
+		BG_GlobalDB.showEarned = not BG_GlobalDB.showEarned
+	end)
 
-	local quality = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.dropQualityTitle, 0, 6, "TOPLEFT", autosell, "BOTTOMLEFT", 2, -50)
+	local quality = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.dropQualityTitle, 0, 6, "TOPLEFT", showlost, "BOTTOMLEFT", 2, -50)
 	quality.tiptext = BrokerGarbage.locale.dropQualityText
 	quality:SetWidth(200)
 	quality:SetValueStep(1);
@@ -126,7 +155,15 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	resetmoneylost.tiptext = BrokerGarbage.locale.resetMoneyLostText
 	resetmoneylost:SetWidth(150) resetmoneylost:SetHeight(18)
 	resetmoneylost:SetScript("OnClick", function()
-		BrokerGarbage:ResetMoneyLost()
+		BrokerGarbage:ResetMoney(0)
+	end)
+	
+	local resetmoneyearned = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "TOPLEFT", resetmoneylost, "BOTTOMLEFT", 0, 0)
+	resetmoneyearned:SetText(BrokerGarbage.locale.resetMoneyEarned)
+	resetmoneyearned.tiptext = BrokerGarbage.locale.resetMoneyEarnedText
+	resetmoneyearned:SetWidth(150) resetmoneyearned:SetHeight(18)
+	resetmoneyearned:SetScript("OnClick", function()
+		BrokerGarbage:ResetMoney(1)
 	end)
 
 	-- ----------------------------------

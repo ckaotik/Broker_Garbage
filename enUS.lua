@@ -19,17 +19,30 @@ BrokerGarbage.locale = {
 	headerShiftClick = "SHIFT-Click: Destroy",
 	headerCtrlClick = "CTRL-Click: Keep",
 	moneyLost = "Money Lost:",
+	moneyEarned = "Money Earned:",
+	noItems = "No items to delete.",
+	
+	autoSellTooltip = "Sell gray items.",
 	
 	-- Options Frame
 	subTitle = "Don't want to auto-sell/repair? \nHold Shift when adressing the merchant!",
 	autoSellTitle = "Auto Sell",
 	autoSellText = "Toggles whether to automatically sell your gray items when at a vendor.",
 	
+	showAutoSellIconTitle = "Show Icon",
+	showAutoSellIconText = "Toggles whether to show an icon to manually auto-sell when at a vendor.",
+	
 	autoRepairTitle = "Auto Repair",
 	autoRepairText = "Toggles whether to automatically repair your gear when at a vendor.",
 	
 	autoRepairGuildTitle = "No Guild Repair", 
 	autoRepairGuildText = "If selected, Broker_Garbage will never try to repair using the guild bank's money",
+	
+	showLostTitle = "Show Money Lost",
+	showLostText = "Toggles whether to show the tooltip line 'Money Lost'.",
+	
+	showEarnedTitle = "Show Money Earned",
+	showEarnedText = "Toggles whether to show the tooltip line 'Money Earned'.",
 	
 	dropQualityTitle = "Drop Quality",
 	dropQualityText = "Select up to which treshold items may be listed as deletable. Default: Poor (0)",
@@ -48,6 +61,9 @@ BrokerGarbage.locale = {
 	
 	resetMoneyLost = "Reset Money Lost Data",
 	resetMoneyLostText = "Click to reset the amount of money lost by deleting items.",
+	
+	resetMoneyEarned = "Reset Money Earned Data",
+	resetMoneyEarnedText = "Click to reset the amount of money earned by auto-selling items.",
 	
 	emptyExcludeList = "Empty Exclude List",
 	emptyExcludeListText = "Click to clear your exclude list.",

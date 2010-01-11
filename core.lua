@@ -21,22 +21,21 @@ BrokerGarbage.defaultSettings = {
 	dropQuality = 0,
 	exclude = {},
 	include = {},
+	forceVendorPrice = {},		-- TODO options
+	autoSellList = {},			-- TODO options
 	showMoney = 2,
 	autoSellToVendor = true,
+	showAutoSellIcon = true,
 	autoRepairAtVendor = true,
+	neverRepairGuildBank = false,
 	tooltipMaxHeight = 220,
 	tooltipNumItems = 10,
 	moneyLostByDeleting = 0,
-	neverRepairGuildBank = false,
+	showLost = true,
+	moneyEarned = 0,
+	showEarned = true,
+	showWarnings = true,		-- TODO options
 }
-
--- check for settings
-if not BG_GlobalDB then BG_GlobalDB = {} end
-for key, value in pairs(BrokerGarbage.defaultSettings) do
-	if BG_GlobalDB[key] == nil then
-		BG_GlobalDB[key] = value
-	end
-end
 
 -- internal locals
 local debug = false
@@ -44,6 +43,7 @@ local locked = false
 local loaded = false
 local sellValue = 0
 local cost = 0
+local lastReminder = time()
 
 BrokerGarbage.tt = nil
 
@@ -58,7 +58,7 @@ local function eventHandler(self, event, ...)
 	elseif (locked or cost ~=0) and event == "PLAYER_MONEY" then
 		-- regular unlock
 		
-		-- wrong player_money event
+		-- wrong player_money event (resulting from repair, not sell)
 		-- testing: add a span for wich we recognize this one as repair bill
 		if sellValue ~= 0 and cost ~= 0 and ((-1)*sellValue <= cost+2 and (-1)*sellValue >= cost-2) then 
 			BrokerGarbage:Debug("Not yet ... Waiting for actual money change.")
@@ -98,11 +98,32 @@ local function eventHandler(self, event, ...)
 		
 		BrokerGarbage:ScanInventory()
 		
-	elseif event == "PLAYER_ENTERING_WORLD" or event == "BAG_UPDATE" then
-		-- don't bother calculating while selling stuff
+	elseif event == "PLAYER_ENTERING_WORLD" then
+		local warnings = {}
+		
+		-- check for settings
+		if not BG_GlobalDB then BG_GlobalDB = {} end
+		for key, value in pairs(BrokerGarbage.defaultSettings) do
+			BrokerGarbage:Debug("Testing key, value", key, value)
+			if BG_GlobalDB[key] == nil then
+				BrokerGarbage:Debug("key not existant", key)
+				BG_GlobalDB[key] = value
+			end
+		end
+		
+		if not locked and loaded then
+			warnings = BrokerGarbage:ScanInventory()
+		end
+		
+		for _,text in pairs(warnings) do
+			BrokerGarbage:Print("|cfff0000Warning:|r ", text)
+		end
+	
+	elseif event == "BAG_UPDATE" then
 		if not locked and loaded then
 			BrokerGarbage:ScanInventory()
 		end
+	
 	end	
 end
 
@@ -114,7 +135,60 @@ frame:RegisterEvent("MERCHANT_CLOSED")
 frame:RegisterEvent("PLAYER_MONEY")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("BAG_UPDATE")
+
 frame:SetScript("OnEvent", eventHandler)
+
+local orig_MerchantFrame_UpdateRepairButtons = MerchantFrame_UpdateRepairButtons
+function MerchantFrame_UpdateRepairButtons(...)
+	orig_MerchantFrame_UpdateRepairButtons(...)
+	
+	if not BG_GlobalDB.showAutoSellIcon then
+		-- resets guild repair icon
+		MerchantGuildBankRepairButton:ClearAllPoints()
+		MerchantGuildBankRepairButton:SetPoint("LEFT", MerchantRepairAllButton, "RIGHT", 4, 0)
+
+		if _G["BrokerGarbage_SellIcon"] then
+			BrokerGarbage_SellIcon:Hide()
+		end
+		return
+	end
+	
+	local iconbutton
+	-- show auto-sell icon on vendor frame
+	if not _G["BrokerGarbage_SellIcon"] then
+		iconbutton = CreateFrame("Button", "BrokerGarbage_SellIcon", MerchantBuyBackItemItemButton)
+		iconbutton:SetWidth(36); iconbutton:SetHeight(36)
+		iconbutton:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
+		iconbutton:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+		iconbutton:SetScript("OnClick", BrokerGarbage.AutoSell)
+		iconbutton:SetScript("OnEnter", function(self) 
+			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+			GameTooltip:SetText(BrokerGarbage.locale.autoSellTooltip, nil, nil, nil, nil, true)
+		end)
+		iconbutton:SetScript("OnLeave", function() GameTooltip:Hide() end)
+	else
+		iconbutton = _G["BrokerGarbage_SellIcon"]
+	end
+
+	if CanMerchantRepair() then
+		if CanGuildBankRepair() then
+			MerchantGuildBankRepairButton:ClearAllPoints()
+			MerchantGuildBankRepairButton:SetPoint("BOTTOMRIGHT", MerchantBuyBackItemItemButton, "BOTTOMLEFT", -22, 4)
+			MerchantRepairAllButton:SetPoint("BOTTOMRIGHT", MerchantGuildBankRepairButton, "BOTTOMLEFT", -4, 0)
+			iconbutton:SetPoint("BOTTOMRIGHT", MerchantRepairItemButton, "BOTTOMLEFT", -4, 1)
+			iconbutton:SetWidth(30); iconbutton:SetHeight(30)
+		else
+			iconbutton:SetWidth(36); iconbutton:SetHeight(36)
+			iconbutton:SetPoint("BOTTOMRIGHT", MerchantRepairItemButton, "BOTTOMLEFT", -4, 0)
+		end
+		
+		iconbutton:Show()
+	else
+		iconbutton:SetPoint("BOTTOMRIGHT", MerchantBuyBackItemItemButton, "BOTTOMLEFT", -18, 0)
+		iconbutton:Show()
+	end
+	MerchantRepairText:Hide()
+end
 
 loaded = true
 
@@ -122,6 +196,13 @@ loaded = true
 -- ---------------------------------------------------------
 function BrokerGarbage:Print(text)
 	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622Broker_Garbage|r "..text)
+end
+
+function BrokerGarbage:Warning(text)
+	if showWarnings and time() - lastReminder >= 5 then
+		BrokerGarbage:Print("|cfff0000Warning:|r ", text)
+		lastReminder = time()
+	end
 end
 
 function BrokerGarbage:Debug(...)
@@ -200,8 +281,52 @@ function BrokerGarbage:Count(table)
   return i
 end
 
-function BrokerGarbage:ResetMoneyLost()
-	BG_GlobalDB.moneyLostByDeleting = 0
+function BrokerGarbage:ResetMoney(which)
+	if which == 0 then
+		BG_GlobalDB.moneyLostByDeleting = 0
+	elseif which == 1 then
+		BG_GlobalDB.moneyEarned = 0
+	end
+end
+
+function BrokerGarbage:CanDisenchant(itemLink)	
+	if (itemLink) then
+		local _, _, quality, level, _, _, _, count, slot = GetItemInfo(itemLink)
+
+		-- stackables are not DE-able
+		if quality and quality >= 2 and 
+			string.find(slot, "INVTYPE") and not string.find(slot, "BAG") 
+			and (not count or count == 1) then
+			
+			-- can we DE ourselves?
+			local enchanting = GetSpellInfo(7411)
+			if IsUsableSpell(enchanting) then
+				local skill
+				for i=1, GetNumSkillLines() do
+					local name, _, _, skillRank, _, _, _, _, _, _, _, _, _ = GetSkillLineInfo(i)
+					if name == enchanting then 
+						skill = skillRank
+						break
+					end
+				end
+				
+				local requiredSkill = 5*5*math.ceil(level/5)-100
+				-- fix low-level items
+				if requiredSkill <= 0 then
+					requiredSkill = 1
+				end
+
+				if skill >= requiredSkill then
+					return true
+				end
+				-- if skill is too low, still check if we can send it
+			end
+			
+			-- so we can't DE, but can we send it to someone who may? i.e. is the item soulbound?
+			
+		end
+	end
+	return false
 end
 
 -- basic functionality from here
@@ -240,11 +365,22 @@ function BrokerGarbage:Tooltip(wut)
 			BrokerGarbage:FormatMoney(cheapList[i].value))
 		BrokerGarbage.tt:SetLineScript(lineNum, "OnMouseDown", BrokerGarbage.OnClick, cheapList[i])
 	end
+	if lineNum == nil then 
+		BrokerGarbage.tt:AddLine(BrokerGarbage.locale.noItems, '', '')
+	end
 	
 	-- add useful(?) information
-	BrokerGarbage.tt:AddSeparator(2)
-	BrokerGarbage.tt:AddLine(BrokerGarbage.locale.moneyLost, '', BrokerGarbage:FormatMoney(BG_GlobalDB.moneyLostByDeleting))
-	
+	if (BG_GlobalDB.showLost and BG_GlobalDB.moneyLostByDeleting ~= 0)
+		or (BG_GlobalDB.showEarned and BG_GlobalDB.moneyEarned ~= 0) then
+		BrokerGarbage.tt:AddSeparator(2)
+		
+		if BG_GlobalDB.moneyLostByDeleting ~= 0 then
+			BrokerGarbage.tt:AddLine(BrokerGarbage.locale.moneyLost, '', BrokerGarbage:FormatMoney(BG_GlobalDB.moneyLostByDeleting))
+		end
+		if BG_GlobalDB.moneyEarned ~= 0 then
+			BrokerGarbage.tt:AddLine(BrokerGarbage.locale.moneyEarned, '', BrokerGarbage:FormatMoney(BG_GlobalDB.moneyEarned))
+		end
+	end
 	
 	-- Use smart anchoring code to anchor the tooltip to our frame
 	BrokerGarbage.tt:SmartAnchorTo(wut)
@@ -274,11 +410,12 @@ end
 -- onClick function for when you ... click
 function BrokerGarbage:OnClick(itemTable, button)
 	BrokerGarbage:Debug("Click!", button)
+	BrokerGarbage:Debug("Table", itemTable, itemTable.itemID)
 	
-	if itemTable.data.label == "Garbage" then
-		cheapList = BrokerGarbage:GetCheapest()
-		itemTable = cheapList[1] or nil
-	end	
+	-- handle LDB clicks seperately
+	if not itemTable.itemID or type(itemTable.itemID) ~= "number" then
+		itemTable = BrokerGarbage.cheapestItem
+	end
 	
 	-- handle different clicks
 	if itemTable and IsShiftKeyDown() then
@@ -312,34 +449,46 @@ function BrokerGarbage:GetItemValue(itemLink, count)
 	local vendorPrice = select(11,GetItemInfo(itemLink))
 	local auctionPrice, disenchantPrice, temp
 	
+	if vendorPrice == 0 then vendorPrice = nil end
 	if not count then count = GetItemCount(itemLink, false, false) end
 	
-	-- gray items on the AH? yeah, right ... shortcut here
-	if select(3,GetItemInfo(itemLink)) == 0 then return vendorPrice*count end
-	
-	-- TODO: set "always use vendor price"
+	-- gray items on the AH / forced vendor price
+	if select(3,GetItemInfo(itemLink)) == 0 or BG_GlobalDB.forceVendorPrice[itemID] then 
+		return vendorPrice and vendorPrice*count or nil
+	end
 	
 	-- calculate auction value
 	-- TODO: update/support more
 	if IsAddOnLoaded("Auctionator") then
 		auctionPrice = Atr_GetAuctionBuyout(itemLink)
 		disenchantPrice = Atr_GetDisenchantValue(itemLink)
+	
+	elseif IsAddOnLoaded("AuctionLite") then
+		auctionPrice = AuctionLite:GetAuctionValue(itemLink)
+		disenchantPrice = AuctionLite:GetDisenchantValue(itemLink)
+		
+	elseif IsAddOnLoaded("WOWEcon_PriceMod")  then
+		auctionPrice = Wowecon.API.GetAuctionPrice_ByLink(itemLink, Wowecon.API.SERVER_PRICE)
+		
+		disenchantPrice = 0
+		local DeData = Wowecon.API.GetDisenchant_ByLink(itemLink)
+		for i,data in pairs(DeData) do
+			disenchantPrice = disenchantPrice + (Wowecon.API.GetAuctionPrice_ByLink(data[1], Wowecon.API.SERVER_PRICE) * data[3])
+		end
 
 	elseif IsAddOnLoaded("Auc-Advanced") then
 		auctionPrice = AucAdvanced.API.GetMarketValue(itemLink)
-	
+		-- TODO: get enchantrix values
+		
 	else
 		auctionPrice = GetAuctionBuyout and GetAuctionBuyout(itemLink) or nil
-		if not auctionPrice then
-			-- BrokerGarbage:Print("No auction values available!")
-		end
+		disenchantPrice = GetDisenchantValue and GetDisenchantValue(itemLink) or nil
+		
+		-- no auctionPrice => no auction addon loaded
 	end
 
-	-- TODO: also use DE price when an item is NOT soulbound
-	-- can enchant & disenchantPrice & item is at least green & equippable
-	local enchanting = GetSpellInfo(7411)
-	if IsUsableSpell(enchanting) and disenchantPrice and
-			select(3,GetItemInfo(itemLink)) >= 2 and string.find(select(9,GetItemInfo(itemLink)), "INVTYPE") then
+	-- DE items might be worth more than auction selling
+	if BrokerGarbage:CanDisenchant(itemID) then
 		auctionPrice = (disenchantPrice > auctionPrice) and disenchantPrice or auctionPrice
 	end
 	
@@ -356,6 +505,7 @@ function BrokerGarbage:GetItemValue(itemLink, count)
 			temp = 0
 		end
 		
+		-- return highest price found
 		if vendorPrice > temp then
 			return vendorPrice * count
 		else
@@ -383,6 +533,7 @@ end
 function BrokerGarbage:ScanInventory()
 	BrokerGarbage.inventory = {}
 	local cheapestItem
+	local warnings = {}
 	
 	for container = 0,4 do
 		for slot = 1, GetContainerNumSlots(container) do
@@ -392,16 +543,19 @@ function BrokerGarbage:ScanInventory()
 				local _,count,locked,_,_,canOpen,itemLink = GetContainerItemInfo(container, slot)
 				local quality = select(3,GetItemInfo(itemID))
 				
-				if canOpen and showSpam then
-					BrokerGarbage:Print(format(BrokerGarbage.locale.openPlease, select(2,GetItemInfo(itemID))))
+				if canOpen and showWarnings then
+					tinsert(warnings, format(BrokerGarbage.locale.openPlease, 
+						select(2,GetItemInfo(itemID))))
 				end
 				
-				if quality and (quality <= BG_GlobalDB.dropQuality or BG_GlobalDB.include[itemID]) 
-				  and not BG_GlobalDB.exclude[itemID] then
-				  --and not BrokerGarbage:Find(BG_GlobalDB.exclude, itemID) then
+				if quality and 
+					(quality <= BG_GlobalDB.dropQuality or BG_GlobalDB.include[itemID]) 
+					and not BG_GlobalDB.exclude[itemID] then
+					
 					local value = BrokerGarbage:GetItemValue(itemLink,count)
-					if BG_GlobalDB.include[itemID] then value = 1 end
-					if value ~= 0 then
+					-- make included items appear in tooltip list
+					if BG_GlobalDB.include[itemID] and not value then value = 0 end
+					if value then
 						local currentItem = {
 							bag = container,
 							slot = slot,
@@ -422,10 +576,17 @@ function BrokerGarbage:ScanInventory()
 	end
 
 	if cheapestItem then
-		LDB.text = select(2,GetItemInfo(cheapestItem.itemID)).."x".. cheapestItem.count .." (".. BrokerGarbage:FormatMoney(cheapestItem.value) ..")"
+		LDB.text = format("%sx%d (%s)", 
+			select(2,GetItemInfo(cheapestItem.itemID)),
+			cheapestItem.count,
+			BrokerGarbage:FormatMoney(cheapestItem.value))
+		BrokerGarbage.cheapestItem = cheapestItem
 	else
 		LDB.text = BrokerGarbage.locale.label
+		BrokerGarbage.cheapestItem = nil
 	end
+	
+	return warnings
 end
 
 -- returns the n cheapest items in your bags
@@ -456,18 +617,21 @@ end
 -- special functionality
 -- ---------------------------------------------------------
 -- when at a merchant this will clear your bags of junk (gray quality)
-function BrokerGarbage:AutoSell()
-	if BG_GlobalDB.autoSellToVendor then		
+function BrokerGarbage:AutoSell(self)
+	if BG_GlobalDB.autoSellToVendor or self == _G["BrokerGarbage_SellIcon"] then		
 		local i = 1
 		sellValue = 0
 		for _, itemTable in pairs(BrokerGarbage.inventory) do
-			if (itemTable.quality == 0 and not BrokerGarbage:Find(BG_GlobalDB.exclude, itemTable.itemID)) 
-			  or BG_GlobalDB.include[itemTable.itemID] then
+			if (itemTable.quality == 0 
+				and not BrokerGarbage:Find(BG_GlobalDB.exclude, itemTable.itemID)) 
+				or (BG_GlobalDB.include[itemTable.itemID] and itemTable.value ~= 0) then
+				
 				if i == 1 then					
 					BrokerGarbage:Debug("locked")
 					locked = true
 				end
 				sellValue = sellValue + itemTable.value
+				BG_GlobalDB.moneyEarned = BG_GlobalDB.moneyEarned + itemTable.value
 				UseContainerItem(itemTable.bag, itemTable.slot)
 				i = i+1
 			end
@@ -493,12 +657,18 @@ end
 
 -- Wishlist
 -- ---------------------------------------------------------
--- Notice: When trying to stop BG from auto selling/repairing, hold Shift when adressing a merchant
+-- make "autosell" list - e.g. mages selling dropped water/food [quickfix: use include list] - sell list (like include, only always sells)
+-- include types on character specific settings
 -- show lootable containers in your bag! make "open items" not as spammy
--- increase/decrease loot treshold with mousewheel
+-- increase/decrease loot treshold with mousewheel on LDB
 -- restack if necessary
--- force vendor price (food and stuff extremely overprice in the AH)
--- make "autosell" list - e.g. mages selling dropped water/food [quickfix: use include list]
-
--- local selectiveLooting = false
--- local askWhenDeleting = true, askWhenDeletingTreshold
+-- force vendor price (food and stuff extremely overpriced in the AH) on some items
+-- manually set item price
+-- include list: set value / use value
+-- ask before deleting / treshold
+-- search list frames (similar to gnomishvendorshrinker)
+-- fubar_garbagefu: Soulbound, Quest, Bind on Pickup, Bind on Equip/Use.
+-- types: Normal Food, Bonus Food, Stat Food, Conjured Bread, Raw Food, Bread, Fish, percent food/water, combi food/drink....
+-- ignore special bags
+-- drop-beyond-treshold: only keep 5 soulshards
+-- feature: selective looting (only crafting materials, greens+ , ...)
