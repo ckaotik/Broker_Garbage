@@ -1,4 +1,4 @@
-
+﻿
 local lib, oldminor = LibStub:NewLibrary("tekKonfig-AboutPanel", 5)
 if not lib then return end
 

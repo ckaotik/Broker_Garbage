@@ -2,13 +2,13 @@
 ## Dependencies: 
 ## OptionalDeps: Auctionator, AuctionLite, Auctioneer
 ## SavedVariables: BG_GlobalDB
-## SavedVariablesPerCharacter:
+## SavedVariablesPerCharacter: BG_LocalDB
 
 ## Title: Broker_Garbage
 ## Notes: Full bags no more! Find your least valuable item .. and destroy it!
 ## Notes-deDE: Endlich wieder Platz! Finde dein billigstes Item ... und zerstöre es.
 ## Author: ckaotik
-## Version: 3.3v8
+## Version: 3.3v9
 ## X-Category: Inventory
 ## X-Credits: GarbageFu, Tekkub
 

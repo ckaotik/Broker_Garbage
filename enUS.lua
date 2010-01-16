@@ -1,3 +1,4 @@
+﻿-- enUS / enGB / default localization file
 _, BrokerGarbage = ...
 
 BrokerGarbage.locale = {
@@ -21,6 +22,7 @@ BrokerGarbage.locale = {
 	moneyLost = "Money Lost:",
 	moneyEarned = "Money Earned:",
 	noItems = "No items to delete.",
+	increaseTreshold = "Increase quality treshold",
 	
 	autoSellTooltip = "Sell gray items.",
 	
@@ -41,6 +43,9 @@ BrokerGarbage.locale = {
 	showLostTitle = "Show Money Lost",
 	showLostText = "Toggles whether to show the tooltip line 'Money Lost'.",
 	
+	showSourceTitle = "Show Source",
+	showSourceText = "Toggles whether to show the last column in the tooltip, displaying the item value source.",
+	
 	showEarnedTitle = "Show Money Earned",
 	showEarnedText = "Toggles whether to show the tooltip line 'Money Earned'.",
 	
@@ -51,7 +56,7 @@ BrokerGarbage.locale = {
 	moneyFormatText = "Change the way money (i.e. gold/silver/copper) is being displayed. Default: 2",
 	
 	maxItemsTitle = "Max. Items",
-	maxItemsText = "Set how many lines you would like to have displayed in the tooltip. Default: 10",
+	maxItemsText = "Set how many lines you would like to have displayed in the tooltip. Default: 9",
 	
 	maxHeightTitle = "Max. Height",
 	maxHeightText = "Set the height of the tooltip. Default: 220",
@@ -76,14 +81,14 @@ BrokerGarbage.locale = {
 	LOSubTitle = "Set up your master lists here. To add Items, drag them over the corresponding '+' icon, to remove them select them and klick the '-'.",
 	
 	LOExcludeHeader = "Exclude List - these items will never be sold/deleted.",
-	LOExcludePlusTT = "Add items to the list by dragging/placing them on me!",
-	LOExcludeRefreshTT = "Click to refresh the Exclude List display",
+	LOExcludePlusTT = "Add items to the Exclude List by dragging/placing them on me!",
 	LOExcludeMinusTT = "Select items you want to remove, then click here.",
-	LOExcludeEmptyTT = "Click to fully empty your Exclude List. Caution!",
+	LOExcludePromoteTT = "Selected items will be written onto your global Exclude List, as seen by every character.",
+	LOExcludeEmptyTT = "Click to fully empty your local Exclude List. Caution!",
 	
 	LOIncludeHeader = "Include List - these items will be suggested to be deleted.",
-	LOIncludePlusTT = "Add items to the list by dragging/placing them on me!",
-	LOIncludeRefreshTT = "Click to refresh the Include List display",
+	LOIncludePlusTT = "Add items to your Include List by dragging/placing them on me!",
 	LOIncludeMinusTT = "Select items you want to remove, then click here.",
-	LOIncludeEmptyTT = "Click to fully empty your Include List. Caution!",
+	LOIncludePromoteTT = "Selected items will be written onto your global Include List, as seen by every character.",
+	LOIncludeEmptyTT = "Click to fully empty your local Include List. Caution!",
 }

@@ -1,4 +1,4 @@
-addonName, BrokerGarbage = ...
+﻿addonName, BrokerGarbage = ...
 
 BrokerGarbage.quality = {
 	[0] = "|cff9D9D9D"..ITEM_QUALITY0_DESC.."|r",
@@ -60,11 +60,11 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 
 	local guildrepair = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.autoRepairGuildTitle, "TOPLEFT", autorepair, "BOTTOMLEFT", 14, 0)
 	guildrepair.tiptext = BrokerGarbage.locale.autoRepairGuildText
-	guildrepair:SetChecked(BG_GlobalDB.neverRepairGuildBank)
+	guildrepair:SetChecked(BG_LocalDB.neverRepairGuildBank)
 	local checksound = guildrepair:GetScript("OnClick")
 	guildrepair:SetScript("OnClick", function(guildrepair)
 		checksound(guildrepair)
-		BG_GlobalDB.neverRepairGuildBank = not BG_GlobalDB.neverRepairGuildBank
+		BG_LocalDB.neverRepairGuildBank = not BG_LocalDB.neverRepairGuildBank
 	end)
 	
 	local showlost = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.showLostTitle, "TOPLEFT", autosellicon, "BOTTOMLEFT", -14, -10)
@@ -85,7 +85,7 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 		BG_GlobalDB.showEarned = not BG_GlobalDB.showEarned
 	end)
 
-	local quality = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.dropQualityTitle, 0, 6, "TOPLEFT", showlost, "BOTTOMLEFT", 2, -50)
+	local quality = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.dropQualityTitle, 0, 6, "TOPLEFT", showlost, "BOTTOMLEFT", 5, -40)
 	quality.tiptext = BrokerGarbage.locale.dropQualityText
 	quality:SetWidth(200)
 	quality:SetValueStep(1);
@@ -100,7 +100,7 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	end)
 
 	local testValue = 130007
-	local moneyFormat = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.moneyFormatTitle, 0, 4, "LEFT", quality, "RIGHT", 40, 0)
+	local moneyFormat = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.moneyFormatTitle, 0, 4, "LEFT", quality, "LEFT", 200, 0)
 	moneyFormat.tiptext = BrokerGarbage.locale.moneyFormatText
 	moneyFormat:SetWidth(200)
 	moneyFormat:SetValueStep(1);
@@ -114,7 +114,7 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	end)
 
 
-	local ttMaxItems = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.maxItemsTitle, 0, 50, "TOPLEFT", quality, "BOTTOMLEFT", 2, -15)
+	local ttMaxItems = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.maxItemsTitle, 0, 50, "TOPLEFT", quality, "BOTTOMLEFT", 0, -15)
 	ttMaxItems.tiptext = BrokerGarbage.locale.maxItemsText
 	ttMaxItems:SetWidth(200)
 	ttMaxItems:SetValueStep(1);
@@ -128,7 +128,7 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	end)
 
 
-	local ttMaxHeight = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.maxHeightTitle, 0, 400, "LEFT", ttMaxItems, "RIGHT", 40, 0)
+	local ttMaxHeight = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.maxHeightTitle, 0, 400, "LEFT", ttMaxItems, "LEFT", 200, 0)
 	ttMaxHeight.tiptext = BrokerGarbage.locale.maxHeightText
 	ttMaxHeight:SetWidth(200)
 	ttMaxHeight:SetValueStep(10);
@@ -140,9 +140,24 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 		BG_GlobalDB.tooltipMaxHeight = ttMaxHeight:GetValue()
 		ttMaxHeight.text:SetText(ttMaxHeight:GetValue())
 	end)
-
-
-	local rescan = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "TOPLEFT", ttMaxItems, "BOTTOMLEFT", 0, -50)
+	
+	local resetexclude = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "TOPLEFT", ttMaxItems, "BOTTOMLEFT", 0, -50)
+	resetexclude:SetText(BrokerGarbage.locale.emptyExcludeList)
+	resetexclude.tiptext = BrokerGarbage.locale.emptyExcludeListText
+	resetexclude:SetWidth(150) resetexclude:SetHeight(18)
+	resetexclude:SetScript("OnClick", function()
+		BrokerGarbage:ResetList("exclude")
+	end)
+	
+	local resetinclude = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "TOPLEFT", resetexclude, "BOTTOMLEFT", 0, 0)
+	resetinclude:SetText(BrokerGarbage.locale.emptyIncludeList)
+	resetinclude.tiptext = BrokerGarbage.locale.emptyIncludeListText
+	resetinclude:SetWidth(150) resetinclude:SetHeight(18)
+	resetinclude:SetScript("OnClick", function()
+		BrokerGarbage:ResetList("include")
+	end)
+	
+	local rescan = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "TOPLEFT", resetinclude, "BOTTOMLEFT", 0, -20)
 	rescan:SetText(BrokerGarbage.locale.rescanInventory)
 	rescan.tiptext = BrokerGarbage.locale.rescanInventoryText
 	rescan:SetWidth(150) rescan:SetHeight(18)
@@ -150,7 +165,7 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 		BrokerGarbage:ScanInventory()
 	end)
 
-	local resetmoneylost = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "LEFT", rescan, "RIGHT", 40, 0)
+	local resetmoneylost = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "LEFT", resetexclude, "LEFT", 200, 0)
 	resetmoneylost:SetText(BrokerGarbage.locale.resetMoneyLost)
 	resetmoneylost.tiptext = BrokerGarbage.locale.resetMoneyLostText
 	resetmoneylost:SetWidth(150) resetmoneylost:SetHeight(18)
@@ -164,6 +179,15 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	resetmoneyearned:SetWidth(150) resetmoneyearned:SetHeight(18)
 	resetmoneyearned:SetScript("OnClick", function()
 		BrokerGarbage:ResetMoney(1)
+	end)
+	
+	local showsource = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.showSourceTitle, "TOPLEFT", resetmoneyearned, "BOTTOMLEFT", 0, -20)
+	showsource.tiptext = BrokerGarbage.locale.showSourceText
+	showsource:SetChecked(BG_GlobalDB.showSource)
+	local checksound = showsource:GetScript("OnClick")
+	showsource:SetScript("OnClick", function(showsource)
+		checksound(showsource)
+		BG_GlobalDB.showsource = not BG_GlobalDB.showsource
 	end)
 
 	-- ----------------------------------
@@ -191,7 +215,7 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	group:SetWidth(boxWidth)
 	
 	local backdrop = {bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-		tile = true,
+		tile = false,
 		tileSize = 32,
 		insets = { left = 0, right = -22, top = 0, bottom = 0 }}
 	excludeBox:SetBackdrop(backdrop)
@@ -201,32 +225,28 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	-- action buttons
 	local plus = CreateFrame("Button", nil, BrokerGarbage.listOptions)
 	plus:SetPoint("TOPLEFT", "BG_ExcludeListBoxScrollBar", "TOPRIGHT", 8, -3)
-	plus:SetWidth(25)
-	plus:SetHeight(25)
+	plus:SetWidth(25); plus:SetHeight(25)
 	plus:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	plus:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
 	plus.tiptext = BrokerGarbage.locale.LOExcludePlusTT
-	
-	local refresh = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	refresh:SetPoint("TOP", plus, "BOTTOM", 0, -6)
-	refresh:SetWidth(25)
-	refresh:SetHeight(25)
-	refresh:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-	refresh:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
-	refresh.tiptext = BrokerGarbage.locale.LOExcludeRefreshTT
 
 	local minus = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	minus:SetPoint("TOP", refresh, "BOTTOM", 0, -6)
-	minus:SetWidth(25)
-	minus:SetHeight(25)
+	minus:SetPoint("TOP", plus, "BOTTOM", 0, -6)
+	minus:SetWidth(25);	minus:SetHeight(25)
 	minus:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	minus:SetNormalTexture("Interface\\Icons\\Spell_chargenegative")
 	minus.tiptext = BrokerGarbage.locale.LOExcludeMinusTT
 	
+	local promote = CreateFrame("Button", nil, BrokerGarbage.listOptions)
+	promote:SetPoint("TOP", minus, "BOTTOM", 0, -6)
+	promote:SetWidth(25) promote:SetHeight(25)
+	promote:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	promote:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
+	promote.tiptext = BrokerGarbage.locale.LOExcludePromoteTT
+	
 	local emptyExcludeList = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	emptyExcludeList:SetPoint("TOP", minus, "BOTTOM", 0, -6)
-	emptyExcludeList:SetWidth(25)
-	emptyExcludeList:SetHeight(25)
+	emptyExcludeList:SetPoint("TOP", promote, "BOTTOM", 0, -6)
+	emptyExcludeList:SetWidth(25); emptyExcludeList:SetHeight(25)
 	emptyExcludeList:SetNormalTexture("Interface\\Buttons\\Ui-grouploot-pass-up")
 	emptyExcludeList.tiptext = BrokerGarbage.locale.LOExcludeEmptyTT
 	
@@ -253,32 +273,28 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	-- action buttons
 	local plus2 = CreateFrame("Button", nil, BrokerGarbage.listOptions)
 	plus2:SetPoint("TOPLEFT", "BG_IncludeListBoxScrollBar", "TOPRIGHT", 8, -3)
-	plus2:SetWidth(25)
-	plus2:SetHeight(25)
+	plus2:SetWidth(25); plus2:SetHeight(25)
 	plus2:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	plus2:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
 	plus2.tiptext = BrokerGarbage.locale.LOIncludePlusTT
 	
-	local refresh2 = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	refresh2:SetPoint("TOP", plus2, "BOTTOM", 0, -6)
-	refresh2:SetWidth(25)
-	refresh2:SetHeight(25)
-	refresh2:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-	refresh2:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
-	refresh2.tiptext = BrokerGarbage.locale.LOIncludeRefreshTT
-
 	local minus2 = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	minus2:SetPoint("TOP", refresh2, "BOTTOM", 0, -6)
-	minus2:SetWidth(25)
-	minus2:SetHeight(25)
+	minus2:SetPoint("TOP", plus2, "BOTTOM", 0, -6)
+	minus2:SetWidth(25); minus2:SetHeight(25)
 	minus2:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	minus2:SetNormalTexture("Interface\\Icons\\Spell_chargenegative")
 	minus2.tiptext = BrokerGarbage.locale.LOIncludeMinusTT
+	
+	local promote2 = CreateFrame("Button", nil, BrokerGarbage.listOptions)
+	promote2:SetPoint("TOP", minus2, "BOTTOM", 0, -6)
+	promote2:SetWidth(25); promote2:SetHeight(25)
+	promote2:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	promote2:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
+	promote2.tiptext = BrokerGarbage.locale.LOIncludePromoteTT
 
 	local emptyIncludeList = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	emptyIncludeList:SetPoint("TOP", minus2, "BOTTOM", 0, -6)
-	emptyIncludeList:SetWidth(25)
-	emptyIncludeList:SetHeight(25)
+	emptyIncludeList:SetPoint("TOP", promote2, "BOTTOM", 0, -6)
+	emptyIncludeList:SetWidth(25); emptyIncludeList:SetHeight(25)
 	emptyIncludeList:SetNormalTexture("Interface\\Buttons\\Ui-grouploot-pass-up")
 	emptyIncludeList.tiptext = BrokerGarbage.locale.LOIncludeEmptyTT
 	
@@ -294,23 +310,45 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	local function HideTooltip() GameTooltip:Hide() end
 	
 	
+	local function JoinTables(t1, t2)
+		result = {}
+		
+		if t1 then
+			for index, value in pairs (t1) do
+				result[index] = value
+			end
+		end
+		if t2 then
+			for index, value in pairs (t2) do
+				result[index] = value
+			end
+		end
+
+		return result
+	end
+	
 	local numCols = 8
 	local function ListOptionsUpdate(listName)
-		local list, box, parent, buttonList
+		local globalList, localList, dataList, box, parent, buttonList
 		if listName == "include" then
-			list = BG_GlobalDB.include
+			globalList = BG_GlobalDB.include
+			localList = BG_LocalDB.include
+
 			box = includeBox
 			parent = group2
 			buttonList = BrokerGarbage.listButtons.include
 		else
-			list = BG_GlobalDB.exclude
+			globalList = BG_GlobalDB.exclude
+			localList = BG_LocalDB.exclude
+
 			box = excludeBox
 			parent = group
 			buttonList = BrokerGarbage.listButtons.exclude
 		end
+		dataList = JoinTables(globalList, localList)
 		
 		local index = 1
-		for itemID,_ in pairs(list) do
+		for itemID,_ in pairs(dataList) do
 			if buttonList[index] then
 				-- use available button
 				local button = buttonList[index]
@@ -319,6 +357,7 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 				button.itemID = itemID
 				button.itemLink = itemLink
 				button:SetNormalTexture(texture)
+				button:GetNormalTexture():SetDesaturated(globalList[itemID])		-- desaturate global list items
 				button:SetChecked(false)
 				button:Show()
 			else
@@ -336,6 +375,8 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 				tex:ClearAllPoints()
 				tex:SetPoint("CENTER")
 				tex:SetWidth(36/37*66) tex:SetHeight(36/37*66)
+				
+				iconbutton:GetNormalTexture():SetDesaturated(globalList[itemID])		-- desaturate global list items
 
 				iconbutton:SetScript("OnEnter", ShowTooltip)
 				iconbutton:SetScript("OnLeave", HideTooltip)
@@ -371,12 +412,12 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 		if not type == "item" then return end
 		
 		if self == group2 or self == includeBox or self == plus2 then
-			BG_GlobalDB.include[itemID] = true
+			BG_LocalDB.include[itemID] = true
 			BrokerGarbage:Print(format(BrokerGarbage.locale.addedToDestroyList, link))
 			ListOptionsUpdate("include")
 			ClearCursor()
 		elseif self == group or self == excludeBox or self == plus then
-			BG_GlobalDB.exclude[itemID] = true
+			BG_LocalDB.exclude[itemID] = true
 			BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSaveList, link))
 			ListOptionsUpdate("exclude")
 			ClearCursor()
@@ -384,34 +425,28 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	end
 	
 	local function OnClick(self, button)
-		if self == refresh then
-			ListOptionsUpdate("exclude")
-			
-		elseif self == refresh2 then
-			ListOptionsUpdate("include")
-			
-		elseif self == emptyExcludeList then
-			BG_GlobalDB.exclude = {}
+		if self == emptyExcludeList then
+			BG_LocalDB.exclude = {}
 			ListOptionsUpdate("exclude")
 			BrokerGarbage:ScanInventory()
-		
 		elseif self == emptyIncludeList then
-			BG_GlobalDB.include = {}
+			BG_LocalDB.include = {}
 			ListOptionsUpdate("include")
 			BrokerGarbage:ScanInventory()
 			
 		elseif self == minus then
 			for i, button in pairs(BrokerGarbage.listButtons.exclude) do
 				if button:GetChecked() then
+					BG_LocalDB.exclude[button.itemID] = nil
 					BG_GlobalDB.exclude[button.itemID] = nil
 				end
 			end
 			ListOptionsUpdate("exclude")
 			BrokerGarbage:ScanInventory()
-			
 		elseif self == minus2 then
 			for i, button in pairs(BrokerGarbage.listButtons.include) do
 				if button:GetChecked() then
+					BG_LocalDB.include[button.itemID] = nil
 					BG_GlobalDB.include[button.itemID] = nil
 				end
 			end
@@ -424,21 +459,32 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 			ListOptionsUpdate("exclude")
 		elseif self == plus2 then
 			BrokerGarbage:Debug("Include2")
-			ListOptionsUpdate("include")
 			ItemDrop(self)
+			ListOptionsUpdate("include")
+		
+		elseif self == promote then
+			BrokerGarbage:Debug("Promote")
+			for i, button in pairs(BrokerGarbage.listButtons.exclude) do
+				if button:GetChecked() then
+					BG_GlobalDB.exclude[button.itemID] = true
+				end
+			end
+			
+			ListOptionsUpdate("exclude")
+		elseif self == promote2 then
+			BrokerGarbage:Debug("Promote2")
+			for i, button in pairs(BrokerGarbage.listButtons.include) do
+				if button:GetChecked() then
+					BG_GlobalDB.include[button.itemID] = true
+				end
+			end
+			
+			ListOptionsUpdate("exclude")
 		end
 		
 		--ListOptionsUpdate("include")
 		--ListOptionsUpdate("exclude")
 	end
-	
-	refresh:SetScript("OnClick", OnClick)
-	refresh:SetScript("OnEnter", ShowTooltip)
-	refresh:SetScript("OnLeave", HideTooltip)
-	
-	refresh2:SetScript("OnClick", OnClick)
-	refresh2:SetScript("OnEnter", ShowTooltip)
-	refresh2:SetScript("OnLeave", HideTooltip)
 	
 	emptyExcludeList:SetScript("OnClick", OnClick)
 	emptyExcludeList:SetScript("OnEnter", ShowTooltip)
@@ -463,6 +509,14 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	plus2:SetScript("OnClick", OnClick)
 	plus2:SetScript("OnEnter", ShowTooltip)
 	plus2:SetScript("OnLeave", HideTooltip)
+	
+	promote:SetScript("OnClick", OnClick)
+	promote:SetScript("OnEnter", ShowTooltip)
+	promote:SetScript("OnLeave", HideTooltip)
+	
+	promote2:SetScript("OnClick", OnClick)
+	promote2:SetScript("OnEnter", ShowTooltip)
+	promote2:SetScript("OnLeave", HideTooltip)
 	
 	-- ----------------------------------	
 	plus:RegisterForDrag("LeftButton")

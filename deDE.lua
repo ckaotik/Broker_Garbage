@@ -1,7 +1,4 @@
---[[ German localisation file
-� = \195\132	� = \195\164
-� = \195\150	� = \195\182
-� = \195\156	� = \195\188	� = \195\159 ]]--
+﻿-- German localisation file
 _, BrokerGarbage = ...
 
 if GetLocale() == "deDE" then
@@ -10,88 +7,92 @@ BrokerGarbage.locale = {
 	label = "Kein Junk",
 	
 	-- Chat Messages
-	sellAndRepair = "M\195\188ll f\195\188r %1$s verkauft, repariert f\195\188r %2$s. \195\132nderung: %3$s.",
-	repair = "Repariert f\195\188r %s.",
-	sell = "M\195\188ll verkauft f\195\188r %s.",
+	sellAndRepair = "Müll für %1$s verkauft, repariert für %2$s. Änderung: %3$s.",
+	repair = "Repariert für %s.",
+	sell = "Müll verkauft für %s.",
 	
-	addedToSaveList = "%s zur Ausnahmeliste hinzugef\195\188gt.",
-	addedToDestroyList = "%s zur Einschlussliste hinzugef\195\188gt.",
-	itemDeleted = "%s wurde gel\195\182scht.",
+	addedToSaveList = "%s zur Ausnahmeliste hinzugefügt.",
+	addedToDestroyList = "%s zur Einschlussliste hinzugefügt.",
+	itemDeleted = "%s wurde gelöscht.",
 	
-	openPlease = "Bitte \195\182ffne %s - es nimmt unn\195\182tig Platz weg.",
+	openPlease = "Bitte öffne %s - es nimmt unnötig Platz weg.",
 	
 	-- Tooltip
-	headerRightClick = "Rechts-Klick \195\182ffnet Optionen",
-	headerShiftClick = "SHIFT-Klick: Zerst\195\182ren",
+	headerRightClick = "Rechts-Klick: Optionen",
+	headerShiftClick = "SHIFT-Klick: Zerstören",
 	headerCtrlClick = "STRG-Klick: Behalten",
 	moneyLost = "Gold verloren:",
 	moneyEarned = "Gold verdient:",
-	noItems = "Keine Items zum L\195\182schen.",
+	noItems = "Keine Items zum Löschen.",
+	increaseTreshold = "Erhöhe die Item Qualität",
 	
 	autoSellTooltip = "Graue Items verkaufen.",
 	
 	-- Options Frame
-	subTitle = "M\195\182chtest du einmal nicht automatisch verkaufen / reparieren? \nHalte SHIFT gedr\195\188ckt, wenn du den H\195\164ndler ansprichst!",
+	subTitle = "Möchtest du einmal nicht automatisch verkaufen / reparieren? \nHalte SHIFT gedrückt, wenn du den Händler ansprichst!",
 	autoSellTitle = "Automatisch Verkaufen",
-	autoSellText = "Wenn ausgew\195\164hlt, werden graue Gegenst\195\164nde automatisch beim H\195\164ndler verkauft.",
+	autoSellText = "Wenn ausgewählt, werden graue Gegenstände automatisch beim Händler verkauft.",
 	
 	showAutoSellIconTitle = "Icon anzeigen",
-	showAutoSellIconText = "Wenn ausgew\195\164hlt, wird bei H\195\164ndlern ein Icon zum automatischen Verkaufen angezeigt.",
+	showAutoSellIconText = "Wenn ausgewählt, wird bei Händlern ein Icon zum automatischen Verkaufen angezeigt.",
 	
 	autoRepairTitle = "Automatisch Reparieren",
-	autoRepairText = "Wenn ausgew\195\164hlt, wird deine Ausr\195\188stung automatisch repariert wenn m\195\182glich.",
+	autoRepairText = "Wenn ausgewählt, wird deine Ausrüstung automatisch repariert wenn möglich.",
 	
 	autoRepairGuildTitle = "Reparatur selbst zahlen", 
-	autoRepairGuildText = "Wenn ausgew\195\164hlt, wird Broker_Garbage nicht auf Gildenkosten reparieren.",
+	autoRepairGuildText = "Wenn ausgewählt, wird Broker_Garbage nicht auf Gildenkosten reparieren.",
 	
 	showLostTitle = "'Verlorenes Gold' zeigen",
-	showLostText = "Wenn ausgew\195\164hlt, wird im Tooltip die Zeile 'Verlorenes Gold' gezeigt.",
+	showLostText = "Wenn ausgewählt, wird im Tooltip die Zeile 'Verlorenes Gold' gezeigt.",
+	
+	showSourceTitle = "Quelle anzeigen",
+	showSourceText = "Wenn ausgewählt, wird im Tooltip als letzte Spalte die Preisquelle gezeigt.",
 	
 	showEarnedTitle = "'Verdientes Gold' zeigen",
-	showEarnedText = "Wenn ausgew\195\164hlt, wird im Tooltip die Zeile 'Verdientes Gold' gezeigt.",
+	showEarnedText = "Wenn ausgewählt, wird im Tooltip die Zeile 'Verdientes Gold' gezeigt.",
 	
-	dropQualityTitle = "Item Qualit\195\164t",
-	dropQualityText = "W\195\164hle, bis zu welcher Qualit\195\164t Items zum L\195\182schen vorgeschlagen werden. Standard: Schlecht (0)",
+	dropQualityTitle = "Item Qualität",
+	dropQualityText = "Wähle, bis zu welcher Qualität Items zum Löschen vorgeschlagen werden. Standard: Schlecht (0)",
 	
 	moneyFormatTitle = "Geldformat",
-	moneyFormatText = "\195\132ndere die Art, wie Geldbetr\195\164ge angezeigt werden. Standard: 2",
+	moneyFormatText = "Ändere die Art, wie Geldbeträge angezeigt werden. Standard: 2",
 	
 	maxItemsTitle = "Max. Items",
-	maxItemsText = "Lege fest, wie viele Zeilen im Tooltip angezeigt werden. Standard: 10",
+	maxItemsText = "Lege fest, wie viele Zeilen im Tooltip angezeigt werden. Standard: 9",
 	
-	maxHeightTitle = "Max. H\195\182he",
+	maxHeightTitle = "Max. Höhe",
 	maxHeightText = "Lege fest, wie hoch der Tooltip sein darf. Standard: 220",
 	
 	rescanInventory = "Inventar neu scannen",
-	rescanInventoryText = "Klicke um dein Inventar neu zu scannen. Dies sollte normalerweise nicht n\195\182tig sein!",
+	rescanInventoryText = "Klicke um dein Inventar neu zu scannen. Dies sollte normalerweise nicht nötig sein!",
 	
 	resetMoneyLost = "'Verlorenes Geld' leeren",
-	resetMoneyLostText = "Klicke um die Statistik 'Verlorenes Geld' zur\195\188ckzusetzen.",
+	resetMoneyLostText = "Klicke um die Statistik 'Verlorenes Geld' zurückzusetzen.",
 	
 	resetMoneyEarned = "'Verdientes Geld' leeren",
-	resetMoneyEarnedText = "Klicke um die Statistik 'Verdientes Geld' zur\195\188ckzusetzen.",
+	resetMoneyEarnedText = "Klicke um die Statistik 'Verdientes Geld' zurückzusetzen.",
 	
 	emptyExcludeList = "Ausschlussliste leeren",
-	emptyExcludeListText = "Klicke um deine Ausschlussliste zu leeren.",
+	emptyExcludeListText = "Klicke um deine globale (!) Ausschlussliste zu leeren.",
 	
 	emptyIncludeList = "Einschlussliste leeren",
-	emptyIncludeListText = "Klicke um deine Einschlussliste zu leeren.",
+	emptyIncludeListText = "Klicke um deine globale (!) Einschlussliste zu leeren.",
 	
 	-- List Options Panel
 	LOTitle = "Listen-Optionen",
-	LOSubTitle = "Stelle hier deine Listen ein. Um Items hinzuzuf\195\188gen, zieh sie auf das jeweilige '+'. Um sie zu entfernen, w\195\164hle sie aus und klicke auf '-'.",
+	LOSubTitle = "Stelle hier deine Listen ein. Um Items hinzuzufügen, ziehe sie auf das jeweilige '+'. Um sie zu entfernen, wähle sie aus und klicke auf '-'.",
 	
-	LOExcludeHeader = "Ausschlussliste - Items hier werden nie verkauft/gel\195\182scht.",
-	LOExcludePlusTT = "Items hinzuf\195\188gen, indem du sie hierher ziehst/hier ablegst",
-	LOExcludeRefreshTT = "Klicke, um die Anzeige zu aktualisieren",
-	LOExcludeMinusTT = "W\195\164hle Items, die du entfernen willst. Dann klicke hier.",
-	LOExcludeEmptyTT = "Klicke, um die Ausschlussliste v\195\182llig zu leeren.\nAchtung!",
+	LOExcludeHeader = "Ausschlussliste - Items hier werden nie verkauft/gelöscht.",
+	LOExcludePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst",
+	LOExcludeMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
+	LOExcludePromoteTT = "Klicke um alle markierten Items in die globale Ausnahmeliste zu übernehmen.",
+	LOExcludeEmptyTT = "Klicke, um die lokale Ausschlussliste völlig zu leeren.\nAchtung!",
 	
-	LOIncludeHeader = "Einschlussliste - Items hier werden zum L\195\182schen vorgeschlagen.",
-	LOIncludePlusTT = "Items hinzuf\195\188gen, indem du sie hierher ziehst/hier ablegst",
-	LOIncludeRefreshTT = "Klicke, um die Anzeige zu aktualisieren",
-	LOIncludeMinusTT = "W\195\164hle Items, die du entfernen willst. Dann klicke hier.",
-	LOIncludeEmptyTT = "Klicke, um die Einschlussliste v\195\182llig zu leeren.\nAchtung!",
+	LOIncludeHeader = "Einschlussliste - Items hier werden zum Löschen vorgeschlagen.",
+	LOIncludePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst",
+	LOIncludeMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
+	LOIncludePromoteTT = "Klicke, um alle markierten Items in die globale Einschlussliste zu übernehmen.",
+	LOIncludeEmptyTT = "Klicke, um die lokale Einschlussliste völlig zu leeren.\nAchtung!",
 }
 
 end

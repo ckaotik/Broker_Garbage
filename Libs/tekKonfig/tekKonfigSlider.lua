@@ -1,4 +1,4 @@
-
+﻿
 local lib, oldminor = LibStub:NewLibrary("tekKonfig-Slider", 3)
 if not lib then return end
 oldminor = oldminor or 0

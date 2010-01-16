@@ -1,4 +1,4 @@
-local MAJOR = "LibQTip-1.0"
+﻿local MAJOR = "LibQTip-1.0"
 local MINOR = 29 -- Should be manually increased
 assert(LibStub, MAJOR.." requires LibStub")
 
