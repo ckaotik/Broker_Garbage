@@ -426,8 +426,8 @@ function BrokerGarbage:Tooltip(wut)
 	end
 	
 	-- add useful(?) information
-	if (BG_GlobalDB.showLost and BG_GlobalDB.moneyLostByDeleting ~= 0)
-		or (BG_GlobalDB.showEarned and BG_GlobalDB.moneyEarned ~= 0) then
+	if (BG_GlobalDB.showLost and BG_LocalDB.moneyLostByDeleting ~= 0)
+		or (BG_GlobalDB.showEarned and BG_LocalDB.moneyEarned ~= 0) then
 		BrokerGarbage.tt:AddSeparator(2)
 		
 		if BG_LocalDB.moneyLostByDeleting ~= 0 then
@@ -614,10 +614,11 @@ function BrokerGarbage:ScanInventory()
 						select(2,GetItemInfo(itemID))))
 				end
 				
-				if quality and (quality <= BG_GlobalDB.dropQuality 
+				if quality and 
+					(quality <= BG_GlobalDB.dropQuality 
 					or BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID] 
 					or BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID]) 
-					and not BG_GlobalDB.exclude[itemID] then									-- save excluded items!!!
+					and not BG_GlobalDB.exclude[itemID] and not BG_LocalDB.exclude[itemID] then	-- save excluded items!!!
 					
 					local value, source = BrokerGarbage:GetItemValue(itemLink,count)
 					-- make included items appear in tooltip list as "forced"

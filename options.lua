@@ -26,9 +26,7 @@ BrokerGarbage.listButtons = {
 	exclude = {},
 }
 
--- show me!
-BrokerGarbage.options:SetScript("OnShow", function(frame)
-
+local function ShowOptions(frame)
 	local title, subtitle = LibStub("tekKonfig-Heading").new(BrokerGarbage.options, addonName, BrokerGarbage.locale.subTitle)
 
 	local autosell = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.autoSellTitle, "TOPLEFT", subtitle, "BOTTOMLEFT", -2, -4)
@@ -357,7 +355,7 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 				button.itemID = itemID
 				button.itemLink = itemLink
 				button:SetNormalTexture(texture)
-				button:GetNormalTexture():SetDesaturated(globalList[itemID])		-- desaturate global list items
+				button:GetNormalTexture():SetDesaturated(globalList[itemID] or false)		-- desaturate global list items
 				button:SetChecked(false)
 				button:Show()
 			else
@@ -376,7 +374,7 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 				tex:SetPoint("CENTER")
 				tex:SetWidth(36/37*66) tex:SetHeight(36/37*66)
 				
-				iconbutton:GetNormalTexture():SetDesaturated(globalList[itemID])		-- desaturate global list items
+				iconbutton:GetNormalTexture():SetDesaturated(globalList[itemID] or false)		-- desaturate global list items
 
 				iconbutton:SetScript("OnEnter", ShowTooltip)
 				iconbutton:SetScript("OnLeave", HideTooltip)
@@ -529,9 +527,13 @@ BrokerGarbage.options:SetScript("OnShow", function(frame)
 	buttons = {}
 	ListOptionsUpdate("include")
 	ListOptionsUpdate("exclude")
-	frame:SetScript("OnShow", nil)
+	BrokerGarbage.options:SetScript("OnShow", nil)
 	BrokerGarbage.listOptions:SetScript("OnShow", ListOptionsUpdate)
-end)
+end
+
+-- show me!
+BrokerGarbage.options:SetScript("OnShow", ShowOptions)
+BrokerGarbage.listOptions:SetScript("OnShow", ShowOptions)
 
 InterfaceOptions_AddCategory(BrokerGarbage.options)
 InterfaceOptions_AddCategory(BrokerGarbage.listOptions)
