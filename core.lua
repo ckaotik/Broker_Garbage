@@ -310,9 +310,9 @@ end
 
 function BrokerGarbage:ResetMoney(which)
 	if which == 0 then
-		BG_GlobalDB.moneyLostByDeleting = 0
+		BG_LocalDB.moneyLostByDeleting = 0
 	elseif which == 1 then
-		BG_GlobalDB.moneyEarned = 0
+		BG_LocalDB.moneyEarned = 0
 	end
 end
 
@@ -322,6 +322,11 @@ function BrokerGarbage:ResetList(which)
 	elseif which == "include" then
 		BG_GlobalDB.include = {}
 	end
+end
+
+function BrokerGarbage:GetItemID(itemLink)
+	local itemID = string.gsub(itemLink, ".*|Hitem:([0-9]*):.*", "%1")
+	return tonumber(itemID)
 end
 
 function BrokerGarbage:CanDisenchant(itemLink)	
@@ -494,6 +499,7 @@ function BrokerGarbage:OnClick(itemTable, button)
 		BrokerGarbage:Print(format(BrokerGarbage.locale.addedToPriceList, select(2,GetItemInfo(itemTable.itemID))))
 		
 		BrokerGarbage:ListOptionsUpdate("forceprice")
+		BrokerGarbage:ScanInventory()
 		
 	else
 		-- do nothing
@@ -505,6 +511,7 @@ end
 -- calculates the value of a stack/partial stack of an item
 function BrokerGarbage:GetItemValue(itemLink, count)
 	local vendorPrice = select(11,GetItemInfo(itemLink))
+	local itemID = BrokerGarbage:GetItemID(itemLink)
 	local auctionPrice, disenchantPrice, temp, source
 	local DE = false
 	
@@ -515,6 +522,8 @@ function BrokerGarbage:GetItemValue(itemLink, count)
 	if select(3,GetItemInfo(itemLink)) == 0 
 		or BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID] 
 		or BG_GlobalDB.forceVendorPrice[itemID] then
+		
+		BrokerGarbage:Debug("Using Vendorprice", itemLink)
 		
 		return vendorPrice and vendorPrice*count or nil, "|cFFF5DEB3V" -- orange
 	end

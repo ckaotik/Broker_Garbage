@@ -453,7 +453,6 @@ local function ShowOptions(frame)
 	local numCols = 8
 	function BrokerGarbage:ListOptionsUpdate(listName)
 		local globalList, localList, dataList, box, parent, buttonList
-		BrokerGarbage:Debug("List Name:", listName)
 		if listName == "include" then
 			globalList = BG_GlobalDB.include
 			localList = BG_LocalDB.include
@@ -555,7 +554,7 @@ local function ShowOptions(frame)
 			BrokerGarbage:ListOptionsUpdate("exclude")
 			ClearCursor()
 		elseif self == group_forceprice or self == forcepriceBox or self == plus2 then
-			BG_LocalDB.exclude[itemID] = true
+			BG_GlobalDB.forceVendorPrice[itemID] = true
 			BrokerGarbage:Print(format(BrokerGarbage.locale.addedToPriceList, link))
 			BrokerGarbage:ListOptionsUpdate("forceprice")
 			ClearCursor()
@@ -565,7 +564,7 @@ local function ShowOptions(frame)
 			BrokerGarbage:ListOptionsUpdate("include")
 			ClearCursor()
 		elseif self == group_autosell or self == autosellBox or self == plus4 then
-			BG_LocalDB.exclude[itemID] = true
+			BG_LocalDB.autoSellList[itemID] = true
 			BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSellList, link))
 			BrokerGarbage:ListOptionsUpdate("autosell")
 			ClearCursor()
