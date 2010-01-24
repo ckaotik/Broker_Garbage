@@ -1,7 +1,7 @@
 ﻿-- German localisation file
 _, BrokerGarbage = ...
 
-if GetLocale() == "sdeDE" then
+if GetLocale() == "deDE" then
 
 BrokerGarbage.locale = {
 	label = "Kein Junk",
