@@ -15,18 +15,32 @@ BrokerGarbage.options = CreateFrame("Frame", "BrokerGarbageOptionsFrame", Interf
 BrokerGarbage.options.name = addonName
 BrokerGarbage.options:Hide()
 
--- list options panel
-BrokerGarbage.listOptions = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
-BrokerGarbage.listOptions.name = BrokerGarbage.locale.LOTitle
-BrokerGarbage.listOptions.parent = addonName
-BrokerGarbage.listOptions:Hide()
-BrokerGarbage.optionRows = {}
+-- list options
 BrokerGarbage.listButtons = {
-	include = {},
+	-- positive
 	exclude = {},
+	forceprice = {},
+	-- negative
+	autosell = {},
+	include = {},
 }
 
+-- list options: positive panel
+BrokerGarbage.listOptionsPositive = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
+BrokerGarbage.listOptionsPositive.name = BrokerGarbage.locale.LOPTitle
+BrokerGarbage.listOptionsPositive.parent = addonName
+BrokerGarbage.listOptionsPositive:Hide()
+
+-- list options: negative panel
+BrokerGarbage.listOptionsNegative = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
+BrokerGarbage.listOptionsNegative.name = BrokerGarbage.locale.LONTitle
+BrokerGarbage.listOptionsNegative.parent = addonName
+BrokerGarbage.listOptionsNegative:Hide()
+
 local function ShowOptions(frame)
+	-- ----------------------------------
+	-- Basic Options
+	-- ----------------------------------
 	local title, subtitle = LibStub("tekKonfig-Heading").new(BrokerGarbage.options, addonName, BrokerGarbage.locale.subTitle)
 
 	local autosell = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.autoSellTitle, "TOPLEFT", subtitle, "BOTTOMLEFT", -2, -4)
@@ -185,117 +199,24 @@ local function ShowOptions(frame)
 	local checksound = showsource:GetScript("OnClick")
 	showsource:SetScript("OnClick", function(showsource)
 		checksound(showsource)
-		BG_GlobalDB.showsource = not BG_GlobalDB.showsource
+		BG_GlobalDB.showSource = not BG_GlobalDB.showSource
 	end)
 
+	-- List Options
 	-- ----------------------------------
-	-- List Options panel
-
-	local title, subtitle = LibStub("tekKonfig-Heading").new(BrokerGarbage.listOptions, addonName .. " - " .. BrokerGarbage.locale.LOTitle , BrokerGarbage.locale.LOSubTitle)
-	
-	-- list frame: excludes
 	local boxHeight = 150
 	local boxWidth = 330
-
-	local excludeListHeader = BrokerGarbage.listOptions:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	excludeListHeader:SetHeight(32)
-	excludeListHeader:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", 0, 15)
-	excludeListHeader:SetText(BrokerGarbage.locale.LOExcludeHeader)
 	
-	local excludeBox = CreateFrame("ScrollFrame", "BG_ExcludeListBox", BrokerGarbage.listOptions, "UIPanelScrollFrameTemplate")
-	excludeBox:SetPoint("TOPLEFT", excludeListHeader, "BOTTOMLEFT", 0, 2)
-	excludeBox:SetHeight(boxHeight)
-	excludeBox:SetWidth(boxWidth)
-	local group = CreateFrame("Frame", nil, excludeBox)
-	excludeBox:SetScrollChild(group)
-	group:SetAllPoints()
-	group:SetHeight(boxHeight)
-	group:SetWidth(boxWidth)
-	
+	--local backdrop = {
+		--bgFile = "Interface\\ChatFrame\\ChatFrameBackground", insets = {left = 4, right = 4, top = 4, bottom = 4},
+		--edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 16
+	--}
 	local backdrop = {bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
 		tile = false,
 		tileSize = 32,
-		insets = { left = 0, right = -22, top = 0, bottom = 0 }}
-	excludeBox:SetBackdrop(backdrop)
-	excludeBox:SetBackdropBorderColor(0.4, 0.4, 0.4)
-	excludeBox:SetBackdropColor(0.1, 0.1, 0.1)
-	
-	-- action buttons
-	local plus = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	plus:SetPoint("TOPLEFT", "BG_ExcludeListBoxScrollBar", "TOPRIGHT", 8, -3)
-	plus:SetWidth(25); plus:SetHeight(25)
-	plus:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-	plus:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
-	plus.tiptext = BrokerGarbage.locale.LOExcludePlusTT
-
-	local minus = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	minus:SetPoint("TOP", plus, "BOTTOM", 0, -6)
-	minus:SetWidth(25);	minus:SetHeight(25)
-	minus:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-	minus:SetNormalTexture("Interface\\Icons\\Spell_chargenegative")
-	minus.tiptext = BrokerGarbage.locale.LOExcludeMinusTT
-	
-	local promote = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	promote:SetPoint("TOP", minus, "BOTTOM", 0, -6)
-	promote:SetWidth(25) promote:SetHeight(25)
-	promote:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-	promote:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
-	promote.tiptext = BrokerGarbage.locale.LOExcludePromoteTT
-	
-	local emptyExcludeList = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	emptyExcludeList:SetPoint("TOP", promote, "BOTTOM", 0, -6)
-	emptyExcludeList:SetWidth(25); emptyExcludeList:SetHeight(25)
-	emptyExcludeList:SetNormalTexture("Interface\\Buttons\\Ui-grouploot-pass-up")
-	emptyExcludeList.tiptext = BrokerGarbage.locale.LOExcludeEmptyTT
-	
-	-- list frame: includes
-	local includeListHeader = BrokerGarbage.listOptions:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	includeListHeader:SetHeight(32)
-	includeListHeader:SetPoint("TOPLEFT", excludeBox, "BOTTOMLEFT", 0, -8)
-	includeListHeader:SetText(BrokerGarbage.locale.LOIncludeHeader)
-	
-	local includeBox = CreateFrame("ScrollFrame", "BG_IncludeListBox", BrokerGarbage.listOptions, "UIPanelScrollFrameTemplate")
-	includeBox:SetPoint("TOPLEFT", includeListHeader, "BOTTOMLEFT", 0, 2)
-	includeBox:SetHeight(boxHeight)
-	includeBox:SetWidth(boxWidth)
-	local group2 = CreateFrame("Frame", nil, excludeBox)
-	group2:SetAllPoints()
-	group2:SetHeight(boxHeight)
-	group2:SetWidth(boxWidth)
-	includeBox:SetScrollChild(group2)
-	
-	includeBox:SetBackdrop(backdrop)
-	includeBox:SetBackdropBorderColor(0.4, 0.4, 0.4)
-	includeBox:SetBackdropColor(0.1, 0.1, 0.1)
-
-	-- action buttons
-	local plus2 = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	plus2:SetPoint("TOPLEFT", "BG_IncludeListBoxScrollBar", "TOPRIGHT", 8, -3)
-	plus2:SetWidth(25); plus2:SetHeight(25)
-	plus2:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-	plus2:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
-	plus2.tiptext = BrokerGarbage.locale.LOIncludePlusTT
-	
-	local minus2 = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	minus2:SetPoint("TOP", plus2, "BOTTOM", 0, -6)
-	minus2:SetWidth(25); minus2:SetHeight(25)
-	minus2:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-	minus2:SetNormalTexture("Interface\\Icons\\Spell_chargenegative")
-	minus2.tiptext = BrokerGarbage.locale.LOIncludeMinusTT
-	
-	local promote2 = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	promote2:SetPoint("TOP", minus2, "BOTTOM", 0, -6)
-	promote2:SetWidth(25); promote2:SetHeight(25)
-	promote2:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-	promote2:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
-	promote2.tiptext = BrokerGarbage.locale.LOIncludePromoteTT
-
-	local emptyIncludeList = CreateFrame("Button", nil, BrokerGarbage.listOptions)
-	emptyIncludeList:SetPoint("TOP", promote2, "BOTTOM", 0, -6)
-	emptyIncludeList:SetWidth(25); emptyIncludeList:SetHeight(25)
-	emptyIncludeList:SetNormalTexture("Interface\\Buttons\\Ui-grouploot-pass-up")
-	emptyIncludeList.tiptext = BrokerGarbage.locale.LOIncludeEmptyTT
-	
+		insets = { left = 0, right = -22, top = 0, bottom = 0 }
+	}
+		
 	local function ShowTooltip(self)
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 		if self.tiptext then
@@ -306,6 +227,210 @@ local function ShowOptions(frame)
 		GameTooltip:Show()
 	end
 	local function HideTooltip() GameTooltip:Hide() end
+	
+	-- ----------------------------------
+	--	Positive Lists
+	-- ----------------------------------
+	local title2, subtitle2 = LibStub("tekKonfig-Heading").new(BrokerGarbage.listOptionsPositive, addonName .. " - " .. BrokerGarbage.locale.LOPTitle , BrokerGarbage.locale.LOPSubTitle)
+	
+	-- list frame: exclude
+	local excludeListHeader = BrokerGarbage.listOptionsPositive:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	excludeListHeader:SetHeight(32)
+	excludeListHeader:SetPoint("TOPLEFT", subtitle2, "BOTTOMLEFT", 0, 14)
+	excludeListHeader:SetText(BrokerGarbage.locale.LOPExcludeHeader)
+	
+	local excludeBox = CreateFrame("ScrollFrame", "BG_ExcludeListBox", BrokerGarbage.listOptionsPositive, "UIPanelScrollFrameTemplate")
+	excludeBox:SetPoint("TOPLEFT", excludeListHeader, "BOTTOMLEFT", 0, 4)
+	excludeBox:SetHeight(boxHeight)
+	excludeBox:SetWidth(boxWidth)
+	local group_exclude = CreateFrame("Frame", nil, excludeBox)
+	excludeBox:SetScrollChild(group_exclude)
+	group_exclude:SetAllPoints()
+	group_exclude:SetHeight(boxHeight)
+	group_exclude:SetWidth(boxWidth)
+	
+	excludeBox:SetBackdrop(backdrop)
+	excludeBox:SetBackdropBorderColor(0.4, 0.4, 0.4)
+	excludeBox:SetBackdropColor(0.1, 0.1, 0.1)
+	
+	-- action buttons
+	local plus = CreateFrame("Button", nil, BrokerGarbage.listOptionsPositive)
+	plus:SetPoint("TOPLEFT", "BG_ExcludeListBoxScrollBar", "TOPRIGHT", 8, -3)
+	plus:SetWidth(25); plus:SetHeight(25)
+	plus:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	plus:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
+	plus.tiptext = BrokerGarbage.locale.LOPExcludePlusTT
+
+	local minus = CreateFrame("Button", nil, BrokerGarbage.listOptionsPositive)
+	minus:SetPoint("TOP", plus, "BOTTOM", 0, -6)
+	minus:SetWidth(25);	minus:SetHeight(25)
+	minus:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	minus:SetNormalTexture("Interface\\Icons\\Spell_chargenegative")
+	minus.tiptext = BrokerGarbage.locale.LOPExcludeMinusTT
+	
+	local promote = CreateFrame("Button", nil, BrokerGarbage.listOptionsPositive)
+	promote:SetPoint("TOP", minus, "BOTTOM", 0, -6)
+	promote:SetWidth(25) promote:SetHeight(25)
+	promote:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	promote:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
+	promote.tiptext = BrokerGarbage.locale.LOPExcludePromoteTT
+	
+	local emptyExcludeList = CreateFrame("Button", nil, BrokerGarbage.listOptionsPositive)
+	emptyExcludeList:SetPoint("TOP", promote, "BOTTOM", 0, -6)
+	emptyExcludeList:SetWidth(25); emptyExcludeList:SetHeight(25)
+	emptyExcludeList:SetNormalTexture("Interface\\Buttons\\Ui-grouploot-pass-up")
+	emptyExcludeList.tiptext = BrokerGarbage.locale.LOPExcludeEmptyTT
+	
+	-- list frame: force price
+	local forcepriceListHeader = BrokerGarbage.listOptionsPositive:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	forcepriceListHeader:SetHeight(32)
+	forcepriceListHeader:SetPoint("TOPLEFT", excludeBox, "BOTTOMLEFT", 0, -8)
+	forcepriceListHeader:SetText(BrokerGarbage.locale.LOPForceHeader)
+	
+	local forcepriceBox = CreateFrame("ScrollFrame", "BG_ForcePriceListBox", BrokerGarbage.listOptionsPositive, "UIPanelScrollFrameTemplate")
+	forcepriceBox:SetPoint("TOPLEFT", forcepriceListHeader, "BOTTOMLEFT", 0, 4)
+	forcepriceBox:SetHeight(boxHeight)
+	forcepriceBox:SetWidth(boxWidth)
+	local group_forceprice = CreateFrame("Frame", nil, forcepriceBox)
+	group_forceprice:SetAllPoints()
+	group_forceprice:SetHeight(boxHeight)
+	group_forceprice:SetWidth(boxWidth)
+	forcepriceBox:SetScrollChild(group_forceprice)
+	
+	forcepriceBox:SetBackdrop(backdrop)
+	forcepriceBox:SetBackdropBorderColor(0.4, 0.4, 0.4)
+	forcepriceBox:SetBackdropColor(0.1, 0.1, 0.1)
+
+	-- action buttons
+	local plus2 = CreateFrame("Button", nil, BrokerGarbage.listOptionsPositive)
+	plus2:SetPoint("TOPLEFT", "BG_ForcePriceListBoxScrollBar", "TOPRIGHT", 8, -3)
+	plus2:SetWidth(25); plus2:SetHeight(25)
+	plus2:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	plus2:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
+	plus2.tiptext = BrokerGarbage.locale.LOPForcePlusTT
+	
+	local minus2 = CreateFrame("Button", nil, BrokerGarbage.listOptionsPositive)
+	minus2:SetPoint("TOP", plus2, "BOTTOM", 0, -6)
+	minus2:SetWidth(25); minus2:SetHeight(25)
+	minus2:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	minus2:SetNormalTexture("Interface\\Icons\\Spell_chargenegative")
+	minus2.tiptext = BrokerGarbage.locale.LOPForceMinusTT
+	
+	local promote2 = CreateFrame("Button", nil, BrokerGarbage.listOptionsPositive)
+	promote2:SetPoint("TOP", minus2, "BOTTOM", 0, -6)
+	promote2:SetWidth(25); promote2:SetHeight(25)
+	promote2:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	promote2:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
+	promote2:Enable(false)		-- we only have a global force vendor price list
+	promote2:GetNormalTexture():SetDesaturated(true)
+	promote2.tiptext = BrokerGarbage.locale.LOPForcePromoteTT
+
+	local emptyForcePriceList = CreateFrame("Button", nil, BrokerGarbage.listOptionsPositive)
+	emptyForcePriceList:SetPoint("TOP", promote2, "BOTTOM", 0, -6)
+	emptyForcePriceList:SetWidth(25); emptyForcePriceList:SetHeight(25)
+	emptyForcePriceList:SetNormalTexture("Interface\\Buttons\\Ui-grouploot-pass-up")
+	emptyForcePriceList.tiptext = BrokerGarbage.locale.LOPForceEmptyTT
+	
+	-- ----------------------------------
+	--	Negative Lists
+	-- ----------------------------------
+	local title3, subtitle3 = LibStub("tekKonfig-Heading").new(BrokerGarbage.listOptionsNegative, addonName .. " - " .. BrokerGarbage.locale.LONTitle , BrokerGarbage.locale.LONSubTitle)
+	
+	-- list frame: include
+	local includeListHeader = BrokerGarbage.listOptionsNegative:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	includeListHeader:SetHeight(32)
+	includeListHeader:SetPoint("TOPLEFT", subtitle3, "BOTTOMLEFT", 0, 14)
+	includeListHeader:SetText(BrokerGarbage.locale.LONIncludeHeader)
+	
+	local includeBox = CreateFrame("ScrollFrame", "BG_IncludeListBox", BrokerGarbage.listOptionsNegative, "UIPanelScrollFrameTemplate")
+	includeBox:SetPoint("TOPLEFT", excludeListHeader, "BOTTOMLEFT", 0, 4)
+	includeBox:SetHeight(boxHeight)
+	includeBox:SetWidth(boxWidth)
+	local group_include = CreateFrame("Frame", nil, includeBox)
+	includeBox:SetScrollChild(group_include)
+	group_include:SetAllPoints()
+	group_include:SetHeight(boxHeight)
+	group_include:SetWidth(boxWidth)
+	
+	includeBox:SetBackdrop(backdrop)
+	includeBox:SetBackdropBorderColor(0.4, 0.4, 0.4)
+	includeBox:SetBackdropColor(0.1, 0.1, 0.1)
+	
+	-- action buttons
+	local plus3 = CreateFrame("Button", nil, BrokerGarbage.listOptionsNegative)
+	plus3:SetPoint("TOPLEFT", "BG_ExcludeListBoxScrollBar", "TOPRIGHT", 8, -3)
+	plus3:SetWidth(25); plus3:SetHeight(25)
+	plus3:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	plus3:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
+	plus3.tiptext = BrokerGarbage.locale.LONIncludePlusTT
+
+	local minus3 = CreateFrame("Button", nil, BrokerGarbage.listOptionsNegative)
+	minus3:SetPoint("TOP", plus3, "BOTTOM", 0, -6)
+	minus3:SetWidth(25); minus3:SetHeight(25)
+	minus3:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	minus3:SetNormalTexture("Interface\\Icons\\Spell_chargenegative")
+	minus3.tiptext = BrokerGarbage.locale.LONIncludeMinusTT
+	
+	local promote3 = CreateFrame("Button", nil, BrokerGarbage.listOptionsNegative)
+	promote3:SetPoint("TOP", minus3, "BOTTOM", 0, -6)
+	promote3:SetWidth(25) promote3:SetHeight(25)
+	promote3:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	promote3:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
+	promote3.tiptext = BrokerGarbage.locale.LONIncludePromoteTT
+	
+	local emptyIncludeList = CreateFrame("Button", nil, BrokerGarbage.listOptionsNegative)
+	emptyIncludeList:SetPoint("TOP", promote3, "BOTTOM", 0, -6)
+	emptyIncludeList:SetWidth(25); emptyIncludeList:SetHeight(25)
+	emptyIncludeList:SetNormalTexture("Interface\\Buttons\\Ui-grouploot-pass-up")
+	emptyIncludeList.tiptext = BrokerGarbage.locale.LONIncludeEmptyTT
+	
+	-- list frame: auto sell
+	local autosellListHeader = BrokerGarbage.listOptionsNegative:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	autosellListHeader:SetHeight(32)
+	autosellListHeader:SetPoint("TOPLEFT", excludeBox, "BOTTOMLEFT", 0, -8)
+	autosellListHeader:SetText(BrokerGarbage.locale.LONAutoSellHeader)
+	
+	local autosellBox = CreateFrame("ScrollFrame", "BG_AutosellListBox", BrokerGarbage.listOptionsNegative, "UIPanelScrollFrameTemplate")
+	autosellBox:SetPoint("TOPLEFT", autosellListHeader, "BOTTOMLEFT", 0, 4)
+	autosellBox:SetHeight(boxHeight)
+	autosellBox:SetWidth(boxWidth)
+	local group_autosell = CreateFrame("Frame", nil, autosellBox)
+	group_autosell:SetAllPoints()
+	group_autosell:SetHeight(boxHeight)
+	group_autosell:SetWidth(boxWidth)
+	autosellBox:SetScrollChild(group_autosell)
+	
+	autosellBox:SetBackdrop(backdrop)
+	autosellBox:SetBackdropBorderColor(0.4, 0.4, 0.4)
+	autosellBox:SetBackdropColor(0.1, 0.1, 0.1)
+
+	-- action buttons
+	local plus4 = CreateFrame("Button", nil, BrokerGarbage.listOptionsNegative)
+	plus4:SetPoint("TOPLEFT", "BG_AutosellListBoxScrollBar", "TOPRIGHT", 8, -3)
+	plus4:SetWidth(25); plus4:SetHeight(25)
+	plus4:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	plus4:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
+	plus4.tiptext = BrokerGarbage.locale.LONAutoSellPlusTT
+	
+	local minus4 = CreateFrame("Button", nil, BrokerGarbage.listOptionsNegative)
+	minus4:SetPoint("TOP", plus4, "BOTTOM", 0, -6)
+	minus4:SetWidth(25); minus4:SetHeight(25)
+	minus4:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	minus4:SetNormalTexture("Interface\\Icons\\Spell_chargenegative")
+	minus4.tiptext = BrokerGarbage.locale.LONAutoSellMinusTT
+	
+	local promote4 = CreateFrame("Button", nil, BrokerGarbage.listOptionsNegative)
+	promote4:SetPoint("TOP", minus4, "BOTTOM", 0, -6)
+	promote4:SetWidth(25); promote4:SetHeight(25)
+	promote4:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	promote4:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
+	promote4.tiptext = BrokerGarbage.locale.LONAutoSellPromoteTT
+
+	local emptyAutoSellList = CreateFrame("Button", nil, BrokerGarbage.listOptionsNegative)
+	emptyAutoSellList:SetPoint("TOP", promote4, "BOTTOM", 0, -6)
+	emptyAutoSellList:SetWidth(25); emptyAutoSellList:SetHeight(25)
+	emptyAutoSellList:SetNormalTexture("Interface\\Buttons\\Ui-grouploot-pass-up")
+	emptyAutoSellList.tiptext = BrokerGarbage.locale.LONAutoSellEmptyTT
 	
 	
 	local function JoinTables(t1, t2)
@@ -326,24 +451,42 @@ local function ShowOptions(frame)
 	end
 	
 	local numCols = 8
-	local function ListOptionsUpdate(listName)
+	function BrokerGarbage:ListOptionsUpdate(listName)
 		local globalList, localList, dataList, box, parent, buttonList
+		BrokerGarbage:Debug("List Name:", listName)
 		if listName == "include" then
 			globalList = BG_GlobalDB.include
 			localList = BG_LocalDB.include
 
 			box = includeBox
-			parent = group2
+			parent = group_include
 			buttonList = BrokerGarbage.listButtons.include
-		else
+		
+		elseif listName == "exclude" then
 			globalList = BG_GlobalDB.exclude
 			localList = BG_LocalDB.exclude
 
 			box = excludeBox
-			parent = group
+			parent = group_exclude
 			buttonList = BrokerGarbage.listButtons.exclude
+		
+		elseif listName == "autosell" then
+			globalList = BG_GlobalDB.autoSellList
+			localList = BG_LocalDB.autoSellList
+
+			box = autosellBox
+			parent = group_autosell
+			buttonList = BrokerGarbage.listButtons.autosell
+		
+		elseif listName == "forceprice" then
+			globalList = BG_GlobalDB.forceVendorPrice
+
+			box = forcepriceBox
+			parent = group_forceprice
+			buttonList = BrokerGarbage.listButtons.forceprice
 		end
 		dataList = JoinTables(globalList, localList)
+		if not buttonList then buttonList = {} end
 		
 		local index = 1
 		for itemID,_ in pairs(dataList) do
@@ -391,9 +534,8 @@ local function ShowOptions(frame)
 				end
 				
 				buttonList[index] = iconbutton
-				ListOptionsUpdate(listName)
+				BrokerGarbage:ListOptionsUpdate(listName)
 			end
-			
 			index = index + 1
 		end
 		-- hide unnessessary buttons
@@ -401,37 +543,55 @@ local function ShowOptions(frame)
 			buttonList[index]:Hide()
 			index = index + 1
 		end
-		
-		box:UpdateScrollChildRect()
 	end
 	
 	local function ItemDrop(self)
 		local type, itemID, link = GetCursorInfo()
 		if not type == "item" then return end
 		
-		if self == group2 or self == includeBox or self == plus2 then
-			BG_LocalDB.include[itemID] = true
-			BrokerGarbage:Print(format(BrokerGarbage.locale.addedToDestroyList, link))
-			ListOptionsUpdate("include")
-			ClearCursor()
-		elseif self == group or self == excludeBox or self == plus then
+		if self == group_exclude or self == excludeBox or self == plus then
 			BG_LocalDB.exclude[itemID] = true
 			BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSaveList, link))
-			ListOptionsUpdate("exclude")
+			BrokerGarbage:ListOptionsUpdate("exclude")
+			ClearCursor()
+		elseif self == group_forceprice or self == forcepriceBox or self == plus2 then
+			BG_LocalDB.exclude[itemID] = true
+			BrokerGarbage:Print(format(BrokerGarbage.locale.addedToPriceList, link))
+			BrokerGarbage:ListOptionsUpdate("forceprice")
+			ClearCursor()
+		elseif self == group_include or self == includeBox or self == plus3 then
+			BG_LocalDB.include[itemID] = true
+			BrokerGarbage:Print(format(BrokerGarbage.locale.addedToIncludeList, link))
+			BrokerGarbage:ListOptionsUpdate("include")
+			ClearCursor()
+		elseif self == group_autosell or self == autosellBox or self == plus4 then
+			BG_LocalDB.exclude[itemID] = true
+			BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSellList, link))
+			BrokerGarbage:ListOptionsUpdate("autosell")
 			ClearCursor()
 		end
 	end
 	
 	local function OnClick(self, button)
+		-- empty action
 		if self == emptyExcludeList then
 			BG_LocalDB.exclude = {}
-			ListOptionsUpdate("exclude")
+			BrokerGarbage:ListOptionsUpdate("exclude")
+			BrokerGarbage:ScanInventory()
+		elseif self == emptyForcePriceList then
+			BG_LocalDB.forceVendorPrice = {}
+			BrokerGarbage:ListOptionsUpdate("forceprice")
 			BrokerGarbage:ScanInventory()
 		elseif self == emptyIncludeList then
 			BG_LocalDB.include = {}
-			ListOptionsUpdate("include")
+			BrokerGarbage:ListOptionsUpdate("include")
+			BrokerGarbage:ScanInventory()
+		elseif self == emptyAutoSellList then
+			BG_GlobalDB.autoSellList = {}
+			BrokerGarbage:ListOptionsUpdate("autosell")
 			BrokerGarbage:ScanInventory()
 			
+		-- remove action
 		elseif self == minus then
 			for i, button in pairs(BrokerGarbage.listButtons.exclude) do
 				if button:GetChecked() then
@@ -439,102 +599,156 @@ local function ShowOptions(frame)
 					BG_GlobalDB.exclude[button.itemID] = nil
 				end
 			end
-			ListOptionsUpdate("exclude")
+			BrokerGarbage:ListOptionsUpdate("exclude")
 			BrokerGarbage:ScanInventory()
 		elseif self == minus2 then
+			for i, button in pairs(BrokerGarbage.listButtons.forceprice) do
+				if button:GetChecked() then
+					BG_GlobalDB.forceVendorPrice[button.itemID] = nil
+				end
+			end
+			BrokerGarbage:ListOptionsUpdate("forceprice")
+			BrokerGarbage:ScanInventory()
+		elseif self == minus3 then
 			for i, button in pairs(BrokerGarbage.listButtons.include) do
 				if button:GetChecked() then
 					BG_LocalDB.include[button.itemID] = nil
 					BG_GlobalDB.include[button.itemID] = nil
 				end
 			end
-			ListOptionsUpdate("include")
+			BrokerGarbage:ListOptionsUpdate("include")
 			BrokerGarbage:ScanInventory()
-			
-		elseif self == plus then
-			BrokerGarbage:Debug("Include1")
-			ItemDrop(self)
-			ListOptionsUpdate("exclude")
-		elseif self == plus2 then
-			BrokerGarbage:Debug("Include2")
-			ItemDrop(self)
-			ListOptionsUpdate("include")
+		elseif self == minus4 then
+			for i, button in pairs(BrokerGarbage.listButtons.autosell) do
+				if button:GetChecked() then
+					BG_LocalDB.autoSellList[button.itemID] = nil
+					BG_GlobalDB.autoSellList[button.itemID] = nil
+				end
+			end
+			BrokerGarbage:ListOptionsUpdate("autosell")
+			BrokerGarbage:ScanInventory()
 		
+		-- add action
+		elseif self == plus then
+			ItemDrop(self)
+			BrokerGarbage:ListOptionsUpdate("exclude")
+		elseif self == plus2 then
+			ItemDrop(self)
+			BrokerGarbage:ListOptionsUpdate("forceprice")
+		elseif self == plus3 then
+			ItemDrop(self)
+			BrokerGarbage:ListOptionsUpdate("include")
+		elseif self == plus4 then
+			ItemDrop(self)
+			BrokerGarbage:ListOptionsUpdate("autosell")
+		
+		-- promote action
 		elseif self == promote then
-			BrokerGarbage:Debug("Promote")
 			for i, button in pairs(BrokerGarbage.listButtons.exclude) do
 				if button:GetChecked() then
 					BG_GlobalDB.exclude[button.itemID] = true
 				end
 			end
-			
-			ListOptionsUpdate("exclude")
-		elseif self == promote2 then
-			BrokerGarbage:Debug("Promote2")
+			BrokerGarbage:ListOptionsUpdate("exclude")
+		elseif self == promote3 then
 			for i, button in pairs(BrokerGarbage.listButtons.include) do
 				if button:GetChecked() then
 					BG_GlobalDB.include[button.itemID] = true
 				end
 			end
-			
-			ListOptionsUpdate("exclude")
+			BrokerGarbage:ListOptionsUpdate("include")
+		elseif self == promote3 then
+			for i, button in pairs(BrokerGarbage.listButtons.autosell) do
+				if button:GetChecked() then
+					BG_GlobalDB.autoSellList[button.itemID] = true
+				end
+			end
+			BrokerGarbage:ListOptionsUpdate("autosell")
 		end
-		
-		--ListOptionsUpdate("include")
-		--ListOptionsUpdate("exclude")
 	end
 	
 	emptyExcludeList:SetScript("OnClick", OnClick)
 	emptyExcludeList:SetScript("OnEnter", ShowTooltip)
 	emptyExcludeList:SetScript("OnLeave", HideTooltip)
-	
+	emptyForcePriceList:SetScript("OnClick", OnClick)
+	emptyForcePriceList:SetScript("OnEnter", ShowTooltip)
+	emptyForcePriceList:SetScript("OnLeave", HideTooltip)
 	emptyIncludeList:SetScript("OnClick", OnClick)
 	emptyIncludeList:SetScript("OnEnter", ShowTooltip)
 	emptyIncludeList:SetScript("OnLeave", HideTooltip)
+	emptyAutoSellList:SetScript("OnClick", OnClick)
+	emptyAutoSellList:SetScript("OnEnter", ShowTooltip)
+	emptyAutoSellList:SetScript("OnLeave", HideTooltip)
 	
 	minus:SetScript("OnClick", OnClick)
 	minus:SetScript("OnEnter", ShowTooltip)
 	minus:SetScript("OnLeave", HideTooltip)
-	
 	minus2:SetScript("OnClick", OnClick)
 	minus2:SetScript("OnEnter", ShowTooltip)
 	minus2:SetScript("OnLeave", HideTooltip)
+	minus3:SetScript("OnClick", OnClick)
+	minus3:SetScript("OnEnter", ShowTooltip)
+	minus3:SetScript("OnLeave", HideTooltip)
+	minus4:SetScript("OnClick", OnClick)
+	minus4:SetScript("OnEnter", ShowTooltip)
+	minus4:SetScript("OnLeave", HideTooltip)
 	
 	plus:SetScript("OnClick", OnClick)
 	plus:SetScript("OnEnter", ShowTooltip)
 	plus:SetScript("OnLeave", HideTooltip)
-	
 	plus2:SetScript("OnClick", OnClick)
 	plus2:SetScript("OnEnter", ShowTooltip)
 	plus2:SetScript("OnLeave", HideTooltip)
+	plus3:SetScript("OnClick", OnClick)
+	plus3:SetScript("OnEnter", ShowTooltip)
+	plus3:SetScript("OnLeave", HideTooltip)
+	plus4:SetScript("OnClick", OnClick)
+	plus4:SetScript("OnEnter", ShowTooltip)
+	plus4:SetScript("OnLeave", HideTooltip)
 	
 	promote:SetScript("OnClick", OnClick)
 	promote:SetScript("OnEnter", ShowTooltip)
 	promote:SetScript("OnLeave", HideTooltip)
-	
 	promote2:SetScript("OnClick", OnClick)
 	promote2:SetScript("OnEnter", ShowTooltip)
 	promote2:SetScript("OnLeave", HideTooltip)
+	promote3:SetScript("OnClick", OnClick)
+	promote3:SetScript("OnEnter", ShowTooltip)
+	promote3:SetScript("OnLeave", HideTooltip)
+	promote4:SetScript("OnClick", OnClick)
+	promote4:SetScript("OnEnter", ShowTooltip)
+	promote4:SetScript("OnLeave", HideTooltip)
 	
-	-- ----------------------------------	
+	-- support for add-mechanism
 	plus:RegisterForDrag("LeftButton")
 	plus:SetScript("OnReceiveDrag", ItemDrop)
 	plus:SetScript("OnMouseDown", ItemDrop)
 	plus2:RegisterForDrag("LeftButton")
 	plus2:SetScript("OnReceiveDrag", ItemDrop)
 	plus2:SetScript("OnMouseDown", ItemDrop)
+	plus3:RegisterForDrag("LeftButton")
+	plus3:SetScript("OnReceiveDrag", ItemDrop)
+	plus3:SetScript("OnMouseDown", ItemDrop)
+	plus4:RegisterForDrag("LeftButton")
+	plus4:SetScript("OnReceiveDrag", ItemDrop)
+	plus4:SetScript("OnMouseDown", ItemDrop)
 	
 	buttons = {}
-	ListOptionsUpdate("include")
-	ListOptionsUpdate("exclude")
+	BrokerGarbage:ListOptionsUpdate("include")
+	BrokerGarbage:ListOptionsUpdate("forceprice")
+	BrokerGarbage:ListOptionsUpdate("exclude")
+	BrokerGarbage:ListOptionsUpdate("autosell")
 	BrokerGarbage.options:SetScript("OnShow", nil)
-	BrokerGarbage.listOptions:SetScript("OnShow", ListOptionsUpdate)
+	BrokerGarbage.listOptionsPositive:SetScript("OnShow", BrokerGarbage.ListOptionsUpdate)
+	BrokerGarbage.listOptionsNegative:SetScript("OnShow", BrokerGarbage.ListOptionsUpdate)
 end
 
 -- show me!
 BrokerGarbage.options:SetScript("OnShow", ShowOptions)
-BrokerGarbage.listOptions:SetScript("OnShow", ShowOptions)
+BrokerGarbage.listOptionsPositive:SetScript("OnShow", ShowOptions)
+BrokerGarbage.listOptionsNegative:SetScript("OnShow", ShowOptions)
 
 InterfaceOptions_AddCategory(BrokerGarbage.options)
-InterfaceOptions_AddCategory(BrokerGarbage.listOptions)
+InterfaceOptions_AddCategory(BrokerGarbage.listOptionsPositive)
+InterfaceOptions_AddCategory(BrokerGarbage.listOptionsNegative)
 LibStub("tekKonfig-AboutPanel").new("Broker_Garbage", "Broker_Garbage")

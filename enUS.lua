@@ -1,6 +1,8 @@
 ﻿-- enUS / enGB / default localization file
 _, BrokerGarbage = ...
 
+
+
 BrokerGarbage.locale = {
 	label = "Junk, be gone!",
 	
@@ -10,7 +12,9 @@ BrokerGarbage.locale = {
 	sell = "Sold trash for %s.",
 	
 	addedToSaveList = "%s has been added to the save list.",
-	addedToDestroyList = "%s has been added to the destroy list.",
+	addedToPriceList = "%s will only have its vendor price considered.",
+	addedToIncludeList = "%s has been added to the Include List.",
+	addedToSellList = "%s will be automatically sold when at a merchant.",
 	itemDeleted = "%s has been deleted.",
 	
 	openPlease = "Please open your %s. It's in your bags, stealing your space!",
@@ -77,18 +81,39 @@ BrokerGarbage.locale = {
 	emptyIncludeListText = "Click to clear your include list.",
 	
 	-- List Options Panel
-	LOTitle = "List Options",
-	LOSubTitle = "Set up your master lists here. To add Items, drag them over the corresponding '+' icon, to remove them select them and klick the '-'.",
+	LOPTitle = "Positive Lists",
+	LOPSubTitle = "To add Items to lists, drag them over the corresponding '+' icon, to remove them select them and click the '-'.",
+		
+		-- Exclude List
+	LOPExcludeHeader = "Exclude List - these items will never be sold/deleted.",
+	LOPExcludePlusTT = "Add items to the Exclude List by dragging/placing them on me!",
+	LOPExcludeMinusTT = "Select items you want to remove, then click here.",
+	LOPExcludePromoteTT = "Selected items will be written onto your global Exclude List, as seen by every character.",
+	LOPExcludeEmptyTT = "Click to fully empty your local Exclude List.\n|cffff0000Caution!",
 	
-	LOExcludeHeader = "Exclude List - these items will never be sold/deleted.",
-	LOExcludePlusTT = "Add items to the Exclude List by dragging/placing them on me!",
-	LOExcludeMinusTT = "Select items you want to remove, then click here.",
-	LOExcludePromoteTT = "Selected items will be written onto your global Exclude List, as seen by every character.",
-	LOExcludeEmptyTT = "Click to fully empty your local Exclude List. Caution!",
+		-- Force Vendor Price List
+	LOPForceHeader = "Vendor Price List - These items will only have their vendor price considered.",
+	LOPForcePlusTT = "Add items to the Vendor Price List by dragging/placing them on me!",
+	LOPForceMinusTT = "Select items you want to remove, then click here.",
+	LOPForcePromoteTT = "The Vendor Price List is already global and effects every character.",
+	LOPForceEmptyTT = "Click to fully empty your Vendor Price List.\n|cffff0000Caution!",
 	
-	LOIncludeHeader = "Include List - these items will be suggested to be deleted.",
-	LOIncludePlusTT = "Add items to your Include List by dragging/placing them on me!",
-	LOIncludeMinusTT = "Select items you want to remove, then click here.",
-	LOIncludePromoteTT = "Selected items will be written onto your global Include List, as seen by every character.",
-	LOIncludeEmptyTT = "Click to fully empty your local Include List. Caution!",
+	-- AutoSell Options Panel
+	LONTitle = "Negative Lists",
+	LONSubTitle = "To add Items to lists, drag them over the corresponding '+' icon, to remove them select them and click the '-'.",
+	
+		-- Include List
+	LONIncludeHeader = "Include List - these items will shown first in the tooltip.",
+	LONIncludePlusTT = "Add items to your Include List by dragging/placing them on me!",
+	LONIncludeMinusTT = "Select items you want to remove, then click here.",
+	LONIncludePromoteTT = "Selected items will be written onto your global Include List, as seen by every character.",
+	LONIncludeEmptyTT = "Click to fully empty your local Include List.\n|cffff0000Caution!",
+	
+		-- Auto Sell List
+	LONAutoSellHeader = "Sell List - These items will me automatically sold when at a vendor.",
+	LONAutoSellPlusTT = "Add items to your Sell List by dragging/placing them on me!",
+	LONAutoSellMinusTT = "Select items you want to remove, then click here.",
+	LONAutoSellPromoteTT = "Selected items will be written onto your global Sell List, as seen by every character.",
+	LONAutoSellEmptyTT = "Click to fully empty your local Sell List.\n|cffff0000Caution!",
 }
+

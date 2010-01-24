@@ -1,7 +1,7 @@
 ﻿-- German localisation file
 _, BrokerGarbage = ...
 
-if GetLocale() == "deDE" then
+if GetLocale() == "sdeDE" then
 
 BrokerGarbage.locale = {
 	label = "Kein Junk",
@@ -12,7 +12,9 @@ BrokerGarbage.locale = {
 	sell = "Müll verkauft für %s.",
 	
 	addedToSaveList = "%s zur Ausnahmeliste hinzugefügt.",
-	addedToDestroyList = "%s zur Einschlussliste hinzugefügt.",
+	addedToPriceList = "Für %s wird nun nur der Händlerpreis genutzt.",
+	addedToIncludeList = "%s zur Einschlussliste hinzugefügt.",
+	addedToSellList = "%s wird bei Händlern automatisch verkauft.",
 	itemDeleted = "%s wurde gelöscht.",
 	
 	openPlease = "Bitte öffne %s - es nimmt unnötig Platz weg.",
@@ -79,20 +81,40 @@ BrokerGarbage.locale = {
 	emptyIncludeListText = "Klicke um deine globale (!) Einschlussliste zu leeren.",
 	
 	-- List Options Panel
-	LOTitle = "Listen-Optionen",
-	LOSubTitle = "Stelle hier deine Listen ein. Um Items hinzuzufügen, ziehe sie auf das jeweilige '+'. Um sie zu entfernen, wähle sie aus und klicke auf '-'.",
+	LOPTitle = "Positiv-Listen",
+	LOPSubTitle = "Um Items hinzuzufügen, ziehe sie auf das jeweilige '+'. Um sie zu entfernen, wähle sie aus und klicke auf '-'.",
+		
+		-- Exclude List
+	LOPExcludeHeader = "Ausschlussliste - Items hier werden nie verkauft/gelöscht.",
+	LOPExcludePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst",
+	LOPExcludeMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
+	LOPExcludePromoteTT = "Klicke um alle markierten Items in die globale Ausnahmeliste zu übernehmen.",
+	LOPExcludeEmptyTT = "Klicke, um die lokale Ausschlussliste völlig zu leeren.\n|cffff0000Achtung!",
 	
-	LOExcludeHeader = "Ausschlussliste - Items hier werden nie verkauft/gelöscht.",
-	LOExcludePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst",
-	LOExcludeMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
-	LOExcludePromoteTT = "Klicke um alle markierten Items in die globale Ausnahmeliste zu übernehmen.",
-	LOExcludeEmptyTT = "Klicke, um die lokale Ausschlussliste völlig zu leeren.\nAchtung!",
+		-- Force Vendor Price List
+	LOPForceHeader = "Händlerpreis-Liste - Für diese Items wird nur der Händlerpreis betrachtet.",
+	LOPForcePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst",
+	LOPForceMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
+	LOPForcePromoteTT = "Die Händlerpreis-Liste ist bereits global.",
+	LOPForceEmptyTT = "Klicke, um die Händlerliste völlig zu leeren.\n|cffff0000Achtung!",
 	
-	LOIncludeHeader = "Einschlussliste - Items hier werden zum Löschen vorgeschlagen.",
-	LOIncludePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst",
-	LOIncludeMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
-	LOIncludePromoteTT = "Klicke, um alle markierten Items in die globale Einschlussliste zu übernehmen.",
-	LOIncludeEmptyTT = "Klicke, um die lokale Einschlussliste völlig zu leeren.\nAchtung!",
+	-- AutoSell Options Panel
+	LONTitle = "Negativ-Listen",
+	LONSubTitle = "Um Items hinzuzufügen, ziehe sie auf das jeweilige '+'. Um sie zu entfernen, wähle sie aus und klicke auf '-'.",
+	
+		-- Include List
+	LONIncludeHeader = "Einschlussliste - Items hier werden mit als erstes im Tooltip gezeigt.",
+	LONIncludePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst",
+	LONIncludeMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
+	LONIncludePromoteTT = "Klicke, um alle markierten Items in die globale Einschlussliste zu übernehmen.",
+	LONIncludeEmptyTT = "Klicke, um die lokale Einschlussliste völlig zu leeren.\n|cffff0000Achtung!",
+	
+		-- Auto Sell List
+	LONAutoSellHeader = "Verkaufsliste - Items hier werden bei Händlern automatisch verkauft.",
+	LONAutoSellPlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst",
+	LONAutoSellMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
+	LONAutoSellPromoteTT = "Klicke, um alle markierten Items in die globale Verkaufsliste zu übernehmen.",
+	LONAutoSellEmptyTT = "Klicke, um die lokale Verkaufsliste völlig zu leeren.\n|cffff0000Achtung!",
 }
 
 end

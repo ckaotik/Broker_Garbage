@@ -21,15 +21,13 @@ BrokerGarbage.defaultGlobalSettings = {
 	-- lists
 	exclude = {},
 	include = {},
-	dropList = {},				-- TODO options
-	autoSellList = {},			-- TODO options
-	forceVendorPrice = {},		-- TODO options, only global
+	autoSellList = {},
+	forceVendorPrice = {},		-- only global
 
 	-- behavior
 	autoSellToVendor = true,
 	autoRepairAtVendor = true,
 	neverRepairGuildBank = false,
-	useTwoPartLists = true,		-- TODO options
 	
 	-- default values
 	moneyLostByDeleting = 0,	-- total value
@@ -43,7 +41,7 @@ BrokerGarbage.defaultGlobalSettings = {
 	showAutoSellIcon = true,
 	showLost = true,
 	showEarned = true,
-	showWarnings = true,		-- TODO options
+	-- showWarnings = true,		-- TODO options
 	showSource = false,
 }
 
@@ -51,7 +49,6 @@ BrokerGarbage.defaultLocalSettings = {
 	-- lists
 	exclude = {},
 	include = {},
-	dropList = {},
 	autoSellList = {},
 
 	-- behavior
@@ -478,24 +475,31 @@ function BrokerGarbage:OnClick(itemTable, button)
 		BG_GlobalDB.moneyLostByDeleting = BG_GlobalDB.moneyLostByDeleting + itemTable.value
 		BG_LocalDB.moneyLostByDeleting = BG_GlobalDB.moneyLostByDeleting + itemTable.value
 		
-		BrokerGarbage:ScanInventory()
-		
 	elseif itemTable and IsControlKeyDown() then
 		-- add to exclude list
 		BrokerGarbage:Debug("CTRL-Click!")
 		BG_LocalDB.exclude[itemTable.itemID] = true
 		BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSaveList, select(2,GetItemInfo(itemTable.itemID))))
-		BrokerGarbage:ScanInventory()
+		
+		BrokerGarbage:ListOptionsUpdate("exclude")
 		
 	elseif button == "RightButton" then
 		-- open config
 		InterfaceOptionsFrame_OpenToCategory(BrokerGarbage.options)
-		BrokerGarbage:ScanInventory()
+		
+	elseif IsAltKeyDown() then
+		-- add to force vendor price list
+		BrokerGarbage:Debug("ALT-Click!")
+		BG_GlobalDB.forceVendorPrice[itemTable.itemID] = true
+		BrokerGarbage:Print(format(BrokerGarbage.locale.addedToPriceList, select(2,GetItemInfo(itemTable.itemID))))
+		
+		BrokerGarbage:ListOptionsUpdate("forceprice")
 		
 	else
 		-- do nothing
-		BrokerGarbage:ScanInventory()
 	end
+	
+	BrokerGarbage:ScanInventory()
 end
 
 -- calculates the value of a stack/partial stack of an item
@@ -513,11 +517,6 @@ function BrokerGarbage:GetItemValue(itemLink, count)
 		or BG_GlobalDB.forceVendorPrice[itemID] then
 		
 		return vendorPrice and vendorPrice*count or nil, "|cFFF5DEB3V" -- orange
-	end
-	
-	-- drop list items have a value of 0 copper
-	if BG_GlobalDB.dropList[itemID] or BG_LocalDB.dropList[itemID] then
-		return 0
 	end
 	
 	-- calculate auction value
@@ -577,6 +576,8 @@ function BrokerGarbage:GetItemValue(itemLink, count)
 		else
 			return temp * count or 0, source
 		end	
+	else
+		return nil
 	end		
 end
 
@@ -620,11 +621,13 @@ function BrokerGarbage:ScanInventory()
 					or BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID]) 
 					and not BG_GlobalDB.exclude[itemID] and not BG_LocalDB.exclude[itemID] then	-- save excluded items!!!
 					
+					local force = false
 					local value, source = BrokerGarbage:GetItemValue(itemLink,count)
 					-- make included items appear in tooltip list as "forced"
 					if BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID] then
-						value = 0
-						source = "|cFF8C1717F"
+						if not value then value = 0 end
+						force = true
+						source = "|cFF8C1717I"	-- I as in "include"
 					end
 					if value then
 						local currentItem = {
@@ -635,6 +638,7 @@ function BrokerGarbage:ScanInventory()
 							count = count,
 							value = value,
 							source = source,
+							force = force,
 						}
 						
 						if not cheapestItem or cheapestItem.value >= value then
@@ -665,21 +669,44 @@ end
 function BrokerGarbage:GetCheapest(number)
 	if not number then number = 1 end
 	local cheapestItems = {}
+	
 	for i = 1, number do
-		local minPrice, minTable
 		for _, itemTable in pairs(BrokerGarbage.inventory) do
 			local skip = false
 			
 			for _, usedTable in pairs(cheapestItems) do
 				if usedTable == itemTable then skip = true end
 			end
-			if not skip and (not minPrice or itemTable.value < minPrice) then
-				minPrice = itemTable.value
-				minTable = itemTable
+				
+			if not skip and itemTable.force then
+				tinsert(cheapestItems, itemTable)
 			end
 		end
+	end
+	
+	if #cheapestItems < number then
+		local minPrice, minTable
 		
-		if minTable then tinsert(cheapestItems, minTable) end
+		for i = #cheapestItems +1, number do
+			for _, itemTable in pairs(BrokerGarbage.inventory) do
+				local skip = false
+				
+				for _, usedTable in pairs(cheapestItems) do
+					if usedTable.itemID == itemTable.itemID then 
+						skip = true
+					end
+				end
+				
+				if not skip and (not minPrice or itemTable.value < minPrice) then
+					minPrice = itemTable.value
+					minTable = itemTable
+				end
+			end
+			
+			if minTable then tinsert(cheapestItems, minTable) end
+			minPrice = nil
+			minTable = nil
+		end
 	end
 	
 	return cheapestItems
@@ -733,7 +760,7 @@ end
 
 -- Wishlist
 -- ---------------------------------------------------------
--- make "autosell" list - e.g. mages selling dropped water/food [quickfix: use include list] - sell list (like include, only always sells)
+-- make "autosell" list - e.g. mages selling dropped water/food
 -- include types on character specific settings
 -- show lootable containers in your bag! make "open items" not as spammy
 -- increase/decrease loot treshold with mousewheel on LDB

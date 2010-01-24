@@ -10,6 +10,8 @@ Curse:        http://wow.curse.com/downloads/wow-addons/details/broker_garbage.a
 
 1. What it does
 -----------------
+Broker_Garbage is a LDB plugin that will show your least valuable items, their value and their amount in a tooltip. Then it enables you to drop them with just one click, making life for those tight-bagged people among us easier.
+As you probably don't want to drop everything just by it's vendor price, Broker_Garbage takes into account auction prices (you would need to have an auction price addon active) and different lists for managing exclusions and other "special" behaviour.
 
 2. First Start
 -----------------
@@ -51,11 +53,8 @@ Grayed out items on there are items that are on your global list, active for all
 Items on this list will never have their auction value used. This is useful for food, drinks and other things people tend to put on the AH at unbelievable prices.
 
 * Include List
-Items on this list will be dropped, no matter what Quality Treshold you might have set. Caution!
+Items on this list will be always be shown in the drop Tooltip, no matter what Quality Treshold you might have set. Caution!
 Grayed out items on there are items that are on your global list, active for all characters. Colorful ones are just for your current character.
-
-* Drop List
-If your inventory gets too full and you want to drop something, these items will show up in the tooltip with a forced value of 0 copper. Items above your Quality Treshold will NOT be dropped.
 
 * Auto-Sell List
 Items on this list will be sold whenever you talk to a vendor. Items of higher quality than your Quality Treshold WILL be sold.
