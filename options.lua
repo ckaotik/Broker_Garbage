@@ -621,8 +621,8 @@ local function ShowOptions(frame)
 				info.notCheckable = true;
 				info.text = "Categories";
 				info.isTitle = true;
-				info.tooltipTitle = "Add Categories"
-				info.tooltipText = "Navigate through this menu and add any of these categories by clicking on them."
+				info.tooltipTitle = BrokerGarbage.locale.PTCategoryTooltipHeader
+				info.tooltipText = BrokerGarbage.locale.PTCategoryTooltipText
 				UIDropDownMenu_AddButton(info, level);
 
 				for key, subarray in pairs(BrokerGarbage.PTSets) do

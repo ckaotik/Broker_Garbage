@@ -115,6 +115,10 @@ BrokerGarbage.locale = {
 	LONAutoSellMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
 	LONAutoSellPromoteTT = "Klicke, um alle markierten Items in die globale Verkaufsliste zu übernehmen.",
 	LONAutoSellEmptyTT = "Klicke, um die lokale Verkaufsliste völlig zu leeren.\n|cffff0000Achtung!",
+	
+	-- LibPeriodicTable texts
+	PTCategoryTooltipHeader = "Kategorien hinzufügen",
+	PTCategoryTooltipText = "Füge Kategorien hinzu, indem du auf die entsprechenden Einträge clickst."
 }
 
 end
