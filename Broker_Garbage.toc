@@ -1,6 +1,6 @@
 ﻿## Interface: 30300
 ## Dependencies: 
-## OptionalDeps: Auctionator, AuctionLite, Auctioneer
+## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auctioneer
 ## SavedVariables: BG_GlobalDB
 ## SavedVariablesPerCharacter: BG_LocalDB
 
@@ -8,7 +8,8 @@
 ## Notes: Full bags no more! Find your least valuable item .. and destroy it!
 ## Notes-deDE: Endlich wieder Platz! Finde dein billigstes Item ... und zerstöre es.
 ## Author: ckaotik
-## Version: 3.3v10
+## Version: 3.3v11
+## X-Embeds: LibPeriodicTable-3.1
 ## X-Category: Inventory
 ## X-Credits: GarbageFu, Tekkub
 
@@ -17,6 +18,11 @@ Libs\LibQTip-1.0.lua
 Libs\CallbackHandler-1.0.lua
 Libs\LibDataBroker-1.1.lua
 Libs\tekKonfig\tekKonfig.xml
+Libs\LibPeriodicTable-3.1\LibPeriodicTable-3.1.lua
+Libs\LibPeriodicTable-3.1-Consumable\LibPeriodicTable-3.1-Consumable.lua
+Libs\LibPeriodicTable-3.1-Misc\LibPeriodicTable-3.1-Misc.lua
+Libs\LibPeriodicTable-3.1-Tradeskill\LibPeriodicTable-3.1-Tradeskill.lua
+Libs\LibPeriodicTable-3.1-TradeskillResultMats\LibPeriodicTable-3.1-TradeskillResultMats.lua
 
 enUS.lua
 deDE.lua

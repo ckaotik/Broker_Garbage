@@ -1,5 +1,8 @@
-﻿addonName, BrokerGarbage = ...
+﻿_, BrokerGarbage = ...
 
+BrokerGarbage:CheckSettings()
+
+-- rarity strings (no need to localize)
 BrokerGarbage.quality = {
 	[0] = "|cff9D9D9D"..ITEM_QUALITY0_DESC.."|r",
 	[1] = "|cffFFFFFF"..ITEM_QUALITY1_DESC.."|r",
@@ -10,10 +13,43 @@ BrokerGarbage.quality = {
 	[6] = "|cffE6CC80"..ITEM_QUALITY6_DESC.."|r",
 	}
 
+-- create drop down menu table for PT sets	
+BrokerGarbage.PTSets = {}		
+for set, _ in pairs(BrokerGarbage.PT.sets) do
+	local partials = { strsplit(".", set) }
+	local maxParts = #partials
+	local pre = BrokerGarbage.PTSets
+	
+	for i = 1, maxParts do
+		if i == maxParts then
+			-- actual clickable entries
+			pre[ partials[i] ] = set
+		else
+			-- all parts before that
+			if not pre[ partials[i] ] then
+				pre[ partials[i] ] = {}
+			end
+			pre = pre[ partials[i] ]
+		end
+	end
+end
+
 -- main options panel
 BrokerGarbage.options = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
-BrokerGarbage.options.name = addonName
+BrokerGarbage.options.name = "Broker_Garbage"
 BrokerGarbage.options:Hide()
+
+-- list options: positive panel
+BrokerGarbage.listOptionsPositive = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
+BrokerGarbage.listOptionsPositive.name = BrokerGarbage.locale.LOPTitle
+BrokerGarbage.listOptionsPositive.parent = "Broker_Garbage"
+BrokerGarbage.listOptionsPositive:Hide()
+
+-- list options: negative panel
+BrokerGarbage.listOptionsNegative = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
+BrokerGarbage.listOptionsNegative.name = BrokerGarbage.locale.LONTitle
+BrokerGarbage.listOptionsNegative.parent = "Broker_Garbage"
+BrokerGarbage.listOptionsNegative:Hide()
 
 -- list options
 BrokerGarbage.listButtons = {
@@ -25,23 +61,12 @@ BrokerGarbage.listButtons = {
 	include = {},
 }
 
--- list options: positive panel
-BrokerGarbage.listOptionsPositive = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
-BrokerGarbage.listOptionsPositive.name = BrokerGarbage.locale.LOPTitle
-BrokerGarbage.listOptionsPositive.parent = addonName
-BrokerGarbage.listOptionsPositive:Hide()
-
--- list options: negative panel
-BrokerGarbage.listOptionsNegative = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
-BrokerGarbage.listOptionsNegative.name = BrokerGarbage.locale.LONTitle
-BrokerGarbage.listOptionsNegative.parent = addonName
-BrokerGarbage.listOptionsNegative:Hide()
 
 local function ShowOptions(frame)
 	-- ----------------------------------
 	-- Basic Options
 	-- ----------------------------------
-	local title, subtitle = LibStub("tekKonfig-Heading").new(BrokerGarbage.options, addonName, BrokerGarbage.locale.subTitle)
+	local title, subtitle = LibStub("tekKonfig-Heading").new(BrokerGarbage.options, "Broker_Garbage", BrokerGarbage.locale.subTitle)
 
 	local autosell = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.autoSellTitle, "TOPLEFT", subtitle, "BOTTOMLEFT", -2, -4)
 	autosell.tiptext = BrokerGarbage.locale.autoSellText
@@ -100,7 +125,7 @@ local function ShowOptions(frame)
 	local quality = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.dropQualityTitle, 0, 6, "TOPLEFT", showlost, "BOTTOMLEFT", 5, -40)
 	quality.tiptext = BrokerGarbage.locale.dropQualityText
 	quality:SetWidth(200)
-	quality:SetValueStep(1);
+	quality:SetValueStep(1)
 	quality:SetValue(BG_GlobalDB.dropQuality)
 	quality.text = quality:CreateFontString("$parentCenterText", "ARTWORK", "GameFontHighlightSmall")
 	quality.text:SetPoint("TOP", quality, "BOTTOM", 0, 3)
@@ -231,7 +256,7 @@ local function ShowOptions(frame)
 	-- ----------------------------------
 	--	Positive Lists
 	-- ----------------------------------
-	local title2, subtitle2 = LibStub("tekKonfig-Heading").new(BrokerGarbage.listOptionsPositive, addonName .. " - " .. BrokerGarbage.locale.LOPTitle , BrokerGarbage.locale.LOPSubTitle)
+	local title2, subtitle2 = LibStub("tekKonfig-Heading").new(BrokerGarbage.listOptionsPositive, "Broker_Garbage" .. " - " .. BrokerGarbage.locale.LOPTitle , BrokerGarbage.locale.LOPSubTitle)
 	
 	-- list frame: exclude
 	local excludeListHeader = BrokerGarbage.listOptionsPositive:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
@@ -260,6 +285,7 @@ local function ShowOptions(frame)
 	plus:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	plus:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
 	plus.tiptext = BrokerGarbage.locale.LOPExcludePlusTT
+	plus:RegisterForClicks("RightButtonUp")
 
 	local minus = CreateFrame("Button", nil, BrokerGarbage.listOptionsPositive)
 	minus:SetPoint("TOP", plus, "BOTTOM", 0, -6)
@@ -308,6 +334,7 @@ local function ShowOptions(frame)
 	plus2:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	plus2:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
 	plus2.tiptext = BrokerGarbage.locale.LOPForcePlusTT
+	plus2:RegisterForClicks("RightButtonUp")
 	
 	local minus2 = CreateFrame("Button", nil, BrokerGarbage.listOptionsPositive)
 	minus2:SetPoint("TOP", plus2, "BOTTOM", 0, -6)
@@ -334,7 +361,7 @@ local function ShowOptions(frame)
 	-- ----------------------------------
 	--	Negative Lists
 	-- ----------------------------------
-	local title3, subtitle3 = LibStub("tekKonfig-Heading").new(BrokerGarbage.listOptionsNegative, addonName .. " - " .. BrokerGarbage.locale.LONTitle , BrokerGarbage.locale.LONSubTitle)
+	local title3, subtitle3 = LibStub("tekKonfig-Heading").new(BrokerGarbage.listOptionsNegative, "Broker_Garbage" .. " - " .. BrokerGarbage.locale.LONTitle , BrokerGarbage.locale.LONSubTitle)
 	
 	-- list frame: include
 	local includeListHeader = BrokerGarbage.listOptionsNegative:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
@@ -363,6 +390,7 @@ local function ShowOptions(frame)
 	plus3:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	plus3:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
 	plus3.tiptext = BrokerGarbage.locale.LONIncludePlusTT
+	plus3:RegisterForClicks("RightButtonUp")
 
 	local minus3 = CreateFrame("Button", nil, BrokerGarbage.listOptionsNegative)
 	minus3:SetPoint("TOP", plus3, "BOTTOM", 0, -6)
@@ -411,6 +439,7 @@ local function ShowOptions(frame)
 	plus4:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	plus4:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
 	plus4.tiptext = BrokerGarbage.locale.LONAutoSellPlusTT
+	plus4:RegisterForClicks("RightButtonUp")
 	
 	local minus4 = CreateFrame("Button", nil, BrokerGarbage.listOptionsNegative)
 	minus4:SetPoint("TOP", plus4, "BOTTOM", 0, -6)
@@ -432,26 +461,17 @@ local function ShowOptions(frame)
 	emptyAutoSellList:SetNormalTexture("Interface\\Buttons\\Ui-grouploot-pass-up")
 	emptyAutoSellList.tiptext = BrokerGarbage.locale.LONAutoSellEmptyTT
 	
-	
-	local function JoinTables(t1, t2)
-		result = {}
-		
-		if t1 then
-			for index, value in pairs (t1) do
-				result[index] = value
-			end
-		end
-		if t2 then
-			for index, value in pairs (t2) do
-				result[index] = value
-			end
-		end
-
-		return result
-	end
-	
+	-- function that updates & shows items from various lists
 	local numCols = 8
 	function BrokerGarbage:ListOptionsUpdate(listName)
+		if not listName then
+			BrokerGarbage:ListOptionsUpdate("include")
+			BrokerGarbage:ListOptionsUpdate("exclude")
+			BrokerGarbage:ListOptionsUpdate("autosell")
+			BrokerGarbage:ListOptionsUpdate("forceprice")
+			return
+		end
+		
 		local globalList, localList, dataList, box, parent, buttonList
 		if listName == "include" then
 			globalList = BG_GlobalDB.include
@@ -479,12 +499,13 @@ local function ShowOptions(frame)
 		
 		elseif listName == "forceprice" then
 			globalList = BG_GlobalDB.forceVendorPrice
+			localList = {}
 
 			box = forcepriceBox
 			parent = group_forceprice
 			buttonList = BrokerGarbage.listButtons.forceprice
 		end
-		dataList = JoinTables(globalList, localList)
+		dataList = BrokerGarbage:JoinTables(globalList, localList)
 		if not buttonList then buttonList = {} end
 		
 		local index = 1
@@ -492,12 +513,21 @@ local function ShowOptions(frame)
 			if buttonList[index] then
 				-- use available button
 				local button = buttonList[index]
-				local itemName, itemLink, _, _, _, _, _, _, _, texture, _ = GetItemInfo(itemID)
-				button.name = itemName
+				local itemLink, texture
+				if type(itemID) ~= "number" then
+					-- this is an item category
+					BrokerGarbage:Debug("Encountered Category String!", itemID)
+					itemLink = nil
+					button.tiptext = itemID		-- category description string
+					texture = "Interface\\Icons\\Trade_engineering"
+				else
+					-- this is an explicit item
+					_, itemLink, _, _, _, _, _, _, _, texture, _ = GetItemInfo(itemID)
+				end
 				button.itemID = itemID
 				button.itemLink = itemLink
 				button:SetNormalTexture(texture)
-				button:GetNormalTexture():SetDesaturated(globalList[itemID] or false)		-- desaturate global list items
+				--button:GetNormalTexture():SetDesaturated(globalList[itemID] or false)		-- desaturate global list items
 				button:SetChecked(false)
 				button:Show()
 			else
@@ -507,7 +537,7 @@ local function ShowOptions(frame)
 				iconbutton:SetWidth(36)
 				iconbutton:SetHeight(36)
 
-				iconbutton:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
+				iconbutton:SetNormalTexture("Interface\\Icons\\Inv_misc_questionmark")
 				iconbutton:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 				iconbutton:SetCheckedTexture("Interface\\Buttons\\UI-Button-Outline")
 				iconbutton:SetChecked(false)
@@ -516,10 +546,9 @@ local function ShowOptions(frame)
 				tex:SetPoint("CENTER")
 				tex:SetWidth(36/37*66) tex:SetHeight(36/37*66)
 				
-				iconbutton:GetNormalTexture():SetDesaturated(globalList[itemID] or false)		-- desaturate global list items
-
 				iconbutton:SetScript("OnEnter", ShowTooltip)
 				iconbutton:SetScript("OnLeave", HideTooltip)
+				-- TODO: iconbutton:RegisterForClicks("Rightclick")
 
 				if index == 1 then
 					-- place first icon
@@ -533,6 +562,7 @@ local function ShowOptions(frame)
 				end
 				
 				buttonList[index] = iconbutton
+				-- update, so we get item data & texture
 				BrokerGarbage:ListOptionsUpdate(listName)
 			end
 			index = index + 1
@@ -544,9 +574,16 @@ local function ShowOptions(frame)
 		end
 	end
 	
-	local function ItemDrop(self)
+	local function ItemDrop(self, item)
 		local type, itemID, link = GetCursorInfo()
-		if not type == "item" then return end
+		if not type == "item" and not item then return end
+		
+		-- to fix category strings
+		if item then 
+			if item == "RightButton" then return end
+			itemID = item
+			link = item 
+		end
 		
 		if self == group_exclude or self == excludeBox or self == plus then
 			BG_LocalDB.exclude[itemID] = true
@@ -571,7 +608,97 @@ local function ShowOptions(frame)
 		end
 	end
 	
+	if not _G["BrokerGarbagePTMenuFrame"] then		
+		--initialize dropdown menu for adding setstrings
+		BrokerGarbage.menuFrame = CreateFrame("Frame", "BrokerGarbagePTMenuFrame", UIParent, "UIDropDownMenuTemplate")
+		
+		-- menu create function
+		function DropDown_Initialize(self,level)
+			level = level or 1;
+			if (level == 1) then		
+				local info = UIDropDownMenu_CreateInfo();
+				info.hasArrow = false; -- no submenu
+				info.notCheckable = true;
+				info.text = "Categories";
+				info.isTitle = true;
+				info.tooltipTitle = "Add Categories"
+				info.tooltipText = "Navigate through this menu and add any of these categories by clicking on them."
+				UIDropDownMenu_AddButton(info, level);
+
+				for key, subarray in pairs(BrokerGarbage.PTSets) do
+					-- submenus
+					local info = UIDropDownMenu_CreateInfo()
+					info.hasArrow = true
+					info.notCheckable = true
+					info.text = key
+					info.value = {
+						[1] = key
+					}
+					info.func = function(...) 
+						ItemDrop(BrokerGarbage.menuFrame.clickTarget, key)
+						BrokerGarbage:ListOptionsUpdate()
+					end
+					UIDropDownMenu_AddButton(info, level)
+				end
+			end
+
+			if (level > 1) then
+				-- getting values of first menu
+				local parentValue = UIDROPDOWNMENU_MENU_VALUE
+				local PTSets = BrokerGarbage.PTSets
+				for i = 1, level - 1 do
+					PTSets = PTSets[ parentValue[i] ]
+				end
+				
+				for key, value in pairs(PTSets) do
+					local newValue = {}
+					for i = 1, level - 1 do
+						newValue[i] = parentValue[i]
+					end
+					newValue[level] = key
+					
+					local info = UIDropDownMenu_CreateInfo();
+					if type(value) == "table" then
+						-- submenu
+						local valueString = newValue[1]
+						for i = 2, level do
+							valueString = valueString.."."..newValue[i]
+						end
+						
+						info.hasArrow = true;
+						info.notCheckable = true;
+						info.text = key
+						info.value = newValue
+						info.func = function(...) 
+							ItemDrop(BrokerGarbage.menuFrame.clickTarget, valueString)
+							BrokerGarbage:ListOptionsUpdate()
+						end
+					else
+						-- end node
+						info.hasArrow = false; -- no submenues this time
+						info.notCheckable = true;
+						info.text = key
+						info.func = function(...) 
+							ItemDrop(BrokerGarbage.menuFrame.clickTarget, value)
+							BrokerGarbage:ListOptionsUpdate()
+						end
+					end
+					UIDropDownMenu_AddButton(info, level);
+				end
+			end
+		end
+		UIDropDownMenu_Initialize(BrokerGarbage.menuFrame, DropDown_Initialize, "MENU")
+	end
+	
 	local function OnClick(self, button)
+		if button == "RightButton" then
+			-- toggle right click menu
+			BrokerGarbage.menuFrame.clickTarget = self
+			ToggleDropDownMenu(1, nil, BrokerGarbage.menuFrame, self, -20, 0)
+			BrokerGarbage:Debug("Rightclick on plus", self, button)
+			return
+		end
+		
 		-- empty action
 		if self == emptyExcludeList then
 			BG_LocalDB.exclude = {}
@@ -586,7 +713,7 @@ local function ShowOptions(frame)
 			BrokerGarbage:ListOptionsUpdate("include")
 			BrokerGarbage:ScanInventory()
 		elseif self == emptyAutoSellList then
-			BG_GlobalDB.autoSellList = {}
+			BG_LocalDB.autoSellList = {}
 			BrokerGarbage:ListOptionsUpdate("autosell")
 			BrokerGarbage:ScanInventory()
 			
@@ -628,18 +755,24 @@ local function ShowOptions(frame)
 			BrokerGarbage:ScanInventory()
 		
 		-- add action
-		elseif self == plus then
-			ItemDrop(self)
-			BrokerGarbage:ListOptionsUpdate("exclude")
-		elseif self == plus2 then
-			ItemDrop(self)
-			BrokerGarbage:ListOptionsUpdate("forceprice")
-		elseif self == plus3 then
-			ItemDrop(self)
-			BrokerGarbage:ListOptionsUpdate("include")
-		elseif self == plus4 then
-			ItemDrop(self)
-			BrokerGarbage:ListOptionsUpdate("autosell")
+		elseif self == plus or self == plus2 or self == plus3 or self == plus4 then			
+			if button == "RightButton" then
+				BrokerGarbage:Debug("Right click on plusses")
+				return
+			end
+			if self == plus then
+				ItemDrop(self)
+				BrokerGarbage:ListOptionsUpdate("exclude")
+			elseif self == plus2 then
+				ItemDrop(self)
+				BrokerGarbage:ListOptionsUpdate("forceprice")
+			elseif self == plus3 then
+				ItemDrop(self)
+				BrokerGarbage:ListOptionsUpdate("include")
+			elseif self == plus4 then
+				ItemDrop(self)
+				BrokerGarbage:ListOptionsUpdate("autosell")
+			end
 		
 		-- promote action
 		elseif self == promote then
@@ -664,6 +797,8 @@ local function ShowOptions(frame)
 			end
 			BrokerGarbage:ListOptionsUpdate("autosell")
 		end
+		
+		BrokerGarbage:ScanInventory()
 	end
 	
 	emptyExcludeList:SetScript("OnClick", OnClick)
@@ -733,13 +868,11 @@ local function ShowOptions(frame)
 	plus4:SetScript("OnMouseDown", ItemDrop)
 	
 	buttons = {}
-	BrokerGarbage:ListOptionsUpdate("include")
-	BrokerGarbage:ListOptionsUpdate("forceprice")
-	BrokerGarbage:ListOptionsUpdate("exclude")
-	BrokerGarbage:ListOptionsUpdate("autosell")
+	BrokerGarbage:ListOptionsUpdate()
 	BrokerGarbage.options:SetScript("OnShow", nil)
 	BrokerGarbage.listOptionsPositive:SetScript("OnShow", BrokerGarbage.ListOptionsUpdate)
 	BrokerGarbage.listOptionsNegative:SetScript("OnShow", BrokerGarbage.ListOptionsUpdate)
+	BrokerGarbage.optionsLoaded = true
 end
 
 -- show me!

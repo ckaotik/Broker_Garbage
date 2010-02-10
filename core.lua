@@ -3,9 +3,10 @@
 -- created to replace/update GarbageFu for 3.x and further provide LDB support
 _, BrokerGarbage = ...
 
--- setting up the LDB
+-- Libraries & setting up the LDB
 -- ---------------------------------------------------------
-local LibQTip = LibStub('LibQTip-1.0')
+local LibQTip = LibStub("LibQTip-1.0")
+BrokerGarbage.PT = LibStub("LibPeriodicTable-3.1")
 
 local LDB = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Garbage")
 LDB.type 	= "data source"
@@ -19,6 +20,7 @@ LDB.OnMouseWheel = function(...) BrokerGarbage:OnScroll(...) end
 -- default saved variables
 BrokerGarbage.defaultGlobalSettings = {
 	-- lists
+	-- key is either the itemID -or- the PeriodicTable category string
 	exclude = {},
 	include = {},
 	autoSellList = {},
@@ -121,29 +123,10 @@ local function eventHandler(self, event, ...)
 		BrokerGarbage:ScanInventory()
 		
 	elseif event == "PLAYER_ENTERING_WORLD" then
-		local warnings = {}
-		
-		-- check for settings
-		if not BG_GlobalDB then BG_GlobalDB = {} end
-		for key, value in pairs(BrokerGarbage.defaultGlobalSettings) do
-			if BG_GlobalDB[key] == nil then
-				BG_GlobalDB[key] = value
-			end
-		end
-		
-		if not BG_LocalDB then BG_LocalDB = {} end
-		for key, value in pairs(BrokerGarbage.defaultLocalSettings) do
-			if BG_LocalDB[key] == nil then
-				BG_LocalDB[key] = value
-			end
-		end
+		BrokerGarbage:CheckSettings()
 		
 		if not locked and loaded then
 			warnings = BrokerGarbage:ScanInventory()
-		end
-		
-		for _,text in pairs(warnings) do
-			BrokerGarbage:Print("|cfff0000Warning:|r ", text)
 		end
 	
 	elseif event == "BAG_UPDATE" then
@@ -238,6 +221,23 @@ function BrokerGarbage:Debug(...)
   end
 end
 
+function BrokerGarbage:CheckSettings()
+	-- check for settings
+	if not BG_GlobalDB then BG_GlobalDB = {} end
+	for key, value in pairs(BrokerGarbage.defaultGlobalSettings) do
+		if BG_GlobalDB[key] == nil then
+			BG_GlobalDB[key] = value
+		end
+	end
+	
+	if not BG_LocalDB then BG_LocalDB = {} end
+	for key, value in pairs(BrokerGarbage.defaultLocalSettings) do
+		if BG_LocalDB[key] == nil then
+			BG_LocalDB[key] = value
+		end
+	end
+end
+
 function BrokerGarbage:FormatMoney(amount)
 	if not amount then return "" end
 	
@@ -302,6 +302,22 @@ function BrokerGarbage:Find(table, value)
 	return false
 end
 
+-- joins any number of tables together, one after the other. elements within the input-tables will get mixed, though
+function BrokerGarbage:JoinTables(...)
+	local result = {}
+	local table
+	
+	for i=1,select("#", ...) do
+		table = select(i, ...)
+		if table then
+			for index, value in pairs(table) do
+				result[index] = value
+			end
+		end
+	end
+	return result
+end
+
 function BrokerGarbage:Count(table)
   local i = 0
   for _, _ in pairs(table) do i = i + 1 end
@@ -321,6 +337,9 @@ function BrokerGarbage:ResetList(which)
 		BG_GlobalDB.exclude = {}
 	elseif which == "include" then
 		BG_GlobalDB.include = {}
+	elseif which == "autosell" then
+		-- TODO: add to options
+		BG_GlobalDB.autoSellList = {}
 	end
 end
 
@@ -329,7 +348,7 @@ function BrokerGarbage:GetItemID(itemLink)
 	return tonumber(itemID)
 end
 
-function BrokerGarbage:CanDisenchant(itemLink)	
+function BrokerGarbage:CanDisenchant(itemLink)
 	if (itemLink) then
 		local _, _, quality, level, _, _, _, count, slot = GetItemInfo(itemLink)
 
@@ -465,7 +484,7 @@ function BrokerGarbage:OnScroll(self, direction)
 	--BG_GlobalDB.dropQuality
 end
 
--- onClick function for when you ... click
+-- onClick function for when you ... click. works for both, the LDB plugin -and- tooltip lines
 function BrokerGarbage:OnClick(itemTable, button)	
 	-- handle LDB clicks seperately
 	if not itemTable.itemID or type(itemTable.itemID) ~= "number" then
@@ -486,7 +505,9 @@ function BrokerGarbage:OnClick(itemTable, button)
 		BG_LocalDB.exclude[itemTable.itemID] = true
 		BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSaveList, select(2,GetItemInfo(itemTable.itemID))))
 		
-		BrokerGarbage:ListOptionsUpdate("exclude")
+		if BrokerGarbage.optionsLoaded then
+			BrokerGarbage:ListOptionsUpdate("exclude")
+		end
 		
 	elseif button == "RightButton" then
 		-- open config
@@ -498,7 +519,9 @@ function BrokerGarbage:OnClick(itemTable, button)
 		BG_GlobalDB.forceVendorPrice[itemTable.itemID] = true
 		BrokerGarbage:Print(format(BrokerGarbage.locale.addedToPriceList, select(2,GetItemInfo(itemTable.itemID))))
 		
-		BrokerGarbage:ListOptionsUpdate("forceprice")
+		if BrokerGarbage.optionsLoaded then
+			BrokerGarbage:ListOptionsUpdate("forceprice")
+		end
 		BrokerGarbage:ScanInventory()
 		
 	else
@@ -519,12 +542,22 @@ function BrokerGarbage:GetItemValue(itemLink, count)
 	if not count then count = GetItemCount(itemLink, false, false) end
 	
 	-- gray items on the AH / auto sell items have only vendor value (to not screw up moneyEarned/moneyLost)
-	if select(3,GetItemInfo(itemLink)) == 0 
-		or BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID] 
-		or BG_GlobalDB.forceVendorPrice[itemID] then
-		
-		BrokerGarbage:Debug("Using Vendorprice", itemLink)
-		
+	local inCategory, useVendorPrice
+	for setName,_ in pairs(BrokerGarbage:JoinTables(BG_GlobalDB.autoSellList, BG_LocalDB.autoSellList, BG_GlobalDB.forceVendorPrice)) do
+		if type(setName) == "string" then
+			_, inCategory = BrokerGarbage.PT:ItemInSet(itemID, setName)
+			if inCategory and inCategory ~= "" then
+				useVendorPrice = true
+				break
+			end
+		elseif type(setName) == "number" then
+			if setName == itemID then
+				useVendorPrice = true
+				break
+			end
+		end
+	end
+	if select(3,GetItemInfo(itemLink)) == 0 or useVendorPrice then		
 		return vendorPrice and vendorPrice*count or nil, "|cFFF5DEB3V" -- orange
 	end
 	
@@ -624,19 +657,42 @@ function BrokerGarbage:ScanInventory()
 						select(2,GetItemInfo(itemID))))
 				end
 				
+				-- check if this item belongs to an excluded category
+				local inCategory, skip
+				for setName,_ in pairs(BrokerGarbage:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)) do
+					if type(setName) == "string" then
+						_, inCategory = BrokerGarbage.PT:ItemInSet(itemID, setName)
+					end
+					-- item is on save list, skip
+					if inCategory then
+						skip = true
+						break
+					end
+				end
+				inCategory = nil
+				if not skip then
+					for setName,_ in pairs(BrokerGarbage:JoinTables(BG_GlobalDB.autoSellList, BG_LocalDB.autoSellList, BG_LocalDB.include, BG_GlobalDB.include)) do
+						if type(setName) == "string" then
+							_, inCategory = BrokerGarbage.PT:ItemInSet(itemID, setName)
+						end
+						if inCategory then inCategory = setName; break end
+					end
+				end
+				
 				if quality and 
-					(quality <= BG_GlobalDB.dropQuality 
-					or BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID] 
+					(quality <= BG_GlobalDB.dropQuality or inCategory
+					or BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID]
 					or BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID]) 
-					and not BG_GlobalDB.exclude[itemID] and not BG_LocalDB.exclude[itemID] then	-- save excluded items!!!
+					and not BG_GlobalDB.exclude[itemID] and not BG_LocalDB.exclude[itemID] and not skip then	-- save excluded items!!!
 					
 					local force = false
 					local value, source = BrokerGarbage:GetItemValue(itemLink,count)
 					-- make included items appear in tooltip list as "forced"
-					if BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID] then
+					if BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID]
+						or BG_GlobalDB.include[inCategory] or BG_LocalDB.include[inCategory] then
 						if not value then value = 0 end
 						force = true
-						source = "|cFF8C1717I"	-- I as in "include"
+						source = "|cFF8C1717I"	-- overwrites former value, I as in "include"
 					end
 					if value then
 						local currentItem = {
@@ -730,11 +786,30 @@ function BrokerGarbage:AutoSell(self)
 		local i = 1
 		sellValue = 0
 		for _, itemTable in pairs(BrokerGarbage.inventory) do
-			if (itemTable.quality == 0 
-				and not (BG_GlobalDB.exclude[itemTable.itemID] or BG_LocalDB.exclude[itemTable.itemID])) 
-				or ((BG_GlobalDB.autoSellList[itemTable.itemID] or BG_LocalDB.autoSellList[itemTable.itemID])
-					and itemTable.value ~= 0) then
-				
+			local inCategory
+			for setName,_ in pairs(BrokerGarbage:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)) do
+				if type(setName) == "string" then
+					_, inCategory = BrokerGarbage.PT:ItemInSet(itemTable.itemID, setName)
+				end
+				-- item is on save list, skip
+				if inCategory then
+					skip = true
+					break
+				end
+			end
+			if not skip then
+				for setName,_ in pairs(BrokerGarbage:JoinTables(BG_LocalDB.autoSellList, BG_GlobalDB.autoSellList)) do
+					if type(setName) == "string" then
+						_, inCategory = BrokerGarbage.PT:ItemInSet(itemTable.itemID, setName)
+					end
+					if inCategory then break end
+				end
+			end
+			
+			if not (BG_GlobalDB.exclude[itemTable.itemID] or BG_LocalDB.exclude[itemTable.itemID] or skip) 
+				and itemTable.value ~= 0 and (itemTable.quality == 0 or inCategory 
+				or BG_GlobalDB.autoSellList[itemTable.itemID] or BG_LocalDB.autoSellList[itemTable.itemID]) then
+			
 				if i == 1 then					
 					BrokerGarbage:Debug("locked")
 					locked = true

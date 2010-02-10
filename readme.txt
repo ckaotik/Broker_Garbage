@@ -1,8 +1,8 @@
 Broker_Garbage
 ==============
 Author: ckaotik
-Version: 3.3v9
-WoW Version: 3.3 (TOC 30300)
+Version: 3.3v11
+WoW Version: 3.3.2 (TOC 30300)
 
 WoWInterface: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 Curse:        http://wow.curse.com/downloads/wow-addons/details/broker_garbage.aspx
@@ -61,8 +61,15 @@ Items on this list will be sold whenever you talk to a vendor. Items of higher q
 
 Each of these lists except the 'Force Vendor Price' list have a global (affects all your characters) and local (only affects the current character) component. You can broadcast items on your local lists as global by selecting them and then clicking on the promote icon next to the list.
 
+6. Periodic Table -or- How to put entire categories onto those stupid lists
+-----------------
+Starting in version 3.3v11 you can add category strings to make your life easier. To do so, go to your settings panel for the list you wish to add it to and right-click on the 'plus' icon. You will see a list of all categories LibPeriodicTable (LPT) has to offer (or at least the parts of it that I chose to include).
+Navigate your way through the menu and add any category you like simply by clicking on it.
+To remove a category simply do as you would with any other item on your list: Select it and then hit the corresponding 'minus' icon.
 
-6. How you can help
+Why these categories are only in English? There's a simple answer to that: Because I do not want to localize the complete LPT. Sorry for that, but it's kind of not my job to do that ;)
+
+7. How you can help
 -----------------
 I still need a few translations to get done. If you would like to help me with that, please do so on http://wow.curseforge.com/addons/broker_garbage/localization/  .
 Likewise, I need people to test the addon with different auction addons. If you have one that isn't yet supported, make a Feature Suggestion (see 4.).
