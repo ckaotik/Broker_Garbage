@@ -524,10 +524,17 @@ local function ShowOptions(frame)
 					-- this is an explicit item
 					_, itemLink, _, _, _, _, _, _, _, texture, _ = GetItemInfo(itemID)
 				end
-				button.itemID = itemID
-				button.itemLink = itemLink
-				button:SetNormalTexture(texture)
-				--button:GetNormalTexture():SetDesaturated(globalList[itemID] or false)		-- desaturate global list items
+				
+				-- blizzard removes GetItemInfo for seasonal items ...
+				if texture then
+					button.itemID = itemID
+					button.itemLink = itemLink
+					button:SetNormalTexture(texture)
+					button:GetNormalTexture():SetDesaturated(globalList[itemID] or false)		-- desaturate global list items
+				else
+					button.itemID = itemID
+					button.tiptext = "ID: "..itemID
+				end
 				button:SetChecked(false)
 				button:Show()
 			else
