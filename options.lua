@@ -72,7 +72,7 @@ local function ShowOptions(frame)
 	autosell.tiptext = BrokerGarbage.locale.autoSellText
 	autosell:SetChecked(BG_GlobalDB.autoSellToVendor)
 	local checksound = autosell:GetScript("OnClick")
-	autosell:SetScript("OnClick", function(checksound)
+	autosell:SetScript("OnClick", function(autosell)
 		checksound(autosell)
 		BG_GlobalDB.autoSellToVendor = not BG_GlobalDB.autoSellToVendor
 	end)
