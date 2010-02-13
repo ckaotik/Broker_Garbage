@@ -525,15 +525,17 @@ local function ShowOptions(frame)
 					_, itemLink, _, _, _, _, _, _, _, texture, _ = GetItemInfo(itemID)
 				end
 				
-				-- blizzard removes GetItemInfo for seasonal items ...
 				if texture then
+					-- everything's fine
 					button.itemID = itemID
 					button.itemLink = itemLink
 					button:SetNormalTexture(texture)
 					button:GetNormalTexture():SetDesaturated(globalList[itemID] or false)		-- desaturate global list items
 				else
+					-- an item the server has not seen
 					button.itemID = itemID
 					button.tiptext = "ID: "..itemID
+					button:SetNormalTexture("Interface\\Icons\\Inv_misc_questionmark")
 				end
 				button:SetChecked(false)
 				button:Show()
@@ -587,7 +589,7 @@ local function ShowOptions(frame)
 		
 		-- to fix category strings
 		if item then 
-			if item == "RightButton" then return end
+			if item == "RightButton" or item == "LeftButton" then return end
 			itemID = item
 			link = item 
 		end
@@ -763,10 +765,6 @@ local function ShowOptions(frame)
 		
 		-- add action
 		elseif self == plus or self == plus2 or self == plus3 or self == plus4 then			
-			if button == "RightButton" then
-				BrokerGarbage:Debug("Right click on plusses")
-				return
-			end
 			if self == plus then
 				ItemDrop(self)
 				BrokerGarbage:ListOptionsUpdate("exclude")

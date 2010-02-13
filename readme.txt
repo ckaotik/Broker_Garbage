@@ -1,7 +1,7 @@
 Broker_Garbage
 ==============
 Author: ckaotik
-Version: 3.3v11
+Version: 3.3v13
 WoW Version: 3.3.2 (TOC 30300)
 
 WoWInterface: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
