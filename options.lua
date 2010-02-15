@@ -14,22 +14,35 @@ BrokerGarbage.quality = {
 	}
 
 -- create drop down menu table for PT sets	
-BrokerGarbage.PTSets = {}		
+local interestingPTSets = {"Consumable", "Misc", "Tradeskill"}
+
+BrokerGarbage.PTSets = {}
 for set, _ in pairs(BrokerGarbage.PT.sets) do
+	local interesting = false
 	local partials = { strsplit(".", set) }
 	local maxParts = #partials
-	local pre = BrokerGarbage.PTSets
 	
-	for i = 1, maxParts do
-		if i == maxParts then
-			-- actual clickable entries
-			pre[ partials[i] ] = set
-		else
-			-- all parts before that
-			if not pre[ partials[i] ] then
-				pre[ partials[i] ] = {}
+	for i=1,#interestingPTSets do
+		if strfind(partials[1], interestingPTSets[i]) then 
+			interesting = true
+			break
+		end
+	end
+	
+	if interesting then
+		local pre = BrokerGarbage.PTSets
+		
+		for i = 1, maxParts do
+			if i == maxParts then
+				-- actual clickable entries
+				pre[ partials[i] ] = set
+			else
+				-- all parts before that
+				if not pre[ partials[i] ] then
+					pre[ partials[i] ] = {}
+				end
+				pre = pre[ partials[i] ]
 			end
-			pre = pre[ partials[i] ]
 		end
 	end
 end

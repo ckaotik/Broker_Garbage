@@ -8,11 +8,14 @@ _, BrokerGarbage = ...
 local LibQTip = LibStub("LibQTip-1.0")
 BrokerGarbage.PT = LibStub("LibPeriodicTable-3.1")
 
-local LDB = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Garbage")
-LDB.type 	= "data source"
-LDB.icon 	= "Interface\\Icons\\achievement_bg_returnxflags_def_wsg"
-LDB.label	= "Garbage"
-LDB.text 	= BrokerGarbage.locale.label
+-- notation mix-up for B2FB to work
+local LDB = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Garbage", {
+	type	= "data source", 
+	icon	= "Interface\\Icons\\achievement_bg_returnxflags_def_wsg",
+	label	= "Garbage",
+	text 	= BrokerGarbage.locale.label
+})
+
 LDB.OnClick = function(...) BrokerGarbage:OnClick(...) end
 LDB.OnEnter = function(...) BrokerGarbage:Tooltip(...) end
 LDB.OnMouseWheel = function(...) BrokerGarbage:OnScroll(...) end
@@ -781,7 +784,7 @@ end
 -- special functionality
 -- ---------------------------------------------------------
 -- when at a merchant this will clear your bags of junk (gray quality) and items on your autoSellList
-function BrokerGarbage:AutoSell(self)
+function BrokerGarbage:AutoSell()
 	if BG_GlobalDB.autoSellToVendor or self == _G["BrokerGarbage_SellIcon"] then		
 		local i = 1
 		sellValue = 0
@@ -793,6 +796,7 @@ function BrokerGarbage:AutoSell(self)
 				end
 				-- item is on save list, skip
 				if inCategory then
+					BrokerGarbage:Debug(itemTable.itemID,"in set", inCategory, "on exclude list")
 					skip = true
 					break
 				end
@@ -802,7 +806,7 @@ function BrokerGarbage:AutoSell(self)
 					if type(setName) == "string" then
 						_, inCategory = BrokerGarbage.PT:ItemInSet(itemTable.itemID, setName)
 					end
-					if inCategory then break end
+					if inCategory then BrokerGarbage:Debug(itemTable.itemID,"in set", inCategory, "on autosell");break end
 				end
 			end
 			
@@ -844,20 +848,12 @@ end
 
 -- Wishlist
 -- ---------------------------------------------------------
--- make "autosell" list - e.g. mages selling dropped water/food
--- include types on character specific settings
 -- show lootable containers in your bag! make "open items" not as spammy
 -- increase/decrease loot treshold with mousewheel on LDB
 -- restack if necessary
--- force vendor price (food and stuff extremely overpriced in the AH) on some items
--- manually set item price
--- include list: set value / use value
 -- ask before deleting / treshold
 -- search list frames (similar to gnomishvendorshrinker)
 -- fubar_garbagefu: Soulbound, Quest, Bind on Pickup, Bind on Equip/Use.
--- types: Normal Food, Bonus Food, Stat Food, Conjured Bread, Raw Food, Bread, Fish, percent food/water, combi food/drink....
 -- ignore special bags
 -- drop-beyond-treshold: only keep 5 soulshards
 -- feature: selective looting (only crafting materials, greens+ , ...)
-
--- Spell_Shaman_SpiritLink
