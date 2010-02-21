@@ -18,6 +18,8 @@ BrokerGarbage.locale = {
 	itemDeleted = "%s has been deleted.",
 	
 	openPlease = "Please open your %s. It's in your bags, stealing your space!",
+	slashCommandHelp = "Use |cffc0c0c0/garbage config|r to open the config menu or |cffc0c0c0/garbage format |cc0c0c0ffformatstring|r to change the LDB display style or |cffc0c0c0/garbage format reset|r to reset it. For statistics type |cffc0c0c0/garbage stats|r.",
+	statistics = "Statistics:\nTotal earnings (all characters): %1$s\nTotal losses (all characters): %2$s",
 	
 	-- Tooltip
 	headerRightClick = "Right-Click for options",

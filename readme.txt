@@ -69,7 +69,25 @@ To remove a category simply do as you would with any other item on your list: Se
 
 Why these categories are only in English? There's a simple answer to that: Because I do not want to localize the complete LPT. Sorry for that, but it's kind of not my job to do that ;)
 
-7. How you can help
+7. How to adjust the LDB display text
+-----------------
+In 3.3v15 I added the possibility to adjust the LDB display text to your liking. To do so, simply type "/garbage format formatstring" where formatstring is your desired output format (withouth quotation marks). The LDB display format supports several parameters:
+
+	%1$s		item link
+	%2$d		item count
+	%3$s		item value
+	
+	%4$d		number of free slots
+	%5$d		number of maximum bag capacity
+
+Some examples:
+
+"%1$s - (%4$d/%5$d) - %3$s"		->		[Hearthstone] - (18/48) - 0c
+"%1$sx%2$d (%3$s)"	(default)	->		[Hearthstone]x1 (0c)
+"%1$sx%2$d"						->		[Hearthstone]x1
+"%4$d/%5$d - %1$s"				->		18/48 - [Hearthstone]
+
+8. How you can help
 -----------------
 I still need a few translations to get done. If you would like to help me with that, please do so on http://wow.curseforge.com/addons/broker_garbage/localization/  .
 Likewise, I need people to test the addon with different auction addons. If you have one that isn't yet supported, make a Feature Suggestion (see 4.).

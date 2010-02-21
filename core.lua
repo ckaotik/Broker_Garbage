@@ -46,6 +46,7 @@ BrokerGarbage.defaultGlobalSettings = {
 	reportNothingToSell = true,
 	showLost = true,
 	showEarned = true,
+	LDBformat = "%1$sx%2$d (%3$s)",
 	-- showWarnings = true,		-- TODO options
 	showSource = false,
 }
@@ -502,8 +503,8 @@ function BrokerGarbage:OnClick(itemTable, button)
 		-- delete item
 		BrokerGarbage:Debug("SHIFT-Click!")
 		BrokerGarbage:Delete(select(2,GetItemInfo(itemTable.itemID)), itemTable.bag, itemTable.slot)
-		BG_GlobalDB.moneyLostByDeleting = BG_GlobalDB.moneyLostByDeleting + itemTable.value
-		BG_LocalDB.moneyLostByDeleting = BG_GlobalDB.moneyLostByDeleting + itemTable.value
+		BG_GlobalDB.moneyLostByDeleting 	= BG_GlobalDB.moneyLostByDeleting + itemTable.value
+		BG_LocalDB.moneyLostByDeleting 		= BG_LocalDB.moneyLostByDeleting + itemTable.value
 		
 	elseif itemTable and IsControlKeyDown() then
 		-- add to exclude list
@@ -647,86 +648,98 @@ end
 -- scans your inventory for possible junk items and updates LDB display
 function BrokerGarbage:ScanInventory()
 	BrokerGarbage.inventory = {}
-	local cheapestItem
+	local cheapestItem, freeSlots
 	local warnings = {}
 	
+	local maxSpace = 0		-- will contain total number of inventory space
+	local freeSpace = 0		-- will contain total number of free bag space
+	
 	for container = 0,4 do
-		for slot = 1, GetContainerNumSlots(container) do
-			local itemID = GetContainerItemID(container,slot)
-			if itemID then
-				-- GetContainerItemInfo sucks big time ... just don't use it for quality IDs!!!!!!!
-				local _,count,locked,_,_,canOpen,itemLink = GetContainerItemInfo(container, slot)
-				local quality = select(3,GetItemInfo(itemID))
-				
-				if canOpen and showWarnings then
-					tinsert(warnings, format(BrokerGarbage.locale.openPlease, 
-						select(2,GetItemInfo(itemID))))
-				end
-				
-				-- check if this item belongs to an excluded category
-				local inCategory, skip
-				for setName,_ in pairs(BrokerGarbage:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)) do
-					if type(setName) == "string" then
-						_, inCategory = BrokerGarbage.PT:ItemInSet(itemID, setName)
+		local numSlots = GetContainerNumSlots(container)
+		if numSlots then
+			freeSlots = GetContainerFreeSlots(container)
+			freeSpace = freeSpace + (freeSlots and #freeSlots or 0)
+			maxSpace = maxSpace + GetContainerNumSlots(container)
+			
+			for slot = 1, GetContainerNumSlots(container) do
+				local itemID = GetContainerItemID(container,slot)
+				if itemID then
+					-- GetContainerItemInfo sucks big time ... just don't use it for quality IDs!!!!!!!
+					local _,count,locked,_,_,canOpen,itemLink = GetContainerItemInfo(container, slot)
+					local quality = select(3,GetItemInfo(itemID))
+					
+					if canOpen and showWarnings then
+						tinsert(warnings, format(BrokerGarbage.locale.openPlease, 
+							select(2,GetItemInfo(itemID))))
 					end
-					-- item is on save list, skip
-					if inCategory then
-						skip = true
-						break
-					end
-				end
-				inCategory = nil
-				if not skip then
-					for setName,_ in pairs(BrokerGarbage:JoinTables(BG_GlobalDB.autoSellList, BG_LocalDB.autoSellList, BG_LocalDB.include, BG_GlobalDB.include)) do
+					
+					-- check if this item belongs to an excluded category
+					local inCategory, skip
+					for setName,_ in pairs(BrokerGarbage:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)) do
 						if type(setName) == "string" then
 							_, inCategory = BrokerGarbage.PT:ItemInSet(itemID, setName)
 						end
-						if inCategory then inCategory = setName; break end
-					end
-				end
-				
-				if quality and 
-					(quality <= BG_GlobalDB.dropQuality or inCategory
-					or BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID]
-					or BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID]) 
-					and not BG_GlobalDB.exclude[itemID] and not BG_LocalDB.exclude[itemID] and not skip then	-- save excluded items!!!
-					
-					local force = false
-					local value, source = BrokerGarbage:GetItemValue(itemLink,count)
-					-- make included items appear in tooltip list as "forced"
-					if BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID]
-						or BG_GlobalDB.include[inCategory] or BG_LocalDB.include[inCategory] then
-						if not value then value = 0 end
-						force = true
-						source = "|cFF8C1717I"	-- overwrites former value, I as in "include"
-					end
-					if value then
-						local currentItem = {
-							bag = container,
-							slot = slot,
-							itemID = itemID,
-							quality = quality,
-							count = count,
-							value = value,
-							source = source,
-							force = force,
-						}
-						
-						if not cheapestItem or cheapestItem.value >= value then
-							cheapestItem = currentItem
+						-- item is on save list, skip
+						if inCategory then
+							skip = true
+							break
 						end
-						tinsert(BrokerGarbage.inventory, currentItem)
+					end
+					inCategory = nil
+					if not skip then
+						for setName,_ in pairs(BrokerGarbage:JoinTables(BG_GlobalDB.autoSellList, BG_LocalDB.autoSellList, BG_LocalDB.include, BG_GlobalDB.include)) do
+							if type(setName) == "string" then
+								_, inCategory = BrokerGarbage.PT:ItemInSet(itemID, setName)
+							end
+							if inCategory then inCategory = setName; break end
+						end
+					end
+					
+					if quality and 
+						(quality <= BG_GlobalDB.dropQuality or inCategory
+						or BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID]
+						or BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID]) 
+						and not BG_GlobalDB.exclude[itemID] and not BG_LocalDB.exclude[itemID] and not skip then	-- save excluded items!!!
+						
+						local force = false
+						local value, source = BrokerGarbage:GetItemValue(itemLink,count)
+						-- make included items appear in tooltip list as "forced"
+						if BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID]
+							or BG_GlobalDB.include[inCategory] or BG_LocalDB.include[inCategory] then
+							if not value then value = 0 end
+							force = true
+							source = "|cFF8C1717I"	-- overwrites former value, I as in "include"
+						end
+						if value then
+							local currentItem = {
+								bag = container,
+								slot = slot,
+								itemID = itemID,
+								quality = quality,
+								count = count,
+								value = value,
+								source = source,
+								force = force,
+							}
+							
+							if not cheapestItem or cheapestItem.value >= value then
+								cheapestItem = currentItem
+							end
+							tinsert(BrokerGarbage.inventory, currentItem)
+						end
 					end
 				end
 			end
 		end
 	end
-
+	
 	if cheapestItem then
-		LDB.text = format("%sx%d (%s)", 
+		LDB.text = format(BG_GlobalDB.LDBformat, 
 			select(2,GetItemInfo(cheapestItem.itemID)),
 			cheapestItem.count,
-			BrokerGarbage:FormatMoney(cheapestItem.value))
+			BrokerGarbage:FormatMoney(cheapestItem.value),
+			freeSpace,
+			maxSpace)
 		BrokerGarbage.cheapestItem = cheapestItem
 	else
 		LDB.text = BrokerGarbage.locale.label

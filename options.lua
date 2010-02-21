@@ -894,7 +894,6 @@ local function ShowOptions(frame)
 	plus4:SetScript("OnReceiveDrag", ItemDrop)
 	plus4:SetScript("OnMouseDown", ItemDrop)
 	
-	-- buttons = {}
 	BrokerGarbage:ListOptionsUpdate()
 	BrokerGarbage.options:SetScript("OnShow", nil)
 	BrokerGarbage.listOptionsPositive:SetScript("OnShow", BrokerGarbage.ListOptionsUpdate)
@@ -915,6 +914,26 @@ LibStub("tekKonfig-AboutPanel").new("Broker_Garbage", "Broker_Garbage")
 -- register slash commands
 SLASH_BROKERGARBAGE1 = "/garbage"
 SLASH_BROKERGARBAGE2 = "/garb"
-function SlashCmdList.BROKERGARBAGE()
-	InterfaceOptionsFrame_OpenToCategory(BrokerGarbage.options)
+function SlashCmdList.BROKERGARBAGE(msg, editbox)
+	local command, rest = msg:match("^(%S*)%s*(.-)$")
+	local command = strlower(command)
+	
+	if command == "format" then
+		if strlower(rest) ~= "reset" then
+			BG_GlobalDB.LDBformat = rest
+		else
+			BG_GlobalDB.LDBformat = "%1$sx%2$d (%3$s)"
+		end
+		BrokerGarbage:ScanInventory()
+	elseif command == "trash" or command == "stats" or command == "total" then
+		BrokerGarbage:Print(format(BrokerGarbage.locale.statistics, 
+			BrokerGarbage:FormatMoney(BG_GlobalDB.moneyEarned), 
+			BrokerGarbage:FormatMoney(BG_GlobalDB.moneyLostByDeleting)))
+		
+	elseif command == "options" or command == "config" or command == "option" or command == "menu" then
+		InterfaceOptionsFrame_OpenToCategory(BrokerGarbage.options)
+		
+	else
+		BrokerGarbage:Print(BrokerGarbage.locale.slashCommandHelp)
+	end
 end

@@ -4,7 +4,7 @@ _, BrokerGarbage = ...
 if GetLocale() == "deDE" then
 
 BrokerGarbage.locale = {
-	label = "Kein Junk",
+	label = "Kein Müll",
 	
 	-- Chat Messages
 	sellAndRepair = "Müll für %1$s verkauft, repariert für %2$s. Änderung: %3$s.",
@@ -18,6 +18,8 @@ BrokerGarbage.locale = {
 	itemDeleted = "%s wurde gelöscht.",
 	
 	openPlease = "Bitte öffne %s - es nimmt unnötig Platz weg.",
+	slashCommandHelp = "Nutze |cffc0c0c0/garbage config|r um die Einstellungen zu öffnen oder |cffc0c0c0/garbage format |cffc0c0ffformatstring|r um das Format der LDB Anzeige anzupassen. |cffc0c0c0/garbage format reset|r setzt das LDB Format zurück. Für Statistiken, gib |cffc0c0c0/garbage stats|r ein.",
+	statistics = "Statistik:\nGesamtverdienst (alle Charaktere): %1$s\nGesamtverlust (alle Charaktere): %2$s",
 	
 	-- Tooltip
 	headerRightClick = "Rechts-Klick: Optionen",
