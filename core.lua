@@ -8,7 +8,7 @@ _, BrokerGarbage = ...
 local LibQTip = LibStub("LibQTip-1.0")
 BrokerGarbage.PT = LibStub("LibPeriodicTable-3.1")
 
--- notation mix-up for B2FB to work
+-- notation mix-up for Broker2FuBar to work
 local LDB = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Garbage", {
 	type	= "data source", 
 	icon	= "Interface\\Icons\\achievement_bg_returnxflags_def_wsg",
@@ -22,8 +22,7 @@ LDB.OnMouseWheel = function(...) BrokerGarbage:OnScroll(...) end
 
 -- default saved variables
 BrokerGarbage.defaultGlobalSettings = {
-	-- lists
-	-- key is either the itemID -or- the PeriodicTable category string
+	-- lists :: key is either the itemID -or- the PeriodicTable category string
 	exclude = {},
 	include = {},
 	autoSellList = {},
@@ -44,6 +43,7 @@ BrokerGarbage.defaultGlobalSettings = {
 	
 	-- display options
 	showAutoSellIcon = true,
+	reportNothingToSell = true,
 	showLost = true,
 	showEarned = true,
 	-- showWarnings = true,		-- TODO options
@@ -76,7 +76,7 @@ BrokerGarbage.tt = nil
 
 -- event handler
 local function eventHandler(self, event, ...)
-	if event == "MERCHANT_SHOW" then
+	if event == "MERCHANT_SHOW" then		
 		if not IsShiftKeyDown() then
 			BrokerGarbage:AutoRepair()
 			BrokerGarbage:AutoSell()
@@ -86,7 +86,6 @@ local function eventHandler(self, event, ...)
 		-- regular unlock
 		
 		-- wrong player_money event (resulting from repair, not sell)
-		-- testing: add a span for wich we recognize this one as repair bill
 		if sellValue ~= 0 and cost ~= 0 and ((-1)*sellValue <= cost+2 and (-1)*sellValue >= cost-2) then 
 			BrokerGarbage:Debug("Not yet ... Waiting for actual money change.")
 			return 
@@ -107,6 +106,7 @@ local function eventHandler(self, event, ...)
 		elseif sellValue ~= 0 and BG_GlobalDB.autoSellToVendor then
 			-- autosell only
 			BrokerGarbage:Print(format(BrokerGarbage.locale.sell, BrokerGarbage:FormatMoney(sellValue)))
+
 		end
 		
 		sellValue = 0
@@ -171,7 +171,7 @@ function MerchantFrame_UpdateRepairButtons(...)
 	if not _G["BrokerGarbage_SellIcon"] then
 		iconbutton = CreateFrame("Button", "BrokerGarbage_SellIcon", MerchantBuyBackItemItemButton)
 		iconbutton:SetWidth(36); iconbutton:SetHeight(36)
-		iconbutton:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")	-- INV_Crate_05
+		iconbutton:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
 		iconbutton:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 		iconbutton:SetScript("OnClick", BrokerGarbage.AutoSell)
 		iconbutton:SetScript("OnEnter", function(self) 
@@ -201,6 +201,9 @@ function MerchantFrame_UpdateRepairButtons(...)
 		iconbutton:Show()
 	end
 	MerchantRepairText:Hide()
+	
+	iconbutton:Enable()
+	_G["BrokerGarbage_SellIcon"]:GetNormalTexture():SetDesaturated(false)
 end
 
 loaded = true
@@ -827,6 +830,17 @@ function BrokerGarbage:AutoSell()
 				i = i+1
 			end
 		end
+		
+		if self == _G["BrokerGarbage_SellIcon"] then
+			BrokerGarbage:Debug("AutoSell on Sell Icon.")
+			if sellValue == 0 and BG_GlobalDB.reportNothingToSell then
+				BrokerGarbage:Print(BrokerGarbage.locale.reportNothingToSell)
+			elseif sellValue ~= 0 then
+				BrokerGarbage:Print(format(BrokerGarbage.locale.sell, BrokerGarbage:FormatMoney(sellValue)))
+			end
+			_G["BrokerGarbage_SellIcon"]:Disable()
+			_G["BrokerGarbage_SellIcon"]:GetNormalTexture():SetDesaturated(true)
+		end
 	end
 end
 
@@ -834,7 +848,7 @@ end
 function BrokerGarbage:AutoRepair()
 	if BG_GlobalDB.autoRepairAtVendor and CanMerchantRepair() then
 		cost = GetRepairAllCost()
-
+		
 		if cost > 0 and GetGuildBankWithdrawMoney() >= cost and not BG_GlobalDB.neverRepairGuildBank then
 			RepairAllItems(CanGuildBankRepair())
 		elseif cost > 0 then

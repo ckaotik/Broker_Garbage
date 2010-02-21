@@ -38,7 +38,7 @@ for set, _ in pairs(BrokerGarbage.PT.sets) do
 				pre[ partials[i] ] = set
 			else
 				-- all parts before that
-				if not pre[ partials[i] ] then
+				if not pre[ partials[i] ] or type(pre[ partials[i] ]) == "string" then
 					pre[ partials[i] ] = {}
 				end
 				pre = pre[ partials[i] ]
@@ -53,18 +53,18 @@ BrokerGarbage.options.name = "Broker_Garbage"
 BrokerGarbage.options:Hide()
 
 -- list options: positive panel
-BrokerGarbage.listOptionsPositive = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
+BrokerGarbage.listOptionsPositive = CreateFrame("Frame", "BrokerGarbageOptionsPositiveFrame", InterfaceOptionsFramePanelContainer)
 BrokerGarbage.listOptionsPositive.name = BrokerGarbage.locale.LOPTitle
 BrokerGarbage.listOptionsPositive.parent = "Broker_Garbage"
 BrokerGarbage.listOptionsPositive:Hide()
 
 -- list options: negative panel
-BrokerGarbage.listOptionsNegative = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
+BrokerGarbage.listOptionsNegative = CreateFrame("Frame", "BrokerGarbageOptionsNegativeFrame", InterfaceOptionsFramePanelContainer)
 BrokerGarbage.listOptionsNegative.name = BrokerGarbage.locale.LONTitle
 BrokerGarbage.listOptionsNegative.parent = "Broker_Garbage"
 BrokerGarbage.listOptionsNegative:Hide()
 
--- list options
+-- lists that hold our iconbuttons
 BrokerGarbage.listButtons = {
 	-- positive
 	exclude = {},
@@ -98,6 +98,15 @@ local function ShowOptions(frame)
 		checksound(autosellicon)
 		BG_GlobalDB.showAutoSellIcon = not BG_GlobalDB.showAutoSellIcon
 	end)
+	
+	local nothingtext = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.showNothingToSellTitle, "TOPLEFT", autosellicon, "BOTTOMLEFT", 0, 0)
+	nothingtext.tiptext = BrokerGarbage.locale.showNothingToSellText
+	nothingtext:SetChecked(BG_GlobalDB.showAutoSellIcon)
+	local checksound = nothingtext:GetScript("OnClick")
+	nothingtext:SetScript("OnClick", function(nothingtext)
+		checksound(nothingtext)
+		BG_GlobalDB.reportNothingToSell = not BG_GlobalDB.reportNothingToSell
+	end)
 
 	local autorepair = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.autoRepairTitle, "LEFT", autosell, "LEFT", 200, 0)
 	autorepair.tiptext = BrokerGarbage.locale.autoRepairText
@@ -117,7 +126,7 @@ local function ShowOptions(frame)
 		BG_LocalDB.neverRepairGuildBank = not BG_LocalDB.neverRepairGuildBank
 	end)
 	
-	local showlost = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.showLostTitle, "TOPLEFT", autosellicon, "BOTTOMLEFT", -14, -10)
+	local showlost = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.showLostTitle, "TOPLEFT", nothingtext, "BOTTOMLEFT", -14, -10)
 	showlost.tiptext = BrokerGarbage.locale.showLostText
 	showlost:SetChecked(BG_GlobalDB.showLost)
 	local checksound = showlost:GetScript("OnClick")
@@ -135,7 +144,7 @@ local function ShowOptions(frame)
 		BG_GlobalDB.showEarned = not BG_GlobalDB.showEarned
 	end)
 
-	local quality = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.dropQualityTitle, 0, 6, "TOPLEFT", showlost, "BOTTOMLEFT", 5, -40)
+	local quality = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.dropQualityTitle, 0, 6, "TOPLEFT", showlost, "BOTTOMLEFT", 5, -30)
 	quality.tiptext = BrokerGarbage.locale.dropQualityText
 	quality:SetWidth(200)
 	quality:SetValueStep(1)
@@ -191,7 +200,7 @@ local function ShowOptions(frame)
 		ttMaxHeight.text:SetText(ttMaxHeight:GetValue())
 	end)
 	
-	local resetexclude = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "TOPLEFT", ttMaxItems, "BOTTOMLEFT", 0, -50)
+	local resetexclude = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "TOPLEFT", ttMaxItems, "BOTTOMLEFT", 0, -30)
 	resetexclude:SetText(BrokerGarbage.locale.emptyExcludeList)
 	resetexclude.tiptext = BrokerGarbage.locale.emptyExcludeListText
 	resetexclude:SetWidth(150) resetexclude:SetHeight(18)
@@ -885,7 +894,7 @@ local function ShowOptions(frame)
 	plus4:SetScript("OnReceiveDrag", ItemDrop)
 	plus4:SetScript("OnMouseDown", ItemDrop)
 	
-	buttons = {}
+	-- buttons = {}
 	BrokerGarbage:ListOptionsUpdate()
 	BrokerGarbage.options:SetScript("OnShow", nil)
 	BrokerGarbage.listOptionsPositive:SetScript("OnShow", BrokerGarbage.ListOptionsUpdate)
@@ -902,3 +911,10 @@ InterfaceOptions_AddCategory(BrokerGarbage.options)
 InterfaceOptions_AddCategory(BrokerGarbage.listOptionsPositive)
 InterfaceOptions_AddCategory(BrokerGarbage.listOptionsNegative)
 LibStub("tekKonfig-AboutPanel").new("Broker_Garbage", "Broker_Garbage")
+
+-- register slash commands
+SLASH_BROKERGARBAGE1 = "/garbage"
+SLASH_BROKERGARBAGE2 = "/garb"
+function SlashCmdList.BROKERGARBAGE()
+	InterfaceOptionsFrame_OpenToCategory(BrokerGarbage.options)
+end

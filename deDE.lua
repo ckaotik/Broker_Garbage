@@ -28,7 +28,8 @@ BrokerGarbage.locale = {
 	noItems = "Keine Items zum Löschen.",
 	increaseTreshold = "Erhöhe die Item Qualität",
 	
-	autoSellTooltip = "Graue Items verkaufen.",
+	autoSellTooltip = "Müll verkaufen",
+	reportNothingToSell = "Nichts zu verkaufen!",
 	
 	-- Options Frame
 	subTitle = "Möchtest du einmal nicht automatisch verkaufen / reparieren? \nHalte SHIFT gedrückt, wenn du den Händler ansprichst!",
@@ -37,6 +38,9 @@ BrokerGarbage.locale = {
 	
 	showAutoSellIconTitle = "Icon anzeigen",
 	showAutoSellIconText = "Wenn ausgewählt, wird bei Händlern ein Icon zum automatischen Verkaufen angezeigt.",
+	
+	showNothingToSellTitle = "'Nichts zu verkaufen'",
+	showNothingToSellText = "Wenn ausgewählt, wird bei Besuch eines Händlers eine Nachricht ausgegeben, falls es nichts zu verkaufen gibt.",
 	
 	autoRepairTitle = "Automatisch Reparieren",
 	autoRepairText = "Wenn ausgewählt, wird deine Ausrüstung automatisch repariert wenn möglich.",

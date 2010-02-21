@@ -28,7 +28,8 @@ BrokerGarbage.locale = {
 	noItems = "No items to delete.",
 	increaseTreshold = "Increase quality treshold",
 	
-	autoSellTooltip = "Sell gray items.",
+	autoSellTooltip = "Sell gray items",
+	reportNothingToSell = "Nothing to sell!",
 	
 	-- Options Frame
 	subTitle = "Don't want to auto-sell/repair? \nHold Shift when adressing the merchant!",
@@ -37,6 +38,9 @@ BrokerGarbage.locale = {
 	
 	showAutoSellIconTitle = "Show Icon",
 	showAutoSellIconText = "Toggles whether to show an icon to manually auto-sell when at a vendor.",
+	
+	showNothingToSellTitle = "'Nothing to sell'",
+	showNothingToSellText = "Toggles whether to show a notice when at a vendor and there is nothing to sell.",
 	
 	autoRepairTitle = "Auto Repair",
 	autoRepairText = "Toggles whether to automatically repair your gear when at a vendor.",
