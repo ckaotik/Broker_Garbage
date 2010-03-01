@@ -828,15 +828,12 @@ local function ShowListOptions(frame)
 			table.insert(data, key)
 		end
 		
-		table.sort(data, function(a,b) 
-			--if type(a) == type(b) then
-				--return a<b
+		table.sort(data, function(a,b)
 			if type(a) == "string" and type(b) == "string" then
 				return a<b
 			elseif type(a) == "number" and type(b) == "number" then
 				return (GetItemInfo(a) or "z") < (GetItemInfo(b) or "z")
 			else
-				-- sort: string first
 				return type(a) == "string"
 			end
 		end)

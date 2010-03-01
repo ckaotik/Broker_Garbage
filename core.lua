@@ -330,19 +330,6 @@ function BrokerGarbage:JoinTables(...)
 	return result
 end
 
-function BrokerGarbage:SortIcons(a,b)
-	if type(a) == type(b) then
-		return a<b
-	else
-		-- sort: string first
-		return type(a) == "string"
-	end
-end
-
-local function SortByValue(a, b)
-	return a.value < b.value
-end
-
 function BrokerGarbage:Count(table)
   local i = 0
   for _, _ in pairs(table) do i = i + 1 end
@@ -807,7 +794,9 @@ function BrokerGarbage:GetCheapest(number)
 			count = count + 1
 		end
 	end
-	table.sort(cheapestItems, SortByValue)
+	table.sort(cheapestItems, function(a, b)
+		return a.value < b.value
+	end)
 	
 	-- fill with non-forced
 	if #cheapestItems < number then
