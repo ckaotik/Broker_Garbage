@@ -34,12 +34,16 @@ BrokerGarbage.defaultGlobalSettings = {
 	neverRepairGuildBank = false,
 	
 	-- default values
-	moneyLostByDeleting = 0,	-- total value
-	moneyEarned = 0,			-- total value
 	tooltipMaxHeight = 220,
 	tooltipNumItems = 9,
 	dropQuality = 0,
 	showMoney = 2,
+	
+	-- statistic values
+	moneyLostByDeleting = 0,
+	moneyEarned = 0,
+	itemsSold = 0,
+	itemsDropped = 0,
 	
 	-- display options
 	showAutoSellIcon = true,
@@ -312,17 +316,31 @@ end
 -- joins any number of tables together, one after the other. elements within the input-tables will get mixed, though
 function BrokerGarbage:JoinTables(...)
 	local result = {}
-	local table
+	local tab
 	
 	for i=1,select("#", ...) do
-		table = select(i, ...)
-		if table then
-			for index, value in pairs(table) do
+		tab = select(i, ...)
+		if tab then
+			for index, value in pairs(tab) do
 				result[index] = value
 			end
 		end
 	end
+	
 	return result
+end
+
+function BrokerGarbage:SortIcons(a,b)
+	if type(a) == type(b) then
+		return a<b
+	else
+		-- sort: string first
+		return type(a) == "string"
+	end
+end
+
+local function SortByValue(a, b)
+	return a.value < b.value
 end
 
 function BrokerGarbage:Count(table)
@@ -331,11 +349,19 @@ function BrokerGarbage:Count(table)
   return i
 end
 
-function BrokerGarbage:ResetMoney(which)
-	if which == 0 then
-		BG_LocalDB.moneyLostByDeleting = 0
-	elseif which == 1 then
-		BG_LocalDB.moneyEarned = 0
+function BrokerGarbage:ResetMoney(which, global)
+	if not global then
+		if which == "lost" then
+			BG_LocalDB.moneyLostByDeleting = 0
+		elseif which == "earned" then
+			BG_LocalDB.moneyEarned = 0
+		end
+	else
+		if which == "lost" then
+			BG_GlobalDB.moneyLostByDeleting = 0
+		elseif which == "earned" then
+			BG_GlobalDB.moneyEarned = 0
+		end
 	end
 end
 
@@ -347,6 +373,18 @@ function BrokerGarbage:ResetList(which)
 	elseif which == "autosell" then
 		-- TODO: add to options
 		BG_GlobalDB.autoSellList = {}
+	end
+end
+
+function BrokerGarbage:ResetAll(global)
+	if global then
+		BG_GlobalDB.moneyEarned = 0
+		BG_GlobalDB.moneyLostByDeleting = 0
+		BG_GlobalDB.itemsDropped = 0
+		BG_GlobalDB.itemsSold = 0
+	else
+		BG_LocalDB.moneyEarned = 0
+		BG_LocalDB.moneyLostByDeleting = 0
 	end
 end
 
@@ -640,6 +678,7 @@ function BrokerGarbage:Delete(itemLink, bag, slot)
 
 	PickupContainerItem(bag, slot)
 	DeleteCursorItem()					-- comment this line to prevent item deletion
+	BG_GlobalDB.itemsDropped = BG_GlobalDB.itemsDropped + 1
 	
 	BrokerGarbage:Print(format(BrokerGarbage.locale.itemDeleted, itemLink))
 	BrokerGarbage:Debug(itemLink.." deleted. (bag "..bag..", slot "..slot..")")
@@ -749,25 +788,28 @@ function BrokerGarbage:ScanInventory()
 	return warnings
 end
 
--- returns the n cheapest items in your bags
+-- returns the n cheapest items in your bags  in a table
 function BrokerGarbage:GetCheapest(number)
 	if not number then number = 1 end
 	local cheapestItems = {}
 	
-	for i = 1, number do
-		for _, itemTable in pairs(BrokerGarbage.inventory) do
-			local skip = false
+	-- get forced items
+	local count = 0
+	for _, itemTable in pairs(BrokerGarbage.inventory) do
+		local skip = false
+		
+		for _, usedTable in pairs(cheapestItems) do
+			if usedTable == itemTable then skip = true end
+		end
 			
-			for _, usedTable in pairs(cheapestItems) do
-				if usedTable == itemTable then skip = true end
-			end
-				
-			if not skip and itemTable.force then
-				tinsert(cheapestItems, itemTable)
-			end
+		if not skip and itemTable.force and count < number then
+			tinsert(cheapestItems, itemTable)
+			count = count + 1
 		end
 	end
+	table.sort(cheapestItems, SortByValue)
 	
+	-- fill with non-forced
 	if #cheapestItems < number then
 		local minPrice, minTable
 		
@@ -840,6 +882,7 @@ function BrokerGarbage:AutoSell()
 				BG_LocalDB.moneyEarned = BG_LocalDB.moneyEarned + itemTable.value
 				
 				UseContainerItem(itemTable.bag, itemTable.slot)
+				BG_GlobalDB.itemsSold = BG_GlobalDB.itemsSold + 1
 				i = i+1
 			end
 		end

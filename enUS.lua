@@ -33,8 +33,41 @@ BrokerGarbage.locale = {
 	autoSellTooltip = "Sell gray items",
 	reportNothingToSell = "Nothing to sell!",
 	
-	-- Options Frame
-	subTitle = "Don't want to auto-sell/repair? \nHold Shift when adressing the merchant!",
+	-- Statistics Frame
+	StatisticsHeading = "Statistics, everone needs them!\nTo delete any part of them, click the red x.",
+	
+	MemoryUsageText = "Please notice that especially after scanning your inventory the memory usage goes up a lot. It will automatically be reduced once the garbage collector kicks in.",
+	MemoryUsageTitle = "Memory Usage (kB)",
+	CollectMemoryUsageTooltip = "Click to start the garbage collection (Blizzard function).",
+	
+	GlobalStatisticsHeading = "Global Money statistics:",
+	AverageSellValueTitle = "Average sell value",
+	AverageDropValueTitle = "Average drop value",
+	
+	GlobalMoneyEarnedTitle = "Total amount earned",
+	ResetGlobalMoneyEarnedTooltip = "Click to reset your (global) money earned data.",
+	GlobalMoneyLostTitle = "Total amount lost",
+	ResetGlobalMoneyLostTooltip = "Click to reset your (global) money lost data.",
+	
+	GlobalItemsSoldTitle = "Items sold",
+	ResetGlobalItemsSoldTooltip = "Click to reset the number of items you sold so far.",
+	ItemsDroppedTitle = "Items dropped",
+	ResetGlobalItemsDroppedTooltip = "Click to reset the number of items you dropped so far.",
+	
+	LocalStatisticsHeading = "%s's statistics:",
+	StatisticsLocalAmountEarned = "Amount earned",
+	ResetLocalMoneyEarnedTooltip = "Click to reset your (local) money earned data.",
+	StatisticsLocalAmountLost = "Amount lost",
+	ResetLocalMoneyLostTooltip = "Click to reset your (local) money lost data.",
+	
+	ResetGlobalDataText = "Reset Global Statistics",
+	ResetGlobalDataTooltip = "Click here to reset alls global statistics.",
+	ResetLocalDataText = "Reset Local Statistics",
+	ResetLocalDataTooltip = "Click here to reset all local statistics.",
+	
+	-- Basic Options Frame
+	BasicOptionsTitle = "Basic Options",
+	BasicOptionsText = "Don't want to auto-sell/repair? \nHold Shift when adressing the merchant!",
 	autoSellTitle = "Auto Sell",
 	autoSellText = "Toggles whether to automatically sell your gray items when at a vendor.",
 	
@@ -74,17 +107,15 @@ BrokerGarbage.locale = {
 	rescanInventory = "Rescan Inventory",
 	rescanInventoryText = "Click to manually rescan you inventory. Should generally not be needed.",
 	
-	resetMoneyLost = "Reset Money Lost Data",
-	resetMoneyLostText = "Click to reset the amount of money lost by deleting items.",
-	
-	resetMoneyEarned = "Reset Money Earned Data",
-	resetMoneyEarnedText = "Click to reset the amount of money earned by auto-selling items.",
-	
 	emptyExcludeList = "Empty Exclude List",
 	emptyExcludeListText = "Click to clear your exclude list.",
 	
 	emptyIncludeList = "Empty Include List",
 	emptyIncludeListText = "Click to clear your include list.",
+	
+	LDBDisplayTextTitle = "LDB Display text:",
+	LDBDisplayTextHelpTooltip = "Format string help:\n%1$s - item link\n%2$s - item count\n%3$s - item value\n%4$d - free bag slots\n%5$d - total bag slots",
+	LDBDisplayTextResetTooltip = "Reset LDB string to default value.",
 	
 	-- List Options Panel
 	LOPTitle = "Positive Lists",

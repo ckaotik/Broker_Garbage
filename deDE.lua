@@ -33,8 +33,41 @@ BrokerGarbage.locale = {
 	autoSellTooltip = "Müll verkaufen",
 	reportNothingToSell = "Nichts zu verkaufen!",
 	
-	-- Options Frame
-	subTitle = "Möchtest du einmal nicht automatisch verkaufen / reparieren? \nHalte SHIFT gedrückt, wenn du den Händler ansprichst!",
+	-- Statistics Frame
+	StatisticsHeading = "Statistiken, jeder braucht sie!\nUm Teile davon zu löschen, klicke auf das jeweilige 'x'.",
+	
+	MemoryUsageText = "Bitte beachte, dass insbesondere nach dem Inventarscan der Speicherbedarf stark zunimmt. Er schrumpft wieder, wenn der 'Garbage Collector' ans Werk geht.",
+	MemoryUsageTitle = "Speicherverbrauch (kB)",
+	CollectMemoryUsageTooltip = "Klicke um den 'Garbage Collector' (Blizzard Funktion) manuell zu starten.",
+	
+	GlobalStatisticsHeading = "Globale Geldstatistiken:",
+	AverageSellValueTitle = "Durchschnittl. Verkaufswert",
+	AverageDropValueTitle = "Durchschnittl. weggeworfen",
+	
+	GlobalMoneyEarnedTitle = "Gesamtverdienst",
+	ResetGlobalMoneyEarnedTooltip = "Klicke um deinen Gesamtverdienst zurückzusetzen.",
+	GlobalMoneyLostTitle = "Gesamtverlust",
+	ResetGlobalMoneyLostTooltip = "Klicke um deinen Gesamtverlust zurückzusetzen.",
+	
+	GlobalItemsSoldTitle = "Items verkauft",
+	ResetGlobalItemsSoldTooltip = "Klicke um die Anzahl an verkauften Items zurückzusetzen.",
+	ItemsDroppedTitle = "Items weggeworfen",
+	ResetGlobalItemsDroppedTooltip = "Klicke um die Anzahl der weggeworfenen Items zurückzusetzen.",
+	
+	LocalStatisticsHeading = "Statistiken von %s:",
+	StatisticsLocalAmountEarned = "Verdienst",
+	ResetLocalMoneyEarnedTooltip = "Klicke um deinen (lokalen) Verdienst zurückzusetzen.",
+	StatisticsLocalAmountLost = "Verlust",
+	ResetLocalMoneyLostTooltip = "Klicke um deinen (lokalen) Verlust zurückzusetzen.",
+	
+	ResetGlobalDataText = "Reset: Global",
+	ResetGlobalDataTooltip = "Klicke hier um alle globalen Statistikdaten zurückzusetzen.",
+	ResetLocalDataText = "Reset: Lokal",
+	ResetLocalDataTooltip = "Klicke um alle charakterspezifischen Statistiken zurückzusetzen.",
+	
+	-- Basic Options Frame
+	BasicOptionsTitle = "Grundeinstellungen",
+	BasicOptionsText = "Möchtest du einmal nicht automatisch verkaufen / reparieren? \nHalte SHIFT gedrückt, wenn du den Händler ansprichst!",
 	autoSellTitle = "Automatisch Verkaufen",
 	autoSellText = "Wenn ausgewählt, werden graue Gegenstände automatisch beim Händler verkauft.",
 	
@@ -74,17 +107,15 @@ BrokerGarbage.locale = {
 	rescanInventory = "Inventar neu scannen",
 	rescanInventoryText = "Klicke um dein Inventar neu zu scannen. Dies sollte normalerweise nicht nötig sein!",
 	
-	resetMoneyLost = "'Verlorenes Geld' leeren",
-	resetMoneyLostText = "Klicke um die Statistik 'Verlorenes Geld' zurückzusetzen.",
-	
-	resetMoneyEarned = "'Verdientes Geld' leeren",
-	resetMoneyEarnedText = "Klicke um die Statistik 'Verdientes Geld' zurückzusetzen.",
-	
 	emptyExcludeList = "Ausschlussliste leeren",
 	emptyExcludeListText = "Klicke um deine globale (!) Ausschlussliste zu leeren.",
 	
 	emptyIncludeList = "Einschlussliste leeren",
 	emptyIncludeListText = "Klicke um deine globale (!) Einschlussliste zu leeren.",
+	
+	LDBDisplayTextTitle = "LDB Anzeige:",
+	LDBDisplayTextHelpTooltip = "Schnellhilfe:\n%1$s - Itemlink\n%2$s - Item Anzahl\n%3$s - Itemwert\n%4$d - freier Taschenplatz\n%5$d - Gesamttaschenplatz",
+	LDBDisplayTextResetTooltip = "Setze den LDB Anzeigetext auf den Standardwert zurück.",
 	
 	-- List Options Panel
 	LOPTitle = "Positiv-Listen",

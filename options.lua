@@ -47,10 +47,16 @@ for set, _ in pairs(BrokerGarbage.PT.sets) do
 	end
 end
 
--- main options panel
+-- options panel / statistics
 BrokerGarbage.options = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
 BrokerGarbage.options.name = "Broker_Garbage"
 BrokerGarbage.options:Hide()
+
+-- default / main options
+BrokerGarbage.basicOptions = CreateFrame("Frame", "BrokerGarbageOptionsPositiveFrame", InterfaceOptionsFramePanelContainer)
+BrokerGarbage.basicOptions.name = "Basic Settings"
+BrokerGarbage.basicOptions.parent = "Broker_Garbage"
+BrokerGarbage.basicOptions:Hide()
 
 -- list options: positive panel
 BrokerGarbage.listOptionsPositive = CreateFrame("Frame", "BrokerGarbageOptionsPositiveFrame", InterfaceOptionsFramePanelContainer)
@@ -74,14 +80,269 @@ BrokerGarbage.listButtons = {
 	include = {},
 }
 
+-- button tooltip infos
+local function ShowTooltip(self)
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+	if self.tiptext then
+		GameTooltip:SetText(self.tiptext, nil, nil, nil, nil, true)
+	elseif self.itemLink then
+		GameTooltip:SetHyperlink(self.itemLink)
+	end
+	GameTooltip:Show()
+end
+local function HideTooltip() GameTooltip:Hide() end
 
 local function ShowOptions(frame)
 	-- ----------------------------------
+	-- Statistics / Introductory frame
+	-- ----------------------------------
+	local title, subtitle = LibStub("tekKonfig-Heading").new(BrokerGarbage.options, "Broker_Garbage", BrokerGarbage.locale.StatisticsHeading)
+
+	local memoryinfo = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	memoryinfo:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", 0, 0)
+	memoryinfo:SetPoint("RIGHT", BrokerGarbage.options, -32, 0)
+	memoryinfo:SetHeight(40)
+	memoryinfo:SetNonSpaceWrap(true)
+	memoryinfo:SetJustifyH("LEFT")
+	memoryinfo:SetJustifyV("TOP")
+	memoryinfo:SetText(BrokerGarbage.locale.MemoryUsageText)
+	
+	UpdateAddOnMemoryUsage()
+	local memoryusage = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	memoryusage:SetWidth(150)
+	memoryusage:SetPoint("TOPLEFT", memoryinfo, "BOTTOMLEFT", -2, 0)
+	memoryusage:SetJustifyH("RIGHT")
+	memoryusage:SetText(BrokerGarbage.locale.MemoryUsageTitle)
+	local mutext = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	mutext:SetWidth(120)
+	mutext:SetPoint("LEFT", memoryusage, "RIGHT", 4, 0)
+	mutext:SetJustifyH("LEFT")
+	mutext:SetText(math.floor(GetAddOnMemoryUsage("Broker_Garbage")))	
+	local muaction = CreateFrame("Button", nil, BrokerGarbage.options)
+	muaction:SetPoint("LEFT", mutext, "RIGHT", 4, 0)
+	muaction:SetWidth(16); muaction:SetHeight(16)
+	muaction:SetNormalTexture("Interface\\RAIDFRAME\\ReadyCheck-Waiting")
+	muaction.tiptext = BrokerGarbage.locale.CollectMemoryUsageTooltip
+	muaction:SetScript("OnEnter", ShowTooltip)
+	muaction:SetScript("OnLeave", HideTooltip)
+	
+	-- ----------------------------------------------------------------------------
+	local globalmoneyinfo = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	globalmoneyinfo:SetPoint("TOPLEFT", memoryusage, "BOTTOMLEFT", 0, -12)
+	globalmoneyinfo:SetPoint("RIGHT", BrokerGarbage.options, -32, 0)
+	globalmoneyinfo:SetNonSpaceWrap(true)
+	globalmoneyinfo:SetJustifyH("LEFT")
+	globalmoneyinfo:SetJustifyV("TOP")
+	globalmoneyinfo:SetText(BrokerGarbage.locale.GlobalStatisticsHeading)
+	
+	local globalearned = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	globalearned:SetWidth(150)
+	globalearned:SetPoint("TOPLEFT", globalmoneyinfo, "BOTTOMLEFT", 0, -15)
+	globalearned:SetJustifyH("RIGHT")
+	globalearned:SetText(BrokerGarbage.locale.GlobalMoneyEarnedTitle)
+	local getext = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	getext:SetWidth(120)
+	getext:SetPoint("LEFT", globalearned, "RIGHT", 4, 0)
+	getext:SetJustifyH("LEFT")
+	getext:SetText(BrokerGarbage:FormatMoney(BG_GlobalDB.moneyEarned))
+	local geaction = CreateFrame("Button", nil, BrokerGarbage.options)
+	geaction:SetPoint("LEFT", getext, "RIGHT", 4, 0)
+	geaction:SetWidth(16); geaction:SetHeight(16)
+	geaction:SetNormalTexture("Interface\\RAIDFRAME\\ReadyCheck-NotReady")
+	geaction.tiptext = BrokerGarbage.locale.ResetGlobalMoneyEarnedTooltip
+	geaction:SetScript("OnEnter", ShowTooltip)
+	geaction:SetScript("OnLeave", HideTooltip)
+	
+	local itemssold = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	itemssold:SetWidth(150)
+	itemssold:SetPoint("TOPLEFT", globalearned, "BOTTOMLEFT", 0, -6)
+	itemssold:SetJustifyH("RIGHT")
+	itemssold:SetText(BrokerGarbage.locale.GlobalItemsSoldTitle)
+	local istext = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	istext:SetWidth(120)
+	istext:SetPoint("LEFT", itemssold, "RIGHT", 4, 0)
+	istext:SetJustifyH("LEFT")
+	istext:SetText(BG_GlobalDB.itemsSold)
+	local isaction = CreateFrame("Button", nil, BrokerGarbage.options)
+	isaction:SetPoint("LEFT", istext, "RIGHT", 4, 0)
+	isaction:SetWidth(16); isaction:SetHeight(16)
+	isaction:SetNormalTexture("Interface\\RAIDFRAME\\ReadyCheck-NotReady")
+	isaction.tiptext = BrokerGarbage.locale.ResetGlobalItemsSoldTooltip
+	isaction:SetScript("OnEnter", ShowTooltip)
+	isaction:SetScript("OnLeave", HideTooltip)
+	
+	local avgsold = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	avgsold:SetWidth(150)
+	avgsold:SetPoint("TOPLEFT", itemssold, "BOTTOMLEFT", 0, -6)
+	avgsold:SetJustifyH("RIGHT")
+	avgsold:SetText(BrokerGarbage.locale.AverageSellValueTitle)
+	local astext = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	astext:SetWidth(120)
+	astext:SetPoint("LEFT", avgsold, "RIGHT", 4, 0)
+	astext:SetJustifyH("LEFT")
+	astext:SetText(BrokerGarbage:FormatMoney(math.floor(BG_GlobalDB.moneyEarned / (BG_GlobalDB.itemsSold ~= 0 and BG_GlobalDB.itemsSold or 1))))
+	
+	-- ----------------------------------------------------------------------------	
+	local globallost = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	globallost:SetWidth(150)
+	globallost:SetPoint("TOPLEFT", avgsold, "BOTTOMLEFT", 0, -15)
+	globallost:SetJustifyH("RIGHT")
+	globallost:SetText(BrokerGarbage.locale.GlobalMoneyLostTitle)
+	local gltext = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	gltext:SetWidth(120)
+	gltext:SetPoint("LEFT", globallost, "RIGHT", 4, 0)
+	gltext:SetJustifyH("LEFT")
+	gltext:SetText(BrokerGarbage:FormatMoney(BG_GlobalDB.moneyLostByDeleting))
+	local glaction = CreateFrame("Button", nil, BrokerGarbage.options)
+	glaction:SetPoint("LEFT", gltext, "RIGHT", 4, 0)
+	glaction:SetWidth(16); glaction:SetHeight(16)
+	glaction:SetNormalTexture("Interface\\RAIDFRAME\\ReadyCheck-NotReady")
+	glaction.tiptext = BrokerGarbage.locale.ResetGlobalMoneyLostTooltip
+	glaction:SetScript("OnEnter", ShowTooltip)
+	glaction:SetScript("OnLeave", HideTooltip)
+	
+	local itemsdropped = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	itemsdropped:SetWidth(150)
+	itemsdropped:SetPoint("TOPLEFT", globallost, "BOTTOMLEFT", 0, -6)
+	itemsdropped:SetJustifyH("RIGHT")
+	itemsdropped:SetText(BrokerGarbage.locale.ItemsDroppedTitle)
+	local idtext = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	idtext:SetWidth(120)
+	idtext:SetPoint("LEFT", itemsdropped, "RIGHT", 4, 0)
+	idtext:SetJustifyH("LEFT")
+	idtext:SetText(BG_GlobalDB.itemsDropped)
+	local idaction = CreateFrame("Button", nil, BrokerGarbage.options)
+	idaction:SetPoint("LEFT", idtext, "RIGHT", 4, 0)
+	idaction:SetWidth(16); idaction:SetHeight(16)
+	idaction:SetNormalTexture("Interface\\RAIDFRAME\\ReadyCheck-NotReady")
+	idaction.tiptext = BrokerGarbage.locale.ResetGlobalItemsDroppedTooltip
+	idaction:SetScript("OnEnter", ShowTooltip)
+	idaction:SetScript("OnLeave", HideTooltip)
+
+	local avglost = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	avglost:SetWidth(150)
+	avglost:SetPoint("TOPLEFT", itemsdropped, "BOTTOMLEFT", 0, -6)
+	avglost:SetJustifyH("RIGHT")
+	avglost:SetText(BrokerGarbage.locale.AverageDropValueTitle)
+	local altext = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	altext:SetWidth(120)
+	altext:SetPoint("LEFT", avglost, "RIGHT", 4, 0)
+	altext:SetJustifyH("LEFT")
+	altext:SetText(BrokerGarbage:FormatMoney(math.floor(BG_GlobalDB.moneyLostByDeleting / (BG_GlobalDB.itemsDropped ~= 0 and BG_GlobalDB.itemsDropped or 1))))
+	
+	-- ----------------------------------------------------------------------------
+	local localmoneyinfo = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	localmoneyinfo:SetPoint("TOPLEFT", avglost, "BOTTOMLEFT", 0, -12)
+	localmoneyinfo:SetPoint("RIGHT", BrokerGarbage.options, -32, 0)
+	localmoneyinfo:SetNonSpaceWrap(true)
+	localmoneyinfo:SetJustifyH("LEFT")
+	localmoneyinfo:SetJustifyV("TOP")
+	localmoneyinfo:SetText(format(BrokerGarbage.locale.LocalStatisticsHeading, GetUnitName("player")))
+	
+	local localearned = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	localearned:SetWidth(150)
+	localearned:SetPoint("TOPLEFT", localmoneyinfo, "BOTTOMLEFT", 0, -15)
+	localearned:SetJustifyH("RIGHT")
+	localearned:SetText(BrokerGarbage.locale.StatisticsLocalAmountEarned)
+	local letext = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	letext:SetWidth(120)
+	letext:SetPoint("LEFT", localearned, "RIGHT", 4, 0)
+	letext:SetJustifyH("LEFT")
+	letext:SetText(BrokerGarbage:FormatMoney(BG_LocalDB.moneyEarned))
+	local leaction = CreateFrame("Button", nil, BrokerGarbage.options)
+	leaction:SetPoint("LEFT", letext, "RIGHT", 4, 0)
+	leaction:SetWidth(16); leaction:SetHeight(16)
+	leaction:SetNormalTexture("Interface\\RAIDFRAME\\ReadyCheck-NotReady")
+	leaction.tiptext = BrokerGarbage.locale.ResetLocalMoneyEarnedTooltip
+	leaction:SetScript("OnEnter", ShowTooltip)
+	leaction:SetScript("OnLeave", HideTooltip)
+	
+	local locallost = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	locallost:SetWidth(150)
+	locallost:SetPoint("TOPLEFT", localearned, "BOTTOMLEFT", 0, -15)
+	locallost:SetJustifyH("RIGHT")
+	locallost:SetText(BrokerGarbage.locale.StatisticsLocalAmountLost)
+	local lltext = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	lltext:SetWidth(120)
+	lltext:SetPoint("LEFT", locallost, "RIGHT", 4, 0)
+	lltext:SetJustifyH("LEFT")
+	lltext:SetText(BrokerGarbage:FormatMoney(BG_LocalDB.moneyLostByDeleting))
+	local llaction = CreateFrame("Button", nil, BrokerGarbage.options)
+	llaction:SetPoint("LEFT", lltext, "RIGHT", 4, 0)
+	llaction:SetWidth(16); llaction:SetHeight(16)
+	llaction:SetNormalTexture("Interface\\RAIDFRAME\\ReadyCheck-NotReady")
+	llaction.tiptext = BrokerGarbage.locale.ResetLocalMoneyLostTooltip
+	llaction:SetScript("OnEnter", ShowTooltip)
+	llaction:SetScript("OnLeave", HideTooltip)
+	
+	-- ----------------------------------------------------------------------------
+	-- omg-i-reset-everything!!!!!! buttons
+	local globalreset = LibStub("tekKonfig-Button").new(BrokerGarbage.options, "TOPLEFT", locallost, "BOTTOMLEFT", 0, -30)
+	globalreset:SetText(BrokerGarbage.locale.ResetGlobalDataText)
+	globalreset.tiptext = BrokerGarbage.locale.ResetGlobalDataTooltip
+	globalreset:SetWidth(150)
+	globalreset:SetScript("OnClick", function()
+		BrokerGarbage:ResetAll(true)
+	end)
+	
+	local localreset = LibStub("tekKonfig-Button").new(BrokerGarbage.options, "TOPLEFT", globalreset, "TOPRIGHT", 20, 0)
+	localreset:SetText(BrokerGarbage.locale.ResetLocalDataText)
+	localreset.tiptext = BrokerGarbage.locale.ResetLocalDataTooltip
+	localreset:SetWidth(150)
+	localreset:SetScript("OnClick", function()
+		BrokerGarbage:ResetAll(false)
+	end)
+	
+	-- when panel is shown this will update the statistics data
+	local function UpdateStats()
+		UpdateAddOnMemoryUsage()
+		mutext:SetText(math.floor(GetAddOnMemoryUsage("Broker_Garbage")))
+		
+		getext:SetText(BrokerGarbage:FormatMoney(BG_GlobalDB.moneyEarned))
+		istext:SetText(BG_GlobalDB.itemsSold)
+		gltext:SetText(BrokerGarbage:FormatMoney(BG_GlobalDB.moneyLostByDeleting))
+		idtext:SetText(BG_GlobalDB.itemsDropped)
+		
+		astext:SetText(BrokerGarbage:FormatMoney(math.floor(BG_GlobalDB.moneyEarned / (BG_GlobalDB.itemsSold ~= 0 and BG_GlobalDB.itemsSold or 1))))
+		altext:SetText(BrokerGarbage:FormatMoney(math.floor(BG_GlobalDB.moneyLostByDeleting / (BG_GlobalDB.itemsDropped ~= 0 and BG_GlobalDB.itemsDropped or 1))))
+		
+		letext:SetText(BrokerGarbage:FormatMoney(BG_LocalDB.moneyEarned))
+		lltext:SetText(BrokerGarbage:FormatMoney(BG_LocalDB.moneyLostByDeleting))
+	end
+	
+	local function OnClick(self)
+		if self == muaction then
+			collectgarbage("collect")
+		elseif self == geaction then
+			BrokerGarbage:ResetMoney("earned", true)
+		elseif self == glaction then
+			BrokerGarbage:ResetMoney("lost", true)
+		elseif self == idaction then
+			BG_GlobalDB.itemsDropped = 0
+		elseif self == isaction then
+			BG_GlobalDB.itemsSold = 0
+		elseif self == leaction then
+			BG_LocalDB.moneyEarned = 0
+		elseif self == llaction then
+			BG_LocalDB.moneyLostByDeleting = 0
+		end
+		
+		UpdateStats()
+	end
+	muaction:SetScript("OnClick", OnClick)
+	geaction:SetScript("OnClick", OnClick)
+	isaction:SetScript("OnClick", OnClick)
+	glaction:SetScript("OnClick", OnClick)
+	idaction:SetScript("OnClick", OnClick)
+	leaction:SetScript("OnClick", OnClick)
+	llaction:SetScript("OnClick", OnClick)
+	
+	-- ----------------------------------
 	-- Basic Options
 	-- ----------------------------------
-	local title, subtitle = LibStub("tekKonfig-Heading").new(BrokerGarbage.options, "Broker_Garbage", BrokerGarbage.locale.subTitle)
+	local title0, subtitle0 = LibStub("tekKonfig-Heading").new(BrokerGarbage.basicOptions, "Broker_Garbage - "..BrokerGarbage.locale.BasicOptionsTitle, BrokerGarbage.locale.BasicOptionsText)
 
-	local autosell = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.autoSellTitle, "TOPLEFT", subtitle, "BOTTOMLEFT", -2, -4)
+	local autosell = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.autoSellTitle, "TOPLEFT", subtitle0, "BOTTOMLEFT", -2, -4)
 	autosell.tiptext = BrokerGarbage.locale.autoSellText
 	autosell:SetChecked(BG_GlobalDB.autoSellToVendor)
 	local checksound = autosell:GetScript("OnClick")
@@ -90,7 +351,7 @@ local function ShowOptions(frame)
 		BG_GlobalDB.autoSellToVendor = not BG_GlobalDB.autoSellToVendor
 	end)
 	
-	local autosellicon = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.showAutoSellIconTitle, "TOPLEFT", autosell, "BOTTOMLEFT", 14, 0)
+	local autosellicon = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showAutoSellIconTitle, "TOPLEFT", autosell, "BOTTOMLEFT", 14, 0)
 	autosellicon.tiptext = BrokerGarbage.locale.showAutoSellIconText
 	autosellicon:SetChecked(BG_GlobalDB.showAutoSellIcon)
 	local checksound = autosellicon:GetScript("OnClick")
@@ -99,7 +360,7 @@ local function ShowOptions(frame)
 		BG_GlobalDB.showAutoSellIcon = not BG_GlobalDB.showAutoSellIcon
 	end)
 	
-	local nothingtext = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.showNothingToSellTitle, "TOPLEFT", autosellicon, "BOTTOMLEFT", 0, 0)
+	local nothingtext = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showNothingToSellTitle, "TOPLEFT", autosellicon, "BOTTOMLEFT", 0, 0)
 	nothingtext.tiptext = BrokerGarbage.locale.showNothingToSellText
 	nothingtext:SetChecked(BG_GlobalDB.showAutoSellIcon)
 	local checksound = nothingtext:GetScript("OnClick")
@@ -108,7 +369,7 @@ local function ShowOptions(frame)
 		BG_GlobalDB.reportNothingToSell = not BG_GlobalDB.reportNothingToSell
 	end)
 
-	local autorepair = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.autoRepairTitle, "LEFT", autosell, "LEFT", 200, 0)
+	local autorepair = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.autoRepairTitle, "LEFT", autosell, "LEFT", 200, 0)
 	autorepair.tiptext = BrokerGarbage.locale.autoRepairText
 	autorepair:SetChecked(BG_GlobalDB.autoRepairAtVendor)
 	local checksound = autorepair:GetScript("OnClick")
@@ -117,7 +378,7 @@ local function ShowOptions(frame)
 		BG_GlobalDB.autoRepairAtVendor = not BG_GlobalDB.autoRepairAtVendor
 	end)
 
-	local guildrepair = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.autoRepairGuildTitle, "TOPLEFT", autorepair, "BOTTOMLEFT", 14, 0)
+	local guildrepair = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.autoRepairGuildTitle, "TOPLEFT", autorepair, "BOTTOMLEFT", 14, 0)
 	guildrepair.tiptext = BrokerGarbage.locale.autoRepairGuildText
 	guildrepair:SetChecked(BG_LocalDB.neverRepairGuildBank)
 	local checksound = guildrepair:GetScript("OnClick")
@@ -126,7 +387,7 @@ local function ShowOptions(frame)
 		BG_LocalDB.neverRepairGuildBank = not BG_LocalDB.neverRepairGuildBank
 	end)
 	
-	local showlost = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.showLostTitle, "TOPLEFT", nothingtext, "BOTTOMLEFT", -14, -10)
+	local showlost = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showLostTitle, "TOPLEFT", nothingtext, "BOTTOMLEFT", -14, -10)
 	showlost.tiptext = BrokerGarbage.locale.showLostText
 	showlost:SetChecked(BG_GlobalDB.showLost)
 	local checksound = showlost:GetScript("OnClick")
@@ -135,7 +396,7 @@ local function ShowOptions(frame)
 		BG_GlobalDB.showLost = not BG_GlobalDB.showLost
 	end)
 	
-	local showearned = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.showEarnedTitle, "LEFT", showlost, "LEFT", 200, 0)
+	local showearned = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showEarnedTitle, "LEFT", showlost, "LEFT", 200, 0)
 	showearned.tiptext = BrokerGarbage.locale.showEarnedText
 	showearned:SetChecked(BG_GlobalDB.showEarned)
 	local checksound = showearned:GetScript("OnClick")
@@ -144,7 +405,7 @@ local function ShowOptions(frame)
 		BG_GlobalDB.showEarned = not BG_GlobalDB.showEarned
 	end)
 
-	local quality = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.dropQualityTitle, 0, 6, "TOPLEFT", showlost, "BOTTOMLEFT", 5, -30)
+	local quality = LibStub("tekKonfig-Slider").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.dropQualityTitle, 0, 6, "TOPLEFT", showlost, "BOTTOMLEFT", 5, -20)
 	quality.tiptext = BrokerGarbage.locale.dropQualityText
 	quality:SetWidth(200)
 	quality:SetValueStep(1)
@@ -159,7 +420,7 @@ local function ShowOptions(frame)
 	end)
 
 	local testValue = 130007
-	local moneyFormat = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.moneyFormatTitle, 0, 4, "LEFT", quality, "LEFT", 200, 0)
+	local moneyFormat = LibStub("tekKonfig-Slider").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.moneyFormatTitle, 0, 4, "LEFT", quality, "LEFT", 200, 0)
 	moneyFormat.tiptext = BrokerGarbage.locale.moneyFormatText
 	moneyFormat:SetWidth(200)
 	moneyFormat:SetValueStep(1);
@@ -172,8 +433,7 @@ local function ShowOptions(frame)
 		moneyFormat.text:SetText(BrokerGarbage:FormatMoney(testValue))
 	end)
 
-
-	local ttMaxItems = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.maxItemsTitle, 0, 50, "TOPLEFT", quality, "BOTTOMLEFT", 0, -15)
+	local ttMaxItems = LibStub("tekKonfig-Slider").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.maxItemsTitle, 0, 50, "TOPLEFT", quality, "BOTTOMLEFT", 0, -15)
 	ttMaxItems.tiptext = BrokerGarbage.locale.maxItemsText
 	ttMaxItems:SetWidth(200)
 	ttMaxItems:SetValueStep(1);
@@ -186,8 +446,7 @@ local function ShowOptions(frame)
 		ttMaxItems.text:SetText(ttMaxItems:GetValue())
 	end)
 
-
-	local ttMaxHeight = LibStub("tekKonfig-Slider").new(BrokerGarbage.options, BrokerGarbage.locale.maxHeightTitle, 0, 400, "LEFT", ttMaxItems, "LEFT", 200, 0)
+	local ttMaxHeight = LibStub("tekKonfig-Slider").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.maxHeightTitle, 0, 400, "LEFT", ttMaxItems, "LEFT", 200, 0)
 	ttMaxHeight.tiptext = BrokerGarbage.locale.maxHeightText
 	ttMaxHeight:SetWidth(200)
 	ttMaxHeight:SetValueStep(10);
@@ -200,47 +459,15 @@ local function ShowOptions(frame)
 		ttMaxHeight.text:SetText(ttMaxHeight:GetValue())
 	end)
 	
-	local resetexclude = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "TOPLEFT", ttMaxItems, "BOTTOMLEFT", 0, -30)
-	resetexclude:SetText(BrokerGarbage.locale.emptyExcludeList)
-	resetexclude.tiptext = BrokerGarbage.locale.emptyExcludeListText
-	resetexclude:SetWidth(150) resetexclude:SetHeight(18)
-	resetexclude:SetScript("OnClick", function()
-		BrokerGarbage:ResetList("exclude")
-	end)
-	
-	local resetinclude = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "TOPLEFT", resetexclude, "BOTTOMLEFT", 0, 0)
-	resetinclude:SetText(BrokerGarbage.locale.emptyIncludeList)
-	resetinclude.tiptext = BrokerGarbage.locale.emptyIncludeListText
-	resetinclude:SetWidth(150) resetinclude:SetHeight(18)
-	resetinclude:SetScript("OnClick", function()
-		BrokerGarbage:ResetList("include")
-	end)
-	
-	local rescan = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "TOPLEFT", resetinclude, "BOTTOMLEFT", 0, -20)
+	local rescan = LibStub("tekKonfig-Button").new(BrokerGarbage.basicOptions, "TOPLEFT", ttMaxItems, "BOTTOMLEFT", 0, -20)
 	rescan:SetText(BrokerGarbage.locale.rescanInventory)
 	rescan.tiptext = BrokerGarbage.locale.rescanInventoryText
-	rescan:SetWidth(150) rescan:SetHeight(18)
+	rescan:SetWidth(150)
 	rescan:SetScript("OnClick", function()
 		BrokerGarbage:ScanInventory()
 	end)
-
-	local resetmoneylost = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "LEFT", resetexclude, "LEFT", 200, 0)
-	resetmoneylost:SetText(BrokerGarbage.locale.resetMoneyLost)
-	resetmoneylost.tiptext = BrokerGarbage.locale.resetMoneyLostText
-	resetmoneylost:SetWidth(150) resetmoneylost:SetHeight(18)
-	resetmoneylost:SetScript("OnClick", function()
-		BrokerGarbage:ResetMoney(0)
-	end)
 	
-	local resetmoneyearned = LibStub("tekKonfig-Button").new_small(BrokerGarbage.options, "TOPLEFT", resetmoneylost, "BOTTOMLEFT", 0, 0)
-	resetmoneyearned:SetText(BrokerGarbage.locale.resetMoneyEarned)
-	resetmoneyearned.tiptext = BrokerGarbage.locale.resetMoneyEarnedText
-	resetmoneyearned:SetWidth(150) resetmoneyearned:SetHeight(18)
-	resetmoneyearned:SetScript("OnClick", function()
-		BrokerGarbage:ResetMoney(1)
-	end)
-	
-	local showsource = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.options, nil, BrokerGarbage.locale.showSourceTitle, "TOPLEFT", resetmoneyearned, "BOTTOMLEFT", 0, -20)
+	local showsource = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showSourceTitle, "TOPLEFT", rescan, "TOPRIGHT", 50, 0)
 	showsource.tiptext = BrokerGarbage.locale.showSourceText
 	showsource:SetChecked(BG_GlobalDB.showSource)
 	local checksound = showsource:GetScript("OnClick")
@@ -248,42 +475,108 @@ local function ShowOptions(frame)
 		checksound(showsource)
 		BG_GlobalDB.showSource = not BG_GlobalDB.showSource
 	end)
+	
+	local resetexclude = LibStub("tekKonfig-Button").new(BrokerGarbage.basicOptions, "TOPLEFT", rescan, "BOTTOMLEFT", 0, -10)
+	resetexclude:SetText(BrokerGarbage.locale.emptyExcludeList)
+	resetexclude.tiptext = BrokerGarbage.locale.emptyExcludeListText
+	resetexclude:SetWidth(150)
+	resetexclude:SetScript("OnClick", function()
+		BrokerGarbage:ResetList("exclude")
+	end)
+	
+	local resetinclude = LibStub("tekKonfig-Button").new(BrokerGarbage.basicOptions, "TOPLEFT", showsource, "BOTTOMLEFT", 0, -10)
+	resetinclude:SetText(BrokerGarbage.locale.emptyIncludeList)
+	resetinclude.tiptext = BrokerGarbage.locale.emptyIncludeListText
+	resetinclude:SetWidth(150)
+	resetinclude:SetScript("OnClick", function()
+		BrokerGarbage:ResetList("include")
+	end)
+	
+	local editbox = CreateFrame("EditBox", nil, BrokerGarbage.basicOptions)
+	editbox:SetAutoFocus(false)
+	editbox:SetWidth(150); editbox:SetHeight(32)
+	editbox:SetFontObject("GameFontHighlightSmall")
+	editbox:SetText(BG_GlobalDB.LDBformat)
+	local left = editbox:CreateTexture(nil, "BACKGROUND")
+	left:SetWidth(8) left:SetHeight(20)
+	left:SetPoint("LEFT", -5, 0)
+	left:SetTexture("Interface\\Common\\Common-Input-Border")
+	left:SetTexCoord(0, 0.0625, 0, 0.625)
+	local right = editbox:CreateTexture(nil, "BACKGROUND")
+	right:SetWidth(8) right:SetHeight(20)
+	right:SetPoint("RIGHT", 0, 0)
+	right:SetTexture("Interface\\Common\\Common-Input-Border")
+	right:SetTexCoord(0.9375, 1, 0, 0.625)
+	local center = editbox:CreateTexture(nil, "BACKGROUND")
+	center:SetHeight(20)
+	center:SetPoint("RIGHT", right, "LEFT", 0, 0)
+	center:SetPoint("LEFT", left, "RIGHT", 0, 0)
+	center:SetTexture("Interface\\Common\\Common-Input-Border")
+	center:SetTexCoord(0.0625, 0.9375, 0, 0.625)
 
+	local LDBtext = editbox:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+	LDBtext:SetPoint("TOPLEFT", resetexclude, "BOTTOMLEFT", 0, -20)
+	LDBtext:SetText(BrokerGarbage.locale.LDBDisplayTextTitle)
+	editbox:SetPoint("LEFT", LDBtext, "RIGHT", 20, 0)
+	local function ResetEditBox(self)
+		self:SetText(BG_GlobalDB.LDBformat)
+		self:ClearFocus()
+		BrokerGarbage:ScanInventory()
+	end
+	local function SubmitEditBox()
+		BG_GlobalDB.LDBformat = editbox:GetText()
+		editbox:ClearFocus()
+		BrokerGarbage:ScanInventory()
+	end
+	local function ResetEditBoxDefault()
+		BG_GlobalDB.LDBformat = "%1$sx%2$d (%3$s)"
+		editbox:SetText(BG_GlobalDB.LDBformat)
+		editbox:ClearFocus()
+		BrokerGarbage:ScanInventory()
+	end
+	editbox:SetScript("OnEscapePressed", ResetEditBox)
+	editbox:SetScript("OnEnterPressed", SubmitEditBox)
+	
+	local editHelp = CreateFrame("Button", nil, BrokerGarbage.basicOptions)
+	editHelp:SetPoint("LEFT", editbox, "RIGHT", 4, 0)
+	editHelp:SetWidth(16); editHelp:SetHeight(16)
+	editHelp:SetNormalTexture("Interface\\RAIDFRAME\\ReadyCheck-Waiting")
+	editHelp.tiptext = BrokerGarbage.locale.LDBDisplayTextHelpTooltip
+	editHelp:SetScript("OnEnter", ShowTooltip)
+	editHelp:SetScript("OnLeave", HideTooltip)
+	local editReset = CreateFrame("Button", nil, BrokerGarbage.basicOptions)
+	editReset:SetPoint("LEFT", editHelp, "RIGHT", 2, 0)
+	editReset:SetWidth(16); editReset:SetHeight(16)
+	editReset:SetNormalTexture("Interface\\RAIDFRAME\\ReadyCheck-NotReady")
+	editReset.tiptext = BrokerGarbage.locale.LDBDisplayTextResetTooltip
+	editReset:SetScript("OnEnter", ShowTooltip)
+	editReset:SetScript("OnLeave", HideTooltip)	
+	editReset:SetScript("OnClick", ResetEditBoxDefault)	
+	
+	BrokerGarbage.options:SetScript("OnShow", UpdateStats)
+	BrokerGarbage.basicOptions:SetScript("OnShow", UpdateStats)
+end
+
+local function ShowListOptions(frame)
 	-- List Options
 	-- ----------------------------------
 	local boxHeight = 150
 	local boxWidth = 330
 	
-	--local backdrop = {
-		--bgFile = "Interface\\ChatFrame\\ChatFrameBackground", insets = {left = 4, right = 4, top = 4, bottom = 4},
-		--edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 16
-	--}
-	local backdrop = {bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-		tile = false,
-		tileSize = 32,
-		insets = { left = 0, right = -22, top = 0, bottom = 0 }
+	local backdrop = {
+		bgFile = "Interface\\ChatFrame\\ChatFrameBackground", insets = {left = 4, right = 4, top = 4, bottom = 4},
+		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 16
 	}
-		
-	local function ShowTooltip(self)
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-		if self.tiptext then
-			GameTooltip:SetText(self.tiptext, nil, nil, nil, nil, true)
-		elseif self.itemLink then
-			GameTooltip:SetHyperlink(self.itemLink)
-		end
-		GameTooltip:Show()
-	end
-	local function HideTooltip() GameTooltip:Hide() end
 	
 	-- ----------------------------------
 	--	Positive Lists
 	-- ----------------------------------
-	local title2, subtitle2 = LibStub("tekKonfig-Heading").new(BrokerGarbage.listOptionsPositive, "Broker_Garbage" .. " - " .. BrokerGarbage.locale.LOPTitle , BrokerGarbage.locale.LOPSubTitle)
+	local title, subtitle = LibStub("tekKonfig-Heading").new(BrokerGarbage.listOptionsPositive, "Broker_Garbage - " .. BrokerGarbage.locale.LOPTitle , BrokerGarbage.locale.LOPSubTitle)
 	
 	-- list frame: exclude
 	local excludeListHeader = BrokerGarbage.listOptionsPositive:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	excludeListHeader:SetHeight(32)
-	excludeListHeader:SetPoint("TOPLEFT", subtitle2, "BOTTOMLEFT", 0, 14)
+	excludeListHeader:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", 0, 14)
 	excludeListHeader:SetText(BrokerGarbage.locale.LOPExcludeHeader)
 	
 	local excludeBox = CreateFrame("ScrollFrame", "BG_ExcludeListBox", BrokerGarbage.listOptionsPositive, "UIPanelScrollFrameTemplate")
@@ -383,16 +676,16 @@ local function ShowOptions(frame)
 	-- ----------------------------------
 	--	Negative Lists
 	-- ----------------------------------
-	local title3, subtitle3 = LibStub("tekKonfig-Heading").new(BrokerGarbage.listOptionsNegative, "Broker_Garbage" .. " - " .. BrokerGarbage.locale.LONTitle , BrokerGarbage.locale.LONSubTitle)
+	local title2, subtitle2 = LibStub("tekKonfig-Heading").new(BrokerGarbage.listOptionsNegative, "Broker_Garbage - " .. BrokerGarbage.locale.LONTitle , BrokerGarbage.locale.LONSubTitle)
 	
 	-- list frame: include
 	local includeListHeader = BrokerGarbage.listOptionsNegative:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	includeListHeader:SetHeight(32)
-	includeListHeader:SetPoint("TOPLEFT", subtitle3, "BOTTOMLEFT", 0, 14)
+	includeListHeader:SetPoint("TOPLEFT", subtitle2, "BOTTOMLEFT", 0, 14)
 	includeListHeader:SetText(BrokerGarbage.locale.LONIncludeHeader)
 	
 	local includeBox = CreateFrame("ScrollFrame", "BG_IncludeListBox", BrokerGarbage.listOptionsNegative, "UIPanelScrollFrameTemplate")
-	includeBox:SetPoint("TOPLEFT", excludeListHeader, "BOTTOMLEFT", 0, 4)
+	includeBox:SetPoint("TOPLEFT", includeListHeader, "BOTTOMLEFT", 0, 4)
 	includeBox:SetHeight(boxHeight)
 	includeBox:SetWidth(boxWidth)
 	local group_include = CreateFrame("Frame", nil, includeBox)
@@ -407,7 +700,7 @@ local function ShowOptions(frame)
 	
 	-- action buttons
 	local plus3 = CreateFrame("Button", nil, BrokerGarbage.listOptionsNegative)
-	plus3:SetPoint("TOPLEFT", "BG_ExcludeListBoxScrollBar", "TOPRIGHT", 8, -3)
+	plus3:SetPoint("TOPLEFT", "BG_IncludeListBoxScrollBar", "TOPRIGHT", 8, -3)
 	plus3:SetWidth(25); plus3:SetHeight(25)
 	plus3:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	plus3:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
@@ -437,7 +730,7 @@ local function ShowOptions(frame)
 	-- list frame: auto sell
 	local autosellListHeader = BrokerGarbage.listOptionsNegative:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	autosellListHeader:SetHeight(32)
-	autosellListHeader:SetPoint("TOPLEFT", excludeBox, "BOTTOMLEFT", 0, -8)
+	autosellListHeader:SetPoint("TOPLEFT", includeBox, "BOTTOMLEFT", 0, -8)
 	autosellListHeader:SetText(BrokerGarbage.locale.LONAutoSellHeader)
 	
 	local autosellBox = CreateFrame("ScrollFrame", "BG_AutosellListBox", BrokerGarbage.listOptionsNegative, "UIPanelScrollFrameTemplate")
@@ -528,10 +821,32 @@ local function ShowOptions(frame)
 			buttonList = BrokerGarbage.listButtons.forceprice
 		end
 		dataList = BrokerGarbage:JoinTables(globalList, localList)
+		
+		-- make this table sortable
+		data = {}
+		for key, value in pairs(dataList) do
+			table.insert(data, key)
+		end
+		
+		table.sort(data, function(a,b) 
+			--if type(a) == type(b) then
+				--return a<b
+			if type(a) == "string" and type(b) == "string" then
+				return a<b
+			elseif type(a) == "number" and type(b) == "number" then
+				return (GetItemInfo(a) or "z") < (GetItemInfo(b) or "z")
+			else
+				-- sort: string first
+				return type(a) == "string"
+			end
+		end)
+
 		if not buttonList then buttonList = {} end
 		
 		local index = 1
-		for itemID,_ in pairs(dataList) do
+		--for itemID,_ in pairs(dataList) do
+		for i=1, #data do
+			local itemID = data[i]
 			if buttonList[index] then
 				-- use available button
 				local button = buttonList[index]
@@ -580,7 +895,7 @@ local function ShowOptions(frame)
 				iconbutton:SetScript("OnEnter", ShowTooltip)
 				iconbutton:SetScript("OnLeave", HideTooltip)
 				-- TODO: iconbutton:RegisterForClicks("Rightclick")
-
+				
 				if index == 1 then
 					-- place first icon
 					iconbutton:SetPoint("TOPLEFT", parent, "TOPLEFT", 6, -6)
@@ -606,14 +921,27 @@ local function ShowOptions(frame)
 	end
 	
 	local function ItemDrop(self, item)
-		local type, itemID, link = GetCursorInfo()
-		if not type == "item" and not item then return end
+		local cursorType, itemID, link = GetCursorInfo()
+		if not cursorType == "item" and not item then 
+			return
+		end
 		
-		-- to fix category strings
-		if item then 
-			if item == "RightButton" or item == "LeftButton" then return end
+		-- find the item we want to add
+		if item and item == "RightButton" then
+			return 
+		elseif not item or item == "LeftButton" then
+			-- real items
+			itemID = itemID
+		else
+			-- category strings
 			itemID = item
-			link = item 
+		end
+		
+		-- create "link" for output
+		if type(itemID) == "number" then
+			link = select(2, GetItemInfo(itemID))
+		else
+			link = itemID
 		end
 		
 		if self == group_exclude or self == excludeBox or self == plus then
@@ -734,20 +1062,16 @@ local function ShowOptions(frame)
 		if self == emptyExcludeList then
 			BG_LocalDB.exclude = {}
 			BrokerGarbage:ListOptionsUpdate("exclude")
-			BrokerGarbage:ScanInventory()
 		elseif self == emptyForcePriceList then
 			BG_LocalDB.forceVendorPrice = {}
 			BrokerGarbage:ListOptionsUpdate("forceprice")
-			BrokerGarbage:ScanInventory()
 		elseif self == emptyIncludeList then
 			BG_LocalDB.include = {}
 			BrokerGarbage:ListOptionsUpdate("include")
-			BrokerGarbage:ScanInventory()
 		elseif self == emptyAutoSellList then
 			BG_LocalDB.autoSellList = {}
 			BrokerGarbage:ListOptionsUpdate("autosell")
-			BrokerGarbage:ScanInventory()
-			
+		
 		-- remove action
 		elseif self == minus then
 			for i, button in pairs(BrokerGarbage.listButtons.exclude) do
@@ -895,7 +1219,6 @@ local function ShowOptions(frame)
 	plus4:SetScript("OnMouseDown", ItemDrop)
 	
 	BrokerGarbage:ListOptionsUpdate()
-	BrokerGarbage.options:SetScript("OnShow", nil)
 	BrokerGarbage.listOptionsPositive:SetScript("OnShow", BrokerGarbage.ListOptionsUpdate)
 	BrokerGarbage.listOptionsNegative:SetScript("OnShow", BrokerGarbage.ListOptionsUpdate)
 	BrokerGarbage.optionsLoaded = true
@@ -903,10 +1226,12 @@ end
 
 -- show me!
 BrokerGarbage.options:SetScript("OnShow", ShowOptions)
-BrokerGarbage.listOptionsPositive:SetScript("OnShow", ShowOptions)
-BrokerGarbage.listOptionsNegative:SetScript("OnShow", ShowOptions)
+BrokerGarbage.basicOptions:SetScript("OnShow", ShowOptions)
+BrokerGarbage.listOptionsPositive:SetScript("OnShow", ShowListOptions)
+BrokerGarbage.listOptionsNegative:SetScript("OnShow", ShowListOptions)
 
 InterfaceOptions_AddCategory(BrokerGarbage.options)
+InterfaceOptions_AddCategory(BrokerGarbage.basicOptions)
 InterfaceOptions_AddCategory(BrokerGarbage.listOptionsPositive)
 InterfaceOptions_AddCategory(BrokerGarbage.listOptionsNegative)
 LibStub("tekKonfig-AboutPanel").new("Broker_Garbage", "Broker_Garbage")
