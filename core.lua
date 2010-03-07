@@ -51,7 +51,7 @@ BrokerGarbage.defaultGlobalSettings = {
 	showLost = true,
 	showEarned = true,
 	LDBformat = "%1$sx%2$d (%3$s)",
-	-- showWarnings = true,		-- TODO options
+	-- showWarnings = true,		-- TODO
 	showSource = false,
 }
 
@@ -73,7 +73,7 @@ BrokerGarbage.defaultLocalSettings = {
 local debug = false
 local locked = false
 local loaded = false
-local sellValue = 0
+local sellValue = 0		-- represents the actual value that we sold stuff for, opposed to BrokerGarbage.toSellValue which shows the maximum we could sell - imagine someone closing the merchant window. sellValue will then hold the real value we're interested in
 local cost = 0
 local lastReminder = time()
 
@@ -115,6 +115,7 @@ local function eventHandler(self, event, ...)
 		end
 		
 		sellValue = 0
+		BrokerGarbage.toSellValue = 0
 		cost = 0
 		locked = false
 		BrokerGarbage:Debug("lock released")
@@ -126,6 +127,7 @@ local function eventHandler(self, event, ...)
 		sellValue = 0
 		cost = 0
 		locked = false
+		BrokerGarbage.toSellValue = 0
 		BrokerGarbage:Debug("lock released")
 		
 		BrokerGarbage:ScanInventory()
@@ -181,7 +183,13 @@ function MerchantFrame_UpdateRepairButtons(...)
 		iconbutton:SetScript("OnClick", BrokerGarbage.AutoSell)
 		iconbutton:SetScript("OnEnter", function(self) 
 			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-			GameTooltip:SetText(BrokerGarbage.locale.autoSellTooltip, nil, nil, nil, nil, true)
+			local tiptext
+			if BrokerGarbage.toSellValue and BrokerGarbage.toSellValue ~= 0 then
+				tiptext = format(BrokerGarbage.locale.autoSellTooltip, BrokerGarbage:FormatMoney(BrokerGarbage.toSellValue))
+			else
+				tiptext = BrokerGarbage.locale.reportNothingToSell
+			end
+			GameTooltip:SetText(tiptext, nil, nil, nil, nil, true)
 		end)
 		iconbutton:SetScript("OnLeave", function() GameTooltip:Hide() end)
 	else
@@ -197,7 +205,7 @@ function MerchantFrame_UpdateRepairButtons(...)
 			iconbutton:SetWidth(30); iconbutton:SetHeight(30)
 		else
 			iconbutton:SetWidth(36); iconbutton:SetHeight(36)
-			iconbutton:SetPoint("BOTTOMRIGHT", MerchantRepairItemButton, "BOTTOMLEFT", -4, 0)
+			iconbutton:SetPoint("BOTTOMRIGHT", MerchantRepairItemButton, "BOTTOMLEFT", -2, 0)
 		end
 		
 		iconbutton:Show()
@@ -207,10 +215,12 @@ function MerchantFrame_UpdateRepairButtons(...)
 	end
 	MerchantRepairText:Hide()
 	
-	iconbutton:Enable()
-	_G["BrokerGarbage_SellIcon"]:GetNormalTexture():SetDesaturated(false)
+	if BrokerGarbage.toSellValue and BrokerGarbage.toSellValue ~= 0 then
+		_G["BrokerGarbage_SellIcon"]:GetNormalTexture():SetDesaturated(false)
+	else
+		_G["BrokerGarbage_SellIcon"]:GetNormalTexture():SetDesaturated(true)
+	end
 end
-
 loaded = true
 
 -- Helper functions
@@ -220,7 +230,7 @@ function BrokerGarbage:Print(text)
 end
 
 function BrokerGarbage:Warning(text)
-	if showWarnings and time() - lastReminder >= 5 then
+	if BG_GlobalDB.showWarnings and time() - lastReminder >= 5 then
 		BrokerGarbage:Print("|cfff0000Warning:|r ", text)
 		lastReminder = time()
 	end
@@ -674,6 +684,7 @@ end
 -- scans your inventory for possible junk items and updates LDB display
 function BrokerGarbage:ScanInventory()
 	BrokerGarbage.inventory = {}
+	BrokerGarbage.toSellValue = 0
 	local cheapestItem, freeSlots
 	local warnings = {}
 	
@@ -694,7 +705,7 @@ function BrokerGarbage:ScanInventory()
 					local _,count,locked,_,_,canOpen,itemLink = GetContainerItemInfo(container, slot)
 					local quality = select(3,GetItemInfo(itemID))
 					
-					if canOpen and showWarnings then
+					if canOpen and BG_GlobalDB.showWarnings then
 						tinsert(warnings, format(BrokerGarbage.locale.openPlease, 
 							select(2,GetItemInfo(itemID))))
 					end
@@ -736,7 +747,15 @@ function BrokerGarbage:ScanInventory()
 							force = true
 							source = "|cFF8C1717I"	-- overwrites former value, I as in "include"
 						end
+						
 						if value then
+							-- save if we have something sellable
+							if quality == 0 
+								or BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID] then
+								BrokerGarbage:Debug("Added for selling:", itemID, GetItemInfo(itemID) or "")
+								BrokerGarbage.toSellValue = BrokerGarbage.toSellValue + value
+							end
+						
 							local currentItem = {
 								bag = container,
 								slot = slot,
@@ -832,7 +851,7 @@ end
 -- ---------------------------------------------------------
 -- when at a merchant this will clear your bags of junk (gray quality) and items on your autoSellList
 function BrokerGarbage:AutoSell()
-	if BG_GlobalDB.autoSellToVendor or self == _G["BrokerGarbage_SellIcon"] then		
+	if BG_GlobalDB.autoSellToVendor or self == _G["BrokerGarbage_SellIcon"] then
 		local i = 1
 		sellValue = 0
 		for _, itemTable in pairs(BrokerGarbage.inventory) do
@@ -877,13 +896,13 @@ function BrokerGarbage:AutoSell()
 		end
 		
 		if self == _G["BrokerGarbage_SellIcon"] then
-			BrokerGarbage:Debug("AutoSell on Sell Icon.")
-			if sellValue == 0 and BG_GlobalDB.reportNothingToSell then
+			BrokerGarbage:Debug("AutoSell on Sell Icon.", BrokerGarbage:FormatMoney(sellValue), BrokerGarbage:FormatMoney(BrokerGarbage.toSellValue))
+			
+			if BrokerGarbage.toSellValue == 0 and BG_GlobalDB.reportNothingToSell then
 				BrokerGarbage:Print(BrokerGarbage.locale.reportNothingToSell)
-			elseif sellValue ~= 0 then
-				BrokerGarbage:Print(format(BrokerGarbage.locale.sell, BrokerGarbage:FormatMoney(sellValue)))
+			elseif BrokerGarbage.toSellValue ~= 0 and not BG_GlobalDB.autoSellToVendor then
+				BrokerGarbage:Print(format(BrokerGarbage.locale.sell, BrokerGarbage:FormatMoney(BrokerGarbage.toSellValue)))
 			end
-			_G["BrokerGarbage_SellIcon"]:Disable()
 			_G["BrokerGarbage_SellIcon"]:GetNormalTexture():SetDesaturated(true)
 		end
 	end

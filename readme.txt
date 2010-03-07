@@ -27,7 +27,7 @@ If you get past that point (and really, you should) it's about time to set up yo
 3. I got an error!!!11!1!
 -----------------
 Well, that's not good, but it's good ;) If you report an error I can have a look to fix it. Of course, there shouldn't be any errors in the first place but you know ... I'm only human, too.
-To report a bug just log on to WoWInterface.com or curse.com and leave me a message or a comment (the full links can be found at the top of this file) giving as much information as you can. On curse it even offers a bug tracker and I wouldn't mind you using it.
+To report a bug just log on to WoWInterface.com or curse.com and leave me a message or a comment (the full links can be found at the top of this file) giving as much information as you can. On curse it even offers a bug tracker and I wouldn't mind you using it. Some info you should always include:
 
 * When did it happen? (on login, on /reload, when selling, ...)
 * What happened? ("The tooltip went blank.", "The tooltip sticks to the cursor.", ...)
@@ -53,11 +53,11 @@ Grayed out items on there are items that are on your global list, active for all
 Items on this list will never have their auction value used. This is useful for food, drinks and other things people tend to put on the AH at unbelievable prices.
 
 * Include List
-Items on this list will be always be shown in the drop Tooltip, no matter what Quality Treshold you might have set. Caution!
+Items on this list will be always be shown in the drop Tooltip, no matter what Quality Treshold you might have set. If you have too many, you won't see any other items in the tooltip. Caution!
 Grayed out items on there are items that are on your global list, active for all characters. Colorful ones are just for your current character.
 
 * Auto-Sell List
-Items on this list will be sold whenever you talk to a vendor. Items of higher quality than your Quality Treshold WILL be sold.
+Items on this list will be sold whenever you talk to a vendor. Items of higher quality than your Quality Treshold WILL be sold, just keep that in mind.
 
 Each of these lists except the 'Force Vendor Price' list have a global (affects all your characters) and local (only affects the current character) component. You can broadcast items on your local lists as global by selecting them and then clicking on the promote icon next to the list.
 
@@ -67,11 +67,11 @@ Starting in version 3.3v11 you can add category strings to make your life easier
 Navigate your way through the menu and add any category you like simply by clicking on it.
 To remove a category simply do as you would with any other item on your list: Select it and then hit the corresponding 'minus' icon.
 
-Why these categories are only in English? There's a simple answer to that: Because I do not want to localize the complete LPT. Sorry for that, but it's kind of not my job to do that ;)
+Why these categories are only in English? There's a simple answer to that: Because that's what LPT does and I do not want to localize the complete LPT. Sorry for that, but it's kind of not my job to do that ;)
 
 7. How to adjust the LDB display text
 -----------------
-In 3.3v15 I added the possibility to adjust the LDB display text to your liking. To do so, simply type "/garbage format formatstring" where formatstring is your desired output format (withouth quotation marks). The LDB display format supports several parameters:
+In 3.3v15 I added the possibility to adjust the LDB display text to your liking. To do so, simply change the text on the Basic Options panel or type "/garbage format 'formatstring'" where formatstring is your desired output format (withouth quotation marks). The LDB display format supports several parameters:
 
 	%1$s		item link
 	%2$d		item count

@@ -30,7 +30,7 @@ BrokerGarbage.locale = {
 	noItems = "Keine Items zum Löschen.",
 	increaseTreshold = "Erhöhe die Item Qualität",
 	
-	autoSellTooltip = "Müll verkaufen",
+	autoSellTooltip = "Müll für %s verkaufen",
 	reportNothingToSell = "Nichts zu verkaufen!",
 	
 	-- Statistics Frame
@@ -123,14 +123,14 @@ BrokerGarbage.locale = {
 		
 		-- Exclude List
 	LOPExcludeHeader = "Ausschlussliste - Items hier werden nie verkauft/gelöscht.",
-	LOPExcludePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst",
+	LOPExcludePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst. Rechtsklick, um Kategorien hinzuzufügen!",
 	LOPExcludeMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
 	LOPExcludePromoteTT = "Klicke um alle markierten Items in die globale Ausnahmeliste zu übernehmen.",
 	LOPExcludeEmptyTT = "Klicke, um die lokale Ausschlussliste völlig zu leeren.\n|cffff0000Achtung!",
 	
 		-- Force Vendor Price List
 	LOPForceHeader = "Händlerpreis-Liste - Für diese Items wird nur der Händlerpreis betrachtet.",
-	LOPForcePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst",
+	LOPForcePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst. Rechtsklick, um Kategorien hinzuzufügen!",
 	LOPForceMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
 	LOPForcePromoteTT = "Die Händlerpreis-Liste ist bereits global.",
 	LOPForceEmptyTT = "Klicke, um die Händlerliste völlig zu leeren.\n|cffff0000Achtung!",
@@ -141,14 +141,14 @@ BrokerGarbage.locale = {
 	
 		-- Include List
 	LONIncludeHeader = "Einschlussliste - Items hier werden mit als erstes im Tooltip gezeigt.",
-	LONIncludePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst",
+	LONIncludePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst. Rechtsklick, um Kategorien hinzuzufügen!",
 	LONIncludeMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
 	LONIncludePromoteTT = "Klicke, um alle markierten Items in die globale Einschlussliste zu übernehmen.",
 	LONIncludeEmptyTT = "Klicke, um die lokale Einschlussliste völlig zu leeren.\n|cffff0000Achtung!",
 	
 		-- Auto Sell List
 	LONAutoSellHeader = "Verkaufsliste - Items hier werden bei Händlern automatisch verkauft.",
-	LONAutoSellPlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst",
+	LONAutoSellPlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst. Rechtsklick, um Kategorien hinzuzufügen!",
 	LONAutoSellMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
 	LONAutoSellPromoteTT = "Klicke, um alle markierten Items in die globale Verkaufsliste zu übernehmen.",
 	LONAutoSellEmptyTT = "Klicke, um die lokale Verkaufsliste völlig zu leeren.\n|cffff0000Achtung!",

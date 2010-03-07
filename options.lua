@@ -362,7 +362,7 @@ local function ShowOptions(frame)
 	
 	local nothingtext = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showNothingToSellTitle, "TOPLEFT", autosellicon, "BOTTOMLEFT", 0, 0)
 	nothingtext.tiptext = BrokerGarbage.locale.showNothingToSellText
-	nothingtext:SetChecked(BG_GlobalDB.showAutoSellIcon)
+	nothingtext:SetChecked(BG_GlobalDB.reportNothingToSell)
 	local checksound = nothingtext:GetScript("OnClick")
 	nothingtext:SetScript("OnClick", function(nothingtext)
 		checksound(nothingtext)
@@ -962,6 +962,9 @@ local function ShowListOptions(frame)
 			BrokerGarbage:ListOptionsUpdate("autosell")
 			ClearCursor()
 		end
+		
+		BrokerGarbage:ScanInventory()
+		MerchantFrame_UpdateRepairButtons()
 	end
 	
 	if not _G["BrokerGarbagePTMenuFrame"] then		
@@ -1147,6 +1150,7 @@ local function ShowListOptions(frame)
 		end
 		
 		BrokerGarbage:ScanInventory()
+		MerchantFrame_UpdateRepairButtons()
 	end
 	
 	emptyExcludeList:SetScript("OnClick", OnClick)

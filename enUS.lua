@@ -30,7 +30,7 @@ BrokerGarbage.locale = {
 	noItems = "No items to delete.",
 	increaseTreshold = "Increase quality treshold",
 	
-	autoSellTooltip = "Sell gray items",
+	autoSellTooltip = "Sell Items for %s",
 	reportNothingToSell = "Nothing to sell!",
 	
 	-- Statistics Frame
@@ -123,14 +123,14 @@ BrokerGarbage.locale = {
 		
 		-- Exclude List
 	LOPExcludeHeader = "Exclude List - these items will never be sold/deleted.",
-	LOPExcludePlusTT = "Add items to the Exclude List by dragging/placing them on me!",
+	LOPExcludePlusTT = "Add items to the Exclude List by dragging/placing them on me. Right click on me for categories!",
 	LOPExcludeMinusTT = "Select items you want to remove, then click here.",
 	LOPExcludePromoteTT = "Selected items will be written onto your global Exclude List, as seen by every character.",
 	LOPExcludeEmptyTT = "Click to fully empty your local Exclude List.\n|cffff0000Caution!",
 	
 		-- Force Vendor Price List
 	LOPForceHeader = "Vendor Price List - These items will only have their vendor price considered.",
-	LOPForcePlusTT = "Add items to the Vendor Price List by dragging/placing them on me!",
+	LOPForcePlusTT = "Add items to the Exclude List by dragging/placing them on me. Right click on me for categories!",
 	LOPForceMinusTT = "Select items you want to remove, then click here.",
 	LOPForcePromoteTT = "The Vendor Price List is already global and effects every character.",
 	LOPForceEmptyTT = "Click to fully empty your Vendor Price List.\n|cffff0000Caution!",
@@ -140,15 +140,15 @@ BrokerGarbage.locale = {
 	LONSubTitle = "To add Items to lists, drag them over the corresponding '+' icon, to remove them select them and click the '-'.",
 	
 		-- Include List
-	LONIncludeHeader = "Include List - these items will shown first in the tooltip.",
-	LONIncludePlusTT = "Add items to your Include List by dragging/placing them on me!",
+	LONIncludeHeader = "Include List - these items will be shown first in the tooltip.",
+	LONIncludePlusTT = "Add items to the Exclude List by dragging/placing them on me. Right click on me for categories!",
 	LONIncludeMinusTT = "Select items you want to remove, then click here.",
 	LONIncludePromoteTT = "Selected items will be written onto your global Include List, as seen by every character.",
 	LONIncludeEmptyTT = "Click to fully empty your local Include List.\n|cffff0000Caution!",
 	
 		-- Auto Sell List
-	LONAutoSellHeader = "Sell List - These items will me automatically sold when at a vendor.",
-	LONAutoSellPlusTT = "Add items to your Sell List by dragging/placing them on me!",
+	LONAutoSellHeader = "Sell List - These items will be sold automatically when at a vendor.",
+	LONAutoSellPlusTT = "Add items to the Exclude List by dragging/placing them on me. Right click on me for categories!",
 	LONAutoSellMinusTT = "Select items you want to remove, then click here.",
 	LONAutoSellPromoteTT = "Selected items will be written onto your global Sell List, as seen by every character.",
 	LONAutoSellEmptyTT = "Click to fully empty your local Sell List.\n|cffff0000Caution!",
