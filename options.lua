@@ -4,13 +4,13 @@ BrokerGarbage:CheckSettings()
 
 -- rarity strings (no need to localize)
 BrokerGarbage.quality = {
-	[0] = "|cff9D9D9D"..ITEM_QUALITY0_DESC.."|r",
-	[1] = "|cffFFFFFF"..ITEM_QUALITY1_DESC.."|r",
-	[2] = "|cff1EFF00"..ITEM_QUALITY2_DESC.."|r",
-	[3] = "|cff0070FF"..ITEM_QUALITY3_DESC.."|r",
-	[4] = "|cffa335ee"..ITEM_QUALITY4_DESC.."|r",
-	[5] = "|cffff8000"..ITEM_QUALITY5_DESC.."|r",
-	[6] = "|cffE6CC80"..ITEM_QUALITY6_DESC.."|r",
+	[0] = select(4,GetItemQualityColor(0))..ITEM_QUALITY0_DESC.."|r",
+	[1] = select(4,GetItemQualityColor(1))..ITEM_QUALITY1_DESC.."|r",
+	[2] = select(4,GetItemQualityColor(2))..ITEM_QUALITY2_DESC.."|r",
+	[3] = select(4,GetItemQualityColor(3))..ITEM_QUALITY3_DESC.."|r",
+	[4] = select(4,GetItemQualityColor(4))..ITEM_QUALITY4_DESC.."|r",
+	[5] = select(4,GetItemQualityColor(5))..ITEM_QUALITY5_DESC.."|r",
+	[6] = select(4,GetItemQualityColor(6))..ITEM_QUALITY6_DESC.."|r",
 	}
 
 -- create drop down menu table for PT sets	
@@ -54,9 +54,17 @@ BrokerGarbage.options:Hide()
 
 -- default / main options
 BrokerGarbage.basicOptions = CreateFrame("Frame", "BrokerGarbageOptionsPositiveFrame", InterfaceOptionsFramePanelContainer)
-BrokerGarbage.basicOptions.name = "Basic Settings"
+BrokerGarbage.basicOptions.name = BrokerGarbage.locale.BasicOptionsTitle
 BrokerGarbage.basicOptions.parent = "Broker_Garbage"
 BrokerGarbage.basicOptions:Hide()
+
+-- Loot Manager options
+if BrokerGarbage.lootManager then
+	BrokerGarbage.lootManagerOptions = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
+	BrokerGarbage.lootManagerOptions.name = BrokerGarbage.locale.LMTitle
+	BrokerGarbage.lootManagerOptions.parent = "Broker_Garbage"
+	BrokerGarbage.lootManagerOptions:Hide()
+end
 
 -- list options: positive panel
 BrokerGarbage.listOptionsPositive = CreateFrame("Frame", "BrokerGarbageOptionsPositiveFrame", InterfaceOptionsFramePanelContainer)
@@ -237,7 +245,7 @@ local function ShowOptions(frame)
 	localmoneyinfo:SetNonSpaceWrap(true)
 	localmoneyinfo:SetJustifyH("LEFT")
 	localmoneyinfo:SetJustifyV("TOP")
-	localmoneyinfo:SetText(format(BrokerGarbage.locale.LocalStatisticsHeading, GetUnitName("player")))
+	localmoneyinfo:SetText(format(BrokerGarbage.locale.LocalStatisticsHeading, UnitName("player")))
 	
 	local localearned = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
 	localearned:SetWidth(150)
@@ -283,6 +291,7 @@ local function ShowOptions(frame)
 	globalreset:SetWidth(150)
 	globalreset:SetScript("OnClick", function()
 		BrokerGarbage:ResetAll(true)
+		UpdateStats()
 	end)
 	
 	local localreset = LibStub("tekKonfig-Button").new(BrokerGarbage.options, "TOPLEFT", globalreset, "TOPRIGHT", 20, 0)
@@ -291,6 +300,7 @@ local function ShowOptions(frame)
 	localreset:SetWidth(150)
 	localreset:SetScript("OnClick", function()
 		BrokerGarbage:ResetAll(false)
+		UpdateStats()
 	end)
 	
 	-- when panel is shown this will update the statistics data
@@ -776,8 +786,52 @@ local function ShowListOptions(frame)
 	emptyAutoSellList:SetNormalTexture("Interface\\Buttons\\Ui-grouploot-pass-up")
 	emptyAutoSellList.tiptext = BrokerGarbage.locale.LONAutoSellEmptyTT
 	
-	-- function that updates & shows items from various lists
+	-- function to set the drop treshold (limit) via the mousewheel
+	local function OnMouseWheel(self, dir)
+		if type(self.itemID) ~= "number" then return end
+		BrokerGarbage.debug = self
+		local list, text
+		
+		if dir == 1 then
+			-- up
+			if self.isGlobal then
+				list = BG_GlobalDB[self.list]
+			else
+				list = BG_LocalDB[self.list]
+			end
+			
+			-- change stuff
+			if list[self.itemID] == true then
+				list[self.itemID] = 1
+			else
+				list[self.itemID] = list[self.itemID] + 1
+			end
+			self.limit:SetText(list[self.itemID])
+			
+		else
+			-- down
+			if self.isGlobal then
+				list = BG_GlobalDB[self.list]
+			else
+				list = BG_LocalDB[self.list]
+			end
+			
+			-- change stuff
+			if list[self.itemID] == true then
+				text = ""
+			elseif list[self.itemID] == 1 then
+				list[self.itemID] = true
+				text = ""
+			else
+				list[self.itemID] = list[self.itemID] - 1
+				text = list[self.itemID]
+			end
+			self.limit:SetText(text)
+		end
+	end
+	
 	local numCols = 8
+	-- function that updates & shows items from various lists
 	function BrokerGarbage:ListOptionsUpdate(listName)
 		if not listName then
 			BrokerGarbage:ListOptionsUpdate("include")
@@ -850,10 +904,10 @@ local function ShowListOptions(frame)
 				local itemLink, texture
 				if type(itemID) ~= "number" then
 					-- this is an item category
-					BrokerGarbage:Debug("Encountered Category String!", itemID)
 					itemLink = nil
 					button.tiptext = itemID		-- category description string
 					texture = "Interface\\Icons\\Trade_engineering"
+					
 				else
 					-- this is an explicit item
 					_, itemLink, _, _, _, _, _, _, _, texture, _ = GetItemInfo(itemID)
@@ -863,14 +917,18 @@ local function ShowListOptions(frame)
 					-- everything's fine
 					button.itemID = itemID
 					button.itemLink = itemLink
+					button.isGlobal = globalList[itemID] or false
+					button.limit:SetText((button.isGlobal and globalList[itemID] ~= true and globalList[itemID]) 
+						or (localList[itemID] ~= true and localList[itemID]) or "")
 					button:SetNormalTexture(texture)
-					button:GetNormalTexture():SetDesaturated(globalList[itemID] or false)		-- desaturate global list items
+					button:GetNormalTexture():SetDesaturated(button.isGlobal)		-- desaturate global list items
 				else
 					-- an item the server has not seen
 					button.itemID = itemID
 					button.tiptext = "ID: "..itemID
 					button:SetNormalTexture("Interface\\Icons\\Inv_misc_questionmark")
 				end
+				button.list = listName
 				button:SetChecked(false)
 				button:Show()
 			else
@@ -880,6 +938,17 @@ local function ShowListOptions(frame)
 				iconbutton:SetWidth(36)
 				iconbutton:SetHeight(36)
 
+				local limit = iconbutton:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+				limit:SetPoint("BOTTOMLEFT", iconbutton, "BOTTOMLEFT", 2, 1)
+				limit:SetPoint("BOTTOMLEFT", iconbutton, "BOTTOMLEFT", 2, 1)
+				limit:SetPoint("BOTTOMRIGHT", iconbutton, "BOTTOMRIGHT", -3, 1)
+				limit:SetHeight(20)
+				limit:SetJustifyH("RIGHT")
+				limit:SetJustifyV("BOTTOM")
+				limit:SetText("")
+				
+				iconbutton.limit = limit
+				
 				iconbutton:SetNormalTexture("Interface\\Icons\\Inv_misc_questionmark")
 				iconbutton:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 				iconbutton:SetCheckedTexture("Interface\\Buttons\\UI-Button-Outline")
@@ -889,9 +958,26 @@ local function ShowListOptions(frame)
 				tex:SetPoint("CENTER")
 				tex:SetWidth(36/37*66) tex:SetHeight(36/37*66)
 				
+				iconbutton:SetScript("OnClick", function(self)
+					local check = self:GetChecked()
+					BrokerGarbage:Debug("OnClick", check)
+					
+					if IsModifiedClick("CHATLINK") and ChatFrameEditBox:IsVisible() then
+						-- post item link
+						ChatFrameEditBox:Insert(self.itemLink)
+						self:SetChecked(not check)
+					elseif not IsModifierKeyDown() then
+						self:SetChecked(check)
+					else
+						self:SetChecked(not check)
+					end
+				end)
 				iconbutton:SetScript("OnEnter", ShowTooltip)
 				iconbutton:SetScript("OnLeave", HideTooltip)
-				-- TODO: iconbutton:RegisterForClicks("Rightclick")
+				if listName == "include" then
+					iconbutton:EnableMouseWheel(true)
+					iconbutton:SetScript("OnMouseWheel", OnMouseWheel)
+				end
 				
 				if index == 1 then
 					-- place first icon
@@ -919,14 +1005,14 @@ local function ShowListOptions(frame)
 	
 	local function ItemDrop(self, item)
 		local cursorType, itemID, link = GetCursorInfo()
-		if not cursorType == "item" and not item then 
+		BrokerGarbage:Print("ItemDrop - "..(item or "").." ("..(link or "").."/"..(itemID or "")..")"..(cursorType or ""))
+		
+		if (not itemID and (item == "RightButton" or item == "LeftButton" or item == "MiddleButton")) then
 			return
 		end
 		
 		-- find the item we want to add
-		if item and item == "RightButton" then
-			return 
-		elseif not item or item == "LeftButton" then
+		if itemID then
 			-- real items
 			itemID = itemID
 		else
@@ -1129,21 +1215,21 @@ local function ShowListOptions(frame)
 		elseif self == promote then
 			for i, button in pairs(BrokerGarbage.listButtons.exclude) do
 				if button:GetChecked() then
-					BG_GlobalDB.exclude[button.itemID] = true
+					BG_GlobalDB.exclude[button.itemID] = BG_LocalDB.exclude[button.itemID]
 				end
 			end
 			BrokerGarbage:ListOptionsUpdate("exclude")
 		elseif self == promote3 then
 			for i, button in pairs(BrokerGarbage.listButtons.include) do
 				if button:GetChecked() then
-					BG_GlobalDB.include[button.itemID] = true
+					BG_GlobalDB.include[button.itemID] = BG_LocalDB.include[button.itemID]
 				end
 			end
 			BrokerGarbage:ListOptionsUpdate("include")
 		elseif self == promote3 then
 			for i, button in pairs(BrokerGarbage.listButtons.autosell) do
 				if button:GetChecked() then
-					BG_GlobalDB.autoSellList[button.itemID] = true
+					BG_GlobalDB.autoSellList[button.itemID] = BG_LocalDB.autoSellList[button.itemID]
 				end
 			end
 			BrokerGarbage:ListOptionsUpdate("autosell")
@@ -1233,6 +1319,7 @@ BrokerGarbage.listOptionsNegative:SetScript("OnShow", ShowListOptions)
 
 InterfaceOptions_AddCategory(BrokerGarbage.options)
 InterfaceOptions_AddCategory(BrokerGarbage.basicOptions)
+InterfaceOptions_AddCategory(BrokerGarbage.lootManagerOptions)
 InterfaceOptions_AddCategory(BrokerGarbage.listOptionsPositive)
 InterfaceOptions_AddCategory(BrokerGarbage.listOptionsNegative)
 LibStub("tekKonfig-AboutPanel").new("Broker_Garbage", "Broker_Garbage")
@@ -1258,6 +1345,20 @@ function SlashCmdList.BROKERGARBAGE(msg, editbox)
 		
 	elseif command == "options" or command == "config" or command == "option" or command == "menu" then
 		InterfaceOptionsFrame_OpenToCategory(BrokerGarbage.options)
+		
+	elseif command == "limit" or command == "glimit" or command == "globallimit" then
+		local itemID, count = rest:match("^[^0-9]-([0-9]+).-([0-9]+)$")
+		itemID = tonumber(itemID)
+		count = tonumber(count)
+		
+		if string.find(command, "g") then
+			BG_GlobalDB.include[itemID] = count
+		else
+			BG_LocalDB.include[itemID] = count
+		end
+		local itemLink = select(2,GetItemInfo(itemID))
+		BrokerGarbage:Print(format("%s has been assigned a limit of %d.", itemLink, count))
+		BrokerGarbage:ListOptionsUpdate("include")
 		
 	else
 		BrokerGarbage:Print(BrokerGarbage.locale.slashCommandHelp)

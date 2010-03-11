@@ -8,11 +8,12 @@
 ## Notes: Full bags no more! Find your least valuable item .. and destroy it!
 ## Notes-deDE: Endlich wieder Platz! Finde dein billigstes Item ... und zerstöre es.
 ## Author: ckaotik
-## Version: 3.3v16
+## Version: 3.3v17beta1
 ## X-Embeds: LibPeriodicTable-3.1
 ## X-Category: Inventory
-## X-Credits: GarbageFu, Tekkub
+## X-Credits: GarbageFu(Jaerin/wmrojer), tekKonfig(Tekkub), KarniCrap(Karnifex)
 
+# dependencies. comment (with '#') if you do not wish to load these (only if another addon already does so)
 Libs\LibStub.lua
 Libs\LibQTip-1.0.lua
 Libs\CallbackHandler-1.0.lua
@@ -24,8 +25,14 @@ Libs\LibPeriodicTable-3.1-Misc\LibPeriodicTable-3.1-Misc.lua
 Libs\LibPeriodicTable-3.1-Tradeskill\LibPeriodicTable-3.1-Tradeskill.lua
 Libs\LibPeriodicTable-3.1-TradeskillResultMats\LibPeriodicTable-3.1-TradeskillResultMats.lua
 
+# localization files
 enUS.lua
 deDE.lua
 
+# loot manager functionality can be disabled here. comment (with '#') lootmanager.lua to disable
 core.lua
+lootmanager.lua
+
+# options. when disabling the Loot Manager, disable lootmanager_options.lua, too
 options.lua
+lootmanager_options.lua

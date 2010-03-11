@@ -1,7 +1,7 @@
 Broker_Garbage
 ==============
 Author: ckaotik
-Version: 3.3v16
+Version: 3.3v17
 WoW Version: 3.3.2 (TOC 30300)
 
 WoWInterface: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
@@ -55,6 +55,7 @@ Items on this list will never have their auction value used. This is useful for 
 * Include List
 Items on this list will be always be shown in the drop Tooltip, no matter what Quality Treshold you might have set. If you have too many, you won't see any other items in the tooltip. Caution!
 Grayed out items on there are items that are on your global list, active for all characters. Colorful ones are just for your current character.
+Since 3.3v17 include list items also can have a limit set. Use this if for example you only want to keep 5 Soulshards. Excess items will be listed in the Tooltip!
 
 * Auto-Sell List
 Items on this list will be sold whenever you talk to a vendor. Items of higher quality than your Quality Treshold WILL be sold, just keep that in mind.
@@ -87,7 +88,26 @@ Some examples:
 "%1$sx%2$d"						->		[Hearthstone]x1
 "%4$d/%5$d - %1$s"				->		18/48 - [Hearthstone]
 
-8. How you can help
+8. Slash Commands
+-----------------
+Broker_Garbage supports a hand full of slash commands. These are /garbage or short, /garb. Parameters supported:
+	
+	/garb format <formatstring>
+See information on this one above, in part 7.
+	
+	/garb stats -or- /garb total -or- /garbage trash
+Prints very simplified statistics to the chat frame. Further statistics/details can be found in the options menu.
+
+	/garb option -or- /garb options -or- /garb menu -or- /garb config
+All of these just open up the config window ;)
+
+	/garb limit <itemLink or itemID> <amount>
+This will add the corresponding item to the character's include list and add a limit to it.
+	
+	/garb glimit -or- /garb globallimit
+Same as the above, just adds the item to the global include list.
+
+9. How you can help
 -----------------
 I still need a few translations to get done. If you would like to help me with that, please do so on http://wow.curseforge.com/addons/broker_garbage/localization/  .
 Likewise, I need people to test the addon with different auction addons. If you have one that isn't yet supported, make a Feature Suggestion (see 4.).

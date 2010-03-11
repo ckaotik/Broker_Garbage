@@ -18,6 +18,8 @@ BrokerGarbage.locale = {
 	itemDeleted = "%s wurde gelöscht.",
 	
 	openPlease = "Bitte öffne %s - es nimmt unnötig Platz weg.",
+	openClams = "Du hast eine %s im Inventar!",
+	couldNotLoot = "%s wurde nicht geplündert, da es zu billig ist.",
 	slashCommandHelp = "Nutze |cffc0c0c0/garbage config|r um die Einstellungen zu öffnen oder |cffc0c0c0/garbage format |cffc0c0ffformatstring|r um das Format der LDB Anzeige anzupassen. |cffc0c0c0/garbage format reset|r setzt das LDB Format zurück. Für Statistiken, gib |cffc0c0c0/garbage stats|r ein.",
 	statistics = "Statistik:\nGesamtverdienst (alle Charaktere): %1$s\nGesamtverlust (alle Charaktere): %2$s",
 	
@@ -119,7 +121,7 @@ BrokerGarbage.locale = {
 	
 	-- List Options Panel
 	LOPTitle = "Positiv-Listen",
-	LOPSubTitle = "Um Items hinzuzufügen, ziehe sie auf das jeweilige '+'. Um sie zu entfernen, wähle sie aus und klicke auf '-'.",
+	LOPSubTitle = "Zum Hinzufügen ziehe Items auf das jeweilige '+'. Zum Entfernen wähle sie aus und klicke auf '-'. Nutze Kategorien per Rechts-Klick auf '+'.",
 		
 		-- Exclude List
 	LOPExcludeHeader = "Ausschlussliste - Items hier werden nie verkauft/gelöscht.",
@@ -137,10 +139,10 @@ BrokerGarbage.locale = {
 	
 	-- AutoSell Options Panel
 	LONTitle = "Negativ-Listen",
-	LONSubTitle = "Um Items hinzuzufügen, ziehe sie auf das jeweilige '+'. Um sie zu entfernen, wähle sie aus und klicke auf '-'.",
+	LONSubTitle = "Analog zu den Positiv-Listen. Um eine maximale Anzahl für ein bestimmtes Item festzulegen, nutze das Mausrad über dem Item-Icon.",
 	
 		-- Include List
-	LONIncludeHeader = "Einschlussliste - Items hier werden mit als erstes im Tooltip gezeigt.",
+	LONIncludeHeader = "Einschlussliste - Items werden zuerst angezeigt und vom LM nicht geplündert.",
 	LONIncludePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst. Rechtsklick, um Kategorien hinzuzufügen!",
 	LONIncludeMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier.",
 	LONIncludePromoteTT = "Klicke, um alle markierten Items in die globale Einschlussliste zu übernehmen.",
@@ -155,7 +157,51 @@ BrokerGarbage.locale = {
 	
 	-- LibPeriodicTable texts
 	PTCategoryTooltipHeader = "Kategorien hinzufügen",
-	PTCategoryTooltipText = "Füge Kategorien hinzu, indem du auf die entsprechenden Einträge clickst."
+	PTCategoryTooltipText = "Füge Kategorien hinzu, indem du auf die entsprechenden Einträge clickst.",
+	
+	-- Loot Manager
+	CreatureTypeBeast = "Wildtier",
+	Quest = "Quest",
+	You = "Ihr",
+	
+	LMTitle = "Loot Manager",
+	LMSubTitle = "Der Loot Manager kann den gesamten Lootvorgang verwalten, wenn du ihn lässt.\nHalte SHIFT beim Plündern lange gedrückt, wenn du sonst Autoloot an hast, aber einmalig 'per Hand' plündern möchtest.",
+	
+	LMEnableTitle = "Loot Manager aktivieren",
+	LMEnableTooltip = "Aktiviert den Loot Manager.",
+	
+	LMSelectiveTitle = "Selektives Looten",
+	LMSelectiveTooltip = "Wenn ausgewählt, entscheidet Broker_Garbage von selbst, welche Items gelootet werden.",
+	
+	LMAutoLootTitle = "Autoloot",
+	LMAutoLootTooltip = "Wenn nicht ausgewählt, wird Broker_Garbage nur bei bestimmten Gelegenheiten looten.",
+	
+	LMAutoLootSkinningTitle = "Kürschnern",
+	LMAutoLootSkinningTooltip = "Wenn ausgewählt, wird Broker_Garbage versuchen, durch dich kürschnerbare Kreaturen zu looten.",
+	
+	LMAutoLootPickpocketTitle = "Taschendiebstahl",
+	LMAutoLootPickpocketTooltip = "Wenn ausgewählt, wird Broker_Garbage automatisch plündern, wenn du ein Schurke in Verstohlenheit bist.",
+	
+	LMAutoLootFishingTitle = "Angeln",
+	LMAutoLootFishingTooltip = "Wenn ausgewählt, wird Broker_Garbage automatisch plündern, wenn du gerade angelst.",
+	
+	LMAutoDestroyTitle = "Auto-Zerstören",
+	LMAutoDestroyTooltip = "Wenn ausgewählt, wird Broker_Garbage bei zu wenig Platz versuchen, welchen zu schaffen.",
+	
+	LMFreeSlotsTitle = "Min. freier Inventarplatz",
+	LMFreeSlotsTooltip = "Setze das Minimum an freien Taschenplätzen, bei dem Broker_Garbage automatisch Platz schaffen soll.",
+	
+	LMRestackTitle = "Automatisch stapeln",
+	LMRestackTooltip = "Wenn ausgewählt, wird Broker_Garbage automatisch die von dir beobachteten Gegenstände nach dem Plündern stapeln, um Platz zu schaffen.",
+	
+	LMFullRestackTitle = "Gesamtes Inventar",
+	LMFullRestackTooltip = "Wenn ausgewählt, wird Broker_Garbage dein gesamtes Inventar zum Restacken beobachten.",
+	
+	LMOpenContainersTitle = "Warne: Behälter",
+	LMOpenContainersTooltip = "Wenn ausgewählt, wird Broker_Garbage eine Warnung ausgeben, solltest du ungeöffnete Behälter bei dir haben.",
+	
+	LMOpenClamsTitle = "Warne: Muscheln",
+	LMOpenClamsTooltip = "Wenn ausgewählt, wird Broker_Garbage eine Warnung ausgeben, wenn du ungeöffnete Muscheln im Inventar hast. Da diese aber nun stapelbar sind, verlierst du durch deaktivieren dieser Option keinen Taschenplatz.",
 }
 
 end

@@ -18,6 +18,8 @@ BrokerGarbage.locale = {
 	itemDeleted = "%s has been deleted.",
 	
 	openPlease = "Please open your %s. It's in your bags, stealing your space!",
+	openClams = "You own a %s. Maybe consider opening it.",
+	couldNotLoot = "I did not loot %s because it's too cheap.",
 	slashCommandHelp = "Use |cffc0c0c0/garbage config|r to open the config menu or |cffc0c0c0/garbage format |cc0c0c0ffformatstring|r to change the LDB display style or |cffc0c0c0/garbage format reset|r to reset it. For statistics type |cffc0c0c0/garbage stats|r.",
 	statistics = "Statistics:\nTotal earnings (all characters): %1$s\nTotal losses (all characters): %2$s",
 	
@@ -119,7 +121,7 @@ BrokerGarbage.locale = {
 	
 	-- List Options Panel
 	LOPTitle = "Positive Lists",
-	LOPSubTitle = "To add Items to lists, drag them over the corresponding '+' icon, to remove them select them and click the '-'.",
+	LOPSubTitle = "To add Items to lists, drag them over the corresponding '+' icon, to remove them select them and click the '-'. To add categories right-click on '+'.",
 		
 		-- Exclude List
 	LOPExcludeHeader = "Exclude List - these items will never be sold/deleted.",
@@ -137,10 +139,10 @@ BrokerGarbage.locale = {
 	
 	-- AutoSell Options Panel
 	LONTitle = "Negative Lists",
-	LONSubTitle = "To add Items to lists, drag them over the corresponding '+' icon, to remove them select them and click the '-'.",
+	LONSubTitle = "Similar usage to Positive Lists. To set an item limit, use your mousewheel when over the item icon.",
 	
 		-- Include List
-	LONIncludeHeader = "Include List - these items will be shown first in the tooltip.",
+	LONIncludeHeader = "Include List - items will be shown first and not be looted by the Loot Manager.",
 	LONIncludePlusTT = "Add items to the Exclude List by dragging/placing them on me. Right click on me for categories!",
 	LONIncludeMinusTT = "Select items you want to remove, then click here.",
 	LONIncludePromoteTT = "Selected items will be written onto your global Include List, as seen by every character.",
@@ -155,6 +157,50 @@ BrokerGarbage.locale = {
 	
 	-- LibPeriodicTable texts
 	PTCategoryTooltipHeader = "Add Categories",
-	PTCategoryTooltipText = "Navigate through this menu and add any of these categories by clicking on them."
+	PTCategoryTooltipText = "Navigate through this menu and add any of these categories by clicking on them.",
+	
+	-- Loot Manager
+	CreatureTypeBeast = "Beast",
+	Quest = "Quest",
+	You = "You",			-- as in "You receive ..."
+	
+	LMTitle = "Loot Manager",
+	LMSubTitle = "The Loot Manager takes control of your looting if you want it to do so.\nIf you usually autoloot, hold down SHIFT for a while when looting a corpse to disable it once.",
+	
+	LMEnableTitle = "Enable Loot Manager",
+	LMEnableTooltip = "Check to enable the Loot Manager.",
+	
+	LMSelectiveTitle = "Selective Looting",
+	LMSelectiveTooltip = "Check to let Broker_Garbage determine which items to loot.",
+	
+	LMAutoLootTitle = "Autoloot",
+	LMAutoLootTooltip = "If unchecked, Broker_Garbage will only loot on special occations.",
+	
+	LMAutoLootSkinningTitle = "Skinning",
+	LMAutoLootSkinningTooltip = "If checked, Broker_Garbage will loot if the creature is skinnable by you.",
+	
+	LMAutoLootPickpocketTitle = "Pickpocket",
+	LMAutoLootPickpocketTooltip = "If checked, Broker_Garbage will loot if you are a Rogue and stealthed.",
+	
+	LMAutoLootFishingTitle = "Fishing",
+	LMAutoLootFishingTooltip = "If checked, Broker_Garbage will loot if you are currently fishing.",
+	
+	LMAutoDestroyTitle = "Autodestroy",
+	LMAutoDestroyTooltip = "If checked, Broker_Garbage will take actions when your inventory space is (almost) full.",
+	
+	LMFreeSlotsTitle = "Minimum free slots",
+	LMFreeSlotsTooltip = "Set the minimum numer of free slots for autodestroy to take action.",
+	
+	LMRestackTitle = "Automatic restack",
+	LMRestackTooltip = "Check to automatically compress your watched inventory items after looting.",
+	
+	LMFullRestackTitle = "Full inventory",
+	LMFullRestackTooltip = "When checked will look at your whole inventory for restackable items, not just the watched items.",
+	
+	LMOpenContainersTitle = "Warn: Containers",
+	LMOpenContainersTooltip = "When checked, Broker_Garbage will warn you when you have unopened containers in you inventory.",
+	
+	LMOpenClamsTitle = "Warn: Clams",
+	LMOpenClamsTooltip = "When checked, Broker_Garbage will warn you when you have clams in you inventory. As these now do stack, you are not wasting any slots by unchecking this.",
 }
 
