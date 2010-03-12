@@ -354,6 +354,7 @@ function BrokerGarbage:SelectiveLooting(autoloot)
 	local mobType = UnitCreatureType("target") == BrokerGarbage.locale.CreatureTypeBeast
 	
 	if autoloot ~= 0 or BG_GlobalDB.autoLoot or (BG_GlobalDB.autoLootPickpocket and BrokerGarbage.playerClass == "ROGUE" and IsStealthed()) or (BG_GlobalDB.autoLootFishing and IsFishingLoot()) then
+		BrokerGarbage:Debug("Autoloot (selectiveLooting)")
 		for slot = 1,numItems do
 			if LootSlotIsItem(slot) then
 				_, _, quantity,  quality, locked = GetLootSlotInfo(slot)
@@ -361,8 +362,10 @@ function BrokerGarbage:SelectiveLooting(autoloot)
 				
 				-- check if we even want this!
 				if BrokerGarbage:IsInteresting(itemLink) then
+					BrokerGarbage:Debug("Interesting Item", itemLink)
 					if not locked then
 						if BrokerGarbage.totalFreeSlots <= BG_GlobalDB.tooFewSlots then
+							BrokerGarbage:Debug("We're out of space!")
 							-- try to compress and make room
 							local itemID = BrokerGarbage:GetItemID(itemLink)
 							local maxStack = select(8, GetItemInfo(itemID))
@@ -377,8 +380,9 @@ function BrokerGarbage:SelectiveLooting(autoloot)
 									BrokerGarbage:Debug("Item can be made to fit.", itemLink)
 									looted = true
 								end
-							elseif inBags > 0 then
+							elseif inBags > 0 and maxStack <= (inBags + quantity) then
 								-- this item fits without us doing anything
+								BrokerGarbage:Debug("Item stacks.", itemLink)
 								looted = true
 							end
 							
@@ -387,18 +391,29 @@ function BrokerGarbage:SelectiveLooting(autoloot)
 								and ((BrokerGarbage:GetItemValue(itemLink, quantity) or 0) > compareTo[1].value 
 									or select(6,GetItemInfo(itemLink)) == BrokerGarbage.locale.Quest) then
 								
+								BrokerGarbage:Debug("Delete item to make room.", itemLink)
 								BrokerGarbage:Delete(select(2,GetItemInfo(compareTo[1].itemID)), compareTo[1].bag, compareTo[1].slot)
 								LootSlot(slot)
 							elseif looted then
 								-- regular looting
 								LootSlot(slot)
 							else
-								-- something is in there, but not valuable enough for us to take it
-								BrokerGarbage:Print(format(BrokerGarbage.locale.couldNotLoot, itemLink))
+								BrokerGarbage:Debug("What do we have here?", itemLink)
+								if mobType and BrokerGarbage:CanSkin(mobLevel) then
+									-- hrmpf, it's skinnable
+									BrokerGarbage:Debug("Still looting, for skinning", itemLink)
+									BrokerGarbage:Debug()
+									BrokerGarbage:Delete(select(2,GetItemInfo(compareTo[1].itemID)), compareTo[1].bag, compareTo[1].slot)
+									LootSlot(slot)
+								else
+									-- something is in there, but not valuable enough for us to take it
+									BrokerGarbage:Print(format(BrokerGarbage.locale.couldNotLoot, itemLink))
+								end
 							end
 						else
 							-- just loot normally
 							LootSlot(slot)
+							BrokerGarbage:Debug("Item taken.", itemLink)
 						end
 					else
 						-- we should be able to loot this, but we are not. somebody set up us the bomb!

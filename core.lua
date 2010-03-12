@@ -82,7 +82,7 @@ BrokerGarbage.defaultLocalSettings = {
 }
 
 -- internal locals
-local debug = false
+local debug = true
 local locked = false
 local loaded = false
 local sellValue = 0		-- represents the actual value that we sold stuff for, opposed to BrokerGarbage.toSellValue which shows the maximum we could sell - imagine someone closing the merchant window. sellValue will then hold the real value we're interested in
@@ -285,12 +285,73 @@ function BrokerGarbage:CheckSettings()
 	end
 end
 
-function BrokerGarbage:CreateDefaultLists()	
+BrokerGarbage.tradeSkills = {
+	[2] = "Leatherworking",
+	[3] = "Tailoring",
+	[4] = "Engineering",
+	[5] = "Blacksmithing",
+	[6] = "Cooking",
+	[7] = "Alchemy",
+	[8] = "First Aid",
+	[9] = "Enchanting",
+	[10] = "Fishing",
+	[11] = "Jewelcrafting",
+	[12] = "Inscription",
+}
+-- returns original English names for non-English locales
+function BrokerGarbage:UnLocalize(skillName)
+	if not skillName then return nil end
+	if string.find(GetLocale(), "en") then return skillName end
+	
+	-- crafting skills
+	local searchString = ""
+	for i=2,12 do
+		searchString = select(i, GetAuctionItemSubClasses(9))
+		if string.find(skillName, searchString) then
+			return BrokerGarbage.tradeSkills[i]
+		end
+	end
+	
+	-- gathering skills
+	local skill
+	if skillName == GetSpellInfo(8613) then
+		skill = "Skinning"
+	elseif skillName == GetSpellInfo(2575) then
+		skill = "Mining"
+	elseif skillName == GetSpellInfo(2366) then
+		-- herbalism sucks
+		source = GetAuctionItemSubClasses(6)
+		if string.find(skillName, source[6]) then
+			skill = "Herbalism"
+		end
+	end
+	
+	return skill
+end
+
+-- inserts some basic list settings
+function BrokerGarbage:CreateDefaultLists()
 	BG_GlobalDB.include[46106] = true		-- argentum lance
 	BG_GlobalDB.include[6265] = 20			-- soulshards
 	BG_GlobalDB.include["Consumable.Water.Conjured"] = true
+	BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible"] = true
+	BG_GlobalDB.forceVendorPrice["Consumable.Water.Basic"] = true
 	
-	BG_LocalDB.exclude["Tradeskill.Mat"] = true
+	-- tradeskills
+	local tradeSkills = BrokerGarbage:CheckSkills()
+	local numSkills = #tradeSkills or 0
+	for i = 1, numSkills do
+		local englishSkill = BrokerGarbage:UnLocalize(tradeSkills[i][1])
+		if englishSkill then
+			if tradeSkills[i][2] then
+				BG_LocalDB.exclude["Tradeskill.Gather."..englishSkill] = true
+			else
+				BG_LocalDB.exclude["Tradeskill.Mat.ByProfession."..englishSkill] = true
+			end
+		end
+	end
+	
+	-- class specific
 	if BrokerGarbage.playerClass == "HUNTER" then	
 		BG_LocalDB.exclude["Misc.Reagent.Ammo"] = true
 	elseif BrokerGarbage.playerClass == "WARRIOR" or BrokerGarbage.playerClass == "ROGUE" or BrokerGarbage.playerClass == "DEATHKNIGHT" then
@@ -300,9 +361,6 @@ function BrokerGarbage:CreateDefaultLists()
 		BG_LocalDB.include[17057] = 20		-- scales
 	end
 	BG_LocalDB.exclude["Misc.Reagent.Class."..string.gsub(string.lower(BrokerGarbage.playerClass), "^.", string.upper)] = true
-	
-	BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible"] = true
-	BG_GlobalDB.forceVendorPrice["Consumable.Water.Basic"] = true
 end
 
 function BrokerGarbage:FormatMoney(amount)
@@ -434,6 +492,7 @@ function BrokerGarbage:ResetList(which)
 	end
 end
 
+-- resets statistics. global = true -> global, otherwise local
 function BrokerGarbage:ResetAll(global)
 	if global then
 		BG_GlobalDB.moneyEarned = 0
@@ -446,11 +505,14 @@ function BrokerGarbage:ResetAll(global)
 	end
 end
 
+-- returns an item's itemID
 function BrokerGarbage:GetItemID(itemLink)
+	if not itemLink then return end
 	local itemID = string.gsub(itemLink, ".*|Hitem:([0-9]*):.*", "%1")
 	return tonumber(itemID)
 end
 
+-- returns the skill rank of a given tradeskill, or nil
 function BrokerGarbage:GetTradeSkill(skillName)
 	for i=1, GetNumSkillLines() do
 		local name, _, _, skillRank, _, _, _, _, _, _, _, _, _ = GetSkillLineInfo(i)
@@ -459,6 +521,23 @@ function BrokerGarbage:GetTradeSkill(skillName)
 		end
 	end
 	return nil
+end
+
+-- returns all tradeskills found
+function BrokerGarbage:CheckSkills()
+	local result = {}
+	for i=1, GetNumSkillLines() do
+		local name, _, _, skillRank, _, _, _, tradeSkill = GetSkillLineInfo(i)
+		if tradeSkill then
+			local isGather = true
+			if name == GetSpellInfo(2259) or name == GetSpellInfo(2018) or name == GetSpellInfo(7411) or name == GetSpellInfo(4036) or name == GetSpellInfo(45357) or name == GetSpellInfo(25229) or name == GetSpellInfo(2108) or name == GetSpellInfo(3908) then 
+				-- crafting skill
+				isGather = false
+			end
+			tinsert(result, {name, isGather, skillRank})
+		end
+	end
+	if result == {} then return nil else return result end
 end
 
 function BrokerGarbage:CanDisenchant(itemLink)
@@ -695,10 +774,10 @@ function BrokerGarbage:GetItemValue(itemLink, count)
 
 	local maximum = math.max((disenchantPrice or 0), (auctionPrice or 0), (vendorPrice or 0))
 	if vendorPrice and maximum == vendorPrice then
-		return vendorPrice, BrokerGarbage.tagVendor
+		return vendorPrice*count, BrokerGarbage.tagVendor
 		
 	elseif auctionPrice and maximum == auctionPrice then
-		return auctionPrice, BrokerGarbage.tagAuction
+		return auctionPrice*count, BrokerGarbage.tagAuction
 		
 	elseif disenchantPrice and maximum == disenchantPrice then
 		return disenchantPrice, BrokerGarbage.tagDisenchant
@@ -934,7 +1013,7 @@ function BrokerGarbage:ScanInventory()
 	
 	if cheapestItem ~= {} then
 		LDB.text = format(BG_GlobalDB.LDBformat, 
-			select(2,GetItemInfo(cheapestItem[1].itemID)),
+			(cheapestItem ~= {} and select(2,GetItemInfo(cheapestItem[1].itemID)) or BrokerGarbage.locale.label),
 			cheapestItem[1].count,
 			BrokerGarbage:FormatMoney(cheapestItem[1].value),
 			BrokerGarbage.totalFreeSlots,

@@ -1005,7 +1005,6 @@ local function ShowListOptions(frame)
 	
 	local function ItemDrop(self, item)
 		local cursorType, itemID, link = GetCursorInfo()
-		BrokerGarbage:Print("ItemDrop - "..(item or "").." ("..(link or "").."/"..(itemID or "")..")"..(cursorType or ""))
 		
 		if (not itemID and (item == "RightButton" or item == "LeftButton" or item == "MiddleButton")) then
 			return
@@ -1357,7 +1356,7 @@ function SlashCmdList.BROKERGARBAGE(msg, editbox)
 			BG_LocalDB.include[itemID] = count
 		end
 		local itemLink = select(2,GetItemInfo(itemID))
-		BrokerGarbage:Print(format("%s has been assigned a limit of %d.", itemLink, count))
+		BrokerGarbage:Print(format(BrokerGarbage.locale.limitSet, itemLink, count))
 		BrokerGarbage:ListOptionsUpdate("include")
 		
 	else

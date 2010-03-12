@@ -15,6 +15,7 @@ BrokerGarbage.locale = {
 	addedToPriceList = "%s will only have its vendor price considered.",
 	addedToIncludeList = "%s has been added to the Include List.",
 	addedToSellList = "%s will be automatically sold when at a merchant.",
+	limitSet = "%s has been assigned a limit of %d.",
 	itemDeleted = "%s has been deleted.",
 	
 	openPlease = "Please open your %s. It's in your bags, stealing your space!",
