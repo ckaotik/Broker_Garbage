@@ -82,7 +82,7 @@ BrokerGarbage.defaultLocalSettings = {
 }
 
 -- internal locals
-local debug = true
+local debug = false
 local locked = false
 local loaded = false
 local sellValue = 0		-- represents the actual value that we sold stuff for, opposed to BrokerGarbage.toSellValue which shows the maximum we could sell - imagine someone closing the merchant window. sellValue will then hold the real value we're interested in
