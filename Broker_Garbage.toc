@@ -8,7 +8,7 @@
 ## Notes: Full bags no more! Find your least valuable item .. and destroy it!
 ## Notes-deDE: Endlich wieder Platz! Finde dein billigstes Item ... und zerstöre es.
 ## Author: ckaotik
-## Version: 3.3v17beta1
+## Version: 3.3v17
 ## X-Embeds: LibPeriodicTable-3.1
 ## X-Category: Inventory
 ## X-Credits: GarbageFu(Jaerin/wmrojer), tekKonfig(Tekkub), KarniCrap(Karnifex)

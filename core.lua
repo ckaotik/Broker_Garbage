@@ -318,10 +318,10 @@ function BrokerGarbage:UnLocalize(skillName)
 		skill = "Skinning"
 	elseif skillName == GetSpellInfo(2575) then
 		skill = "Mining"
-	elseif skillName == GetSpellInfo(2366) then
-		-- herbalism sucks
-		source = GetAuctionItemSubClasses(6)
-		if string.find(skillName, source[6]) then
+	else
+		-- herbalism sucks /dump BrokerGarbage:UnLocalize("Kräuterkunde")
+		searchString = select(6, GetAuctionItemSubClasses(6))
+		if string.find(skillName, searchString) then
 			skill = "Herbalism"
 		end
 	end
