@@ -441,8 +441,8 @@ function BrokerGarbage:SelectiveLooting(autoloot)
 				BrokerGarbage:Print(format(BrokerGarbage.locale.couldNotLootValue, itemLink))
 			else
 				-- check if we are allowed to loot this
-				if (GetNumPartyMembers() > 0 or GetNumRaidMembers() > 1) 
-					and GetLootMethod() ~= "freeforall" and quality >= GetLootThreshold() then
+				if not LootSlotIsCoin(slot) and (GetNumPartyMembers() > 0 or GetNumRaidMembers() > 1) 
+					and GetLootMethod() ~= "freeforall" and GetLootThreshold() <= quality then
 					
 					-- ignore item as it is still being rolled for / loot master's job
 					if GetNumRaidMembers() > 1 and select(3,GetLootMethod()) 
