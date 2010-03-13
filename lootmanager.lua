@@ -385,7 +385,7 @@ function BrokerGarbage:SelectiveLooting(autoloot)
 						local inBags = mod(GetItemCount(itemID), maxStack)
 						local compareTo = BrokerGarbage:GetCheapest()
 						
-						if inBags > 0 and maxStack <= (inBags + quantity) then
+						if inBags > 0 and maxStack >= (inBags + quantity) then
 							-- this item fits without us doing anything
 							BrokerGarbage:Debug("Item stacks.", itemLink)
 							loot = true
@@ -416,7 +416,7 @@ function BrokerGarbage:SelectiveLooting(autoloot)
 									compareTo[1].bag, compareTo[1].slot)
 								loot = true
 							
-							elseif BG_GlobalDB.autoLootSkinning and mobType and CanSkin(mobLevel) and compareTo[1] then
+							elseif BG_GlobalDB.autoLootSkinning and mobType and BrokerGarbage:CanSkin(mobLevel) and compareTo[1] then
 								-- we are skinning
 								BrokerGarbage:Debug("Looting for skinning", itemLink)
 								
