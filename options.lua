@@ -1359,6 +1359,13 @@ function SlashCmdList.BROKERGARBAGE(msg, editbox)
 		BrokerGarbage:Print(format(BrokerGarbage.locale.limitSet, itemLink, count))
 		BrokerGarbage:ListOptionsUpdate("include")
 		
+	elseif command == "value" or command == "minvalue" then
+		rest = tonumber(rest)
+		if not rest then return end
+		
+		BG_LocalDB.itemMinValue = rest
+		BrokerGarbage:Print(format(BrokerGarbage.locale.minValueSet, BrokerGarbage:FormatMoney(BG_LocalDB.itemMinValue)))
+		
 	else
 		BrokerGarbage:Print(BrokerGarbage.locale.slashCommandHelp)
 	end

@@ -107,6 +107,9 @@ This will add the corresponding item to the character's include list and add a l
 	/garb glimit -or- /garb globallimit
 Same as the above, just adds the item to the global include list.
 
+	/garb value <value in copper> -or- /garb minvalue <value in copper>
+Sets the minimum item value in order for the item to be looted. '0' means every item may be looted.
+
 9. How you can help
 -----------------
 I still need a few translations to get done. If you would like to help me with that, please do so on http://wow.curseforge.com/addons/broker_garbage/localization/  .

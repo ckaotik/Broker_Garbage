@@ -20,9 +20,13 @@ BrokerGarbage.locale = {
 	
 	openPlease = "Bitte öffne %s - es nimmt unnötig Platz weg.",
 	openClams = "Du hast eine %s im Inventar!",
-	couldNotLoot = "%s wurde nicht geplündert, da es zu billig ist.",
-	slashCommandHelp = "Nutze |cffc0c0c0/garbage config|r um die Einstellungen zu öffnen oder |cffc0c0c0/garbage format |cffc0c0ffformatstring|r um das Format der LDB Anzeige anzupassen. |cffc0c0c0/garbage format reset|r setzt das LDB Format zurück. Für Statistiken, gib |cffc0c0c0/garbage stats|r ein.",
+	couldNotLootValue = "%s wurde nicht geplündert, da es zu billig ist.",
+	couldNotLootLocked = "Konnte %s nicht plündern, da es gesperrt ist. Bitte plündere es manuell.",
+	couldNotLootSpace = "Konnte %s nicht plündern, da dein Inventar voll ist.",
+	couldNotLootLM = "%s wurde nicht geplündert. Du bist Plündermeister, bitte verteile es manuell.",
+	slashCommandHelp = "Folgende Kommandos werden unterstützt: |cffc0c0c0/garbage|r\n|cffc0c0c0 config|r öffnet die Optionen.\n|cffc0c0c0format |cffc0c0ffformatstring|r lässt dich das Format der LDB Anzeige anpassen, |cffc0c0c0 format reset|r setzt es zurück.\n|cffc0c0c0stats|r gibt dir eine Kurzstatistik aus.\n|cffc0c0c0limit |cffc0c0ffitemLink/ID Anzahl|r setzt ein Limit für das gewählte Item für den aktuellen Charakter.\n|cffc0c0c0globallimit |cffc0c0ffitemLink/ID Anzahl|r setzt ein Limit für alle Charaktere.\n|cffc0c0c0value |cffc0c0ffWertInKupfer|r setzt den Itemwert, ab dem Items gelootet werden.",
 	statistics = "Statistik:\nGesamtverdienst (alle Charaktere): %1$s\nGesamtverlust (alle Charaktere): %2$s",
+	minValueSet = "Mindestwert für items wurde auf %s gesetzt.",
 	
 	-- Tooltip
 	headerRightClick = "Rechts-Klick: Optionen",
@@ -162,7 +166,6 @@ BrokerGarbage.locale = {
 	
 	-- Loot Manager
 	CreatureTypeBeast = "Wildtier",
-	Quest = "Quest",
 	You = "Ihr",
 	
 	LMTitle = "Loot Manager",
@@ -203,6 +206,8 @@ BrokerGarbage.locale = {
 	
 	LMOpenClamsTitle = "Warne: Muscheln",
 	LMOpenClamsTooltip = "Wenn ausgewählt, wird Broker_Garbage eine Warnung ausgeben, wenn du ungeöffnete Muscheln im Inventar hast. Da diese aber nun stapelbar sind, verlierst du durch deaktivieren dieser Option keinen Taschenplatz.",
+	
+	LMItemMinValue = "Mindestwert zum Looten",
 }
 
 end

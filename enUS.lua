@@ -20,9 +20,13 @@ BrokerGarbage.locale = {
 	
 	openPlease = "Please open your %s. It's in your bags, stealing your space!",
 	openClams = "You own a %s. Maybe consider opening it.",
-	couldNotLoot = "I did not loot %s because it's too cheap.",
-	slashCommandHelp = "Use |cffc0c0c0/garbage config|r to open the config menu or |cffc0c0c0/garbage format |cc0c0c0ffformatstring|r to change the LDB display style or |cffc0c0c0/garbage format reset|r to reset it. For statistics type |cffc0c0c0/garbage stats|r.",
+	couldNotLootValue = "Did not loot %s because it's too cheap.",
+	couldNotLootLocked = "Could not loot %s because it is locked. Please loot manually.",
+	couldNotLootSpace = "Could not loot %s because your inventory is full.",
+	couldNotLootLM = "%s was not looted. You are the Loot Master so please distrivute the item manually.",
+	slashCommandHelp = "The following commands are available: |cffc0c0c0/garbage|r\n|cffc0c0c0 config|r opens the options panel.\n|cffc0c0c0format |cffc0c0ffformatstring|r lets you customize the LDB display text, |cffc0c0c0 format reset|r resets it.\n|cffc0c0c0stats|r returns some statistics.\n|cffc0c0c0limit |cffc0c0ffitemLink/ID count|r sets a limit for the given item on the current character.\n|cffc0c0c0globallimit |cffc0c0ffitemLink/ID count|r sets a limit for all characters.\n|cffc0c0c0value |cffc0c0ffvalueInCopper|r sets the minimum value for items to be looted.",
 	statistics = "Statistics:\nTotal earnings (all characters): %1$s\nTotal losses (all characters): %2$s",
+	minValueSet = "Items with a value less than %s will not be looted anymore.",
 	
 	-- Tooltip
 	headerRightClick = "Right-Click for options",
@@ -162,7 +166,6 @@ BrokerGarbage.locale = {
 	
 	-- Loot Manager
 	CreatureTypeBeast = "Beast",
-	Quest = "Quest",
 	You = "You",			-- as in "You receive ..."
 	
 	LMTitle = "Loot Manager",
@@ -203,5 +206,7 @@ BrokerGarbage.locale = {
 	
 	LMOpenClamsTitle = "Warn: Clams",
 	LMOpenClamsTooltip = "When checked, Broker_Garbage will warn you when you have clams in you inventory. As these now do stack, you are not wasting any slots by unchecking this.",
+	
+	LMItemMinValue = "Minimum item value",
 }
 

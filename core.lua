@@ -75,6 +75,7 @@ BrokerGarbage.defaultLocalSettings = {
 	-- behavior
 	neverRepairGuildBank = false,
 	selectiveLooting = false,
+	itemMinValue = 0,
 	
 	-- default values
 	moneyLostByDeleting = 0,
@@ -82,7 +83,7 @@ BrokerGarbage.defaultLocalSettings = {
 }
 
 -- internal locals
-local debug = false
+local debug = true
 local locked = false
 local loaded = false
 local sellValue = 0		-- represents the actual value that we sold stuff for, opposed to BrokerGarbage.toSellValue which shows the maximum we could sell - imagine someone closing the merchant window. sellValue will then hold the real value we're interested in
@@ -540,13 +541,14 @@ function BrokerGarbage:CheckSkills()
 	if result == {} then return nil else return result end
 end
 
+local scanTooltip = CreateFrame('GameTooltip', 'BGItemScanTooltip', UIParent, 'GameTooltipTemplate')
 function BrokerGarbage:CanDisenchant(itemLink)
 	if (itemLink) then
-		local _, _, quality, level, _, _, _, count, slot = GetItemInfo(itemLink)
+		local _, _, quality, level, _, _, _, count, bagSlot = GetItemInfo(itemLink)
 
 		-- stackables are not DE-able
 		if quality and quality >= 2 and 
-			string.find(slot, "INVTYPE") and not string.find(slot, "BAG") 
+			string.find(bagSlot, "INVTYPE") and not string.find(bagSlot, "BAG") 
 			and (not count or count == 1) then
 			
 			-- can we DE ourself?
@@ -577,8 +579,39 @@ function BrokerGarbage:CanDisenchant(itemLink)
 				-- if skill is too low, still check if we can send it
 			end
 			
-			-- so we can't DE, but can we send it to someone who may? i.e. is the item soulbound?
-			
+			-- so we can't DE, but can we send it to someone who may? i.e. is the item not soulbound?
+			if BrokerGarbage.checkItem then
+				return not BrokerGarbage:IsItemSoulbound(itemLink, BrokerGarbage.checkItem.bag, BrokerGarbage.checkItem.slot)
+			else 
+				return not BrokerGarbage:IsItemSoulbound(itemLink)
+			end
+		end
+	end
+	return false
+end
+
+-- returns true if the given item is soulbound
+function BrokerGarbage:IsItemSoulbound(itemLink, bag, slot)
+	scanTooltip:SetOwner(UIParent, 'ANCHOR_NONE')
+	local searchString
+	
+	if not (bag and slot) then
+		-- check if item is BOP
+		scanTooltip:SetHyperlink(itemLink)
+		searchString = ITEM_BIND_ON_PICKUP
+	else
+		-- check if item is soulbound
+		scanTooltip:SetBagItem(bag, slot)
+		searchString = ITEM_SOULBOUND
+	end
+
+	local numLines = scanTooltip:NumLines()
+	for i = 1, numLines do
+		local leftLine = getglobal("BGItemScanTooltip".."TextLeft"..i)
+		local leftLineText = leftLine:GetText()
+		
+		if string.find(leftLineText, searchString) then
+			return true
 		end
 	end
 	return false
@@ -925,7 +958,13 @@ function BrokerGarbage:ScanInventory()
 						-- ----------------------------------------------------------------------
 						
 						-- get price and tag
-						local value, source = BrokerGarbage:GetItemValue(itemLink,count)
+						BrokerGarbage.checkItem = {
+							bag = container,
+							slot = slot,
+							itemID = itemID,
+						}
+						local value, source = BrokerGarbage:GetItemValue(itemLink, count)
+						BrokerGarbage.checkItem = nil
 						if isInclude or BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID] then
 							-- Include List item
 							force = true
@@ -1011,9 +1050,9 @@ function BrokerGarbage:ScanInventory()
 	
 	local cheapestItem = BrokerGarbage:GetCheapest()
 	
-	if cheapestItem ~= {} then
+	if cheapestItem[1] then
 		LDB.text = format(BG_GlobalDB.LDBformat, 
-			(cheapestItem ~= {} and select(2,GetItemInfo(cheapestItem[1].itemID)) or BrokerGarbage.locale.label),
+			select(2,GetItemInfo(cheapestItem[1].itemID)),
 			cheapestItem[1].count,
 			BrokerGarbage:FormatMoney(cheapestItem[1].value),
 			BrokerGarbage.totalFreeSlots,

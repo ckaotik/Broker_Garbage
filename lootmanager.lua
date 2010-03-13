@@ -349,150 +349,117 @@ function BrokerGarbage:SelectiveLooting(autoloot)
 	if IsShiftKeyDown() then return end
 	local numItems = GetNumLootItems()
 	local texture, quantity, quality, locked, itemLink
-	local trouble, looted
+	local manage, loot, close = false, false, true
+	
 	local mobLevel = UnitExists("target") and UnitIsDead("target") and UnitLevel("target")
 	local mobType = UnitCreatureType("target") == BrokerGarbage.locale.CreatureTypeBeast
+	local autoLoot = autoloot ~= 0 or BG_GlobalDB.autoLoot
 	
-	if autoloot ~= 0 or BG_GlobalDB.autoLoot or (BG_GlobalDB.autoLootPickpocket and BrokerGarbage.playerClass == "ROGUE" and IsStealthed()) or (BG_GlobalDB.autoLootFishing and IsFishingLoot()) then
-		BrokerGarbage:Debug("Autoloot (selectiveLooting)")
+	if autoLoot
+		or (BG_GlobalDB.autoLootPickpocket and BrokerGarbage.playerClass == "ROGUE" and IsStealthed()) 
+		or (BG_GlobalDB.autoLootFishing and IsFishingLoot())
+		or (BG_GlobalDB.autoLootSkinning and mobType and CanSkin(mobLevel)) then
+		
+		BrokerGarbage:Debug("Clearing mob")
+		manage = true
+		
 		for slot = 1,numItems do
-			if LootSlotIsItem(slot) then
+			if LootSlotIsCoin(slot) then
+				-- take money
+				loot = true
+			else
+				-- check items
 				_, _, quantity,  quality, locked = GetLootSlotInfo(slot)
 				itemLink = GetLootSlotLink(slot)
+				local value = BrokerGarbage:GetItemValue(itemLink, quantity)
 				
-				-- check if we even want this!
-				if BrokerGarbage:IsInteresting(itemLink) then
-					BrokerGarbage:Debug("Interesting Item", itemLink)
-					if not locked then
-						if BrokerGarbage.totalFreeSlots <= BG_GlobalDB.tooFewSlots then
-							BrokerGarbage:Debug("We're out of space!")
-							-- try to compress and make room
-							local itemID = BrokerGarbage:GetItemID(itemLink)
-							local maxStack = select(8, GetItemInfo(itemID))
-							local inBags = mod(GetItemCount(itemID), maxStack)
-							local compareTo = BrokerGarbage:GetCheapest()
-							
-							if inBags > 0 and inBags + quantity > maxStack and BG_GlobalDB.autoDestroy then
-								-- we can fit x more in ... *squeeze*
-								local amount = quantity + inBags - maxStack
-								if compareTo[1] and (BrokerGarbage:GetItemValue(itemLink, (quantity-amount)) or 0) < compareTo[1].value then
-									BrokerGarbage:DeletePartialStack(itemID, amount)
-									BrokerGarbage:Debug("Item can be made to fit.", itemLink)
-									looted = true
-								end
-							elseif inBags > 0 and maxStack <= (inBags + quantity) then
-								-- this item fits without us doing anything
-								BrokerGarbage:Debug("Item stacks.", itemLink)
-								looted = true
-							end
-							
-							-- bad luck :/ maybe delete stuff that's worth less? always loot quest items
-							if BG_GlobalDB.autoDestroy and not looted and compareTo[1] 
-								and ((BrokerGarbage:GetItemValue(itemLink, quantity) or 0) > compareTo[1].value 
-									or select(6,GetItemInfo(itemLink)) == BrokerGarbage.locale.Quest) then
-								
-								BrokerGarbage:Debug("Delete item to make room.", itemLink)
-								BrokerGarbage:Delete(select(2,GetItemInfo(compareTo[1].itemID)), compareTo[1].bag, compareTo[1].slot)
-								LootSlot(slot)
-							elseif looted then
-								-- regular looting
-								LootSlot(slot)
-							else
-								BrokerGarbage:Debug("What do we have here?", itemLink)
-								if mobType and BrokerGarbage:CanSkin(mobLevel) then
-									-- hrmpf, it's skinnable
-									BrokerGarbage:Debug("Still looting, for skinning", itemLink)
-									BrokerGarbage:Debug()
-									BrokerGarbage:Delete(select(2,GetItemInfo(compareTo[1].itemID)), compareTo[1].bag, compareTo[1].slot)
-									LootSlot(slot)
-								else
-									-- something is in there, but not valuable enough for us to take it
-									BrokerGarbage:Print(format(BrokerGarbage.locale.couldNotLoot, itemLink))
-								end
-							end
-						else
-							-- just loot normally
-							LootSlot(slot)
-							BrokerGarbage:Debug("Item taken.", itemLink)
-						end
-					else
-						-- we should be able to loot this, but we are not. somebody set up us the bomb!
-						trouble = true
-						BrokerGarbage:Debug("Ooops! Something went wrong there. Item is locked", itemLink)
-					end
-				end
-			else
-				-- always take money
-				LootSlot(slot)
-			end
-		end
-		if (GetNumLootItems() ~= 0 and not trouble) or GetNumLootItems() == 0 then
-			CloseLoot()
-		end
-		
-	elseif BG_GlobalDB.autoLootSkinning and mobType and BrokerGarbage:CanSkin(mobLevel) then
-		-- clear the mob for skinning
-		BrokerGarbage:Debug("Clearing for Skinning")
-		
-		if numItems > BrokerGarbage.totalFreeSlots then
-			-- this might be too much for our inventory to take
-			for slot = 1,numItems do
-				if numItems > BrokerGarbage.totalFreeSlots then
-					_, _, quantity,  quality, locked = GetLootSlotInfo(slot)
-					itemLink = GetLootSlotLink(slot)
+				if BrokerGarbage:IsInteresting(itemLink) 
+					and (not value or value >= BG_LocalDB.itemMinValue) then
 					
-					local itemID = BrokerGarbage:GetItemID(itemLink)
-					local maxStack = select(8, GetItemInfo(itemID))
-					local inBags = mod(GetItemCount(itemID), maxStack)
-					local compareTo = BrokerGarbage:GetCheapest()
-					
-					if inBags > 0 and inBags + quantity <= maxStack then
-						-- it stacks
-						LootSlot(slot)
-						numItems = numItems - 1
+					if BrokerGarbage.totalFreeSlots <= BG_GlobalDB.tooFewSlots then
+						-- try to compress and make room
+						BrokerGarbage:Debug("We're out of space!")
 						
-					elseif not IsInteresting(itemLink) then
-						-- loot and immediately destroy
-						LootSlot(slot)
-						numItems = numItems - 1
-						if BG_GlobalDB.autoDestroy then BrokerGarbage:AntiCrap() end
+						local itemID = BrokerGarbage:GetItemID(itemLink)
+						local maxStack = select(8, GetItemInfo(itemID))
+						local inBags = mod(GetItemCount(itemID), maxStack)
+						local compareTo = BrokerGarbage:GetCheapest()
 						
-					elseif BG_GlobalDB.autoDestroy then
-						if inBags > 0 and inBags + quantity > maxStack then
-							-- squeeze
+						if inBags > 0 and maxStack <= (inBags + quantity) then
+							-- this item fits without us doing anything
+							BrokerGarbage:Debug("Item stacks.", itemLink)
+							loot = true
+						
+						elseif BG_GlobalDB.autoDestroy and inBags > 0 and inBags + quantity > maxStack then
+							-- we can fit x more in ... *squeeze*
+							BrokerGarbage:Debug("Item can be made to fit.", itemLink)
+							
 							local amount = quantity + inBags - maxStack
-							if compareTo[1] 
-								and (BrokerGarbage:GetItemValue(itemLink, (quantity-amount)) or 0) < compareTo[1].value then
+							if compareTo[1] and 
+								(BrokerGarbage:GetItemValue(itemLink, (quantity-amount)) or 0) < compareTo[1].value then
 								
 								BrokerGarbage:DeletePartialStack(itemID, amount)
-								LootSlot(slot)
-								numItems = numItems - 1
-							else
-								-- must... delete... cheap... item
-								BrokerGarbage:Delete(compareTo)
-								LootSlot(slot)
-								numItems = numItems - 1
+								loot = true
 							end
-						else
-							-- must delete cheap item
-							BrokerGarbage:Delete(compareTo)
-							LootSlot(slot)
-							numItems = numItems - 1
+						
+						elseif BG_GlobalDB.autoDestroy and compareTo[1] then
+							-- delete cheaper item
+							BrokerGarbage:Debug("Check for items to throw away for", itemLink)
+							
+							if (BrokerGarbage:GetItemValue(itemLink, quantity) or 0) > compareTo[1].value 
+								or select(6,GetItemInfo(itemLink)) == select(12, GetAuctionItemClasses()) then
+								
+								-- this item is worth more or it is a quest item
+								BrokerGarbage:Debug("Delete item to make room.", itemLink)
+								
+								BrokerGarbage:Delete(select(2,GetItemInfo(compareTo[1].itemID)), 
+									compareTo[1].bag, compareTo[1].slot)
+								loot = true
+							
+							elseif BG_GlobalDB.autoLootSkinning and mobType and CanSkin(mobLevel) and compareTo[1] then
+								-- we are skinning
+								BrokerGarbage:Debug("Looting for skinning", itemLink)
+								
+								BrokerGarbage:Delete(select(2,GetItemInfo(compareTo[1].itemID)), 
+									compareTo[1].bag, compareTo[1].slot)
+								loot = true
+							end
 						end
+					else
+						-- enough bag space
+						loot = true
 					end
-				else
-					-- lucky, something stacked and there's no more trouble
-					LootSlot(slot)
-					numItems = numItems - 1
 				end
 			end
 			
-		else
-			-- loot & check later
-			for slot = 1,numItems do
-				LootSlot(slot)
+			-- take loot if we can
+			if locked and quality < GetLootThreshold() then
+				BrokerGarbage:Print(format(BrokerGarbage.locale.couldNotLootLocked, itemLink))
+			elseif not loot and not BG_GlobalDB.autoDestroy then
+				BrokerGarbage:Print(format(BrokerGarbage.locale.couldNotLootSpace, itemLink))
+			elseif not loot then
+				BrokerGarbage:Print(format(BrokerGarbage.locale.couldNotLootValue, itemLink))
+			else
+				-- check if we are allowed to loot this
+				if (GetNumPartyMembers() > 0 or GetNumRaidMembers() > 1) 
+					and GetLootMethod() ~= "freeforall" and quality >= GetLootThreshold() then
+					
+					-- ignore item as it is still being rolled for / loot master's job
+					if GetNumRaidMembers() > 1 and select(3,GetLootMethod()) 
+						and UnitIsUnit("raid"..select(3,GetLootMethod()), "player") then
+						
+						BrokerGarbage:Print(format(BrokerGarbage.locale.couldNotLootLM, itemLink))
+						close = false
+					end
+				else
+					-- loot normally
+					LootSlot(slot)
+				end
 			end
 		end
+	end
+	
+	if manage and (close or GetNumLootItems() == 0) then
 		CloseLoot()
 	end
 end

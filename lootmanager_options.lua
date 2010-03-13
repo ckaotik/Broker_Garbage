@@ -82,7 +82,7 @@ local function ShowOptions(frame)
 		Update()
 	end)
 	
-	local minFreeSlots = LibStub("tekKonfig-Slider").new(BrokerGarbage.lootManagerOptions, BrokerGarbage.locale.LMFreeSlotsTitle, 0, 30, "TOPLEFT", autoDestroy, "BOTTOMLEFT", 14, -20)
+	local minFreeSlots = LibStub("tekKonfig-Slider").new(BrokerGarbage.lootManagerOptions, BrokerGarbage.locale.LMFreeSlotsTitle, 0, 30, "TOPLEFT", autoDestroy, "BOTTOMLEFT", 0, -20)
 	minFreeSlots.tiptext = BrokerGarbage.locale.LMFreeSlotsTooltip
 	minFreeSlots:SetWidth(200)
 	minFreeSlots:SetValueStep(1)
@@ -95,6 +95,7 @@ local function ShowOptions(frame)
 		minFreeSlots.text:SetText(BG_GlobalDB.tooFewSlots)
 		BrokerGarbage:ScanInventory()
 	end)
+	
 	
 	-- -- Restack -----------------------------------------------------------------
 	local restack = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.lootManagerOptions, nil, BrokerGarbage.locale.LMRestackTitle, "TOPLEFT", selective, "TOPLEFT", 200, 0)
@@ -115,7 +116,7 @@ local function ShowOptions(frame)
 	end)
 	
 	-- -- Opening Items -----------------------------------------------------------
-	local openContainers = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.lootManagerOptions, nil, BrokerGarbage.locale.LMOpenContainersTitle, "TOPLEFT", fullRestack, "BOTTOMLEFT", -14, -20)
+	local openContainers = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.lootManagerOptions, nil, BrokerGarbage.locale.LMOpenContainersTitle, "TOPLEFT", fullRestack, "BOTTOMLEFT", -14, -10)
 	openContainers.tiptext = BrokerGarbage.locale.LMOpenContainersTooltip
 	openContainers:SetChecked(BG_GlobalDB.openContainers)
 	openContainers:SetScript("OnClick", function(openContainers)
@@ -130,6 +131,51 @@ local function ShowOptions(frame)
 		checksound(openClams)
 		BG_GlobalDB.openClams = not BG_GlobalDB.openClams
 	end)
+	
+	
+	-- -- Loot Treshold -----------------------------------------------------------
+	local editbox = CreateFrame("EditBox", nil, BrokerGarbage.lootManagerOptions)
+	editbox:SetAutoFocus(false)
+	editbox:SetWidth(100); editbox:SetHeight(32)
+	editbox:SetFontObject("GameFontHighlightSmall")
+	editbox:SetText(BrokerGarbage:FormatMoney(BG_LocalDB.itemMinValue))
+	local left = editbox:CreateTexture(nil, "BACKGROUND")
+	left:SetWidth(8) left:SetHeight(20)
+	left:SetPoint("LEFT", -5, 0)
+	left:SetTexture("Interface\\Common\\Common-Input-Border")
+	left:SetTexCoord(0, 0.0625, 0, 0.625)
+	local right = editbox:CreateTexture(nil, "BACKGROUND")
+	right:SetWidth(8) right:SetHeight(20)
+	right:SetPoint("RIGHT", 0, 0)
+	right:SetTexture("Interface\\Common\\Common-Input-Border")
+	right:SetTexCoord(0.9375, 1, 0, 0.625)
+	local center = editbox:CreateTexture(nil, "BACKGROUND")
+	center:SetHeight(20)
+	center:SetPoint("RIGHT", right, "LEFT", 0, 0)
+	center:SetPoint("LEFT", left, "RIGHT", 0, 0)
+	center:SetTexture("Interface\\Common\\Common-Input-Border")
+	center:SetTexCoord(0.0625, 0.9375, 0, 0.625)
+
+	local minvalue = editbox:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+	minvalue:SetPoint("TOPLEFT", openClams, "BOTTOMLEFT", 0, -10)
+	minvalue:SetText(BrokerGarbage.locale.LMItemMinValue)
+	editbox:SetPoint("TOP", minvalue, "BOTTOM", 0, 0)
+	local function ResetEditBox(self)
+		self:SetText(BrokerGarbage:FormatMoney(BG_LocalDB.itemMinValue))
+		self:ClearFocus()
+	end
+	local function UnFormatEditBox(self)
+		self:SetText(BG_LocalDB.itemMinValue)
+	end
+	local function SubmitEditBox()
+		BG_LocalDB.itemMinValue = tonumber(editbox:GetText())
+		editbox:SetText(BrokerGarbage:FormatMoney(BG_LocalDB.itemMinValue))
+		editbox:ClearFocus()
+	end
+	editbox:SetScript("OnEscapePressed", ResetEditBox)
+	editbox:SetScript("OnEnterPressed", SubmitEditBox)
+	editbox:SetScript("OnEditFocusGained", UnFormatEditBox)
+	
 	
 	function BrokerGarbage.lootManagerOptionsUpdate(self)
 		if BG_GlobalDB.useLootManager then
