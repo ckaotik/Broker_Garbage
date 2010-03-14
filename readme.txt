@@ -88,7 +88,13 @@ Some examples:
 "%1$sx%2$d"						->		[Hearthstone]x1
 "%4$d/%5$d - %1$s"				->		18/48 - [Hearthstone]
 
-8. Slash Commands
+8. The Loot Manager
+-----------------
+The Loot Manager has several settings for you to play around with. If you don't want to use it, simply disable it in the ingame options panel or comment the corresponding lines in the Broker_Garbage.toc file (lootmanager.lua and lootmanager_options.lua).
+
+Items on your Include List (see it as a Blacklist) will never be looted, while Broker_Garbage will always try its best to loot those items that are on your Exclude List (works as a Whitelist).
+
+9. Slash Commands
 -----------------
 Broker_Garbage supports a hand full of slash commands. These are /garbage or short, /garb. Parameters supported:
 	
@@ -110,7 +116,7 @@ Same as the above, just adds the item to the global include list.
 	/garb value <value in copper> -or- /garb minvalue <value in copper>
 Sets the minimum item value in order for the item to be looted. '0' means every item may be looted.
 
-9. How you can help
+10. How you can help
 -----------------
 I still need a few translations to get done. If you would like to help me with that, please do so on http://wow.curseforge.com/addons/broker_garbage/localization/  .
 Likewise, I need people to test the addon with different auction addons. If you have one that isn't yet supported, make a Feature Suggestion (see 4.).

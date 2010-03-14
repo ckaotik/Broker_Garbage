@@ -1021,18 +1021,20 @@ function BrokerGarbage:ScanInventory()
 								BrokerGarbage.toSellValue = BrokerGarbage.toSellValue + value
 							end
 						
-							local currentItem = {
-								bag = container,
-								slot = slot,
-								itemID = itemID,
-								quality = quality,
-								count = count,
-								value = value,
-								source = source,
-								force = force,
-							}
-							
-							tinsert(BrokerGarbage.inventory, currentItem)
+							if BG_GlobalDB.dropQuality >= quality or isSell or isInclude then
+								local currentItem = {
+									bag = container,
+									slot = slot,
+									itemID = itemID,
+									quality = quality,
+									count = count,
+									value = value,
+									source = source,
+									force = force,
+								}
+								
+								tinsert(BrokerGarbage.inventory, currentItem)
+							end
 						end
 					end
 				end

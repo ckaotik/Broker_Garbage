@@ -7,7 +7,7 @@ local function eventHandler(self, event, ...)
 	if not BG_GlobalDB.useLootManager then return end
 	
 	if event == "CHAT_MSG_LOOT" then
-		if strfind(arg1, BrokerGarbage.locale.You) and BG_GlobalDB.autoDestroy then
+		if BrokerGarbage.locale.You and strfind(arg1, BrokerGarbage.locale.You) and BG_GlobalDB.autoDestroy then
 			BrokerGarbage:AutoDestroy()
 		end
 		
