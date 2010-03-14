@@ -324,6 +324,7 @@ end
 local LootFrame_UpdateButton_orig = LootFrame_UpdateButton
 function LootFrame_UpdateButton(index)
 	LootFrame_UpdateButton_orig(index)
+	if not BG_GlobalDB.useLootManager then return end
 	
 	local slot = (LOOTFRAME_NUMBUTTONS * (LootFrame.page - 1)) + index
 	_, itemName, quantity,  quality, locked = GetLootSlotInfo(slot)
@@ -343,23 +344,21 @@ end
 -- ---------------------------------------------------------
 -- for use in CHAT_MSG_LOOT event - destroys watched items as needed
 function BrokerGarbage:AutoDestroy()
-	local count
+	local count = GetItemCount(itemID)
+	if not count or count == 1 then return end
 	local location = {}
 	
 	for itemID,maxCount in pairs(BrokerGarbage:JoinTables(BG_LocalDB.include, BG_GlobalDB.include)) do
-		if type(itemID) == "number" and type(maxCount) == number then
-			count = GetItemCount(itemID)
-			
+		count = 0
+		if type(itemID) == "number" and type(maxCount) == "number" then			
 			-- delete excess items
-			local i = 1
 			location = BrokerGarbage:FindSlotToDelete(itemID)
-			while count > maxCount do
-				-- save the last stack, even if it itself is over our treshold (for stackable items)
-				if i == #location then break end
-				BrokerGarbage:Delete(GetItemInfo(itemID), location[i].bag, location[i].slot)
-				
-				count = GetItemCount(itemID)
-				i = i + 1
+			for i = #location, 1, -1 do
+				if count >= maxCount then
+					BrokerGarbage:Delete(GetItemInfo(itemID), location[i].bag, location[i].slot)
+				else
+					count = count + location[i].count
+				end
 			end
 		end
 	end

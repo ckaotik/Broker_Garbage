@@ -851,13 +851,16 @@ function BrokerGarbage:FindSlotToDelete(itemID, ignoreFullStack)
 		end
 	end
 	
-	-- recommend the location with the largest ratio that is NOT a specialty bag
+	-- recommend the location with the largest count or ratio that is NOT a specialty bag
 	table.sort(locations, function(a,b)
-		if a.bagType == 0 and b.bagType ~= 0 then
-			return true
+		if a.bagType ~= b.bagType then
+			return a.bagType == 0
 		else
-			-- return a.ratio > b.ratio
-			return a.count < b.count
+			if a.count == b.count then
+				return a.ratio > b.ratio
+			else
+				return a.count < b.count
+			end
 		end
 	end)
 	return locations
@@ -880,7 +883,6 @@ function BrokerGarbage:Delete(itemLink, bag, slot)
 	BG_GlobalDB.itemsDropped = BG_GlobalDB.itemsDropped + 1
 	
 	BrokerGarbage:Print(format(BrokerGarbage.locale.itemDeleted, itemLink))
-	BrokerGarbage:Debug(itemLink.." deleted. (bag "..bag..", slot "..slot..")")
 end
 
 -- scans your inventory for possible junk items and updates LDB display
@@ -966,8 +968,8 @@ function BrokerGarbage:ScanInventory()
 							
 							local limited = BrokerGarbage:Find(limitedItemsChecked, itemID)
 							if not limited then
-								if BG_GlobalDB.include[itemID] and type(BG_GlobalDB.include[itemID]) == "number"
-									or BG_LocalDB.include[itemID] and type(BG_LocalDB.include[itemID]) == "number" then
+								if (BG_GlobalDB.include[itemID] and type(BG_GlobalDB.include[itemID]) == "number")
+									or (BG_LocalDB.include[itemID] and type(BG_LocalDB.include[itemID]) == "number") then
 									
 									-- this is a limited item - only check it once
 									tinsert(limitedItemsChecked, itemID)

@@ -1222,21 +1222,30 @@ local function ShowListOptions(frame)
 		elseif self == promote then
 			for i, button in pairs(BrokerGarbage.listButtons.exclude) do
 				if button:GetChecked() then
-					BG_GlobalDB.exclude[button.itemID] = BG_LocalDB.exclude[button.itemID]
+					if not BG_GlobalDB.exclude[button.itemID] then
+						BG_GlobalDB.exclude[button.itemID] = BG_LocalDB.exclude[button.itemID]
+						BG_LocalDB.exclude[button.itemID] = nil
+					end
 				end
 			end
 			BrokerGarbage:ListOptionsUpdate("exclude")
 		elseif self == promote3 then
 			for i, button in pairs(BrokerGarbage.listButtons.include) do
 				if button:GetChecked() then
-					BG_GlobalDB.include[button.itemID] = BG_LocalDB.include[button.itemID]
+					if not BG_GlobalDB.include[button.itemID] then
+						BG_GlobalDB.include[button.itemID] = BG_LocalDB.include[button.itemID]
+						BG_LocalDB.include[button.itemID] = nil
+					end
 				end
 			end
 			BrokerGarbage:ListOptionsUpdate("include")
 		elseif self == promote3 then
 			for i, button in pairs(BrokerGarbage.listButtons.autosell) do
 				if button:GetChecked() then
-					BG_GlobalDB.autoSellList[button.itemID] = BG_LocalDB.autoSellList[button.itemID]
+					if not BG_GlobalDB.autoSellList[button.itemID] then
+						BG_GlobalDB.autoSellList[button.itemID] = BG_LocalDB.autoSellList[button.itemID]
+						BG_LocalDB.autoSellList[button.itemID] = nil
+					end
 				end
 			end
 			BrokerGarbage:ListOptionsUpdate("autosell")
