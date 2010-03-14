@@ -116,7 +116,7 @@ local function ShowOptions(frame)
 	end)
 	
 	-- -- Opening Items -----------------------------------------------------------
-	local openContainers = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.lootManagerOptions, nil, BrokerGarbage.locale.LMOpenContainersTitle, "TOPLEFT", fullRestack, "BOTTOMLEFT", -14, -10)
+	local openContainers = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.lootManagerOptions, nil, BrokerGarbage.locale.LMOpenContainersTitle, "TOPLEFT", fullRestack, "BOTTOMLEFT", -14, 0)
 	openContainers.tiptext = BrokerGarbage.locale.LMOpenContainersTooltip
 	openContainers:SetChecked(BG_GlobalDB.openContainers)
 	openContainers:SetScript("OnClick", function(openContainers)
@@ -132,6 +132,13 @@ local function ShowOptions(frame)
 		BG_GlobalDB.openClams = not BG_GlobalDB.openClams
 	end)
 	
+	local warnLM = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.lootManagerOptions, nil, BrokerGarbage.locale.LMWarnLMTitle, "TOPLEFT", openClams, "BOTTOMLEFT", 0, 0)
+	warnLM.tiptext = BrokerGarbage.locale.LMWarnLMTooltip
+	warnLM:SetChecked(BG_GlobalDB.warnLM)
+	warnLM:SetScript("OnClick", function(warnLM)
+		checksound(warnLM)
+		BG_GlobalDB.warnLM = not BG_GlobalDB.warnLM
+	end)
 	
 	-- -- Loot Treshold -----------------------------------------------------------
 	local editbox = CreateFrame("EditBox", nil, BrokerGarbage.lootManagerOptions)
@@ -157,7 +164,7 @@ local function ShowOptions(frame)
 	center:SetTexCoord(0.0625, 0.9375, 0, 0.625)
 
 	local minvalue = editbox:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-	minvalue:SetPoint("TOPLEFT", openClams, "BOTTOMLEFT", 0, -10)
+	minvalue:SetPoint("TOPLEFT", warnLM, "BOTTOMLEFT", 0, -20)
 	minvalue:SetText(BrokerGarbage.locale.LMItemMinValue)
 	editbox:SetPoint("TOP", minvalue, "BOTTOM", 0, 0)
 	local function ResetEditBox(self)
@@ -188,6 +195,7 @@ local function ShowOptions(frame)
 			
 			openContainers:Enable()
 			openClams:Enable()
+			warnLM:Enable()
 			
 			selective:Enable()
 			if BG_LocalDB.selectiveLooting then
@@ -224,6 +232,7 @@ local function ShowOptions(frame)
 			
 			openContainers:Disable()
 			openClams:Disable()
+			warnLM:Disable()
 			
 			selective:Disable()
 				autoLoot:Disable()

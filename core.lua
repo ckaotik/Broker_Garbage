@@ -43,12 +43,14 @@ BrokerGarbage.defaultGlobalSettings = {
 	tooFewSlots = 0,
 	openContainers = true,
 	openClams = true,
+	warnLM = true,
 	
 	-- default values
 	tooltipMaxHeight = 220,
 	tooltipNumItems = 9,
 	dropQuality = 0,
 	showMoney = 2,
+	hasEnchanter = true,
 	
 	-- statistic values
 	moneyLostByDeleting = 0,
@@ -62,7 +64,6 @@ BrokerGarbage.defaultGlobalSettings = {
 	showLost = true,
 	showEarned = true,
 	LDBformat = "%1$sx%2$d (%3$s)",
-	-- showWarnings = true,		-- TODO
 	showSource = false,
 }
 
@@ -91,7 +92,6 @@ local cost = 0
 local lastReminder = time()
 
 BrokerGarbage.tt = nil
-BrokerGarbage.warnings = {}
 BrokerGarbage.tagAuction	= "|cFF2bff58A"		-- green
 BrokerGarbage.tagVendor		= "|cFFff9c5aV"		-- orange
 BrokerGarbage.tagVendorList	= "|cFFff592dV"		-- slightly darker orange
@@ -580,6 +580,7 @@ function BrokerGarbage:CanDisenchant(itemLink)
 			end
 			
 			-- so we can't DE, but can we send it to someone who may? i.e. is the item not soulbound?
+			if not BG_GlobalDB.hasEnchanter then return false end
 			if BrokerGarbage.checkItem then
 				return not BrokerGarbage:IsItemSoulbound(itemLink, BrokerGarbage.checkItem.bag, BrokerGarbage.checkItem.slot)
 			else 
@@ -915,12 +916,6 @@ function BrokerGarbage:ScanInventory()
 							itemID = itemID,
 							clam = isClam,
 						})
-						if BG_GlobalDB.showWarnings then
-							local notice = format(BrokerGarbage.locale.openPlease, select(2,GetItemInfo(itemID)))
-							if not BrokerGarbage:Find(BrokerGarbage.warnings, notice) then
-								tinsert(BrokerGarbage.warnings, notice)
-							end
-						end
 					end
 					
 					-- check if this item belongs to an excluded category
@@ -1016,10 +1011,7 @@ function BrokerGarbage:ScanInventory()
 							-- AutoSell List item
 							value = select(11,GetItemInfo(itemID))
 							source = BrokerGarbage.tagVendorList
-						
-						--elseif quality and quality <= BG_GlobalDB.dropQuality then
-							-- regular gray/junk treshold item
-							--force = false
+							
 						end
 							
 						if value then
@@ -1062,8 +1054,6 @@ function BrokerGarbage:ScanInventory()
 		LDB.text = BrokerGarbage.locale.label
 		BrokerGarbage.cheapestItem = nil
 	end
-	
-	return warnings
 end
 
 -- returns the n cheapest items in your bags  in a table
@@ -1203,9 +1193,5 @@ end
 
 -- Wishlist
 -- ---------------------------------------------------------
--- tooltip: if item has a count treshold set, don't show if we're below that treshold
--- show lootable containers in your bag! make "open items" not as spammy
 -- increase/decrease loot treshold with mousewheel on LDB
--- restack if necessary	-> PickupContainerItem // SplitContainerItem
--- fubar_garbagefu: Soulbound, Quest, Bind on Pickup, Bind on Equip/Use.
 -- ignore special bags

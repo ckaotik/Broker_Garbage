@@ -111,6 +111,9 @@ BrokerGarbage.locale = {
 	maxHeightTitle = "Max. Höhe",
 	maxHeightText = "Lege fest, wie hoch der Tooltip sein darf. Standard: 220",
 	
+	enchanterTitle = "Verzauberer",
+	enchanterTooltip = "Setze das Häkchen, wenn du einen Verzauberer besitzt/kennst. Wenn aktiviert, wird Broker_Garbage Entzauberpreise verwenden, welche in der Regel höher sind als Händlerpreise.",
+	
 	rescanInventory = "Inventar neu scannen",
 	rescanInventoryText = "Klicke um dein Inventar neu zu scannen. Dies sollte normalerweise nicht nötig sein!",
 	
@@ -206,6 +209,9 @@ BrokerGarbage.locale = {
 	
 	LMOpenClamsTitle = "Warne: Muscheln",
 	LMOpenClamsTooltip = "Wenn ausgewählt, wird Broker_Garbage eine Warnung ausgeben, wenn du ungeöffnete Muscheln im Inventar hast. Da diese aber nun stapelbar sind, verlierst du durch deaktivieren dieser Option keinen Taschenplatz.",
+	
+	LMWarnLMTitle = "Warne: Plündermeister",
+	LMWarnLMTooltip = "Wenn ausgewählt, wird Broker_Garbage eine Meldung zeigen, die dich auffordert, die Beute zu verteilen.",
 	
 	LMItemMinValue = "Mindestwert zum Looten",
 }

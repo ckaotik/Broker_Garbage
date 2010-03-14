@@ -397,6 +397,15 @@ local function ShowOptions(frame)
 		BG_LocalDB.neverRepairGuildBank = not BG_LocalDB.neverRepairGuildBank
 	end)
 	
+	local showsource = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showSourceTitle, "TOPLEFT", guildrepair, "BOTTOMLEFT", -14, 0)
+	showsource.tiptext = BrokerGarbage.locale.showSourceText
+	showsource:SetChecked(BG_GlobalDB.showSource)
+	local checksound = showsource:GetScript("OnClick")
+	showsource:SetScript("OnClick", function(showsource)
+		checksound(showsource)
+		BG_GlobalDB.showSource = not BG_GlobalDB.showSource
+	end)
+	
 	local showlost = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showLostTitle, "TOPLEFT", nothingtext, "BOTTOMLEFT", -14, -10)
 	showlost.tiptext = BrokerGarbage.locale.showLostText
 	showlost:SetChecked(BG_GlobalDB.showLost)
@@ -469,24 +478,7 @@ local function ShowOptions(frame)
 		ttMaxHeight.text:SetText(ttMaxHeight:GetValue())
 	end)
 	
-	local rescan = LibStub("tekKonfig-Button").new(BrokerGarbage.basicOptions, "TOPLEFT", ttMaxItems, "BOTTOMLEFT", 0, -20)
-	rescan:SetText(BrokerGarbage.locale.rescanInventory)
-	rescan.tiptext = BrokerGarbage.locale.rescanInventoryText
-	rescan:SetWidth(150)
-	rescan:SetScript("OnClick", function()
-		BrokerGarbage:ScanInventory()
-	end)
-	
-	local showsource = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showSourceTitle, "TOPLEFT", rescan, "TOPRIGHT", 50, 0)
-	showsource.tiptext = BrokerGarbage.locale.showSourceText
-	showsource:SetChecked(BG_GlobalDB.showSource)
-	local checksound = showsource:GetScript("OnClick")
-	showsource:SetScript("OnClick", function(showsource)
-		checksound(showsource)
-		BG_GlobalDB.showSource = not BG_GlobalDB.showSource
-	end)
-	
-	local resetexclude = LibStub("tekKonfig-Button").new(BrokerGarbage.basicOptions, "TOPLEFT", rescan, "BOTTOMLEFT", 0, -10)
+	local resetexclude = LibStub("tekKonfig-Button").new(BrokerGarbage.basicOptions, "TOPLEFT", ttMaxItems, "BOTTOMLEFT", 0, -20)
 	resetexclude:SetText(BrokerGarbage.locale.emptyExcludeList)
 	resetexclude.tiptext = BrokerGarbage.locale.emptyExcludeListText
 	resetexclude:SetWidth(150)
@@ -494,12 +486,28 @@ local function ShowOptions(frame)
 		BrokerGarbage:ResetList("exclude")
 	end)
 	
-	local resetinclude = LibStub("tekKonfig-Button").new(BrokerGarbage.basicOptions, "TOPLEFT", showsource, "BOTTOMLEFT", 0, -10)
+	local resetinclude = LibStub("tekKonfig-Button").new(BrokerGarbage.basicOptions, "TOPLEFT", resetexclude, "BOTTOMLEFT", 0, -10)
 	resetinclude:SetText(BrokerGarbage.locale.emptyIncludeList)
 	resetinclude.tiptext = BrokerGarbage.locale.emptyIncludeListText
 	resetinclude:SetWidth(150)
 	resetinclude:SetScript("OnClick", function()
 		BrokerGarbage:ResetList("include")
+	end)
+	
+	local enchanter = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.enchanterTitle, "LEFT", resetexclude, "LEFT", 200, 0)
+	enchanter.tiptext = BrokerGarbage.locale.enchanterTooltip
+	enchanter:SetChecked(BG_GlobalDB.hasEnchanter)
+	enchanter:SetScript("OnClick", function(enchanter)
+		checksound(enchanter)
+		BG_GlobalDB.hasEnchanter = not BG_GlobalDB.hasEnchanter
+	end)
+	
+	local rescan = LibStub("tekKonfig-Button").new(BrokerGarbage.basicOptions, "TOPLEFT", enchanter, "BOTTOMLEFT", 0, -6)
+	rescan:SetText(BrokerGarbage.locale.rescanInventory)
+	rescan.tiptext = BrokerGarbage.locale.rescanInventoryText
+	rescan:SetWidth(150)
+	rescan:SetScript("OnClick", function()
+		BrokerGarbage:ScanInventory()
 	end)
 	
 	local editbox = CreateFrame("EditBox", nil, BrokerGarbage.basicOptions)
@@ -525,7 +533,7 @@ local function ShowOptions(frame)
 	center:SetTexCoord(0.0625, 0.9375, 0, 0.625)
 
 	local LDBtext = editbox:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-	LDBtext:SetPoint("TOPLEFT", resetexclude, "BOTTOMLEFT", 0, -20)
+	LDBtext:SetPoint("TOPLEFT", resetinclude, "BOTTOMLEFT", 0, -20)
 	LDBtext:SetText(BrokerGarbage.locale.LDBDisplayTextTitle)
 	editbox:SetPoint("LEFT", LDBtext, "RIGHT", 20, 0)
 	local function ResetEditBox(self)

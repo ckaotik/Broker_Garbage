@@ -278,10 +278,12 @@ end
 -- determines if an item should be lootet
 function BrokerGarbage:IsInteresting(itemLink)
 	local itemID = BrokerGarbage:GetItemID(itemLink)
+	local alwaysLoot = false
 	
+	-- items we don't want
 	local negativeList = BrokerGarbage:JoinTables(BG_GlobalDB.include, BG_LocalDB.include)
 	if negativeList[itemID] then
-		return false
+		return false, false
 	else
 		-- check if the item belongs to a category
 		local inCategory
@@ -289,13 +291,32 @@ function BrokerGarbage:IsInteresting(itemLink)
 			if type(setName) == "string" then
 				_, inCategory = BrokerGarbage.PT:ItemInSet(itemID, setName)
 			end
-			if inCategory then return false end
+			if inCategory then 
+				return false, false
+			end
 		end
 	end
 	
-	return true
+	-- items we always want
+	local positiveList = BrokerGarbage:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)
+	if positiveList[itemID] then
+		alwaysLoot = true
+	else
+		-- check if the item belongs to a category
+		local inCategory
+		for setName,_ in pairs(positiveList) do
+			if type(setName) == "string" then
+				_, inCategory = BrokerGarbage.PT:ItemInSet(itemID, setName)
+			end
+			if inCategory then 
+				alwaysLoot = true
+			end
+		end
+	end
 	
-	--local positiveList = BrokerGarbage:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)
+	-- items we don't care about
+	return true, alwaysLoot
+	
 	--local sellList = BrokerGarbage:JoinTables(BG_GlobalDB.forceVendorPrice, BG_GlobalDB.autoSellList, BG_LocalDB.autoSellList)
 end
 
@@ -364,6 +385,7 @@ function BrokerGarbage:SelectiveLooting(autoloot)
 		manage = true
 		
 		for slot = 1,numItems do
+			loot = false
 			if LootSlotIsCoin(slot) then
 				-- take money
 				loot = true
@@ -372,8 +394,9 @@ function BrokerGarbage:SelectiveLooting(autoloot)
 				_, _, quantity,  quality, locked = GetLootSlotInfo(slot)
 				itemLink = GetLootSlotLink(slot)
 				local value = BrokerGarbage:GetItemValue(itemLink, quantity)
+				local isInteresting, alwaysLoot = BrokerGarbage:IsInteresting(itemLink) 
 				
-				if BrokerGarbage:IsInteresting(itemLink) 
+				if isInteresting 
 					and (not value or value >= BG_LocalDB.itemMinValue) then
 					
 					if BrokerGarbage.totalFreeSlots <= BG_GlobalDB.tooFewSlots then
@@ -385,18 +408,22 @@ function BrokerGarbage:SelectiveLooting(autoloot)
 						local inBags = mod(GetItemCount(itemID), maxStack)
 						local compareTo = BrokerGarbage:GetCheapest()
 						
+						local prepareSkinning = (autoLoot or BG_GlobalDB.autoLootSkinning) and mobType and BrokerGarbage:CanSkin(mobLevel)
+						
 						if inBags > 0 and maxStack >= (inBags + quantity) then
 							-- this item fits without us doing anything
 							BrokerGarbage:Debug("Item stacks.", itemLink)
 							loot = true
 						
-						elseif BG_GlobalDB.autoDestroy and inBags > 0 and inBags + quantity > maxStack then
+						elseif BG_GlobalDB.autoDestroy and not alwaysLoot and inBags > 0 
+							and (inBags < maxStack or prepareSkinning) and inBags + quantity > maxStack then
+							
 							-- we can fit x more in ... *squeeze*
 							BrokerGarbage:Debug("Item can be made to fit.", itemLink)
 							
 							local amount = quantity + inBags - maxStack
-							if compareTo[1] and 
-								(BrokerGarbage:GetItemValue(itemLink, (quantity-amount)) or 0) < compareTo[1].value then
+							if not compareTo[1] 
+								or (BrokerGarbage:GetItemValue(itemLink, quantity) or 0) < compareTo[1].value then
 								
 								BrokerGarbage:DeletePartialStack(itemID, amount)
 								loot = true
@@ -416,7 +443,7 @@ function BrokerGarbage:SelectiveLooting(autoloot)
 									compareTo[1].bag, compareTo[1].slot)
 								loot = true
 							
-							elseif BG_GlobalDB.autoLootSkinning and mobType and BrokerGarbage:CanSkin(mobLevel) and compareTo[1] then
+							elseif prepareSkinning and compareTo[1] then
 								-- we are skinning
 								BrokerGarbage:Debug("Looting for skinning", itemLink)
 								
@@ -448,7 +475,9 @@ function BrokerGarbage:SelectiveLooting(autoloot)
 					if GetNumRaidMembers() > 1 and select(3,GetLootMethod()) 
 						and UnitIsUnit("raid"..select(3,GetLootMethod()), "player") then
 						
-						BrokerGarbage:Print(format(BrokerGarbage.locale.couldNotLootLM, itemLink))
+						if BG_GlobalDB.warnLM then 
+							BrokerGarbage:Print(format(BrokerGarbage.locale.couldNotLootLM, itemLink))
+						end
 						close = false
 					end
 				else

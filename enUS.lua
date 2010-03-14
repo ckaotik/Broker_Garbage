@@ -111,6 +111,9 @@ BrokerGarbage.locale = {
 	maxHeightTitle = "Max. Height",
 	maxHeightText = "Set the height of the tooltip. Default: 220",
 	
+	enchanterTitle = "Enchanter",
+	enchanterTooltip = "Check this if you have/know an enchanter. When checked, Broker_Garbage will use disenchant values for disenchantable items, which are usually higher than vendor prices.",
+	
 	rescanInventory = "Rescan Inventory",
 	rescanInventoryText = "Click to manually rescan you inventory. Should generally not be needed.",
 	
@@ -206,6 +209,9 @@ BrokerGarbage.locale = {
 	
 	LMOpenClamsTitle = "Warn: Clams",
 	LMOpenClamsTooltip = "When checked, Broker_Garbage will warn you when you have clams in you inventory. As these now do stack, you are not wasting any slots by unchecking this.",
+	
+	LMWarnLMTitle = "Warn: Loot Master",
+	LMWarnLMTooltip = "When checked, Broker_Garbage will print a notice reminding you to assign loot.",
 	
 	LMItemMinValue = "Minimum item value",
 }
