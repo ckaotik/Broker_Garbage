@@ -964,6 +964,7 @@ function BrokerGarbage:ScanInventory()
 						BrokerGarbage.checkItem = nil
 						if isInclude or BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID] then
 							-- Include List item
+							isInclude = true
 							force = true
 							
 							local limited = BrokerGarbage:Find(limitedItemsChecked, itemID)
@@ -999,6 +1000,8 @@ function BrokerGarbage:ScanInventory()
 											end
 										end
 									end
+								else
+									limited = false
 								end
 							end
 							
@@ -1011,6 +1014,8 @@ function BrokerGarbage:ScanInventory()
 						
 						elseif isSell or BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID] then
 							-- AutoSell List item
+							isSell = true
+							
 							value = select(11,GetItemInfo(itemID))
 							source = BrokerGarbage.tagVendorList
 							
