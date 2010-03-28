@@ -88,8 +88,8 @@ end
 -- inserts some basic list settings
 function BrokerGarbage:CreateDefaultLists(global)
 	if global then
-		BG_GlobalDB.include[46106] = true		-- argentum lance
-		BG_GlobalDB.include[6265] = 20			-- soulshards
+		BG_GlobalDB.include[46106] = true											-- argentum lance
+		if not BG_GlobalDB.include[6265] then BG_GlobalDB.include[6265] = 20 end	-- soulshards
 		BG_GlobalDB.include["Consumable.Water.Conjured"] = true
 		BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible"] = true
 		BG_GlobalDB.forceVendorPrice["Consumable.Water.Basic"] = true
@@ -119,8 +119,8 @@ function BrokerGarbage:CreateDefaultLists(global)
 	elseif BrokerGarbage.playerClass == "WARRIOR" or BrokerGarbage.playerClass == "ROGUE" or BrokerGarbage.playerClass == "DEATHKNIGHT" then
 		BG_LocalDB.autoSellList["Consumable.Water"] = true
 	elseif BrokerGarbage.playerClass == "SHAMAN" then
-		BG_LocalDB.include[17058] = 20		-- fish oil
-		BG_LocalDB.include[17057] = 20		-- scales
+		if not BG_LocalDB.include[17058] then BG_LocalDB.include[17058] = 20 end	-- fish oil
+		if not BG_LocalDB.include[17057] then BG_LocalDB.include[17057] = 20 end	-- scales
 	end
 	BG_LocalDB.exclude["Misc.Reagent.Class."..string.gsub(string.lower(BrokerGarbage.playerClass), "^.", string.upper)] = true
 end
