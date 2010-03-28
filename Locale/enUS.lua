@@ -108,7 +108,7 @@ BrokerGarbage.locale = {
 	showEarnedTitle = "Show Money Earned",
 	showEarnedText = "Toggles whether to show the tooltip line 'Money Earned'.",
 	
-	dropQualityTitle = "Drop Quality",
+	dropQualityTitle = "Quality Treshold",
 	dropQualityText = "Select up to which treshold items may be listed as deletable. Default: Poor (0)",
 	
 	moneyFormatTitle = "Money Format",
