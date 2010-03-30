@@ -180,7 +180,7 @@ loaded = true
 
 -- Tooltip
 -- ---------------------------------------------------------
-function BrokerGarbage:Tooltip(wut)
+function BrokerGarbage:Tooltip(self)
 	if BG_GlobalDB.showSource then
 		BrokerGarbage.tt = LibQTip:Acquire("BrokerGarbage_TT", 4, "LEFT", "RIGHT", "RIGHT", "CENTER")
 	else
@@ -236,15 +236,15 @@ function BrokerGarbage:Tooltip(wut)
 	end
 	
 	-- Use smart anchoring code to anchor the tooltip to our frame
-	BrokerGarbage.tt:SmartAnchorTo(wut)
-	BrokerGarbage.tt:SetAutoHideDelay(0.25, wut)
+	BrokerGarbage.tt:SmartAnchorTo(self)
+	BrokerGarbage.tt:SetAutoHideDelay(0.25, self)
 
 	-- Show it, et voilà !
 	BrokerGarbage.tt:Show()
 	BrokerGarbage.tt:UpdateScrolling(BG_GlobalDB.tooltipMaxHeight)
 end
 
-function BrokerGarbage:HideTT()
+--[[function BrokerGarbage:HideTT()
 	if BrokerGarbage.tt and BrokerGarbage.tt:IsMouseOver() then 
 		return 
 	end
@@ -253,7 +253,7 @@ function BrokerGarbage:HideTT()
 	-- Release the tooltip
 	LibQTip:Release(BrokerGarbage.tt)
 	BrokerGarbage.tt = nil
-end
+end]]--
 
 function BrokerGarbage:OnScroll(self, direction)
 	BrokerGarbage:Debug("Scroll!", direction)
@@ -500,7 +500,7 @@ function BrokerGarbage:Delete(itemLink, position)
 	else
 		itemCount = position
 	end
-	local itemValue = BrokerGarbage:GetItemValue(itemLink, itemCount)
+	local itemValue = BrokerGarbage:GetItemValue(itemLink, itemCount) or 0
 	
 	-- statistics
 	BG_GlobalDB.itemsDropped = BG_GlobalDB.itemsDropped + itemCount
@@ -672,12 +672,13 @@ function BrokerGarbage:ScanInventory()
 							if value then value = value * count end
 							source = BrokerGarbage.tagVendorList
 							
-						elseif quality --and quality <= BG_GlobalDB.dropQuality 
+						elseif quality and quality <= BG_GlobalDB.dropQuality 
 							and not IsUsableSpell(BrokerGarbage.enchanting)	and BrokerGarbage:IsItemSoulbound(itemLink)
 							and BG_GlobalDB.sellNotWearable and quality <= BG_GlobalDB.sellNWQualityTreshold 
 							and string.find(invType, "INVTYPE") and not string.find(invType, "BAG") 
-							and not BrokerGarbage.usableByClass[BrokerGarbage.playerClass][subClass] then
-							-- Sell unusable Gear							
+							and not BrokerGarbage.usableByClass[BrokerGarbage.playerClass][subClass]
+							and not BrokerGarbage.usableByAll[invType] then
+							-- Sell unusable Gear
 							isVendor = true
 							force = false
 							
@@ -699,7 +700,7 @@ function BrokerGarbage:ScanInventory()
 							end
 							
 							-- insert into BrokerGarbage.inventory
-							if quality <= BG_GlobalDB.dropQuality or isSell or isInclude or isVendor then
+							if (quality and quality <= BG_GlobalDB.dropQuality) or isSell or isInclude or isVendor then
 								local currentItem = {
 									bag = container,
 									slot = slot,
@@ -819,23 +820,24 @@ function BrokerGarbage:AutoSell()
 				if type(setName) == "string" then
 					_, sellByString = BrokerGarbage.PT:ItemInSet(itemTable.itemID, setName)
 				end
-				if sellByString then BrokerGarbage:Debug(itemTable.itemID,"in set", sellByString, "on autosell");break end
 			end
 			
 			-- check if this item is equippable for us
 			local _, itemLink, _, _, _, _, subClass, _, invType = GetItemInfo(itemTable.itemID)
-			--local notWearable = BG_GlobalDB.sellNotWearable and itemTable.quality <= BG_GlobalDB.sellNWQualityTreshold 
-				--and IsItemSoulbound(itemLink, itemTable.bag, itemTable.slot) 
-				--and string.find(invType, "INVTYPE") and not string.find(invType, "BAG") and not --BrokerGarbage.usableByClass[BrokerGarbage.playerClass][subClass]
+			local sellGear = quality 
+				and not IsUsableSpell(BrokerGarbage.enchanting)	and BrokerGarbage:IsItemSoulbound(itemLink)
+				and BG_GlobalDB.sellNotWearable and quality <= BG_GlobalDB.sellNWQualityTreshold 
+				and string.find(invType, "INVTYPE") and not string.find(invType, "BAG") 
+				and not BrokerGarbage.usableByClass[BrokerGarbage.playerClass][subClass]
+				and not BrokerGarbage.usableByAll[invType]
 			
 			-- shorten our literals
 			local excludeByID = BG_GlobalDB.exclude[itemTable.itemID] or BG_LocalDB.exclude[itemTable.itemID]
 			local autoSellByID = BG_GlobalDB.autoSellList[itemTable.itemID] or BG_LocalDB.autoSellList[itemTable.itemID]
 				
 			-- do the priorities right!
-			if itemTable.value ~= 0 and not excludeByID and
-				(autoSellByID or (not excludeByString and (sellByString or itemTable.quality == 0
-				or itemTable.source == BrokerGarbage.tagUnusableGear))) then
+			if itemTable.value ~= 0 and not excludeByID and (autoSellByID 
+				or (not excludeByString and (sellByString or itemTable.quality == 0 or sellGear))) then
 			
 				if i == 1 then					
 					BrokerGarbage:Debug("locked")

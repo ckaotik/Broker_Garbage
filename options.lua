@@ -47,14 +47,6 @@ BrokerGarbage.basicOptions.name = BrokerGarbage.locale.BasicOptionsTitle
 BrokerGarbage.basicOptions.parent = "Broker_Garbage"
 BrokerGarbage.basicOptions:Hide()
 
--- Loot Manager options
-if LootManager then
-	BrokerGarbage.lootManagerOptions = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
-	BrokerGarbage.lootManagerOptions.name = BrokerGarbage.locale.LMTitle
-	BrokerGarbage.lootManagerOptions.parent = "Broker_Garbage"
-	BrokerGarbage.lootManagerOptions:Hide()
-end
-
 -- list options: positive panel
 BrokerGarbage.listOptionsPositive = CreateFrame("Frame", "BrokerGarbageOptionsPositiveFrame", InterfaceOptionsFramePanelContainer)
 BrokerGarbage.listOptionsPositive.name = BrokerGarbage.locale.LOPTitle
@@ -1439,6 +1431,9 @@ function BrokerGarbage:OptionsFirstLoad()
 	end
 	InterfaceOptions_AddCategory(BrokerGarbage.listOptionsPositive)
 	InterfaceOptions_AddCategory(BrokerGarbage.listOptionsNegative)
+	if BrokerGarbage.categoryTest then
+		InterfaceOptions_AddCategory(BrokerGarbage.categoryTest)
+	end
 	LibStub("tekKonfig-AboutPanel").new("Broker_Garbage", "Broker_Garbage")
 
 	BrokerGarbage.options:SetScript("OnShow", ShowOptions)

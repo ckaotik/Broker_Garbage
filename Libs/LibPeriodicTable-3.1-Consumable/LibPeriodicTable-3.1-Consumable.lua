@@ -1,7 +1,7 @@
 -- (c) 2007 Nymbia.  see LGPLv2.1.txt for full details.
 --DO NOT MAKE CHANGES TO THIS FILE BEFORE READING THE WIKI PAGE REGARDING CHANGING THESE FILES
 if not LibStub("LibPeriodicTable-3.1", true) then error("PT3 must be loaded before data") end
-LibStub("LibPeriodicTable-3.1"):AddData("Consumable", gsub("$Rev: 247 $", "(%d+)", function(n) return n+90000 end), {
+LibStub("LibPeriodicTable-3.1"):AddData("Consumable", gsub("$Rev: 266 $", "(%d+)", function(n) return n+90000 end), {
 	["Consumable.Anti-Venom"]="6452:25,6453:35,13462:60,2633:60,19440:60,12586:60,9030:60,3386:60,31437:70,25550:70",
 	["Consumable.Bandage.Basic"]="1251:66,2581:114,3530:161,3531:301,6450:400,6451:640,8544:800,8545:1104,14529:1360,14530:2000,21990:2800,21991:3400,38643:3400,38640:4100,34721:4800,34722:5800",
 	["Consumable.Bandage.Battleground.Alterac Valley"]="19307:2000",
@@ -37,7 +37,7 @@ LibStub("LibPeriodicTable-3.1"):AddData("Consumable", gsub("$Rev: 247 $", "(%d+)
 	["Consumable.Buff.Armor.Target"]="3013:65,1478:105,4421:150,10305:195,27500:240,33459:285,43467:340",
 	["Consumable.Buff.Attack Crit.Flask"]="32597:20",
 	["Consumable.Buff.Attack Damage"]="23501:10,22788:40",
-	["Consumable.Buff.Attack Power.Self"]="23989:10,22779:30,12820:35,29528:60,28102:60,40068:90,31679:120,9224:265",
+	["Consumable.Buff.Attack Power.Self"]="23989:10,22779:30,12820:35,29528:60,28102:60,49856:75,49859:75,40068:90,31679:120,9224:265",
 	["Consumable.Buff.Attack Power.Flask"]="32599:20,47499:80,22854:120,32901:120,46377:120",
 	["Consumable.Buff.Attack Power.Target"]="12460:40",
 	["Consumable.Buff.Attack Speed.Self"]="29529:80,22838:400",
@@ -45,7 +45,7 @@ LibStub("LibPeriodicTable-3.1"):AddData("Consumable", gsub("$Rev: 247 $", "(%d+)
 	["Consumable.Buff.Hit Rating.Self"]="22237:20,23327:20",
 	["Consumable.Buff.Casting Speed.Self"]="29529:80",
 	["Consumable.Buff.Chest"]="23559:200,25521:400",
-	["Consumable.Buff.Defense.Self"]="22236:20,23435:20",
+	["Consumable.Buff.Defense.Self"]="22236:20,23435:20,49858:20,49860:20",
 	["Consumable.Buff.Defense.Flask"]="22851:10,32898:10",
 	["Consumable.Buff.Dodge.Target"]="12459:60",
 	["Consumable.Buff.Energy.Self"]="31451:20,7676:40,27553:55",
@@ -73,7 +73,7 @@ LibStub("LibPeriodicTable-3.1"):AddData("Consumable", gsub("$Rev: 247 $", "(%d+)
 	["Consumable.Buff.Speed.Self"]="29530:15,20081:20,2459:50,33226:14,43135:15",
 	["Consumable.Buff.Spell Crit.Self"]="22839:2,28103:24",
 	["Consumable.Buff.Spell Damage.Flask"]="32601:23,47499:47,13512:70,32900:70,22861:80,22866:80,46376:125",
-	["Consumable.Buff.Spell Damage.Self"]="6373:10,22710:10,17708:15,22778:15,22238:23,23326:23,28103:24,29528:30,13454:35,9155:20,9264:40,22833:55,40070:58,22835:65,22788:80,22839:120",
+	["Consumable.Buff.Spell Damage.Self"]="6373:10,22710:10,17708:15,22778:15,9155:20,22238:23,23326:23,28103:24,29528:30,13454:35,9264:40,49857:45,49860:45,22833:55,40070:58,22835:65,22788:80,22839:120",
 	["Consumable.Buff.Spell Reflect.Self"]="20080:3",
 	["Consumable.Buff.Water Breathing"]="34076:3,37265:10,23871:30,24421:30,25539:60",
 
@@ -117,7 +117,7 @@ LibStub("LibPeriodicTable-3.1"):AddData("Consumable", gsub("$Rev: 247 $", "(%d+)
 	["Consumable.Cooldown.Stone.Mana.Other"]="23354:60,23386:100,31451:300,20520:1200,12662:1200",
 	["Consumable.Cooldown.Stone.Mana.Mana Stone"]="5513:600,5514:400,8007:850,8008:1100,22044:1250,33312:3415",
 	["Consumable.Cooldown.Drums.Bombs"]="m,Misc.Explosives",
-	["Consumable.Cooldown.Drums.Drums"]="29528:1,29530:2,29531:3,29529:4,29532:5",
+	["Consumable.Cooldown.Drums.Drums"]="29528:1,29530:2,29531:3,29529:4,29532:5,49633:6,49634:7",
 	["Consumable.Cooldown.Drums.Nets"]="24268:70,24269:80,41509:83",
 	["Consumable.Cooldown.Drums.Other"]="1127,1178,1191,1399,1434,2091,3456,4384,4388,4391,4395,4852,4941,5332,10646,10719,10830,11565,11566,13509,13514,15778,21325,23379,23841",
 

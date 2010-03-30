@@ -34,3 +34,4 @@ constants.lua
 helper.lua
 core.lua
 options.lua
+category_test.lua
