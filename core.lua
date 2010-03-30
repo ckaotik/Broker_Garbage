@@ -113,10 +113,7 @@ frame:SetScript("OnEvent", eventHandler)
 
 -- Sell Icon
 -- ---------------------------------------------------------
-local orig_MerchantFrame_UpdateRepairButtons = MerchantFrame_UpdateRepairButtons
-function MerchantFrame_UpdateRepairButtons(...)
-	orig_MerchantFrame_UpdateRepairButtons(...)
-	
+function BrokerGarbage:UpdateRepairButton(...)
 	if not BG_GlobalDB.showAutoSellIcon then
 		-- resets guild repair icon
 		MerchantGuildBankRepairButton:ClearAllPoints()
@@ -176,6 +173,7 @@ function MerchantFrame_UpdateRepairButtons(...)
 		_G["BrokerGarbage_SellIcon"]:GetNormalTexture():SetDesaturated(true)
 	end
 end
+hooksecurefunc("MerchantFrame_UpdateRepairButtons", BrokerGarbage.UpdateRepairButton)
 loaded = true
 
 -- Tooltip
@@ -271,14 +269,15 @@ function BrokerGarbage:OnClick(itemTable, button)
 	if itemTable and IsShiftKeyDown() then
 		-- delete or sell item, depending on if we're at a vendor or not
 		BrokerGarbage:Debug("SHIFT-Click!")
-		if not BrokerGarbage.isAtVendor then
-			BrokerGarbage:Delete(itemTable)
-		else
+		if BrokerGarbage.isAtVendor then
 			BG_GlobalDB.moneyEarned = BG_GlobalDB.moneyEarned + itemTable.value
 			BG_LocalDB.moneyEarned = BG_LocalDB.moneyEarned + itemTable.value
 			BG_GlobalDB.itemsSold = BG_GlobalDB.itemsSold + itemTable.count
 			
+			ClearCursor()
 			UseContainerItem(itemTable.bag, itemTable.slot)
+		else
+			BrokerGarbage:Delete(itemTable)
 		end
 	
 	--[[elseif itemTable and IsAltKeyDown() and IsControlKeyDown() then
@@ -489,6 +488,7 @@ function BrokerGarbage:Delete(itemLink, position)
 		position = {itemLink.bag, itemLink.slot}
 		itemID = itemLink.itemID
 		itemLink = select(2,GetItemInfo(itemID))
+		ClearCursor()
 	end
 
 	-- security check
@@ -848,6 +848,7 @@ function BrokerGarbage:AutoSell()
 				BG_GlobalDB.moneyEarned = BG_GlobalDB.moneyEarned + itemTable.value
 				BG_LocalDB.moneyEarned = BG_LocalDB.moneyEarned + itemTable.value
 				
+				ClearCursor()
 				UseContainerItem(itemTable.bag, itemTable.slot)
 				BG_GlobalDB.itemsSold = BG_GlobalDB.itemsSold + itemTable.count
 				i = i+1

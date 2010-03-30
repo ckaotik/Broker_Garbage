@@ -45,19 +45,19 @@ Still, do not feel bad if it doesn't make it into the addon. In that case I will
 -----------------
 There are several lists for you to use. Please be aware that itemIDs are prioritized above LPT category strings, so if for example you had "Misc.Reagent.Class.Priest" on your Exclude List but 17056 (Light Feather) on your Include List, the feathers would be considered as included items.
 
-* Exclude List
+* Whitelist: Exclude List
 Items on here will be "saved" from any actions - they will not be sold, dropped or anything else.
 Grayed out items on there are items that are on your global list, active for all characters. Colorful ones are just for your current character.
 
-* 'Force Vendor Price' List
+* Whitelist: 'Force Vendor Price' List
 Items on this list will never have their auction value used. This is useful for food, drinks and other things people tend to put on the AH at unbelievable prices.
 
-* Include List
+* Blacklist: Include List
 Items on this list will be always be shown in the drop Tooltip, no matter what Quality Treshold you might have set. If you have too many, you won't see any other items in the tooltip. Caution!
 Grayed out items on there are items that are on your global list, active for all characters. Colorful ones are just for your current character.
 Since 3.3v17 include list items also can have a limit set. Use this if for example you only want to keep 5 Soulshards. Excess items will be listed in the Tooltip!
 
-* Auto-Sell List
+* Blacklist: Auto-Sell List
 Items on this list will be sold whenever you talk to a vendor. Items of higher quality than your Quality Treshold WILL be sold, just keep that in mind.
 
 Each of these lists except the 'Force Vendor Price' list have a global (affects all your characters) and local (only affects the current character) component. You can broadcast items on your local lists as global by selecting them and then clicking on the promote icon next to the list.
@@ -76,6 +76,7 @@ If you check 'Show Source' in the options panel, the tooltip will display an add
 Starting in version 3.3v11 you can add category strings to make your life easier. To do so, go to your settings panel for the list you wish to add it to and right-click on the 'plus' icon. You will see a list of all categories LibPeriodicTable (LPT) has to offer (or at least the parts of it that I chose to include).
 Navigate your way through the menu and add any category you like simply by clicking on it.
 To remove a category simply do as you would with any other item on your list: Select it and then hit the corresponding 'minus' icon.
+If you want to test which items are on what lists, just use the 'Test category strings' panel in the options.
 
 Why these categories are only in English? There's a simple answer to that: Because that's what LPT does and I do not want to localize the complete LPT. Sorry for that, but it's kind of not my job to do that ;)
 

@@ -1136,7 +1136,7 @@ local function ShowListOptions(frame)
 		end
 		
 		BrokerGarbage:ScanInventory()
-		MerchantFrame_UpdateRepairButtons()
+		BrokerGarbage:UpdateRepairButton()
 	end
 	
 	if not _G["BrokerGarbagePTMenuFrame"] then		
@@ -1345,7 +1345,7 @@ local function ShowListOptions(frame)
 		end
 		
 		BrokerGarbage:ScanInventory()
-		MerchantFrame_UpdateRepairButtons()
+		BrokerGarbage:UpdateRepairButton()
 	end
 	
 	emptyExcludeList:SetScript("OnClick", OnClick)

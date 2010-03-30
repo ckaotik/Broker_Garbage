@@ -154,7 +154,7 @@ BrokerGarbage.locale = {
 		"[bagspacecolor]...[endcolor] zum färben",
 		
 	-- List Options Panel
-	LOPTitle = "Positiv-Listen",
+	LOPTitle = "Whitelist",
 	LOPSubTitle = "Zum Hinzufügen ziehe Items auf das jeweilige '+'. Zum Entfernen wähle sie aus und klicke auf '-'. Nutze Kategorien per Rechts-Klick auf '+'.",
 		
 		-- Exclude List
@@ -173,7 +173,7 @@ BrokerGarbage.locale = {
 	LOPForceEmptyTT = "|cffff0000Achtung! Shift-Klicke, um die Händlerpreisliste zu leeren",
 	
 	-- AutoSell Options Panel
-	LONTitle = "Negativ-Listen",
+	LONTitle = "Blacklist",
 	LONSubTitle = "Analog zu den Positiv-Listen. Um eine maximale Anzahl für ein bestimmtes Item festzulegen, nutze das Mausrad über dem Item-Icon.",
 	
 		-- Include List
@@ -192,9 +192,13 @@ BrokerGarbage.locale = {
 	LONAutoSellEmptyTT = "|cffff0000Achtung! Klicke, um die lokale Verkaufsliste zu leeren.\n"..
 		"Shift-Klicke, um die globale Verkaufsliste zu leeren",
 	
-	-- LibPeriodicTable texts
-	PTCategoryTooltipHeader = "Kategorien hinzufügen",
-	PTCategoryTooltipText = "Füge Kategorien hinzu, indem du auf die entsprechenden Einträge clickst.",
+	-- LibPeriodicTable category testing
+	PTCategoryTest = "Teste Kategorien",
+	PTCategoryTestTitle = "LibPeriodicTable Kategorietest",
+	PTCategoryTestSubTitle = "Wenn du unsicher bist, warum ein Item irgendwo auftaucht oder welche Items zu welcher Kategorie zählen, kannst du das hier testen.",
+	PTCategoryTestExplanation = "Wähle einfach unten eine Kategorie aus und es wird dir alle Gegenstände aus deinem Inventar anzeigen, die dazuzählen.\nKategoriedaten kommen von LPT und nicht Broker_Garbage.",
+	PTCategoryTestDropdownTitle = "Kategorie, die getestet werden soll",
+	PTCategoryTestDropdownText = "Wähle eine Kategorie",
 }
 
 end
