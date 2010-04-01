@@ -679,7 +679,7 @@ function BrokerGarbage:ScanInventory()
 							and not BrokerGarbage.usableByClass[BrokerGarbage.playerClass][subClass]
 							and not BrokerGarbage.usableByAll[invType] then
 							-- Sell unusable Gear
-							isVendor = true
+							isSell = true
 							force = false
 							
 							value = vendorPrice
