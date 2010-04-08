@@ -466,6 +466,7 @@ local function ShowOptions(frame)
 	sellNotUsable:SetScript("OnClick", function(sellNotUsable)
 		checksound(sellNotUsable)
 		BG_GlobalDB.sellNotWearable = not BG_GlobalDB.sellNotWearable
+		BrokerGarbage:ScanInventory()
 	end)
 	local sellNUQuality = LibStub("tekKonfig-Slider").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.SNUMaxQualityTitle, 0, 6, "TOPLEFT", sellNotUsable, "BOTTOMLEFT", 25, -4)
 	sellNUQuality.tiptext = BrokerGarbage.locale.SNUMaxQualityText
@@ -478,6 +479,7 @@ local function ShowOptions(frame)
 	sellNUQuality:SetScript("OnValueChanged", function(sellNUQuality)
 		BG_GlobalDB.sellNWQualityTreshold = sellNUQuality:GetValue()
 		sellNUQuality.text:SetText(BrokerGarbage.quality[sellNUQuality:GetValue()])
+		BrokerGarbage:ScanInventory()
 	end)	
 	
 	local disableKey, disableKeytext, disableKeycontainer = LibStub("tekKonfig-Dropdown").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.DKTitle, "TOPLEFT", sellNUQuality, "BOTTOMLEFT", -25, -16)

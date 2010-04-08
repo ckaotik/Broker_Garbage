@@ -823,7 +823,7 @@ function BrokerGarbage:AutoSell()
 			end
 			
 			-- check if this item is equippable for us
-			local _, itemLink, _, _, _, _, subClass, _, invType = GetItemInfo(itemTable.itemID)
+			local _, itemLink, quality, _, _, _, subClass, _, invType = GetItemInfo(itemTable.itemID)
 			local sellGear = quality 
 				and not IsUsableSpell(BrokerGarbage.enchanting)	and BrokerGarbage:IsItemSoulbound(itemLink)
 				and BG_GlobalDB.sellNotWearable and quality <= BG_GlobalDB.sellNWQualityTreshold 
