@@ -1,5 +1,7 @@
 ﻿-- Broker_Garbage
---   Author: ckaotik (Quay@EU-Die Todeskrallen)
+--   Author: ckaotik
+--   License: You may use this code - or parts of it - freely as long as you give proper credit. Please do not upload this addon on any kind of addon distribution website. If you got it somewhere else than Curse.com or Wowinterface.com, please send me a message/write a comment on either of those two sites.
+--   Disclaimer: I provide no warranty whatsoever for what this addon does or doesn't do, even though I try my best to keep it working ;)
 _, BrokerGarbage = ...
 
 -- Libraries & setting up the LDB
@@ -8,11 +10,11 @@ local LibQTip = LibStub("LibQTip-1.0")
 BrokerGarbage.PT = LibStub("LibPeriodicTable-3.1")
 
 -- notation mix-up for Broker2FuBar to work
-local LDB = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Garbage", {
+local LDB = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
 	type	= "data source", 
 	icon	= "Interface\\Icons\\achievement_bg_returnxflags_def_wsg",
 	label	= "Garbage",
-	text 	= BrokerGarbage.locale.label
+	text 	= BrokerGarbage.locale.label,		-- this is a placeholder until the first scan
 })
 
 LDB.OnClick = function(...) BrokerGarbage:OnClick(...) end
@@ -25,8 +27,10 @@ local sellValue = 0		-- represents the actual value that we sold stuff for, oppo
 local cost = 0
 local lastReminder = time()
 
+BrokerGarbage.inventory = {}
 BrokerGarbage.tt = nil
 BrokerGarbage.isAtVendor = false
+BrokerGarbage.optionsModules = {}
 
 -- Event Handler
 -- ---------------------------------------------------------
@@ -85,7 +89,7 @@ local function eventHandler(self, event, ...)
 		
 		BrokerGarbage:ScanInventory()
 		
-	elseif event == "PLAYER_ENTERING_WORLD" then
+	elseif event == "PLAYER_LOGIN" then
 		BrokerGarbage:CheckSettings()
 		
 		if not locked and loaded then
@@ -106,7 +110,7 @@ local frame = CreateFrame("frame")
 frame:RegisterEvent("MERCHANT_SHOW")
 frame:RegisterEvent("MERCHANT_CLOSED")
 frame:RegisterEvent("PLAYER_MONEY")
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("BAG_UPDATE")
 
 frame:SetScript("OnEvent", eventHandler)
@@ -262,14 +266,17 @@ end
 function BrokerGarbage:OnClick(itemTable, button)	
 	-- handle LDB clicks seperately
 	if not itemTable.itemID or type(itemTable.itemID) ~= "number" then
+		BrokerGarbage:Debug("No valid itemTable for OnClick")
 		itemTable = BrokerGarbage.cheapestItem
 	end
+	BrokerGarbage:Debug("ItemTable", itemTable.itemID, itemTable.value, itemTable.count, itemTable.bag, itemTable.slot)
 	
 	-- handle different clicks
 	if itemTable and IsShiftKeyDown() then
 		-- delete or sell item, depending on if we're at a vendor or not
 		BrokerGarbage:Debug("SHIFT-Click!")
-		if BrokerGarbage.isAtVendor then
+		if BrokerGarbage.isAtVendor and itemTable.value > 0 then
+			BrokerGarbage:Debug("@Vendor", "Selling")
 			BG_GlobalDB.moneyEarned = BG_GlobalDB.moneyEarned + itemTable.value
 			BG_LocalDB.moneyEarned = BG_LocalDB.moneyEarned + itemTable.value
 			BG_GlobalDB.itemsSold = BG_GlobalDB.itemsSold + itemTable.count
@@ -277,6 +284,7 @@ function BrokerGarbage:OnClick(itemTable, button)
 			ClearCursor()
 			UseContainerItem(itemTable.bag, itemTable.slot)
 		else
+			BrokerGarbage:Debug("Not @Vendor", "Deleting")
 			BrokerGarbage:Delete(itemTable)
 		end
 	
@@ -291,17 +299,14 @@ function BrokerGarbage:OnClick(itemTable, button)
 	elseif itemTable and IsControlKeyDown() then
 		-- add to exclude list
 		BrokerGarbage:Debug("CTRL-Click!")
-		BG_LocalDB.exclude[itemTable.itemID] = true
+		if not BG_LocalDB.exclude[itemTable.itemID] then
+			BG_LocalDB.exclude[itemTable.itemID] = true
+		end
 		BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSaveList, select(2,GetItemInfo(itemTable.itemID))))
 		
 		if BrokerGarbage.optionsLoaded then
 			BrokerGarbage:ListOptionsUpdate("exclude")
 		end
-		
-	elseif button == "RightButton" then
-		-- open config
-		BrokerGarbage:OptionsFirstLoad()
-		InterfaceOptionsFrame_OpenToCategory(BrokerGarbage.options)
 		
 	elseif itemTable and IsAltKeyDown() then
 		-- add to force vendor price list
@@ -313,6 +318,11 @@ function BrokerGarbage:OnClick(itemTable, button)
 			BrokerGarbage:ListOptionsUpdate("forceprice")
 		end
 		BrokerGarbage:ScanInventory()
+		
+	elseif button == "RightButton" then
+		-- open config
+		BrokerGarbage:OptionsFirstLoad()
+		InterfaceOptionsFrame_OpenToCategory(BrokerGarbage.options)
 		
 	else
 		-- do nothing
@@ -345,17 +355,17 @@ function BrokerGarbage:GetItemValue(itemLink, count)
 	
 	-- calculate auction value
 	if IsAddOnLoaded("Auctionator") then
-		BrokerGarbage:Debug("Found auction addon:", "Auctionator")
+		BrokerGarbage.auctionAddon = "Auctionator"
 		auctionPrice = Atr_GetAuctionBuyout(itemLink)
 		disenchantPrice = DE and Atr_GetDisenchantValue(itemLink)
 	
 	elseif IsAddOnLoaded("AuctionLite") then
-		BrokerGarbage:Debug("Found auction addon:", "AuctionLite")
+		BrokerGarbage.auctionAddon = "AuctionLite"
 		auctionPrice = AuctionLite:GetAuctionValue(itemLink)
 		disenchantPrice = DE and AuctionLite:GetDisenchantValue(itemLink)
 		
 	elseif IsAddOnLoaded("WOWEcon_PriceMod") then
-		BrokerGarbage:Debug("Found auction addon:", "WoWecon")
+		BrokerGarbage.auctionAddon = "WoWecon"
 		auctionPrice = Wowecon.API.GetAuctionPrice_ByLink(itemLink)
 		
 		if DE then
@@ -369,7 +379,7 @@ function BrokerGarbage:GetItemValue(itemLink, count)
 		end
 
 	elseif IsAddOnLoaded("Auc-Advanced") then
-		BrokerGarbage:Debug("Found auction addon:", "Auc-Advanced")
+		BrokerGarbage.auctionAddon = "Auc-Advanced"
 		auctionPrice = AucAdvanced.API.GetMarketValue(itemLink)
 		
 		if DE and IsAddOnLoaded("Enchantrix") then
@@ -408,7 +418,7 @@ function BrokerGarbage:GetItemValue(itemLink, count)
 		end
 		
 	else
-		BrokerGarbage:Debug("Found auction addon:", "Unknown")
+		BrokerGarbage.auctionAddon = "Unknown/None"
 		auctionPrice = GetAuctionBuyout and GetAuctionBuyout(itemLink) or nil
 		disenchantPrice = DE and GetDisenchantValue and GetDisenchantValue(itemLink) or nil
 
@@ -515,7 +525,10 @@ end
 -- ---------------------------------------------------------
 -- scans your inventory for possible junk items and updates LDB display
 function BrokerGarbage:ScanInventory()
-	BrokerGarbage.inventory = {}
+	--BrokerGarbage.inventory = {}
+	for i=1, #BrokerGarbage.inventory do
+		table.remove(BrokerGarbage.inventory, i)
+	end
 	BrokerGarbage.unopened = {}
 	local limitedItemsChecked = {}
 	
@@ -555,7 +568,6 @@ function BrokerGarbage:ScanInventory()
 							_, isExclude = BrokerGarbage.PT:ItemInSet(itemID, setName)
 						end
 						if isExclude then
-							BrokerGarbage:Debug("Found item in set:", setName, GetItemInfo(itemID))
 							break
 						end
 					end

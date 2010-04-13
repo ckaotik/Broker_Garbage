@@ -1,6 +1,6 @@
 _, BrokerGarbage = ...
 
-local debug = false
+local debug = true
 
 
 -- Addon Basics
@@ -88,10 +88,10 @@ end
 -- inserts some basic list settings
 function BrokerGarbage:CreateDefaultLists(global)
 	if global then
-		BG_GlobalDB.include[46106] = true											-- argentum lance
+		BG_GlobalDB.include[46069] = true											-- argentum lance
 		if not BG_GlobalDB.include[6265] then BG_GlobalDB.include[6265] = 20 end	-- soulshards
 		BG_GlobalDB.include["Consumable.Water.Conjured"] = true
-		BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible"] = true
+		BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible.Basic"] = true
 		BG_GlobalDB.forceVendorPrice["Consumable.Water.Basic"] = true
 	end
 	

@@ -37,12 +37,12 @@ for set, _ in pairs(BrokerGarbage.PT.sets) do
 end
 
 -- options panel / statistics
-BrokerGarbage.options = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
+BrokerGarbage.options = CreateFrame("Frame", "BrokerGarbageStatisticsFrame", InterfaceOptionsFramePanelContainer)
 BrokerGarbage.options.name = "Broker_Garbage"
 BrokerGarbage.options:Hide()
 
 -- default / main options
-BrokerGarbage.basicOptions = CreateFrame("Frame", "BrokerGarbageOptionsPositiveFrame", InterfaceOptionsFramePanelContainer)
+BrokerGarbage.basicOptions = CreateFrame("Frame", "BrokerGarbageOptionsFrame", InterfaceOptionsFramePanelContainer)
 BrokerGarbage.basicOptions.name = BrokerGarbage.locale.BasicOptionsTitle
 BrokerGarbage.basicOptions.parent = "Broker_Garbage"
 BrokerGarbage.basicOptions:Hide()
@@ -646,7 +646,7 @@ local function ShowOptions(frame)
 	default:SetText(BrokerGarbage.locale.defaultListsText)
 	default.tiptext = BrokerGarbage.locale.defaultListsTooltip
 	default:SetWidth(150)
-	default:RegisterForClicks("RightButtonUp")
+	default:RegisterForClicks("RightButtonUp", "LeftButtonUp")
 	default:SetScript("OnClick", function(self, button)
 		BrokerGarbage:CreateDefaultLists(button == "RightButton")
 	end)
@@ -1422,26 +1422,25 @@ local function ShowListOptions(frame)
 	BrokerGarbage.optionsLoaded = true
 end
 
+local index = #BrokerGarbage.optionsModules
+table.insert(BrokerGarbage.optionsModules, BrokerGarbage.options)
+BrokerGarbage.optionsModules[index+1].OnShow = ShowOptions
+table.insert(BrokerGarbage.optionsModules, BrokerGarbage.basicOptions)
+BrokerGarbage.optionsModules[index+2].OnShow = ShowOptions
+table.insert(BrokerGarbage.optionsModules, BrokerGarbage.listOptionsPositive)
+BrokerGarbage.optionsModules[index+3].OnShow = ShowListOptions
+table.insert(BrokerGarbage.optionsModules, BrokerGarbage.listOptionsNegative)
+BrokerGarbage.optionsModules[index+4].OnShow = ShowListOptions
+
 local firstLoad = true
 function BrokerGarbage:OptionsFirstLoad()
 	if not firstLoad then return end
 	
-	InterfaceOptions_AddCategory(BrokerGarbage.options)
-	InterfaceOptions_AddCategory(BrokerGarbage.basicOptions)
-	if BrokerGarbage.lootManagerOptions then
-		InterfaceOptions_AddCategory(BrokerGarbage.lootManagerOptions)
-	end
-	InterfaceOptions_AddCategory(BrokerGarbage.listOptionsPositive)
-	InterfaceOptions_AddCategory(BrokerGarbage.listOptionsNegative)
-	if BrokerGarbage.categoryTest then
-		InterfaceOptions_AddCategory(BrokerGarbage.categoryTest)
+	for i, options in pairs(BrokerGarbage.optionsModules) do
+		InterfaceOptions_AddCategory(options)
+		options:SetScript("OnShow", options.OnShow)
 	end
 	LibStub("tekKonfig-AboutPanel").new("Broker_Garbage", "Broker_Garbage")
-
-	BrokerGarbage.options:SetScript("OnShow", ShowOptions)
-	BrokerGarbage.basicOptions:SetScript("OnShow", ShowOptions)
-	BrokerGarbage.listOptionsPositive:SetScript("OnShow", ShowListOptions)
-	BrokerGarbage.listOptionsNegative:SetScript("OnShow", ShowListOptions)
 	
 	firstLoad = false
 end

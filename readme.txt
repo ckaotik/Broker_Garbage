@@ -1,7 +1,7 @@
 Broker_Garbage
 ==============
 Author: ckaotik
-Version: 3.3v23
+Version: 3.3v24
 WoW Version: 3.3.3 (TOC 30300)
 
 WoWInterface: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
@@ -15,7 +15,7 @@ As you probably don't want to drop everything just by it's vendor price, Broker_
 
 2. First Start
 -----------------
-Depending on your LDB display addon you may or may not already see the Broker_Garbage plugin on it. If you don't, please check if you need to enable it in oder to be displayed (e.g. for DockingStation). It will be listed as "Garbage".
+Depending on your LDB display addon you may or may not already see the Broker_Garbage plugin on it. If you don't, please check if you need to enable it in oder to be displayed (e.g. for DockingStation). It will be listed as either "Garbage" or "Broker_Garbage".
 If you still can't find it, have a look at your options panel (ESC - Interface - Addon Tab - look for Broker_Garbage). Should you not find it there it might be because it caused an error (you can turn on Lua error messages in the Interface menu).
 
 If you get past that point (and really, you should) it's about time to set up your lists. For more information on lists, have at look at 5. List Management.
