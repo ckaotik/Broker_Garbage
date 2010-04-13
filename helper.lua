@@ -1,6 +1,6 @@
 _, BrokerGarbage = ...
 
-local debug = true
+local debug = false
 
 
 -- Addon Basics
