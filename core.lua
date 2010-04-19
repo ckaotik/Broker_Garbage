@@ -1,6 +1,6 @@
 ﻿-- Broker_Garbage
 --   Author: ckaotik
---   License: You may use this code - or parts of it - freely as long as you give proper credit. Please do not upload this addon on any kind of addon distribution website. If you got it somewhere else than Curse.com or Wowinterface.com, please send me a message/write a comment on either of those two sites.
+--   Redistribute: You may use this code - or parts of it - freely as long as you give proper credit. Please do not upload this addon on any kind of addon distribution website.
 --   Disclaimer: I provide no warranty whatsoever for what this addon does or doesn't do, even though I try my best to keep it working ;)
 _, BrokerGarbage = ...
 
@@ -19,23 +19,31 @@ local LDB = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Broker_Garbag
 
 LDB.OnClick = function(...) BrokerGarbage:OnClick(...) end
 LDB.OnEnter = function(...) BrokerGarbage:Tooltip(...) end
-LDB.OnMouseWheel = function(...) BrokerGarbage:OnScroll(...) end
 
 -- internal locals
 local locked = false
 local sellValue = 0		-- represents the actual value that we sold stuff for, opposed to BrokerGarbage.toSellValue which shows the maximum we could sell - imagine someone closing the merchant window. sellValue will then hold the real value we're interested in
 local cost = 0
+
 local lastReminder = time()
 
-BrokerGarbage.inventory = {}
-BrokerGarbage.tt = nil
 BrokerGarbage.isAtVendor = false
 BrokerGarbage.optionsModules = {}
 
 -- Event Handler
 -- ---------------------------------------------------------
 local function eventHandler(self, event, ...)
-	if event == "MERCHANT_SHOW" then
+	if event == "ADDON_LOADED" then
+		if arg1 == "Broker_Garbage" then
+			BrokerGarbage:CheckSettings()
+		end
+		
+	elseif event == "BAG_UPDATE" then
+		if not locked then
+			BrokerGarbage:ScanInventory()
+		end
+		
+	elseif event == "MERCHANT_SHOW" then
 		local disable = BrokerGarbage.disableKey[BG_GlobalDB.disableKey]
 		if not (disable and disable()) then
 			BrokerGarbage:AutoRepair()
@@ -43,6 +51,15 @@ local function eventHandler(self, event, ...)
 		end
 		BrokerGarbage.isAtVendor = true
 		
+	elseif locked and event == "MERCHANT_CLOSED" then
+		-- fallback unlock
+		cost = 0
+		sellValue = 0
+		BrokerGarbage.toSellValue = 0
+		BrokerGarbage.isAtVendor = false
+		locked = false
+		BrokerGarbage:Debug("lock released")
+	
 	elseif (locked or cost ~=0) and event == "PLAYER_MONEY" then
 		-- regular unlock
 		
@@ -75,43 +92,18 @@ local function eventHandler(self, event, ...)
 		cost = 0
 		locked = false
 		BrokerGarbage:Debug("lock released")
-		
-		BrokerGarbage:ScanInventory()
-		
-	elseif locked and event == "MERCHANT_CLOSED" then
-		-- fallback unlock
-		cost = 0
-		sellValue = 0
-		BrokerGarbage.toSellValue = 0
-		BrokerGarbage.isAtVendor = false
-		locked = false
-		BrokerGarbage:Debug("lock released")
-		
-		BrokerGarbage:ScanInventory()
-		
-	elseif event == "PLAYER_LOGIN" then
-		BrokerGarbage:CheckSettings()
-		
-		if not locked and loaded then
-			BrokerGarbage:ScanInventory()
-		end
-		
-	elseif event == "BAG_UPDATE" then
-		if not locked and loaded then
-			BrokerGarbage:ScanInventory()
-		end
-		
+	
 	end	
 end
 
 -- register events
 local frame = CreateFrame("frame")
 
+frame:RegisterEvent("ADDON_LOADED")
+frame:RegisterEvent("BAG_UPDATE")
 frame:RegisterEvent("MERCHANT_SHOW")
 frame:RegisterEvent("MERCHANT_CLOSED")
 frame:RegisterEvent("PLAYER_MONEY")
-frame:RegisterEvent("PLAYER_LOGIN")
-frame:RegisterEvent("BAG_UPDATE")
 
 frame:SetScript("OnEvent", eventHandler)
 
@@ -178,7 +170,6 @@ function BrokerGarbage:UpdateRepairButton(...)
 	end
 end
 hooksecurefunc("MerchantFrame_UpdateRepairButtons", BrokerGarbage.UpdateRepairButton)
-loaded = true
 
 -- Tooltip
 -- ---------------------------------------------------------
@@ -246,22 +237,6 @@ function BrokerGarbage:Tooltip(self)
 	BrokerGarbage.tt:UpdateScrolling(BG_GlobalDB.tooltipMaxHeight)
 end
 
---[[function BrokerGarbage:HideTT()
-	if BrokerGarbage.tt and BrokerGarbage.tt:IsMouseOver() then 
-		return 
-	end
-	BrokerGarbage.tt:Hide()
-	
-	-- Release the tooltip
-	LibQTip:Release(BrokerGarbage.tt)
-	BrokerGarbage.tt = nil
-end]]--
-
-function BrokerGarbage:OnScroll(self, direction)
-	BrokerGarbage:Debug("Scroll!", direction)
-	--BG_GlobalDB.dropQuality
-end
-
 -- onClick function for when you ... click. works for both, the LDB plugin -and- tooltip lines
 function BrokerGarbage:OnClick(itemTable, button)	
 	-- handle LDB clicks seperately
@@ -269,7 +244,6 @@ function BrokerGarbage:OnClick(itemTable, button)
 		BrokerGarbage:Debug("No valid itemTable for OnClick")
 		itemTable = BrokerGarbage.cheapestItem
 	end
-	BrokerGarbage:Debug("ItemTable", itemTable.itemID, itemTable.value, itemTable.count, itemTable.bag, itemTable.slot)
 	
 	-- handle different clicks
 	if itemTable and IsShiftKeyDown() then
@@ -525,10 +499,7 @@ end
 -- ---------------------------------------------------------
 -- scans your inventory for possible junk items and updates LDB display
 function BrokerGarbage:ScanInventory()
-	--BrokerGarbage.inventory = {}
-	for i=1, #BrokerGarbage.inventory do
-		table.remove(BrokerGarbage.inventory, i)
-	end
+	BrokerGarbage.inventory = {}
 	BrokerGarbage.unopened = {}
 	local limitedItemsChecked = {}
 	
@@ -846,7 +817,7 @@ function BrokerGarbage:AutoSell()
 			-- shorten our literals
 			local excludeByID = BG_GlobalDB.exclude[itemTable.itemID] or BG_LocalDB.exclude[itemTable.itemID]
 			local autoSellByID = BG_GlobalDB.autoSellList[itemTable.itemID] or BG_LocalDB.autoSellList[itemTable.itemID]
-				
+			
 			-- do the priorities right!
 			if itemTable.value ~= 0 and not excludeByID and (autoSellByID 
 				or (not excludeByString and (sellByString or itemTable.quality == 0 or sellGear))) then
@@ -884,18 +855,19 @@ end
 function BrokerGarbage:AutoRepair()
 	if BG_GlobalDB.autoRepairAtVendor and CanMerchantRepair() then
 		cost = GetRepairAllCost()
+		local money = GetMoney()
 		
-		if cost > 0 and GetGuildBankWithdrawMoney() >= cost and not BG_LocalDB.neverRepairGuildBank then
-			RepairAllItems(CanGuildBankRepair())
-		elseif cost > 0 then
+		if cost > 0 and CanGuildBankRepair() and GetGuildBankWithdrawMoney() >= cost and not BG_LocalDB.neverRepairGuildBank then
+			-- guild repair if we're allowed to and the user wants it
+			RepairAllItems(1)
+		elseif cost > 0 and money >= cost then
+			-- not enough allowance to guild bank repair, pay ourselves
 			RepairAllItems(0)
+		elseif cost > 0 then
+			-- oops. give us your moneys!
+			BrokerGarbage:Print(format(BrokerGarbage.locale.couldNotRepair, BrokerGarbage:FormatMoney(cost)))
 		end
 	else
 		cost = 0
 	end
 end
-
--- Wishlist
--- ---------------------------------------------------------
--- increase/decrease loot treshold with mousewheel on LDB
--- ignore special bags

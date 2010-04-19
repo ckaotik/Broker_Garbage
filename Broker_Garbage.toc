@@ -1,6 +1,6 @@
 ﻿## Interface: 30300
 ## Dependencies: 
-## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auctioneer
+## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auc-Advanced, Enchantrix, WOWEcon_PriceMod
 ## SavedVariables: BG_GlobalDB
 ## SavedVariablesPerCharacter: BG_LocalDB
 
@@ -8,10 +8,14 @@
 ## Notes: Full bags no more! Find your least valuable item .. and destroy it!
 ## Notes-deDE: Endlich wieder Platz! Finde dein billigstes Item ... und zerstöre es.
 ## Author: ckaotik
-## Version: 3.3v24
+## Version: 3.3v25
+## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
+## X-RelSite-WoWI: 15531
 ## X-Embeds: LibPeriodicTable-3.1
 ## X-Category: Inventory
+## X-Localizations: enUS, deDE. Works in any language. You can help!
 ## X-Credits: GarbageFu(Jaerin/wmrojer), tekKonfig(Tekkub)
+## X-License: GNU GPLv2
 
 # libraries
 Libs\LibStub.lua

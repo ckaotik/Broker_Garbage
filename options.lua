@@ -1,6 +1,6 @@
 ﻿_, BrokerGarbage = ...
 
-BrokerGarbage:CheckSettings()
+-- BrokerGarbage:CheckSettings()
 
 -- create drop down menu table for PT sets	
 local interestingPTSets = {"Consumable", "Misc", "Tradeskill"}
@@ -115,9 +115,20 @@ local function ShowOptions(frame)
 	muaction:SetScript("OnEnter", ShowTooltip)
 	muaction:SetScript("OnLeave", HideTooltip)
 	
+	local auctionaddon = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	auctionaddon:SetWidth(150)
+	auctionaddon:SetPoint("TOPLEFT", memoryusage, "BOTTOMLEFT", 0, -6)
+	auctionaddon:SetJustifyH("RIGHT")
+	auctionaddon:SetText(BrokerGarbage.locale.AuctionAddon)
+	local aatext = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	aatext:SetWidth(120)
+	aatext:SetPoint("LEFT", auctionaddon, "RIGHT", 4, 0)
+	aatext:SetJustifyH("LEFT")
+	aatext:SetText(BrokerGarbage.auctionAddon)
+	
 	-- ----------------------------------------------------------------------------
 	local globalmoneyinfo = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	globalmoneyinfo:SetPoint("TOPLEFT", memoryusage, "BOTTOMLEFT", 0, -12)
+	globalmoneyinfo:SetPoint("TOPLEFT", auctionaddon, "BOTTOMLEFT", 0, -12)
 	globalmoneyinfo:SetPoint("RIGHT", BrokerGarbage.options, -32, 0)
 	globalmoneyinfo:SetNonSpaceWrap(true)
 	globalmoneyinfo:SetJustifyH("LEFT")
@@ -1464,14 +1475,10 @@ function SlashCmdList.BROKERGARBAGE(msg, editbox)
 		if strlower(rest) ~= "reset" then
 			BG_GlobalDB.LDBformat = rest
 		else
-			BG_GlobalDB.LDBformat = "%1$sx%2$d (%3$s)"
+			BG_GlobalDB.LDBformat = BrokerGarbage.defaultGlobalSettings.LDBformat
 		end
 		BrokerGarbage:ScanInventory()
-	elseif command == "trash" or command == "stats" or command == "total" then
-		BrokerGarbage:Print(format(BrokerGarbage.locale.statistics, 
-			BrokerGarbage:FormatMoney(BG_GlobalDB.moneyEarned), 
-			BrokerGarbage:FormatMoney(BG_GlobalDB.moneyLostByDeleting)))
-		
+	
 	elseif command == "options" or command == "config" or command == "option" or command == "menu" then
 		BrokerGarbage:OptionsFirstLoad()
 		InterfaceOptionsFrame_OpenToCategory(BrokerGarbage.options)

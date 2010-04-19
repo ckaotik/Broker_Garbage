@@ -231,4 +231,6 @@ local function ShowOptions()
 	BrokerGarbage.categoryTest:SetScript("OnShow", BrokerGarbage.UpdatePreviewBox)
 end
 
-BrokerGarbage.categoryTest:SetScript("OnShow", ShowOptions)
+--BrokerGarbage.categoryTest:SetScript("OnShow", ShowOptions)
+table.insert(BrokerGarbage.optionsModules, BrokerGarbage.categoryTest)
+BrokerGarbage.optionsModules[#BrokerGarbage.optionsModules].OnShow = ShowOptions

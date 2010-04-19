@@ -17,17 +17,14 @@ BrokerGarbage.locale = {
 	addedToSellList = "%s will be automatically sold when at a merchant.",
 	limitSet = "%s has been assigned a limit of %d.",
 	itemDeleted = "%1$sx%2$d has been deleted.",
+	couldNotRepair = "Could not repair because you don't have enough money. You need %s.",
 	
 	slashCommandHelp = "The following commands are available: |cffc0c0c0/garbage|r\n"..
 		"|cffc0c0c0config|r opens the options panel.\n"..
 		"|cffc0c0c0format |cffc0c0ffformatstring|r lets you customize the LDB display text, |cffc0c0c0 format reset|r resets it.\n"..
-		"|cffc0c0c0stats|r returns some statistics.\n"..
 		"|cffc0c0c0limit |cffc0c0ffitemLink/ID count|r sets a limit for the given item on the current character.\n"..
 		"|cffc0c0c0globallimit |cffc0c0ffitemLink/ID count|r sets a limit for all characters.\n"..
 		"|cffc0c0c0value |cffc0c0ffvalueInCopper|r sets the minimum value for items to be looted (Loot Manager needed).",
-	statistics = "Statistics:\n"..
-		"Total earnings (all characters): %1$s\n"..
-		"Total losses (all characters): %2$s",
 	minValueSet = "Items with a value less than %s will not be looted anymore.",
 	
 	-- Tooltip
@@ -74,6 +71,8 @@ BrokerGarbage.locale = {
 	ResetGlobalDataTooltip = "Click here to reset alls global statistics.",
 	ResetLocalDataText = "Reset Local Statistics",
 	ResetLocalDataTooltip = "Click here to reset all local statistics.",
+	
+	AuctionAddon = "Auction addon",
 	
 	-- Basic Options Frame
 	BasicOptionsTitle = "Basic Options",
@@ -200,4 +199,3 @@ BrokerGarbage.locale = {
 	PTCategoryTestDropdownTitle = "Category to check",
 	PTCategoryTestDropdownText = "Choose a category string",
 }
-

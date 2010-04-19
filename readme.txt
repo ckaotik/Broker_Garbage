@@ -1,7 +1,7 @@
 Broker_Garbage
 ==============
 Author: ckaotik
-Version: 3.3v24
+Version: 3.3v25
 WoW Version: 3.3.3 (TOC 30300)
 
 WoWInterface: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
@@ -82,7 +82,7 @@ Why these categories are only in English? There's a simple answer to that: Becau
 
 8. How to adjust the LDB display text
 -----------------
-In 3.3v15 I added the possibility to adjust the LDB display text to your liking. To do so, simply change the text on the Basic Options panel or type "/garbage format 'formatstring'" where formatstring is your desired output format (withouth quotation marks). The LDB display format supports several parameters:
+In 3.3v15 I added the possibility to adjust the LDB display text to your liking. To do so, simply change the text on the Basic Options panel or type "/garbage format 'formatstring'" where formatstring is your desired output format (without quotation marks). The LDB display format supports several parameters:
 
 	[itemname]		item link
 	[itemcount]		item count
@@ -114,6 +114,8 @@ For more information on the Loot Manager, see its own readme.txt .
 
 Items on your Include List (see it as a Blacklist) will never be looted, while Broker_Garbage will always try its best to loot those items that are on your Exclude List (works as a Whitelist).
 
+For more information on the Loot Manager, have a look at its own readme.txt!
+
 10. Slash Commands
 -----------------
 Broker_Garbage supports a hand full of slash commands. These are /garbage or short, /garb. Parameters supported:
@@ -121,9 +123,6 @@ Broker_Garbage supports a hand full of slash commands. These are /garbage or sho
 	/garb format <formatstring>
 See information on this one above, in part 7.
 	
-	/garb stats -or- /garb total -or- /garbage trash
-Prints very simplified statistics to the chat frame. Further statistics/details can be found in the options menu.
-
 	/garb option -or- /garb options -or- /garb menu -or- /garb config
 All of these just open up the config window ;)
 
