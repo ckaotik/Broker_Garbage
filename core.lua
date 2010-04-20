@@ -59,6 +59,7 @@ local function eventHandler(self, event, ...)
 		BrokerGarbage.isAtVendor = false
 		locked = false
 		BrokerGarbage:Debug("lock released")
+BrokerGarbage:ScanInventory()
 	
 	elseif (locked or cost ~=0) and event == "PLAYER_MONEY" then
 		-- regular unlock
