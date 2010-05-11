@@ -14,6 +14,7 @@ BrokerGarbage.defaultGlobalSettings = {
 	disableKey = "SHIFT",
 	sellNotWearable = false,
 	sellNWQualityTreshold = 4,
+	autoSellIncludeItems = false,
 	
 	-- default values
 	tooltipMaxHeight = 220,

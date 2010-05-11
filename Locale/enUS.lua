@@ -73,6 +73,7 @@ BrokerGarbage.locale = {
 	ResetLocalDataTooltip = "Click here to reset all local statistics.",
 	
 	AuctionAddon = "Auction addon",
+	AuctionAddonUnknown = "Unknown/None",
 	
 	-- Basic Options Frame
 	BasicOptionsTitle = "Basic Options",
@@ -182,6 +183,9 @@ BrokerGarbage.locale = {
 	LONIncludePromoteTT = "Selected items will be written onto your global Include List, as seen by every character.",
 	LONIncludeEmptyTT = "|cffff0000Caution! Click to empty your local Include List.\n"..
 		"SHIFT-Click to empty your global Include List.",
+		
+	LONIncludeAutoSellText = "Automatically sell include list items",
+	LONIncludeAutoSellTooltip = "Check this to sell items on your include list when at a merchant; using the AutoSell list has no effect then.\nItems without a value will be ignored.",
 	
 		-- Auto Sell List
 	LONAutoSellHeader = "Sell List - These items will be sold automatically when at a vendor.",

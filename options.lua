@@ -517,6 +517,7 @@ local function ShowOptions(frame)
 	local enchanter = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.enchanterTitle, "LEFT", sellNotUsable, "LEFT", 200, 0)
 	enchanter.tiptext = BrokerGarbage.locale.enchanterTooltip
 	enchanter:SetChecked(BG_GlobalDB.hasEnchanter)
+	local checksound = enchanter:GetScript("OnClick")
 	enchanter:SetScript("OnClick", function(enchanter)
 		checksound(enchanter)
 		BG_GlobalDB.hasEnchanter = not BG_GlobalDB.hasEnchanter
@@ -838,9 +839,18 @@ local function ShowListOptions(frame)
 	emptyIncludeList.tiptext = BrokerGarbage.locale.LONIncludeEmptyTT
 	
 	-- list frame: auto sell
+	local autoSellIncludeItems = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.listOptionsNegative, nil, BrokerGarbage.locale.LONIncludeAutoSellText, "TOPLEFT", includeBox, "BOTTOMLEFT", 0, 6)
+	autoSellIncludeItems.tiptext = BrokerGarbage.locale.LONIncludeAutoSellTooltip
+	autoSellIncludeItems:SetChecked(BG_GlobalDB.autoSellIncludeItems)
+	local checksound = autoSellIncludeItems:GetScript("OnClick")
+	autoSellIncludeItems:SetScript("OnClick", function(autoSellIncludeItems)
+		checksound(autoSellIncludeItems)
+		BG_GlobalDB.autoSellIncludeItems = not BG_GlobalDB.autoSellIncludeItems
+	end)
+	
 	local autosellListHeader = BrokerGarbage.listOptionsNegative:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	autosellListHeader:SetHeight(32)
-	autosellListHeader:SetPoint("TOPLEFT", includeBox, "BOTTOMLEFT", 0, -8)
+	autosellListHeader:SetPoint("TOPLEFT", autoSellIncludeItems, "BOTTOMLEFT", 0, 12)
 	autosellListHeader:SetText(BrokerGarbage.locale.LONAutoSellHeader)
 	
 	local autosellBox = CreateFrame("ScrollFrame", "BG_AutosellListBox", BrokerGarbage.listOptionsNegative, "UIPanelScrollFrameTemplate")

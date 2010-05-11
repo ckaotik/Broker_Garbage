@@ -2,7 +2,6 @@
 _, BrokerGarbage = ...
 
 if GetLocale() == "deDE" then
-
 	BrokerGarbage.locale.label = "Kein Müll"
 	
 	-- Chat Messages
@@ -72,6 +71,7 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.ResetLocalDataTooltip = "Klicke um alle charakterspezifischen Statistiken zurückzusetzen."
 	
 	BrokerGarbage.locale.AuctionAddon = "Auktionsaddon"
+	BrokerGarbage.locale.AuctionAddonUnknown = "Unbekannt/Keins"
 	
 	-- Basic Options Frame
 	BrokerGarbage.locale.BasicOptionsTitle = "Grundeinstellungen"
@@ -175,12 +175,15 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.LONSubTitle = "Analog zu den Positiv-Listen. Um eine maximale Anzahl für ein bestimmtes Item festzulegen, nutze das Mausrad über dem Item-Icon."
 	
 		-- Include List
-	BrokerGarbage.locale.LONIncludeHeader = "Einschlussliste - Items werden zuerst angezeigt und vom LM nicht geplündert."
+	BrokerGarbage.locale.LONIncludeHeader = "Einschlussliste - Items werden zuerst angezeigt und vom LM ignoriert."
 	BrokerGarbage.locale.LONIncludePlusTT = "Items hinzufügen, indem du sie hierher ziehst/hier ablegst. Rechtsklick, um Kategorien hinzuzufügen!"
 	BrokerGarbage.locale.LONIncludeMinusTT = "Wähle Items, die du entfernen willst. Dann klicke hier."
 	BrokerGarbage.locale.LONIncludePromoteTT = "Klicke, um alle markierten Items in die globale Einschlussliste zu übernehmen."
 	BrokerGarbage.locale.LONIncludeEmptyTT = "|cffff0000Achtung! Klicke, um die lokale Einschlussliste zu leeren.\n"..
 		"Shift-Klicke, um die globale Einschlussliste zu leeren"
+	
+	BrokerGarbage.locale.LONIncludeAutoSellText = "Automatisch Items der Einschlussliste verkaufen"
+	BrokerGarbage.locale.LONIncludeAutoSellTooltip = "Aktivieren, um Items von deiner Einschlussliste beim Händler zu verkaufen; wenn aktiv hat die Verkaufsliste keinerlei Einfluss.\nItems ohne Wert werden ignoriert."
 	
 		-- Auto Sell List
 	BrokerGarbage.locale.LONAutoSellHeader = "Verkaufsliste - Items hier werden bei Händlern automatisch verkauft."

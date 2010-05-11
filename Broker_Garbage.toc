@@ -8,7 +8,7 @@
 ## Notes: Full bags no more! Find your least valuable item .. and destroy it!
 ## Notes-deDE: Endlich wieder Platz! Finde dein billigstes Item ... und zerstöre es.
 ## Author: ckaotik
-## Version: 3.3v25
+## Version: 3.3v27
 ## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 ## X-RelSite-WoWI: 15531
 ## X-Embeds: LibPeriodicTable-3.1
@@ -19,9 +19,9 @@
 
 # libraries
 Libs\LibStub.lua
-Libs\LibQTip-1.0.lua
 Libs\CallbackHandler-1.0.lua
 Libs\LibDataBroker-1.1.lua
+Libs\LibQTip-1.0.lua
 Libs\tekKonfig\tekKonfig.xml
 Libs\LibPeriodicTable-3.1\LibPeriodicTable-3.1.lua
 Libs\LibPeriodicTable-3.1-Consumable\LibPeriodicTable-3.1-Consumable.lua

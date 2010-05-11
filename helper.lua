@@ -55,6 +55,10 @@ function BrokerGarbage:Count(table)
   return i
 end
 
+function BrokerGarbage:ErrorReport()
+	-- TODO
+end
+
 -- Saved Variables Management / API
 -- ---------------------------------------------------------
 function BrokerGarbage:CheckSettings()
@@ -141,7 +145,7 @@ end
 -- returns an item's itemID
 function BrokerGarbage:GetItemID(itemLink)
 	if not itemLink then return end
-	local itemID = string.gsub(itemLink, ".*|Hitem:([0-9]*):.*", "%1")
+	local itemID = string.gsub(itemLink, ".-Hitem:([0-9]*):.*", "%1")
 	return tonumber(itemID)
 end
 

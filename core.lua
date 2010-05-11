@@ -6,19 +6,21 @@ _, BrokerGarbage = ...
 
 -- Libraries & setting up the LDB
 -- ---------------------------------------------------------
-local LibQTip = LibStub("LibQTip-1.0")
 BrokerGarbage.PT = LibStub("LibPeriodicTable-3.1")
 
 -- notation mix-up for Broker2FuBar to work
-local LDB = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
+local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
 	type	= "data source", 
 	icon	= "Interface\\Icons\\achievement_bg_returnxflags_def_wsg",
 	label	= "Garbage",
-	text 	= BrokerGarbage.locale.label,		-- this is a placeholder until the first scan
+	text 	= "Text",		-- this is a placeholder until the first scan BrokerGarbage.locale.label
+	
+	OnClick = function(...) BrokerGarbage:OnClick(...) end,
+	OnEnter = function(...) BrokerGarbage:Tooltip(...) end,
 })
 
-LDB.OnClick = function(...) BrokerGarbage:OnClick(...) end
-LDB.OnEnter = function(...) BrokerGarbage:Tooltip(...) end
+--LDB.OnClick = function(...) BrokerGarbage:OnClick(...) end
+--LDB.OnEnter = function(...) BrokerGarbage:Tooltip(...) end
 
 -- internal locals
 local locked = false
@@ -59,6 +61,8 @@ local function eventHandler(self, event, ...)
 		BrokerGarbage.isAtVendor = false
 		locked = false
 		BrokerGarbage:Debug("lock released")
+		
+		BrokerGarbage:ScanInventory()
 	
 	elseif (locked or cost ~=0) and event == "PLAYER_MONEY" then
 		-- regular unlock
@@ -92,6 +96,8 @@ local function eventHandler(self, event, ...)
 		cost = 0
 		locked = false
 		BrokerGarbage:Debug("lock released")
+		
+		BrokerGarbage:ScanInventory()
 	
 	end	
 end
@@ -175,9 +181,9 @@ hooksecurefunc("MerchantFrame_UpdateRepairButtons", BrokerGarbage.UpdateRepairBu
 -- ---------------------------------------------------------
 function BrokerGarbage:Tooltip(self)
 	if BG_GlobalDB.showSource then
-		BrokerGarbage.tt = LibQTip:Acquire("BrokerGarbage_TT", 4, "LEFT", "RIGHT", "RIGHT", "CENTER")
+		BrokerGarbage.tt = LibStub("LibQTip-1.0"):Acquire("BrokerGarbage_TT", 4, "LEFT", "RIGHT", "RIGHT", "CENTER")
 	else
-		BrokerGarbage.tt = LibQTip:Acquire("BrokerGarbage_TT", 3, "LEFT", "RIGHT", "RIGHT")
+		BrokerGarbage.tt = LibStub("LibQTip-1.0"):Acquire("BrokerGarbage_TT", 3, "LEFT", "RIGHT", "RIGHT")
 	end
 	BrokerGarbage.tt:Clear()
    
@@ -241,7 +247,7 @@ end
 function BrokerGarbage:OnClick(itemTable, button)	
 	-- handle LDB clicks seperately
 	if not itemTable.itemID or type(itemTable.itemID) ~= "number" then
-		BrokerGarbage:Debug("No valid itemTable for OnClick")
+		BrokerGarbage:Debug("No itemTable for OnClick, using cheapest item")
 		itemTable = BrokerGarbage.cheapestItem
 	end
 	
@@ -500,6 +506,7 @@ end
 -- scans your inventory for possible junk items and updates LDB display
 function BrokerGarbage:ScanInventory()
 	BrokerGarbage.inventory = {}
+	BrokerGarbage.sellGear = {}
 	BrokerGarbage.unopened = {}
 	local limitedItemsChecked = {}
 	
@@ -655,8 +662,7 @@ function BrokerGarbage:ScanInventory()
 							if value then value = value * count end
 							source = BrokerGarbage.tagVendorList
 							
-						elseif quality and quality <= BG_GlobalDB.dropQuality 
-							and not IsUsableSpell(BrokerGarbage.enchanting)	and BrokerGarbage:IsItemSoulbound(itemLink)
+						elseif not IsUsableSpell(BrokerGarbage.enchanting)	and BrokerGarbage:IsItemSoulbound(itemLink)
 							and BG_GlobalDB.sellNotWearable and quality <= BG_GlobalDB.sellNWQualityTreshold 
 							and string.find(invType, "INVTYPE") and not string.find(invType, "BAG") 
 							and not BrokerGarbage.usableByClass[BrokerGarbage.playerClass][subClass]
@@ -667,7 +673,7 @@ function BrokerGarbage:ScanInventory()
 							
 							value = vendorPrice
 							source = BrokerGarbage.tagUnusableGear
-							
+						
 						elseif isExclude or (quality and quality > BG_GlobalDB.dropQuality) or not quality then
 							-- setting the value to nil will prevent the item being inserted to our inventory table
 							value = nil
@@ -683,8 +689,10 @@ function BrokerGarbage:ScanInventory()
 							end
 							
 							-- insert into BrokerGarbage.inventory
-							if (quality and quality <= BG_GlobalDB.dropQuality) or isSell or isInclude or isVendor then
-								local currentItem = {
+							if (quality and quality <= BG_GlobalDB.dropQuality) 
+								or (isSell and not source == BrokerGarbage.tagUnusableGear) or isInclude or isVendor then
+								
+								tinsert(BrokerGarbage.inventory, {
 									bag = container,
 									slot = slot,
 									itemID = itemID,
@@ -693,9 +701,19 @@ function BrokerGarbage:ScanInventory()
 									value = value,
 									source = source,
 									force = force,
-								}
-								
-								tinsert(BrokerGarbage.inventory, currentItem)
+								})
+							
+							elseif quality > BG_GlobalDB.dropQuality and source == BrokerGarbage.tagUnusableGear then
+								tinsert(BrokerGarbage.sellGear, {
+									bag = container,
+									slot = slot,
+									itemID = itemID,
+									quality = quality,
+									count = count,
+									value = value,
+									source = source,
+									force = force,
+								})
 							end
 						end
 					end
@@ -784,27 +802,43 @@ function BrokerGarbage:AutoSell()
 		local i = 1
 		local skip
 		sellValue = 0
-		for _, itemTable in pairs(BrokerGarbage.inventory) do
-			local sellByString = false
-			local excludeByString = false
+		for _, itemTable in pairs(BrokerGarbage:JoinTables(BrokerGarbage.inventory, BrokerGarbage.sellGear)) do
+			local sellByString, excludeByString = false, false
+			local temp, checkTable
 			
+			-- check if item should be saved: exclude/whitelist
 			for setName,_ in pairs(BrokerGarbage:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)) do
 				if type(setName) == "string" then
-					_, sellByString = BrokerGarbage.PT:ItemInSet(itemTable.itemID, setName)
+					_, temp = BrokerGarbage.PT:ItemInSet(itemTable.itemID, setName)
 				end
-				-- item is on save list, skip
-				if sellByString then
-					BrokerGarbage:Debug(itemTable.itemID,"in set", sellByString, "on exclude list")
+				if temp then
+					BrokerGarbage:Debug(itemTable.itemID, "is in set", temp, "on exclude list")
 					excludeByString = true
 					break
 				end
 			end
-			for setName,_ in pairs(BrokerGarbage:JoinTables(BG_LocalDB.autoSellList, BG_GlobalDB.autoSellList)) do
+			
+			temp = nil
+			-- check if item should be sold: auto sell list
+			if BG_GlobalDB.autoSellIncludeItems then
+				checkTable = BrokerGarbage:JoinTables(BG_LocalDB.include, BG_GlobalDB.include)
+			else
+				checkTable = BrokerGarbage:JoinTables(BG_LocalDB.autoSellList, BG_GlobalDB.autoSellList)
+			end
+			for setName,_ in pairs(checkTable) do
 				if type(setName) == "string" then
-					_, sellByString = BrokerGarbage.PT:ItemInSet(itemTable.itemID, setName)
+					_, temp = BrokerGarbage.PT:ItemInSet(itemTable.itemID, setName)
+				end
+				if temp then
+					-- this only prints the first match
+					BrokerGarbage:Debug(itemTable.itemID, "is in set", temp, "on auto sell list")
+					sellByString = true
+					break
 				end
 			end
 			
+			
+			-- ==== Sell Gear ==== --
 			-- check if this item is equippable for us
 			local _, itemLink, quality, _, _, _, subClass, _, invType = GetItemInfo(itemTable.itemID)
 			local sellGear = quality 
@@ -814,16 +848,27 @@ function BrokerGarbage:AutoSell()
 				and not BrokerGarbage.usableByClass[BrokerGarbage.playerClass][subClass]
 				and not BrokerGarbage.usableByAll[invType]
 			
+			if sellGear then 
+				BrokerGarbage:Debug("Item should be sold (as we cannot wear it):" .. itemLink)
+			end
+			
 			-- shorten our literals
 			local excludeByID = BG_GlobalDB.exclude[itemTable.itemID] or BG_LocalDB.exclude[itemTable.itemID]
+			if excludeByID then
+				BrokerGarbage:Debug(itemTable.itemID, "is excluded via its itemID")
+			end
 			local autoSellByID = BG_GlobalDB.autoSellList[itemTable.itemID] or BG_LocalDB.autoSellList[itemTable.itemID]
+			if autoSellByID then
+				BrokerGarbage:Debug(itemTable.itemID, "is to be sold via its itemID")
+			end
 			
+			-- === Actuall Selling === ---
 			-- do the priorities right!
 			if itemTable.value ~= 0 and not excludeByID and (autoSellByID 
 				or (not excludeByString and (sellByString or itemTable.quality == 0 or sellGear))) then
 			
 				if i == 1 then					
-					BrokerGarbage:Debug("locked")
+					BrokerGarbage:Debug("Inventory scans locked")
 					locked = true
 				end
 				
@@ -839,7 +884,7 @@ function BrokerGarbage:AutoSell()
 		end
 		
 		if self == _G["BrokerGarbage_SellIcon"] then
-			BrokerGarbage:Debug("AutoSell on Sell Icon.", BrokerGarbage:FormatMoney(sellValue), BrokerGarbage:FormatMoney(sellValue))
+			BrokerGarbage:Debug("AutoSell was triggered by a click on Sell Icon.", BrokerGarbage:FormatMoney(sellValue), BrokerGarbage:FormatMoney(toSellValue))
 			
 			if sellValue == 0 and BG_GlobalDB.reportNothingToSell then
 				BrokerGarbage:Print(BrokerGarbage.locale.reportNothingToSell)

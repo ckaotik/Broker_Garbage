@@ -130,7 +130,6 @@ local function ShowOptions()
 	local function OnClick()
 		UIDropDownMenu_SetSelectedValue(categoryString, this.category)
 		category = this.category
-		BrokerGarbage.debug = this
 		categoryText:SetText(category)
 		BrokerGarbage:UpdatePreviewBox()
 	end
@@ -152,7 +151,6 @@ local function ShowOptions()
 				info.func = function()
 					category = key
 					UIDropDownMenu_SetSelectedValue(categoryString, category)
-					BrokerGarbage.debug = this
 					categoryText:SetText(category)
 					BrokerGarbage:UpdatePreviewBox()
 				end
@@ -188,7 +186,6 @@ local function ShowOptions()
 					info.func = function()
 						category = valueString
 						UIDropDownMenu_SetSelectedValue(categoryString, category)
-						BrokerGarbage.debug = this
 						categoryText:SetText(category)
 						BrokerGarbage:UpdatePreviewBox()
 					end
@@ -198,7 +195,6 @@ local function ShowOptions()
 					info.func = function()
 						category = valueString
 						UIDropDownMenu_SetSelectedValue(categoryString, category)
-						BrokerGarbage.debug = this
 						categoryText:SetText(category)
 						BrokerGarbage:UpdatePreviewBox()
 					end
