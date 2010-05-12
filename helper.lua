@@ -1,6 +1,6 @@
 _, BrokerGarbage = ...
 
-local debug = false		-- set this to 'true' to get your chatframe spammed :D
+local debug = true		-- set this to 'true' to get your chatframe spammed :D
 
 
 -- Addon Basics
@@ -32,7 +32,7 @@ function BrokerGarbage:Find(table, value)
 	return false
 end
 
--- joins any number of tables together, one after the other. elements within the input-tables will get mixed, though
+-- joins any number of non-basic index tables together, one after the other. elements within the input-tables will get mixed, though
 function BrokerGarbage:JoinTables(...)
 	local result = {}
 	local tab
@@ -42,6 +42,23 @@ function BrokerGarbage:JoinTables(...)
 		if tab then
 			for index, value in pairs(tab) do
 				result[index] = value
+			end
+		end
+	end
+	
+	return result
+end
+
+-- joins numerically indexed tables
+function BrokerGarbage:JoinSimpleTables(...)
+	local result = {}
+	local tab, i, j
+	
+	for i=1,select("#", ...) do
+		tab = select(i, ...)
+		if tab then
+			for _, value in pairs(tab) do
+				tinsert(result, value)
 			end
 		end
 	end

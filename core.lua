@@ -646,7 +646,7 @@ function BrokerGarbage:ScanInventory()
 							or BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID] then
 							-- AutoSell
 							isSell = true
-							force = true
+							force = false
 							
 							value = vendorPrice
 							if value then value = value * count end
@@ -656,7 +656,7 @@ function BrokerGarbage:ScanInventory()
 							((isVendor and not isExclude) or BG_GlobalDB.forceVendorPrice[itemID]) then
 							-- Force Vendor Price List item
 							isVendor = true
-							force = true
+							force = false
 							
 							value = vendorPrice
 							if value then value = value * count end
@@ -703,8 +703,9 @@ function BrokerGarbage:ScanInventory()
 									force = force,
 								})
 							
-							elseif quality > BG_GlobalDB.dropQuality and source == BrokerGarbage.tagUnusableGear then
-								tinsert(BrokerGarbage.sellGear, {
+							elseif quality > BG_GlobalDB.dropQuality and 
+								(source == BrokerGarbage.tagUnusableGear or source == BrokerGarbage.tagVendorList) then
+								tinsert(BrokerGarbage.sellItems, {
 									bag = container,
 									slot = slot,
 									itemID = itemID,
@@ -745,7 +746,10 @@ function BrokerGarbage:GetCheapest(number)
 		local skip = false
 		
 		for _, usedTable in pairs(cheapestItems) do
-			if usedTable == itemTable then skip = true end
+			if usedTable == itemTable then 
+				skip = true
+				break
+			end
 		end
 			
 		if not skip and itemTable.force then
@@ -753,7 +757,12 @@ function BrokerGarbage:GetCheapest(number)
 		end
 	end
 	table.sort(temp, function(a, b)
-		return a.value < b.value
+		-- put included items even prior to forced vendor price items
+		if (a.source == b.source) or (a.source ~= BrokerGarbage.tagInclude and b.source ~= BrokerGarbage.tagInclude) then
+			return a.value < b.value
+		else 
+			return a.source == BrokerGarbage.tagInclude
+		end
 	end)
 	
 	if #temp <= number then
@@ -799,10 +808,13 @@ end
 -- when at a merchant this will clear your bags of junk (gray quality) and items on your autoSellList
 function BrokerGarbage:AutoSell()
 	if BG_GlobalDB.autoSellToVendor or self == _G["BrokerGarbage_SellIcon"] then
+		if self == _G["BrokerGarbage_SellIcon"] then
+			BrokerGarbage:Debug("AutoSell was triggered by a click on Sell Icon.", BrokerGarbage:FormatMoney(sellValue), BrokerGarbage:FormatMoney(BrokerGarbage.toSellValue))
+		end
 		local i = 1
 		local skip
 		sellValue = 0
-		for _, itemTable in pairs(BrokerGarbage:JoinTables(BrokerGarbage.inventory, BrokerGarbage.sellGear)) do
+		for _, itemTable in pairs(BrokerGarbage:JoinSimpleTables(BrokerGarbage.inventory, BrokerGarbage.sellItems)) do
 			local sellByString, excludeByString = false, false
 			local temp, checkTable
 			
@@ -872,6 +884,7 @@ function BrokerGarbage:AutoSell()
 					locked = true
 				end
 				
+				BrokerGarbage:Debug("Selling", itemTable.itemID)
 				sellValue = sellValue + itemTable.value
 				BG_GlobalDB.moneyEarned = BG_GlobalDB.moneyEarned + itemTable.value
 				BG_LocalDB.moneyEarned = BG_LocalDB.moneyEarned + itemTable.value
@@ -884,8 +897,6 @@ function BrokerGarbage:AutoSell()
 		end
 		
 		if self == _G["BrokerGarbage_SellIcon"] then
-			BrokerGarbage:Debug("AutoSell was triggered by a click on Sell Icon.", BrokerGarbage:FormatMoney(sellValue), BrokerGarbage:FormatMoney(toSellValue))
-			
 			if sellValue == 0 and BG_GlobalDB.reportNothingToSell then
 				BrokerGarbage:Print(BrokerGarbage.locale.reportNothingToSell)
 			elseif sellValue ~= 0 and not BG_GlobalDB.autoSellToVendor then
