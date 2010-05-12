@@ -506,7 +506,7 @@ end
 -- scans your inventory for possible junk items and updates LDB display
 function BrokerGarbage:ScanInventory()
 	BrokerGarbage.inventory = {}
-	BrokerGarbage.sellGear = {}
+	BrokerGarbage.sellItems = {}
 	BrokerGarbage.unopened = {}
 	local limitedItemsChecked = {}
 	
