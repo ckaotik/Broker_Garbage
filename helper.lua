@@ -1,6 +1,6 @@
 _, BrokerGarbage = ...
 
-local debug = true		-- set this to 'true' to get your chatframe spammed :D
+local debug = false		-- set this to 'true' to get your chatframe spammed :D
 
 
 -- Addon Basics
