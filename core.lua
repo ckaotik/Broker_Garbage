@@ -691,7 +691,6 @@ function BrokerGarbage:ScanInventory()
 							-- insert into BrokerGarbage.inventory
 							if (quality and quality <= BG_GlobalDB.dropQuality) 
 								or (isSell and not source == BrokerGarbage.tagUnusableGear) or isInclude or isVendor then
-								
 								tinsert(BrokerGarbage.inventory, {
 									bag = container,
 									slot = slot,
@@ -742,7 +741,7 @@ function BrokerGarbage:GetCheapest(number)
 	local cheapestItems, temp = {}, {}
 	
 	-- get forced items
-	for _, itemTable in pairs(BrokerGarbage.inventory) do
+	for _, itemTable in pairs(BrokerGarbage:JoinSimpleTables(BrokerGarbage.inventory, BrokerGarbage.sellItems)) do
 		local skip = false
 		
 		for _, usedTable in pairs(cheapestItems) do
@@ -815,10 +814,11 @@ function BrokerGarbage:AutoSell()
 		local skip
 		sellValue = 0
 		for _, itemTable in pairs(BrokerGarbage:JoinSimpleTables(BrokerGarbage.inventory, BrokerGarbage.sellItems)) do
-			local sellByString, excludeByString = false, false
+			local sellByString, sellByID, excludeByID, excludeByString
 			local temp, checkTable
 			
 			-- check if item should be saved: exclude/whitelist
+			excludeByID = BG_GlobalDB.exclude[itemTable.itemID] or BG_LocalDB.exclude[itemTable.itemID]
 			for setName,_ in pairs(BrokerGarbage:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)) do
 				if type(setName) == "string" then
 					_, temp = BrokerGarbage.PT:ItemInSet(itemTable.itemID, setName)
@@ -829,14 +829,23 @@ function BrokerGarbage:AutoSell()
 					break
 				end
 			end
+			if excludeByID then
+				BrokerGarbage:Debug(itemTable.itemID, "is excluded via its itemID")
+			end
 			
-			temp = nil
-			-- check if item should be sold: auto sell list
-			if BG_GlobalDB.autoSellIncludeItems then
+			if excludeByString or excludeByID then
+				checkTable = {}
+				sellByID = false
+			elseif BG_GlobalDB.autoSellIncludeItems then
+				sellByID = BG_GlobalDB.include[itemTable.itemID] or BG_LocalDB.include[itemTable.itemID]
 				checkTable = BrokerGarbage:JoinTables(BG_LocalDB.include, BG_GlobalDB.include)
 			else
+				sellByID = BG_GlobalDB.autoSellList[itemTable.itemID] or BG_LocalDB.autoSellList[itemTable.itemID]
 				checkTable = BrokerGarbage:JoinTables(BG_LocalDB.autoSellList, BG_GlobalDB.autoSellList)
 			end
+			
+			temp = nil
+			-- check if item should be sold
 			for setName,_ in pairs(checkTable) do
 				if type(setName) == "string" then
 					_, temp = BrokerGarbage.PT:ItemInSet(itemTable.itemID, setName)
@@ -848,7 +857,9 @@ function BrokerGarbage:AutoSell()
 					break
 				end
 			end
-			
+			if sellByID then
+				BrokerGarbage:Debug(itemTable.itemID, "is to be sold via its itemID")
+			end
 			
 			-- ==== Sell Gear ==== --
 			-- check if this item is equippable for us
@@ -859,24 +870,13 @@ function BrokerGarbage:AutoSell()
 				and string.find(invType, "INVTYPE") and not string.find(invType, "BAG") 
 				and not BrokerGarbage.usableByClass[BrokerGarbage.playerClass][subClass]
 				and not BrokerGarbage.usableByAll[invType]
-			
 			if sellGear then 
 				BrokerGarbage:Debug("Item should be sold (as we cannot wear it):" .. itemLink)
 			end
 			
-			-- shorten our literals
-			local excludeByID = BG_GlobalDB.exclude[itemTable.itemID] or BG_LocalDB.exclude[itemTable.itemID]
-			if excludeByID then
-				BrokerGarbage:Debug(itemTable.itemID, "is excluded via its itemID")
-			end
-			local autoSellByID = BG_GlobalDB.autoSellList[itemTable.itemID] or BG_LocalDB.autoSellList[itemTable.itemID]
-			if autoSellByID then
-				BrokerGarbage:Debug(itemTable.itemID, "is to be sold via its itemID")
-			end
-			
 			-- === Actuall Selling === ---
 			-- do the priorities right!
-			if itemTable.value ~= 0 and not excludeByID and (autoSellByID 
+			if itemTable.value ~= 0 and not excludeByID and (sellByID 
 				or (not excludeByString and (sellByString or itemTable.quality == 0 or sellGear))) then
 			
 				if i == 1 then					
