@@ -486,7 +486,8 @@ function BrokerGarbage:Delete(itemLink, position)
 	
 	if type(position) == "table" then
 		itemCount = select(2, GetContainerItemInfo(position[1], position[2]))
-		PickupContainerItem(position[1], position[2])
+		--PickupContainerItem(position[1], position[2])
+		securecall(PickupContainerItem, position[1], position[2])
 	else
 		itemCount = position
 	end
@@ -497,7 +498,7 @@ function BrokerGarbage:Delete(itemLink, position)
 	BG_GlobalDB.moneyLostByDeleting = BG_GlobalDB.moneyLostByDeleting + itemValue
 	BG_LocalDB.moneyLostByDeleting = BG_LocalDB.moneyLostByDeleting + itemValue
 	
-	DeleteCursorItem()					-- comment this line to prevent item deletion
+	securecall(DeleteCursorItem)					-- comment this line to prevent item deletion
 	BrokerGarbage:Print(format(BrokerGarbage.locale.itemDeleted, itemLink, itemCount))
 end
 
@@ -690,7 +691,7 @@ function BrokerGarbage:ScanInventory()
 							
 							-- insert into BrokerGarbage.inventory
 							if (quality and quality <= BG_GlobalDB.dropQuality) 
-								or (isSell and not source == BrokerGarbage.tagUnusableGear) or isInclude or isVendor then
+								or (isSell and source ~= BrokerGarbage.tagUnusableGear) or isInclude or isVendor then
 								tinsert(BrokerGarbage.inventory, {
 									bag = container,
 									slot = slot,
@@ -834,8 +835,8 @@ function BrokerGarbage:AutoSell()
 			end
 			
 			if excludeByString or excludeByID then
-				checkTable = {}
 				sellByID = false
+				checkTable = {}
 			elseif BG_GlobalDB.autoSellIncludeItems then
 				sellByID = BG_GlobalDB.include[itemTable.itemID] or BG_LocalDB.include[itemTable.itemID]
 				checkTable = BrokerGarbage:JoinTables(BG_LocalDB.include, BG_GlobalDB.include)
@@ -915,10 +916,12 @@ function BrokerGarbage:AutoRepair()
 		
 		if cost > 0 and CanGuildBankRepair() and GetGuildBankWithdrawMoney() >= cost and not BG_LocalDB.neverRepairGuildBank then
 			-- guild repair if we're allowed to and the user wants it
-			RepairAllItems(1)
+			-- RepairAllItems(1)
+			securecall(RepairAllItems, 1)
 		elseif cost > 0 and money >= cost then
 			-- not enough allowance to guild bank repair, pay ourselves
-			RepairAllItems(0)
+			--RepairAllItems(0)
+			securecall(RepairAllItems, 0)
 		elseif cost > 0 then
 			-- oops. give us your moneys!
 			BrokerGarbage:Print(format(BrokerGarbage.locale.couldNotRepair, BrokerGarbage:FormatMoney(cost)))

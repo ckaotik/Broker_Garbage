@@ -107,7 +107,6 @@ BrokerGarbage.usableByClass = {
 		[armorTypes[4]] = true,		-- mail
 		[armorTypes[5]] = true,		-- plate
 		
-		[armorTypes[6]] = true,		-- shields
 		[armorTypes[10]] = true,	-- seal
 		[weaponTypes[17]] = true,	-- fishing rod
 		
