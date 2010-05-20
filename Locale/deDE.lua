@@ -183,7 +183,7 @@ if GetLocale() == "deDE" then
 		"Shift-Klicke, um die globale Einschlussliste zu leeren"
 	
 	BrokerGarbage.locale.LONIncludeAutoSellText = "Automatisch Items der Einschlussliste verkaufen"
-	BrokerGarbage.locale.LONIncludeAutoSellTooltip = "Aktivieren, um Items von deiner Einschlussliste beim Händler zu verkaufen; wenn aktiv hat die Verkaufsliste keinerlei Einfluss.\nItems ohne Wert werden ignoriert."
+	BrokerGarbage.locale.LONIncludeAutoSellTooltip = "Aktivieren, um Items von deiner Einschlussliste beim Händler zu verkaufen.\nItems ohne Wert werden ignoriert."
 	
 		-- Auto Sell List
 	BrokerGarbage.locale.LONAutoSellHeader = "Verkaufsliste - Items hier werden bei Händlern automatisch verkauft."

@@ -899,7 +899,8 @@ local function ShowListOptions(frame)
 	-- function to set the drop treshold (limit) via the mousewheel
 	local function OnMouseWheel(self, dir)
 		if type(self.itemID) ~= "number" then return end
-		BrokerGarbage.debug = self
+		-- clear item from cache
+		BrokerGarbage.itemsCache[self.itemID] = nil
 		local list, text
 		
 		if dir == 1 then
@@ -1124,9 +1125,11 @@ local function ShowListOptions(frame)
 		if itemID then
 			-- real items
 			itemID = itemID
+			BrokerGarbage.itemsCache[itemID] = nil
 		else
 			-- category strings
 			itemID = item
+			BrokerGarbage.itemsCache = {}
 		end
 		
 		-- create "link" for output
@@ -1255,6 +1258,7 @@ local function ShowListOptions(frame)
 		
 		-- empty action
 		if self == emptyExcludeList then
+			BrokerGarbage.itemsCache = {}
 			if IsShiftKeyDown() then
 				BG_GlobalDB.exclude = {}
 			else
@@ -1262,11 +1266,13 @@ local function ShowListOptions(frame)
 			end
 			BrokerGarbage:ListOptionsUpdate("exclude")
 		elseif self == emptyForcePriceList then
+			BrokerGarbage.itemsCache = {}
 			if IsShiftKeyDown() then
 				BG_GlobalDB.forceVendorPrice = {}
 				BrokerGarbage:ListOptionsUpdate("forceprice")
 			end
 		elseif self == emptyIncludeList then
+			BrokerGarbage.itemsCache = {}
 			if IsShiftKeyDown() then
 				BG_GlobalDB.include = {}
 			else
@@ -1274,6 +1280,7 @@ local function ShowListOptions(frame)
 			end
 			BrokerGarbage:ListOptionsUpdate("include")
 		elseif self == emptyAutoSellList then
+			BrokerGarbage.itemsCache = {}
 			if IsShiftKeyDown() then
 				BG_GlobalDB.autoSellList = {}
 			else
@@ -1285,6 +1292,11 @@ local function ShowListOptions(frame)
 		elseif self == minus then
 			for i, button in pairs(BrokerGarbage.listButtons.exclude) do
 				if button:GetChecked() then
+					if type(button.itemID) == "number" then
+						BrokerGarbage.itemsCache[button.itemID] = nil
+					else
+						BrokerGarbage.itemsCache = {}
+					end
 					BG_LocalDB.exclude[button.itemID] = nil
 					BG_GlobalDB.exclude[button.itemID] = nil
 				end
@@ -1294,6 +1306,11 @@ local function ShowListOptions(frame)
 		elseif self == minus2 then
 			for i, button in pairs(BrokerGarbage.listButtons.forceprice) do
 				if button:GetChecked() then
+					if type(button.itemID) == "number" then
+						BrokerGarbage.itemsCache[button.itemID] = nil
+					else
+						BrokerGarbage.itemsCache = {}
+					end
 					BG_GlobalDB.forceVendorPrice[button.itemID] = nil
 				end
 			end
@@ -1302,6 +1319,11 @@ local function ShowListOptions(frame)
 		elseif self == minus3 then
 			for i, button in pairs(BrokerGarbage.listButtons.include) do
 				if button:GetChecked() then
+					if type(button.itemID) == "number" then
+						BrokerGarbage.itemsCache[button.itemID] = nil
+					else
+						BrokerGarbage.itemsCache = {}
+					end
 					BG_LocalDB.include[button.itemID] = nil
 					BG_GlobalDB.include[button.itemID] = nil
 				end
@@ -1311,6 +1333,11 @@ local function ShowListOptions(frame)
 		elseif self == minus4 then
 			for i, button in pairs(BrokerGarbage.listButtons.autosell) do
 				if button:GetChecked() then
+					if type(button.itemID) == "number" then
+						BrokerGarbage.itemsCache[button.itemID] = nil
+					else
+						BrokerGarbage.itemsCache = {}
+					end
 					BG_LocalDB.autoSellList[button.itemID] = nil
 					BG_GlobalDB.autoSellList[button.itemID] = nil
 				end
@@ -1497,6 +1524,8 @@ function SlashCmdList.BROKERGARBAGE(msg, editbox)
 		local itemID, count = rest:match("^[^0-9]-([0-9]+).-([0-9]+)$")
 		itemID = tonumber(itemID)
 		count = tonumber(count)
+		
+		BrokerGarbage.itemsCache[itemID] = nil
 		
 		if string.find(command, "g") then
 			BG_GlobalDB.include[itemID] = count

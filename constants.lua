@@ -2,7 +2,7 @@ _, BrokerGarbage = ...
 
 -- default saved variables
 BrokerGarbage.defaultGlobalSettings = {
-	-- lists :: key is either the itemID -or- the PeriodicTable category string
+	-- lists :: key is either the itemID -or- the PeriodicTable category string, value is true -or- limit number
 	exclude = {},
 	include = {},
 	autoSellList = {},
@@ -12,6 +12,7 @@ BrokerGarbage.defaultGlobalSettings = {
 	autoSellToVendor = true,
 	autoRepairAtVendor = true,
 	disableKey = "SHIFT",
+	hideZeroValue = true,
 	sellNotWearable = false,
 	sellNWQualityTreshold = 4,
 	autoSellIncludeItems = false,
@@ -53,22 +54,37 @@ BrokerGarbage.defaultLocalSettings = {
 	moneyEarned = 0,
 }
 
-BrokerGarbage.tagAuction	= "|cFF2bff58A"		-- green
-BrokerGarbage.tagVendor		= "|cFFff9c5aV"		-- orange
-BrokerGarbage.tagVendorList	= "|cFFff592dV"		-- slightly darker orange
-BrokerGarbage.tagDisenchant	= "|cFFe052ffD"		-- purple
-BrokerGarbage.tagInclude	= "|cFFffffffI"		-- white
-BrokerGarbage.tagUnusableGear	= "|cFF3c73abG"		-- blue
+-- item classification
+BrokerGarbage.EXCLUDE = 0		-- item is excluded. Nothing happened...
+BrokerGarbage.INCLUDE = 1		-- item is on include list
+BrokerGarbage.LIMITED = 2		-- item is on include list, but has a limit value
+BrokerGarbage.UNUSABLE = 3		-- item is gear but not usable
+
+BrokerGarbage.AUCTION = 4		-- auction price is highest value
+BrokerGarbage.VENDOR = 5		-- vendor price is highest value
+BrokerGarbage.VENDORLIST = 6	-- item is on sell list
+BrokerGarbage.DISENCHANT = 7	-- disenchant price is highest value
+
+-- corresponding tags to be used in the LDB tooltip
+BrokerGarbage.tag = {
+	[BrokerGarbage.INCLUDE] 	= "|cFFffffffI",	-- white
+	[BrokerGarbage.LIMITED] 	= "|cFFffffffL",	-- white
+	[BrokerGarbage.UNUSABLE] 	= "|cFF3c73abG",	-- blue
+	[BrokerGarbage.AUCTION] 	= "|cFF2bff58A",	-- green
+	[BrokerGarbage.VENDOR] 		= "|cFFff9c5aV",	-- orange
+	[BrokerGarbage.VENDORLIST] 	= "|cFFff592dV",	-- dark orange
+	[BrokerGarbage.DISENCHANT] 	= "|cFFe052ffD",	-- purple
+}
 
 BrokerGarbage.clams = {15874, 5523, 5524, 7973, 24476, 36781, 45909}
 BrokerGarbage.playerClass = select(2,UnitClass("player"))
 BrokerGarbage.enchanting = select(1,GetSpellInfo(7411))
 
 BrokerGarbage.disableKey = {
-	["None"] = function() return false end,
-	["SHIFT"] = IsShiftKeyDown,
-	["ALT"] = IsAltKeyDown,
-	["CTRL"] = IsControlKeyDown,
+	["None"] 	= function() return false end,
+	["SHIFT"] 	= IsShiftKeyDown,
+	["ALT"] 	= IsAltKeyDown,
+	["CTRL"] 	= IsControlKeyDown,
 }
 
 -- rarity strings (no need to localize)

@@ -131,7 +131,7 @@ BrokerGarbage.locale = {
 	defaultListsTooltip = "Click to manually create default local list entries. Right-Click to also create default global lists.",
 	
 	DKTitle = "Temp. disable key",
-	DKTooltip = "Set a key to disable BrokerGarbage temporarily.",
+	DKTooltip = "Set a key to temporarily disable BrokerGarbage.",
 	disableKeys = {
 		["None"] = "None",
 		["SHIFT"] = "SHIFT",
@@ -185,7 +185,7 @@ BrokerGarbage.locale = {
 		"SHIFT-Click to empty your global Include List.",
 		
 	LONIncludeAutoSellText = "Automatically sell include list items",
-	LONIncludeAutoSellTooltip = "Check this to sell items on your include list when at a merchant; using the AutoSell list has no effect then.\nItems without a value will be ignored.",
+	LONIncludeAutoSellTooltip = "Check this to sell items on your include list when at a merchant.\nItems without a value will be ignored.",
 	
 		-- Auto Sell List
 	LONAutoSellHeader = "Sell List - These items will be sold automatically when at a vendor.",

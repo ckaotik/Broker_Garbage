@@ -14,7 +14,7 @@
 ## X-Embeds: LibPeriodicTable-3.1
 ## X-Category: Inventory
 ## X-Localizations: enUS, deDE. Works in any language. You can help!
-## X-Credits: GarbageFu(Jaerin/wmrojer), tekKonfig(Tekkub)
+## X-Credits: GarbageFu(Jaerin/wmrojer), tekKonfig(Tekkub), Mirroar (<3)
 ## X-License: GNU GPLv2
 
 # libraries

@@ -1,7 +1,6 @@
+-- to enable debug mode, run this (disable by setting it to false):
+--	/run BG_GlobalDB.debug = true
 _, BrokerGarbage = ...
-
-local debug = false		-- set this to 'true' to get your chatframe spammed :D
-
 
 -- Addon Basics
 -- ---------------------------------------------------------
@@ -10,8 +9,9 @@ function BrokerGarbage:Print(text)
 	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622Broker_Garbage|r "..text)
 end
 
+-- prints debug messages only when debug mode is active
 function BrokerGarbage:Debug(...)
-  if debug then
+  if BG_GlobalDB.debug then
 	BrokerGarbage:Print("! "..string.join(", ", tostringall(...)))
   end
 end
@@ -19,7 +19,7 @@ end
 -- warn the player by displaying a warning message
 function BrokerGarbage:Warning(text)
 	if BG_GlobalDB.showWarnings and time() - lastReminder >= 5 then
-		BrokerGarbage:Print("|cfff0000Warning:|r ", text)
+		BrokerGarbage:Print("|cfff0000Warning!|r ", text)
 		lastReminder = time()
 	end
 end
@@ -66,14 +66,11 @@ function BrokerGarbage:JoinSimpleTables(...)
 	return result
 end
 
+-- counts table entries. for numerically indexed tables, use #table
 function BrokerGarbage:Count(table)
   local i = 0
   for _, _ in pairs(table) do i = i + 1 end
   return i
-end
-
-function BrokerGarbage:ErrorReport()
-	-- TODO
 end
 
 -- Saved Variables Management / API
@@ -137,8 +134,10 @@ function BrokerGarbage:CreateDefaultLists(global)
 	-- class specific
 	if BrokerGarbage.playerClass == "HUNTER" then	
 		BG_LocalDB.exclude["Misc.Reagent.Ammo"] = true
+	
 	elseif BrokerGarbage.playerClass == "WARRIOR" or BrokerGarbage.playerClass == "ROGUE" or BrokerGarbage.playerClass == "DEATHKNIGHT" then
 		BG_LocalDB.autoSellList["Consumable.Water"] = true
+	
 	elseif BrokerGarbage.playerClass == "SHAMAN" then
 		if not BG_LocalDB.include[17058] then BG_LocalDB.include[17058] = 20 end	-- fish oil
 		if not BG_LocalDB.include[17057] then BG_LocalDB.include[17057] = 20 end	-- scales
@@ -209,8 +208,13 @@ function BrokerGarbage:FormatString(text)
 	else
 		item = BrokerGarbage.cheapestItem
 	end
+	
 	-- [junkvalue]
-	text = string.gsub(text, "%[junkvalue%]", BrokerGarbage:FormatMoney(BrokerGarbage.toSellValue))
+	local junkValue = 0
+	for i = 0, 4 do
+		junkValue = junkValue + BrokerGarbage.toSellValue[i]
+	end
+	text = string.gsub(text, "%[junkvalue%]", BrokerGarbage:FormatMoney(junkValue))
 	
 	-- [itemname][itemcount][itemvalue]
 	text = string.gsub(text, "%[itemname%]", (select(2,GetItemInfo(item.itemID)) or ""))
@@ -314,7 +318,8 @@ function BrokerGarbage:CheckSkills()
 end
 
 local scanTooltip = CreateFrame('GameTooltip', 'BGItemScanTooltip', UIParent, 'GameTooltipTemplate')
-function BrokerGarbage:CanDisenchant(itemLink, myself)
+-- misc: either "true" to check only for the current character, or a table {container, slot} for reference
+function BrokerGarbage:CanDisenchant(itemLink, misc)
 	if (itemLink) then
 		local _, _, quality, level, _, _, _, count, bagSlot = GetItemInfo(itemLink)
 
@@ -349,12 +354,13 @@ function BrokerGarbage:CanDisenchant(itemLink, myself)
 				end
 				-- if skill is too low, still check if we can send it
 			end
-			if myself then return false end		-- we can't diss ourselves. hrm. maybe we can!
+			-- misc = "true" => we only care if we ourselves can DE. no twink mail etc.
+			if misc and type(misc) == "boolean" then return false end
 			
 			-- so we can't DE, but can we send it to someone who may? i.e. is the item not soulbound?
 			if not BG_GlobalDB.hasEnchanter then return false end
-			if BrokerGarbage.checkItem then
-				return not BrokerGarbage:IsItemSoulbound(itemLink, BrokerGarbage.checkItem.bag, BrokerGarbage.checkItem.slot)
+			if misc and type(misc) == "table" then
+				return not BrokerGarbage:IsItemSoulbound(itemLink, misc.bag, misc.slot)
 			else 
 				return not BrokerGarbage:IsItemSoulbound(itemLink)
 			end
@@ -390,6 +396,165 @@ function BrokerGarbage:IsItemSoulbound(itemLink, bag, slot)
 	return false
 end
 
+-- gets an item's classification and saves it to the item cache
+function BrokerGarbage:UpdateCache(itemID)
+	if not itemID then return nil end
+	local class, temp, limit
+	
+	local _, itemLink, quality, _, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
+	
+	-- check if item is excluded by itemID
+	if BG_GlobalDB.exclude[itemID] or BG_LocalDB.exclude[itemID] then
+		BrokerGarbage:Debug("Item "..itemID.." is excluded via its itemID.")
+		class = BrokerGarbage.EXCLUDE
+	end
+	
+	-- check if the item is classified by its itemID
+	if not class then
+		if BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID] then
+			
+			if BG_LocalDB.include[itemID] and type(BG_LocalDB.include[itemID]) ~= "boolean" then
+				-- limited item, local rule
+				BrokerGarbage:Debug("Item "..itemID.." is locally limited via its itemID.")
+				class = BrokerGarbage.LIMITED
+				limit = BG_LocalDB.include[itemID]
+			
+			elseif BG_GlobalDB.include[itemID] and type(BG_GlobalDB.include[itemID]) ~= "boolean" then
+				-- limited item, global rule
+				BrokerGarbage:Debug("Item "..itemID.." is globally limited via its itemID.")
+				class = BrokerGarbage.LIMITED
+				limit = BG_GlobalDB.include[itemID]
+			
+			else
+				BrokerGarbage:Debug("Item "..itemID.." is included via its itemID.")
+				class = BrokerGarbage.INCLUDE
+			end
+		
+		elseif BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID] 
+			or BG_GlobalDB.forceVendorPrice[itemID] then
+			
+			BrokerGarbage:Debug("Item "..itemID.." has a forced vendor price via its itemID.")
+			class = BrokerGarbage.VENDORLIST
+		
+		elseif quality 
+			and not IsUsableSpell(BrokerGarbage.enchanting)	and BrokerGarbage:IsItemSoulbound(itemLink)
+			and string.find(invType, "INVTYPE") and not string.find(invType, "BAG") 
+			and not BrokerGarbage.usableByClass[BrokerGarbage.playerClass][subClass]
+			and not BrokerGarbage.usableByAll[invType] then
+			
+			BrokerGarbage:Debug("Item "..itemID.." should be sold as we can't ever wear it.")
+			class = BrokerGarbage.UNUSABLE
+			
+		-- check if the item is classified by its category
+		else
+			-- check if item is excluded by its category
+			for setName,_ in pairs(BrokerGarbage:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)) do
+				if type(setName) == "string" then
+					_, temp = BrokerGarbage.PT:ItemInSet(itemID, setName)
+				end
+				if temp then
+					BrokerGarbage:Debug("Item "..itemID.." is excluded via its category.")
+					class = BrokerGarbage.EXCLUDE
+					break
+				end
+			end
+			
+			-- Include List
+			if not class then
+				for setName,_ in pairs(BrokerGarbage:JoinTables(BG_LocalDB.include, BG_GlobalDB.include)) do
+					if type(setName) == "string" then
+						_, temp = BrokerGarbage.PT:ItemInSet(itemID, setName)
+					end
+					if temp then
+						BrokerGarbage:Debug("Item "..itemID.." in included via its item category.")
+						class = BrokerGarbage.INCLUDE
+						break
+					end
+				end
+			end
+			
+			-- Sell List
+			if not class then
+				for setName,_ in pairs(BrokerGarbage:JoinTables(BG_GlobalDB.autoSellList, BG_LocalDB.autoSellList)) do
+					if type(setName) == "string" then
+						_, temp = BrokerGarbage.PT:ItemInSet(itemID, setName)
+					end
+					if temp then
+						BrokerGarbage:Debug("Item "..itemID.." is on the sell list via its item category.")
+						class = BrokerGarbage.VENDORLIST
+						break
+					end
+				end
+			end
+			
+			-- Force Vendor Price List
+			if not class then
+				for setName,_ in pairs(BG_GlobalDB.forceVendorPrice) do
+					if type(setName) == "string" then
+						_, temp = BrokerGarbage.PT:ItemInSet(itemID, setName)
+					end
+					if temp then
+						BrokerGarbage:Debug("Item "..itemID.." has a forced vendor price via its item category.")
+						class = BrokerGarbage.VENDOR
+						break
+					end
+				end
+			end
+		end
+	end
+	
+	if not class then
+		value, class = BrokerGarbage:GetSingleItemValue(itemID)
+	end
+	if not value then
+		value = 0
+	end
+	
+	-- save to items cache
+	if not BrokerGarbage.itemsCache[itemID] then
+		BrokerGarbage.itemsCache[itemID] = {
+			classification = class,
+			quality = quality,
+			value = value,
+			limit = limit,
+			stackSize = stackSize,
+			isClam = BrokerGarbage:Find(BrokerGarbage.clams, itemID),
+		}
+	else
+		BrokerGarbage.itemsCache[itemID].classification = class
+		BrokerGarbage.itemsCache[itemID].quality = quality
+		BrokerGarbage.itemsCache[itemID].value = value
+		BrokerGarbage.itemsCache[itemID].limit = limit
+		BrokerGarbage.itemsCache[itemID].stackSize = stackSize
+		BrokerGarbage.itemsCache[itemID].isClam = BrokerGarbage:Find(BrokerGarbage.clams, itemID)
+	end
+end
+
+-- fetch an item from the item cache, or insert if it doesn't exist yet
+function BrokerGarbage:GetCached(itemID)
+	if not BrokerGarbage.itemsCache[itemID] then
+		BrokerGarbage:UpdateCache(itemID)
+	end
+	return BrokerGarbage.itemsCache[itemID]
+end
+
+-- returns total bag slots and free bag slots of your whole inventory
+function BrokerGarbage:GetBagSlots()
+	local total, free = 0, 0
+	local num
+	
+	for i = 0, 4 do
+		num = GetContainerNumSlots(i)
+		if num then
+			total = total + num
+			free = free + (GetContainerFreeSlots(i) and #GetContainerFreeSlots(i) or 0)
+		end
+	end
+	
+	return total, free
+end
+
+-- formats money int values, depending on settings
 function BrokerGarbage:FormatMoney(amount)
 	if not amount then return "" end
 	
