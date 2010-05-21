@@ -785,6 +785,10 @@ function BrokerGarbage:AutoSell()
 					
 					elseif item.classification == BrokerGarbage.VENDORLIST then
 						sell = true
+					
+					elseif item.classification ~= BrokerGarbage.EXCLUDE and item.quality <= BG_GlobalDB.dropQuality then
+						sell = true
+					
 					end
 					
 					-- Actual Selling
