@@ -757,6 +757,10 @@ function BrokerGarbage:AutoSell()
 	
 	if self == _G["BrokerGarbage_SellIcon"] then
 		BrokerGarbage:Debug("AutoSell was triggered by a click on Sell Icon.")
+	
+	elseif not BG_GlobalDB.autoSellToVendor then
+		-- we're not supposed to sell. jump out
+		return
 	end
 	local sell, classification
 	local item, itemID, value, count, numSlots
@@ -775,8 +779,7 @@ function BrokerGarbage:AutoSell()
 					sell = false
 					-- various cases that have us sell this item
 					if item.classification == BrokerGarbage.UNUSABLE then
-						local quality = select(3, GetItemInfo(itemID))
-						if BG_GlobalDB.sellNotWearable and quality <= BG_GlobalDB.sellNWQualityTreshold then 
+						if BG_GlobalDB.sellNotWearable and item.quality <= BG_GlobalDB.sellNWQualityTreshold then 
 							sell = true
 						end
 					
@@ -788,7 +791,6 @@ function BrokerGarbage:AutoSell()
 					
 					elseif item.classification ~= BrokerGarbage.EXCLUDE and item.quality == 0 then
 						sell = true
-					
 					end
 					
 					-- Actual Selling
