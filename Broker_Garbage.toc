@@ -11,11 +11,10 @@
 ## Version: 3.3v27
 ## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 ## X-RelSite-WoWI: 15531
-## X-Embeds: LibPeriodicTable-3.1
 ## X-Category: Inventory
 ## X-Localizations: enUS, deDE. Works in any language. You can help!
-## X-Credits: GarbageFu(Jaerin/wmrojer), tekKonfig(Tekkub), Mirroar (<3)
-## X-License: GNU GPLv2
+## X-Credits: GarbageFu, tekKonfig, Mirroar (<3)
+## X-License: BSD
 
 # libraries
 Libs\LibStub.lua
@@ -23,11 +22,6 @@ Libs\CallbackHandler-1.0.lua
 Libs\LibDataBroker-1.1.lua
 Libs\LibQTip-1.0.lua
 Libs\tekKonfig\tekKonfig.xml
-Libs\LibPeriodicTable-3.1\LibPeriodicTable-3.1.lua
-Libs\LibPeriodicTable-3.1-Consumable\LibPeriodicTable-3.1-Consumable.lua
-Libs\LibPeriodicTable-3.1-Misc\LibPeriodicTable-3.1-Misc.lua
-Libs\LibPeriodicTable-3.1-Tradeskill\LibPeriodicTable-3.1-Tradeskill.lua
-Libs\LibPeriodicTable-3.1-TradeskillResultMats\LibPeriodicTable-3.1-TradeskillResultMats.lua
 
 # localization files
 Locale\enUS.lua

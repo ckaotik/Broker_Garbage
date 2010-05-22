@@ -1,8 +1,6 @@
 ﻿-- enUS / enGB / default localization file
 _, BrokerGarbage = ...
 
-
-
 BrokerGarbage.locale = {
 	label = "Junk, be gone!",
 	
@@ -27,6 +25,8 @@ BrokerGarbage.locale = {
 		"|cffc0c0c0value |cffc0c0ffvalueInCopper|r sets the minimum value for items to be looted (Loot Manager needed).",
 	minValueSet = "Items with a value less than %s will not be looted anymore.",
 	
+	warningMessagePrefit = "Warning",
+	
 	-- Tooltip
 	headerRightClick = "Right-Click for options",
 	headerShiftClick = "SHIFT-Click: Destroy",
@@ -36,6 +36,10 @@ BrokerGarbage.locale = {
 	noItems = "No items to delete.",
 	increaseTreshold = "Increase quality treshold",
 	
+	categoriesHeading = "Categories",
+	unknownAuctionAddon = "Unknown/None",
+	LPTNotLoaded = "LibPeriodicTable not loaded",
+	
 	autoSellTooltip = "Sell Items for %s",
 	reportNothingToSell = "Nothing to sell!",
 	
@@ -43,7 +47,7 @@ BrokerGarbage.locale = {
 	StatisticsHeading = "Statistics, everone needs them!\n"..
 		"To delete any part of them, click the red x.",
 	
-	MemoryUsageText = "Please notice that especially after scanning your inventory the memory usage goes up a lot. It will automatically be reduced once the garbage collector kicks in.",
+	LPTNoticeText = "|cffFF6600You don't seem to have LibPeriodicTable loaded. You will not be able to use category strings, but the addon should work just fine - with a few features less.|r",
 	MemoryUsageTitle = "Memory Usage (kB)",
 	CollectMemoryUsageTooltip = "Click to start the garbage collection (Blizzard function).",
 	

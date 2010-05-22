@@ -19,7 +19,7 @@ end
 -- warn the player by displaying a warning message
 function BrokerGarbage:Warning(text)
 	if BG_GlobalDB.showWarnings and time() - lastReminder >= 5 then
-		BrokerGarbage:Print("|cfff0000Warning!|r ", text)
+		BrokerGarbage:Print("|cfff0000"..BrokerGarbage.locale.warningMessagePrefix.."!|r ", text)
 		lastReminder = time()
 	end
 end
@@ -446,7 +446,7 @@ function BrokerGarbage:UpdateCache(itemID)
 			class = BrokerGarbage.UNUSABLE
 			
 		-- check if the item is classified by its category
-		else
+		elseif BrokerGarbage.PT then
 			-- check if item is excluded by its category
 			for setName,_ in pairs(BrokerGarbage:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)) do
 				if type(setName) == "string" then

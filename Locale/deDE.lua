@@ -25,6 +25,8 @@ if GetLocale() == "deDE" then
 		"|cffc0c0c0value |cffc0c0ffWertInKupfer|r setzt den Itemwert, ab dem Items gelootet werden (benötigt den Loot Manager)."
 	BrokerGarbage.locale.minValueSet = "Mindestwert für items wurde auf %s gesetzt."
 	
+	BrokerGarbage.locale.warningMessagePrefit = "Warnung"
+	
 	-- Tooltip
 	BrokerGarbage.locale.headerRightClick = "Rechts-Klick: Optionen"
 	BrokerGarbage.locale.headerShiftClick = "SHIFT-Klick: Zerstören"
@@ -34,6 +36,10 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.noItems = "Keine Items zum Löschen."
 	BrokerGarbage.locale.increaseTreshold = "Erhöhe die Item Qualität"
 	
+	BrokerGarbage.locale.categoriesHeading = "Kategorien"
+	BrokerGarbage.locale.unknownAuctionAddon = "Unbekannt/N.A."
+	BrokerGarbage.locale.LPTNotLoaded = "LibPeriodicTable nicht aktiv"
+	
 	BrokerGarbage.locale.autoSellTooltip = "Müll für %s verkaufen"
 	BrokerGarbage.locale.reportNothingToSell = "Nichts zu verkaufen!"
 	
@@ -41,9 +47,9 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.StatisticsHeading = "Statistiken, jeder braucht sie!\n"..
 		"Um Teile davon zu löschen, klicke auf das jeweilige 'x'."
 	
-	BrokerGarbage.locale.MemoryUsageText = "Bitte beachte, dass insbesondere nach dem Inventarscan der Speicherbedarf stark zunimmt. Er schrumpft wieder, wenn der 'Garbage Collector' ans Werk geht."
+	BrokerGarbage.locale.LPTNoticeText = "|cffFF6600Es scheint, als hättest du kein LibPeriodicTable aktiv. Du wirst keine Kategorien nutzen können, aber sonst sollte das Addon einwandfrei funktionieren - mit ein paar Features weniger.|r"
 	BrokerGarbage.locale.MemoryUsageTitle = "Speicherverbrauch (kB)"
-	BrokerGarbage.locale.CollectMemoryUsageTooltip = "Klicke um den 'Garbage Collector' (Blizzard Funktion) manuell zu starten."
+	BrokerGarbage.locale.CollectMemoryUsageTooltip = "Klicke um den Garbage Collector (Blizzard Funktion) manuell zu starten."
 	
 	BrokerGarbage.locale.GlobalStatisticsHeading = "Globale Geldstatistiken:"
 	BrokerGarbage.locale.AverageSellValueTitle = "Durchschnittl. Verkaufswert"

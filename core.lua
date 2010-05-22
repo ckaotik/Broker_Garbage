@@ -1,12 +1,17 @@
-﻿-- Broker_Garbage
---   Author: ckaotik
---   Redistribute: You may use this code - or parts of it - freely as long as you give proper credit. Please do not upload this addon on any kind of addon distribution website.
---   Disclaimer: I provide no warranty whatsoever for what this addon does or doesn't do, even though I try my best to keep it working ;)
+﻿--[[ Copyright (c) 2010, ckaotik
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+Neither the name of the <ORGANIZATION> nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. ]]--
 _, BrokerGarbage = ...
 
 -- Libraries & setting up the LDB
 -- ---------------------------------------------------------
-BrokerGarbage.PT = LibStub("LibPeriodicTable-3.1")
+BrokerGarbage.PT = LibStub("LibPeriodicTable-3.1", true)	-- don't scream if LPT isn't present
 
 -- notation mix-up for Broker2FuBar to work
 local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
@@ -21,7 +26,7 @@ local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
 
 local function UpdateLDB()
 	local cheapestItems = BrokerGarbage:GetCheapest()
-	BrokerGarbage.totalBagSpace, BrokerGarbage.totalFreeSlots = BrokerGarbage:GetBagSlots()	-- TODO: maybe reduce to only the relevant bag
+	BrokerGarbage.totalBagSpace, BrokerGarbage.totalFreeSlots = BrokerGarbage:GetBagSlots()
 	
 	if cheapestItems[1] then
 		BrokerGarbage.cheapestItem = cheapestItems[1]
@@ -32,7 +37,7 @@ local function UpdateLDB()
 	end
 end
 
--- internal locals
+-- internal variables
 -- local lastReminder = time()
 BrokerGarbage.optionsModules = {}	-- used for ordering/showing entries in the options panel
 local locked = false				-- set to true while selling stuff
@@ -150,7 +155,7 @@ function BrokerGarbage:UpdateRepairButton(...)
 	
 	local junkValue = 0
 	for i = 0, 4 do
-		junkValue = junkValue + BrokerGarbage.toSellValue[i]
+		junkValue = junkValue + (BrokerGarbage.toSellValue[i] or 0)
 	end
 	local iconbutton
 	-- show auto-sell icon on vendor frame
@@ -165,7 +170,7 @@ function BrokerGarbage:UpdateRepairButton(...)
 			local tiptext
 			local junkValue = 0
 			for i = 0, 4 do
-				junkValue = junkValue + BrokerGarbage.toSellValue[i]
+				junkValue = junkValue + (BrokerGarbage.toSellValue[i] or 0)
 			end
 			if junkValue ~= 0 then
 				tiptext = format(BrokerGarbage.locale.autoSellTooltip, BrokerGarbage:FormatMoney(junkValue))
@@ -469,7 +474,7 @@ function BrokerGarbage:GetSingleItemValue(item)
 		end
 		
 	else
-		BrokerGarbage.auctionAddon = "Unknown/None"
+		BrokerGarbage.auctionAddon = BrokerGarbage.locale.unknownAuctionAddon
 		auctionPrice = GetAuctionBuyout and GetAuctionBuyout(itemLink) or nil
 		disenchantPrice = canDE and GetDisenchantValue and GetDisenchantValue(itemLink) or nil
 	end
@@ -539,52 +544,75 @@ function BrokerGarbage:FindSlotToDelete(itemID, ignoreFullStack)
 	return locations
 end
 
--- deletes the item in a given location of your bags. takes either link/{bag,slot} or an itemTable as created by GetCheapest() or "cursor"/count
-function BrokerGarbage:Delete(itemLink, position)
-	local cursorType, itemID, itemCount
+-- deletes the item in a given location of your bags
+function BrokerGarbage:Delete(item, position)
+	local itemID, itemCount, cursorType
 	
-	if itemLink == "cursor" then
+	if type(item) == "string" and item == "cursor" then
 		-- item on the cursor
-		cursorType, itemID, itemLink = GetCursorInfo()
-		if cursorType ~= "item" then return end
+		cursorType, itemID = GetCursorInfo()
+		if cursorType ~= "item" then
+			BrokerGarbage:Print("Error! Trying to delete an item from the cursor, but there is none.")
+			return
+		end
+		itemCount = position	-- second argument is the item count
 
-	elseif type(itemLink) == "table" then
+	elseif type(item) == "table" then
 		-- item given as an itemTable
-		position = {itemLink.bag, itemLink.slot}
-		itemID = itemLink.itemID
-		itemLink = select(2,GetItemInfo(itemID))
-		ClearCursor()
+		itemID = item.itemID
+		position = {item.bag, item.slot}
+	
+	elseif type(item) == "number" then
+		-- item given via its itemID
+		itemID = item
+	
+	else
+		-- item given via its itemLink
+		itemID = BrokerGarbage:GetItemID(item)
 	end
 
 	-- security check
-	if not select(2,GetItemInfo(itemID)) == itemLink then return end
-	
-	if type(position) == "table" then
-		itemCount = select(2, GetContainerItemInfo(position[1], position[2]))
-		--PickupContainerItem(position[1], position[2])
-		securecall(PickupContainerItem, position[1], position[2])
-	else
-		itemCount = position
+	if not cursorType and GetContainerItemID(position[1], position[2]) ~= itemID then
+		BrokerGarbage:Print("Error! Item to be deleted is not the expected item.")
+		return
 	end
-	local itemValue = BrokerGarbage:GetCached(itemID).value * itemCount
 	
-	-- statistics
-	BG_GlobalDB.itemsDropped = BG_GlobalDB.itemsDropped + itemCount
-	BG_GlobalDB.moneyLostByDeleting = BG_GlobalDB.moneyLostByDeleting + itemValue
-	BG_LocalDB.moneyLostByDeleting = BG_LocalDB.moneyLostByDeleting + itemValue
+	-- make sure there is nothing unwanted on the cursor
+	if not cursorType then
+		ClearCursor()
+	end
 	
+	if not cursorType and (not position or type(position) ~= "table") then
+		BrokerGarbage:Print("Error! No position given to delete from.")
+		return
+	
+	else
+		_, itemCount = GetContainerItemInfo(position[1], position[2])
+	end
+	
+	-- actual deleting happening after this
+	securecall(PickupContainerItem, position[1], position[2])
 	securecall(DeleteCursorItem)					-- comment this line to prevent item deletion
+	
+	local itemValue = BrokerGarbage:GetCached(itemID).value * itemCount
+	-- statistics
+	BG_GlobalDB.itemsDropped 		= BG_GlobalDB.itemsDropped + itemCount
+	BG_GlobalDB.moneyLostByDeleting	= BG_GlobalDB.moneyLostByDeleting + itemValue
+	BG_LocalDB.moneyLostByDeleting 	= BG_LocalDB.moneyLostByDeleting + itemValue
+	
 	BrokerGarbage:Print(format(BrokerGarbage.locale.itemDeleted, itemLink, itemCount))
 end
 
 -- Inventory Scanning
 -- ---------------------------------------------------------
+-- only used as a shortcut to cache any unknown item in the whole inventory
 function BrokerGarbage:ScanInventory()
 	for container = 0,4 do
 		BrokerGarbage:ScanInventoryContainer(container)
 	end
 	UpdateLDB()
 end
+
 -- scans your inventory bags for possible junk items and updates LDB display
 function BrokerGarbage:ScanInventoryContainer(container)
 	-- container doesn't exist or cannot be scanned

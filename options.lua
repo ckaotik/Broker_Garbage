@@ -6,7 +6,13 @@
 local interestingPTSets = {"Consumable", "Misc", "Tradeskill"}
 
 BrokerGarbage.PTSets = {}
-for set, _ in pairs(BrokerGarbage.PT.sets) do
+local sets
+if not BrokerGarbage.PT then
+	sets = {}
+else
+	sets = BrokerGarbage.PT.sets
+end
+for set, _ in pairs(sets) do
 	local interesting = false
 	local partials = { strsplit(".", set) }
 	local maxParts = #partials
@@ -87,19 +93,19 @@ local function ShowOptions(frame)
 	-- ----------------------------------
 	local title, subtitle = LibStub("tekKonfig-Heading").new(BrokerGarbage.options, "Broker_Garbage", BrokerGarbage.locale.StatisticsHeading)
 
-	local memoryinfo = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	memoryinfo:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", 0, 0)
-	memoryinfo:SetPoint("RIGHT", BrokerGarbage.options, -32, 0)
-	memoryinfo:SetHeight(40)
-	memoryinfo:SetNonSpaceWrap(true)
-	memoryinfo:SetJustifyH("LEFT")
-	memoryinfo:SetJustifyV("TOP")
-	memoryinfo:SetText(BrokerGarbage.locale.MemoryUsageText)
+	local noticetext = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	noticetext:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", 0, 0)
+	noticetext:SetPoint("RIGHT", BrokerGarbage.options, -32, 0)
+	noticetext:SetHeight(40)
+	noticetext:SetNonSpaceWrap(true)
+	noticetext:SetJustifyH("LEFT")
+	noticetext:SetJustifyV("TOP")
+	noticetext:SetText(BrokerGarbage.PT and "" or BrokerGarbage.locale.LPTNoticeText)
 	
 	UpdateAddOnMemoryUsage()
 	local memoryusage = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
 	memoryusage:SetWidth(150)
-	memoryusage:SetPoint("TOPLEFT", memoryinfo, "BOTTOMLEFT", -2, 0)
+	memoryusage:SetPoint("TOPLEFT", noticetext, "BOTTOMLEFT", -2, 0)
 	memoryusage:SetJustifyH("RIGHT")
 	memoryusage:SetText(BrokerGarbage.locale.MemoryUsageTitle)
 	local mutext = BrokerGarbage.options:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
@@ -1033,6 +1039,11 @@ local function ShowListOptions(frame)
 						or (localList[itemID] ~= true and localList[itemID]) or "")
 					button:SetNormalTexture(texture)
 					button:GetNormalTexture():SetDesaturated(button.isGlobal)		-- desaturate global list items
+					
+					if not itemLink and not BrokerGarbage.PT then
+						button:SetAlpha(0.2)
+						button.tiptext = button.tiptext .. "\n|cffff0000"..BrokerGarbage.locale.LPTNotLoaded
+					end
 				else
 					-- an item the server has not seen
 					button.itemID = itemID
@@ -1171,17 +1182,23 @@ local function ShowListOptions(frame)
 		
 		-- menu create function
 		function DropDown_Initialize(self,level)
-			level = level or 1;
+			level = level or 1
 			if (level == 1) then		
-				local info = UIDropDownMenu_CreateInfo();
-				info.hasArrow = false; -- no submenu
-				info.notCheckable = true;
-				info.text = "Categories";
-				info.isTitle = true;
-				info.tooltipTitle = BrokerGarbage.locale.PTCategoryTooltipHeader
-				info.tooltipText = BrokerGarbage.locale.PTCategoryTooltipText
-				UIDropDownMenu_AddButton(info, level);
+				local info = UIDropDownMenu_CreateInfo()
+				info.hasArrow = false -- no submenu
+				info.notCheckable = true
+				info.text = BrokerGarbage.locale.categoriesHeading
+				info.isTitle = true
+				UIDropDownMenu_AddButton(info, level)
 
+				if not BrokerGarbage.PT then
+					local info = UIDropDownMenu_CreateInfo()
+					info.hasArrow = false
+					info.notCheckable = true
+					info.text = BrokerGarbage.locale.LPTNotLoaded
+					info.isTitle = true
+					UIDropDownMenu_AddButton(info, level)
+				end
 				for key, subarray in pairs(BrokerGarbage.PTSets) do
 					-- submenus
 					local info = UIDropDownMenu_CreateInfo()
