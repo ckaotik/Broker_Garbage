@@ -600,6 +600,7 @@ function BrokerGarbage:Delete(item, position)
 	BG_GlobalDB.moneyLostByDeleting	= BG_GlobalDB.moneyLostByDeleting + itemValue
 	BG_LocalDB.moneyLostByDeleting 	= BG_LocalDB.moneyLostByDeleting + itemValue
 	
+	local _, itemLink = GetItemInfo(itemID)
 	BrokerGarbage:Print(format(BrokerGarbage.locale.itemDeleted, itemLink, itemCount))
 end
 
