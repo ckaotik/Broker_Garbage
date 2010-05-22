@@ -511,6 +511,10 @@ function BrokerGarbage:UpdateCache(itemID)
 	end
 	
 	-- save to items cache
+	if not value and not class then
+		BrokerGarbage:Debug("Caching item "..itemID.." failed!")
+		return
+	end
 	if not BrokerGarbage.itemsCache[itemID] then
 		BrokerGarbage.itemsCache[itemID] = {
 			classification = class,

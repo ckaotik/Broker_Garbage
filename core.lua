@@ -73,12 +73,13 @@ local function eventHandler(self, event, ...)
 		end
 		
 	elseif event == "MERCHANT_SHOW" then
+		BrokerGarbage.isAtVendor = true
+		
 		local disable = BrokerGarbage.disableKey[BG_GlobalDB.disableKey]
 		if not (disable and disable()) then
 			BrokerGarbage:AutoRepair()
 			BrokerGarbage:AutoSell()
 		end
-		BrokerGarbage.isAtVendor = true
 		
 	elseif locked and event == "MERCHANT_CLOSED" then
 		-- fallback unlock
@@ -88,6 +89,10 @@ local function eventHandler(self, event, ...)
 		locked = false
 		BrokerGarbage:Debug("Fallback Unlock: Merchant window closed, scan lock released.")
 		UpdateLDB()
+		
+	elseif event == "MERCHANT_CLOSED" then
+		-- we are unlocked, but still need to update this state
+		BrokerGarbage.isAtVendor = false
 	
 	elseif event == "AUCTION_HOUSE_CLOSED" then
 		-- Update cache auction values if needed
@@ -512,10 +517,8 @@ function BrokerGarbage:FindSlotToDelete(itemID, ignoreFullStack)
 				local _,count,_,_,_,_,link = GetContainerItemInfo(container, slot)
 				
 				if link and BrokerGarbage:GetItemID(link) == itemID then
-					BrokerGarbage:Debug("item found")
 					if not ignoreFullStack or (ignoreFullStack and count < maxStack) then
 						-- found one
-						BrokerGarbage:Debug("item stack ok")
 						table.insert(locations, {
 							slot = slot, 
 							bag = container, 
