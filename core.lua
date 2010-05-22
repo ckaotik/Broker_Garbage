@@ -712,6 +712,8 @@ function BrokerGarbage:GetCheapest(number)
 									break;
 								end
 							end
+						else
+							insert = false
 						end
 						if insert then
 							-- treat like a regular include item
