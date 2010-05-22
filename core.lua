@@ -634,7 +634,8 @@ function BrokerGarbage:ScanInventoryContainer(container)
 			-- update toSellValue
 			if item.classification == BrokerGarbage.VENDORLIST or 
 				(item.classification == BrokerGarbage.UNUSABLE and BG_GlobalDB.sellNotWearable and item.quality <= BG_GlobalDB.sellNWQualityTreshold) or
-				(BG_GlobalDB.autoSellIncludeItems and item.classification == BrokerGarbage.INCLUDE) then
+				(BG_GlobalDB.autoSellIncludeItems and item.classification == BrokerGarbage.INCLUDE) or
+				(item.classification ~= BrokerGarbage.EXCLUDE and item.quality <= BG_GlobalDB.dropQuality) then
 				
 				local itemCount = select(2, GetContainerItemInfo(container, slot))
 				BrokerGarbage.toSellValue[container] = BrokerGarbage.toSellValue[container] + BrokerGarbage:GetCached(itemID).value * itemCount
