@@ -1,5 +1,5 @@
--- to enable debug mode, run this (disable by setting it to false):
---	/run BG_GlobalDB.debug = true
+-- to enable debug mode, run: /run BG_GlobalDB.debug = true
+-- to disable debug mode (disabled by default) run: /run BG_GlobalDB.debug = false
 _, BrokerGarbage = ...
 
 -- Addon Basics
@@ -143,6 +143,8 @@ function BrokerGarbage:CreateDefaultLists(global)
 		if not BG_LocalDB.include[17057] then BG_LocalDB.include[17057] = 20 end	-- scales
 	end
 	BG_LocalDB.exclude["Misc.Reagent.Class."..string.gsub(string.lower(BrokerGarbage.playerClass), "^.", string.upper)] = true
+	
+	BrokerGarbage:Print(BrokerGarbage.locale.listsUpdatedPleaseCheck)
 end
 
 -- returns options for plugin use
@@ -186,7 +188,7 @@ function BrokerGarbage:UnLocalize(skillName)
 	elseif skillName == GetSpellInfo(2575) then
 		skill = "Mining"
 	else
-		-- herbalism sucks /dump BrokerGarbage:UnLocalize("Krauterkunde")
+		-- herbalism sucks
 		searchString = select(6, GetAuctionItemSubClasses(6))
 		if string.find(skillName, searchString) then
 			skill = "Herbalism"
@@ -212,7 +214,7 @@ function BrokerGarbage:FormatString(text)
 	-- [junkvalue]
 	local junkValue = 0
 	for i = 0, 4 do
-		junkValue = junkValue + BrokerGarbage.toSellValue[i]
+		junkValue = junkValue + (BrokerGarbage.toSellValue[i] or 0)
 	end
 	text = string.gsub(text, "%[junkvalue%]", BrokerGarbage:FormatMoney(junkValue))
 	
@@ -403,6 +405,12 @@ function BrokerGarbage:UpdateCache(itemID)
 	
 	local _, itemLink, quality, _, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
 	
+	-- weird ...
+	if not quality then
+		BrokerGarbage:Debug("Could not retrieve quality information for "..(itemID or "<none>").." ("..(itemLink or "")..")")
+		return nil
+	end
+	
 	-- check if item is excluded by itemID
 	if BG_GlobalDB.exclude[itemID] or BG_LocalDB.exclude[itemID] then
 		BrokerGarbage:Debug("Item "..itemID.." is excluded via its itemID.")
@@ -511,8 +519,8 @@ function BrokerGarbage:UpdateCache(itemID)
 	end
 	
 	-- save to items cache
-	if not value and not class then
-		BrokerGarbage:Debug("Caching item "..itemID.." failed!")
+	if not value or not class or not quality then
+		BrokerGarbage:Print("Error! Caching item "..itemID.." failed!")
 		return
 	end
 	if not BrokerGarbage.itemsCache[itemID] then

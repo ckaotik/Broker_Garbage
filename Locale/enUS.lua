@@ -17,6 +17,7 @@ BrokerGarbage.locale = {
 	itemDeleted = "%1$sx%2$d has been deleted.",
 	couldNotRepair = "Could not repair because you don't have enough money. You need %s.",
 	
+	listsUpdatedPleaseCheck = "Your lists have been updated. Please have a look at your settings and check if they fit your needs.",
 	slashCommandHelp = "The following commands are available: |cffc0c0c0/garbage|r\n"..
 		"|cffc0c0c0config|r opens the options panel.\n"..
 		"|cffc0c0c0format |cffc0c0ffformatstring|r lets you customize the LDB display text, |cffc0c0c0 format reset|r resets it.\n"..

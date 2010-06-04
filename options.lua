@@ -1,7 +1,5 @@
 ﻿_, BrokerGarbage = ...
 
--- BrokerGarbage:CheckSettings()
-
 -- create drop down menu table for PT sets	
 local interestingPTSets = {"Consumable", "Misc", "Tradeskill"}
 

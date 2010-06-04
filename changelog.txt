@@ -1,0 +1,15 @@
+=== Changelog ===
+
+3.3v27:
+	* deathknights cannot wear shields. fixed
+	* fixed items on sell list not selling
+	* added option to use include list as sell list as well
+	* inventory scanning rewritten - will now only scan updated bags, and item info is cached <-- this is worth about 10 minor features and 100kB memory per scan saved
+	* Broker_Garbage-LootManager: Changed the way 'Warn Clams' and 'Warn Containers' work - they will now show a line in the tooltip
+	* finally made LibPeriodicTable an optional dependency. Therefore, I removed it from the package - if you didn't use it, you won't notice, if you did, get LibPeriodicTable here <http://wow.curse.com/downloads/wow-addons/details/libperiodictable-3-1.aspx> or if you have another addon that already loads this library, you're fine as well
+	* refined security checks when deleting items
+	* changed the license from GPLv2 to BSD, mainly because it does all I really need and is much less painful to read ;)
+	* many thanks to Zidomo and Cidrei for elaborate testing!
+	
+	TODO:
+	* config options for hideZeroValue

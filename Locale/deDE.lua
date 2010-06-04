@@ -17,6 +17,7 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.itemDeleted = "%1$sx%2$d wurde gelöscht."
 	BrokerGarbage.locale.couldNotRepair = "Konnte nicht reparieren, da du nicht genug Geld hast. Du brauchst %s."
 	
+	BrokerGarbage.locale.listsUpdatedPleaseCheck = "Die Listeneinstellungen wurden geändert. Bitte sieh in den Einstellungen nach, ob sie für dich passend sind."
 	BrokerGarbage.locale.slashCommandHelp = "Folgende Kommandos werden unterstützt: |cffc0c0c0/garbage|r\n"..
 		"|cffc0c0c0config|r öffnet die Optionen.\n"..
 		"|cffc0c0c0format |cffc0c0ffformatstring|r lässt dich das Format der LDB Anzeige anpassen, |cffc0c0c0 format reset|r setzt es zurück.\n"..
@@ -37,7 +38,7 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.increaseTreshold = "Erhöhe die Item Qualität"
 	
 	BrokerGarbage.locale.categoriesHeading = "Kategorien"
-	BrokerGarbage.locale.unknownAuctionAddon = "Unbekannt/N.A."
+	BrokerGarbage.locale.unknownAuctionAddon = "Unbekannt/Keins"
 	BrokerGarbage.locale.LPTNotLoaded = "LibPeriodicTable nicht aktiv"
 	
 	BrokerGarbage.locale.autoSellTooltip = "Müll für %s verkaufen"

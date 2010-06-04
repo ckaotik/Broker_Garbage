@@ -1,7 +1,5 @@
 _, BrokerGarbage = ...
 
-BrokerGarbage:CheckSettings()
-
 -- options panel
 if BrokerGarbage.PT then
 	BrokerGarbage.categoryTest = CreateFrame("Frame", "BrokerGarbageCategoryTestFrame", InterfaceOptionsFramePanelContainer)

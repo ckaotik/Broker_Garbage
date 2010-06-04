@@ -4,7 +4,7 @@ All rights reserved.
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-Neither the name of the <ORGANIZATION> nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+Neither the name of ckaotik nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. ]]--
 _, BrokerGarbage = ...
@@ -47,7 +47,7 @@ local cost = 0						-- the amount of money that we repaired for
 -- Event Handler
 -- ---------------------------------------------------------
 local function eventHandler(self, event, ...)
-	if event == "PLAYER_ENTERING_WORLD" then
+	if event == "ADDON_LOADED" and arg1 == "Broker_Garbage" then
 		BrokerGarbage:CheckSettings()
 
 		-- some default values initialization
@@ -61,6 +61,7 @@ local function eventHandler(self, event, ...)
 		BrokerGarbage.clamInInventory = false
 		BrokerGarbage.containerInInventory = false
 		
+	elseif event == "PLAYER_ENTERING_WORLD" then
 		-- full inventory scan to start with
 		BrokerGarbage:ScanInventory()
 		
@@ -136,6 +137,7 @@ end
 local frame = CreateFrame("frame")
 
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("BAG_UPDATE")
 frame:RegisterEvent("MERCHANT_SHOW")
 frame:RegisterEvent("MERCHANT_CLOSED")
@@ -325,6 +327,7 @@ function BrokerGarbage:OnClick(itemTable, button)
 			BrokerGarbage:Debug("Not at vendor", "Deleting")
 			BrokerGarbage:Delete(itemTable)
 		end
+		UpdateLDB()
 	
 	--[[elseif itemTable and IsAltKeyDown() and IsControlKeyDown() then
 		-- disenchant
@@ -340,6 +343,7 @@ function BrokerGarbage:OnClick(itemTable, button)
 		end
 		BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSaveList, select(2,GetItemInfo(itemTable.itemID))))
 		BrokerGarbage.itemsCache = {}
+		UpdateLDB()
 		
 		if BrokerGarbage.optionsLoaded then
 			BrokerGarbage:ListOptionsUpdate("exclude")
@@ -350,6 +354,7 @@ function BrokerGarbage:OnClick(itemTable, button)
 		BG_GlobalDB.forceVendorPrice[itemTable.itemID] = true
 		BrokerGarbage:Print(format(BrokerGarbage.locale.addedToPriceList, select(2,GetItemInfo(itemTable.itemID))))
 		BrokerGarbage.itemsCache = {}
+		UpdateLDB()
 		
 		if BrokerGarbage.optionsLoaded then
 			BrokerGarbage:ListOptionsUpdate("forceprice")
@@ -385,7 +390,11 @@ function BrokerGarbage:GetItemValue(item, count)
 		return nil
 	end
 	
-	return BrokerGarbage:GetCached(itemID).value * count
+	if BrokerGarbage:GetCached(itemID) then
+		return BrokerGarbage:GetCached(itemID).value * count
+	else
+		return nil
+	end
 end
 
 -- returns which of the items values is the highest (value, type)
@@ -398,10 +407,11 @@ function BrokerGarbage:GetSingleItemValue(item)
 	elseif item and type(item) == "string" then
 		itemID = BrokerGarbage:GetItemID(item)
 		itemLink = item
+	end
 	
-	else
+	if not itemID or not itemLink then
 		-- invalid argument
-		BrokerGarbage:Debug("GetSingleItemValue: Invalid argument "..(item or "<none>").."supplied.")
+		BrokerGarbage:Print("Error! GetSingleItemValue: Invalid argument "..(item or "<none>").." supplied.")
 		return nil
 	end
 	
@@ -597,7 +607,7 @@ function BrokerGarbage:Delete(item, position)
 	securecall(PickupContainerItem, position[1], position[2])
 	securecall(DeleteCursorItem)					-- comment this line to prevent item deletion
 	
-	local itemValue = BrokerGarbage:GetCached(itemID).value * itemCount
+	local itemValue = (BrokerGarbage:GetCached(itemID).value or 0) * itemCount	-- if an item is unknown to the cache, statistics will not change
 	-- statistics
 	BG_GlobalDB.itemsDropped 		= BG_GlobalDB.itemsDropped + itemCount
 	BG_GlobalDB.moneyLostByDeleting	= BG_GlobalDB.moneyLostByDeleting + itemValue
@@ -627,10 +637,9 @@ function BrokerGarbage:ScanInventoryContainer(container)
 	
 	for slot = 1, numSlots do
 		local itemID = GetContainerItemID(container,slot)
+		local item = BrokerGarbage:GetCached(itemID)
 		
-		if itemID then
-			local item = BrokerGarbage:GetCached(itemID)
-			
+		if itemID and item then
 			-- update toSellValue
 			if item.classification == BrokerGarbage.VENDORLIST or 
 				(item.classification == BrokerGarbage.UNUSABLE and BG_GlobalDB.sellNotWearable and item.quality <= BG_GlobalDB.sellNWQualityTreshold) or
@@ -638,7 +647,7 @@ function BrokerGarbage:ScanInventoryContainer(container)
 				(item.classification ~= BrokerGarbage.EXCLUDE and item.quality == 0) then
 				
 				local itemCount = select(2, GetContainerItemInfo(container, slot))
-				BrokerGarbage.toSellValue[container] = BrokerGarbage.toSellValue[container] + BrokerGarbage:GetCached(itemID).value * itemCount
+				BrokerGarbage.toSellValue[container] = BrokerGarbage.toSellValue[container] + item.value * itemCount
 			end
 		end
 	end
@@ -679,15 +688,17 @@ function BrokerGarbage:GetCheapest(number)
 			for slot = 1, numSlots do
 				-- "Gather Information"
 				_, count, _, _, _, canOpen, itemLink = GetContainerItemInfo(container, slot)
-				if itemLink then
-					itemID = BrokerGarbage:GetItemID(itemLink)
+				itemID = BrokerGarbage:GetItemID(itemLink)
+				
+				if itemLink and BrokerGarbage:GetCached(itemID) then
 					item = BrokerGarbage:GetCached(itemID)
+					
 					insert = true
 					local value = count * item.value
 					local classification = item.classification
 					
 					-- remember lootable items
-					if canOpen or item.isClam then
+					if canOpen or (item and item.isClam) then
 						if item.isClam then
 							BrokerGarbage.clamInInventory = true
 						else
@@ -696,7 +707,7 @@ function BrokerGarbage:GetCheapest(number)
 					end
 					
 					-- handle different types of items
-					if item.classification == BrokerGarbage.EXCLUDE then
+					if not item or item.classification == BrokerGarbage.EXCLUDE then
 						insert = false
 					
 					elseif item.classification == BrokerGarbage.LIMITED then
@@ -806,8 +817,9 @@ function BrokerGarbage:AutoSell()
 		if numSlots then
 			for slot = 1, numSlots do
 				_, count, _, _, _, _, itemLink = GetContainerItemInfo(container, slot)
-				if itemLink then
-					itemID 	= BrokerGarbage:GetItemID(itemLink)
+				itemID 	= BrokerGarbage:GetItemID(itemLink)
+				
+				if itemLink and BrokerGarbage:GetCached(itemID) then
 					item 	= BrokerGarbage:GetCached(itemID)
 					value 	= item.value
 					
