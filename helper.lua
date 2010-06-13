@@ -107,7 +107,7 @@ end
 function BrokerGarbage:CreateDefaultLists(global)
 	if global then
 		BG_GlobalDB.include[46069] = true											-- argentum lance
-		if not BG_GlobalDB.include[6265] then BG_GlobalDB.include[6265] = 20 end	-- soulshards
+		if BG_GlobalDB.include[6265] == nil then BG_GlobalDB.include[6265] = 20 end	-- soulshards
 		BG_GlobalDB.include["Consumable.Water.Conjured"] = true
 		BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible.Basic"] = true
 		BG_GlobalDB.forceVendorPrice["Consumable.Water.Basic"] = true
@@ -145,6 +145,8 @@ function BrokerGarbage:CreateDefaultLists(global)
 	BG_LocalDB.exclude["Misc.Reagent.Class."..string.gsub(string.lower(BrokerGarbage.playerClass), "^.", string.upper)] = true
 	
 	BrokerGarbage:Print(BrokerGarbage.locale.listsUpdatedPleaseCheck)
+	BrokerGarbage.itemsCache = {}
+	BrokerGarbage:ScanInventory()
 end
 
 -- returns options for plugin use
@@ -201,14 +203,14 @@ end
 -- easier syntax for LDB display strings
 function BrokerGarbage:FormatString(text)
 	local item
-	if not BrokerGarbage.cheapestItem or BrokerGarbage.cheapestItem == {} then
+	if not BrokerGarbage.cheapestItems or not BrokerGarbage.cheapestItems[1] then
 		item = {
 			itemID = 0,
 			count = 0,
 			value = 0,
 		}
 	else
-		item = BrokerGarbage.cheapestItem
+		item = BrokerGarbage.cheapestItems[1]
 	end
 	
 	-- [junkvalue]

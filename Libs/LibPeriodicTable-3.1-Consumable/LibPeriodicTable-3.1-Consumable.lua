@@ -1,7 +1,7 @@
 -- (c) 2007 Nymbia.  see LGPLv2.1.txt for full details.
 --DO NOT MAKE CHANGES TO THIS FILE BEFORE READING THE WIKI PAGE REGARDING CHANGING THESE FILES
 if not LibStub("LibPeriodicTable-3.1", true) then error("PT3 must be loaded before data") end
-LibStub("LibPeriodicTable-3.1"):AddData("Consumable", gsub("$Rev: 287 $", "(%d+)", function(n) return n+90000 end), {
+LibStub("LibPeriodicTable-3.1"):AddData("Consumable", gsub("$Rev: 292 $", "(%d+)", function(n) return n+90000 end), {
 	["Consumable.Anti-Venom"]="6452:25,6453:35,13462:60,2633:60,19440:60,12586:60,9030:60,3386:60,31437:70,25550:70",
 	["Consumable.Bandage.Basic"]="1251:66,2581:114,3530:161,3531:301,6450:400,6451:640,8544:800,8545:1104,14529:1360,14530:2000,21990:2800,21991:3400,38643:3400,38640:4100,34721:4800,34722:5800",
 	["Consumable.Bandage.Battleground.Alterac Valley"]="19307:2000",
@@ -33,9 +33,9 @@ LibStub("LibPeriodicTable-3.1"):AddData("Consumable", gsub("$Rev: 287 $", "(%d+)
 	["Consumable.Buff.Absorb.Self.Holy"]="6051:400,22847:3400",
 	["Consumable.Buff.Absorb.Self.Nature"]="6052:1800,13458:2600,22844:3400",
 	["Consumable.Buff.Absorb.Self.Shadow"]="6048:900,13459:2600,22846:3400",
-	["Consumable.Buff.Armor.Self"]="5997:50,3389:150,8951:250,13445:450,22834:550,4623:1000,13455:2000,22849:2500",
+	["Consumable.Buff.Armor.Self"]="5997:50,3389:150,8951:250,13445:450,22834:550,4623:1000,13455:2000,22849:2500,40093:3500",
 	["Consumable.Buff.Armor.Target"]="3013:65,1478:105,4421:150,10305:195,27500:240,33459:285,43467:340",
-	["Consumable.Buff.Attack Crit.Flask"]="32597:20",
+	["Consumable.Buff.Attack Crit.Flask"]="32597:20,40212:200",
 	["Consumable.Buff.Attack Damage"]="23501:10,22788:40",
 	["Consumable.Buff.Attack Power.Self"]="23989:10,22779:30,12820:35,29528:60,28102:60,49856:75,49859:75,40068:90,31679:120,9224:265",
 	["Consumable.Buff.Attack Power.Flask"]="32599:20,47499:80,22854:120,32901:120,46377:120",
@@ -71,9 +71,9 @@ LibStub("LibPeriodicTable-3.1"):AddData("Consumable", gsub("$Rev: 287 $", "(%d+)
 	["Consumable.Buff.Shadow Power"]="9264:40,22835:65",
 	["Consumable.Buff.Shield"]="23575:1000,23576:4000",
 	["Consumable.Buff.Speed.Self"]="29530:15,20081:20,2459:50,33226:14,43135:15",
-	["Consumable.Buff.Spell Crit.Self"]="22839:2,28103:24",
+	["Consumable.Buff.Spell Crit.Self"]="22839:2,28103:24,40212:200",
 	["Consumable.Buff.Spell Damage.Flask"]="32601:23,47499:47,13512:70,32900:70,22861:80,22866:80,46376:125",
-	["Consumable.Buff.Spell Damage.Self"]="6373:10,22710:10,17708:15,22778:15,9155:20,22238:23,23326:23,28103:24,29528:30,13454:35,9264:40,49857:45,49860:45,22833:55,40070:58,22835:65,22788:80,22839:120",
+	["Consumable.Buff.Spell Damage.Self"]="6373:10,22710:10,17708:15,22778:15,9155:20,22238:23,23326:23,28103:24,29528:30,13454:35,9264:40,49857:45,49860:45,22833:55,40070:58,22835:65,22788:80,22839:120,40212:200",
 	["Consumable.Buff.Spell Reflect.Self"]="20080:3",
 	["Consumable.Buff.Water Breathing"]="34076:3,37265:10,23871:30,24421:30,25539:60",
 

@@ -25,20 +25,17 @@ local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
 })
 
 local function UpdateLDB()
-	local cheapestItems = BrokerGarbage:GetCheapest()
 	BrokerGarbage.totalBagSpace, BrokerGarbage.totalFreeSlots = BrokerGarbage:GetBagSlots()
 	
-	if cheapestItems[1] then
-		BrokerGarbage.cheapestItem = cheapestItems[1]
+	if BrokerGarbage.cheapestItems[1] then
 		LDB.text = BrokerGarbage:FormatString(BG_GlobalDB.LDBformat)
 	else
-		BrokerGarbage.cheapestItem = nil
+		BrokerGarbage.cheapestItems[1] = nil
 		LDB.text = BrokerGarbage:FormatString(BG_GlobalDB.LDBNoJunk)
 	end
 end
 
 -- internal variables
--- local lastReminder = time()
 BrokerGarbage.optionsModules = {}	-- used for ordering/showing entries in the options panel
 local locked = false				-- set to true while selling stuff
 local sellValue = 0					-- represents the actual value that we sold stuff for
@@ -47,12 +44,11 @@ local cost = 0						-- the amount of money that we repaired for
 -- Event Handler
 -- ---------------------------------------------------------
 local function eventHandler(self, event, ...)
-	if event == "ADDON_LOADED" and arg1 == "Broker_Garbage" then
+	if event == "PLAYER_ENTERING_WORLD" then
 		BrokerGarbage:CheckSettings()
 
 		-- some default values initialization
 		BrokerGarbage.isAtVendor = false
-		BrokerGarbage.toSellValue = {}		-- value to show on sell icon
 		BrokerGarbage.totalBagSpace = 0
 		BrokerGarbage.totalFreeSlots = 0
 
@@ -61,17 +57,14 @@ local function eventHandler(self, event, ...)
 		BrokerGarbage.clamInInventory = false
 		BrokerGarbage.containerInInventory = false
 		
-	elseif event == "PLAYER_ENTERING_WORLD" then
 		-- full inventory scan to start with
 		BrokerGarbage:ScanInventory()
 		
 	elseif event == "BAG_UPDATE" then
+		-- whatever these weird arguments mean
 		if arg1 < 0 or arg1 > 4 then return end
 		
-		BrokerGarbage:ScanInventoryContainer(arg1)	-- partial inventory scan
-		if not locked then
-			UpdateLDB()
-		end
+		BrokerGarbage:ScanInventoryContainer(arg1)	-- partial inventory scan on the relevant container
 		
 	elseif event == "MERCHANT_SHOW" then
 		BrokerGarbage.isAtVendor = true
@@ -82,18 +75,15 @@ local function eventHandler(self, event, ...)
 			BrokerGarbage:AutoSell()
 		end
 		
-	elseif locked and event == "MERCHANT_CLOSED" then
-		-- fallback unlock
-		cost = 0
-		sellValue = 0
-		BrokerGarbage.isAtVendor = false
-		locked = false
-		BrokerGarbage:Debug("Fallback Unlock: Merchant window closed, scan lock released.")
-		UpdateLDB()
-		
 	elseif event == "MERCHANT_CLOSED" then
-		-- we are unlocked, but still need to update this state
 		BrokerGarbage.isAtVendor = false
+		
+		-- fallback unlock
+		if locked then
+			BrokerGarbage.isAtVendor = false
+			locked = false
+			BrokerGarbage:Debug("Fallback Unlock: Merchant window closed, scan lock released.")
+		end
 	
 	elseif event == "AUCTION_HOUSE_CLOSED" then
 		-- Update cache auction values if needed
@@ -114,22 +104,23 @@ local function eventHandler(self, event, ...)
 					BrokerGarbage:FormatMoney(cost), 
 					BrokerGarbage:FormatMoney(sellValue - cost)
 			))
+			sellValue = 0
+			cost = 0
 			
 		elseif cost ~= 0 and BG_GlobalDB.autoRepairAtVendor then
 			-- repair only
 			BrokerGarbage:Print(format(BrokerGarbage.locale.repair, BrokerGarbage:FormatMoney(cost)))
+			cost = 0
 			
 		elseif sellValue ~= 0 and BG_GlobalDB.autoSellToVendor then
 			-- autosell only
 			BrokerGarbage:Print(format(BrokerGarbage.locale.sell, BrokerGarbage:FormatMoney(sellValue)))
+			sellValue = 0
 		
 		end
 		
-		sellValue = 0
-		cost = 0
 		locked = false
 		BrokerGarbage:Debug("Regular Unlock: Money received, scan lock released.")
-		UpdateLDB()
 	end	
 end
 
@@ -137,7 +128,7 @@ end
 local frame = CreateFrame("frame")
 
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:RegisterEvent("ADDON_LOADED")
+-- frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("BAG_UPDATE")
 frame:RegisterEvent("MERCHANT_SHOW")
 frame:RegisterEvent("MERCHANT_CLOSED")
@@ -168,6 +159,7 @@ function BrokerGarbage:UpdateRepairButton(...)
 	-- show auto-sell icon on vendor frame
 	if not _G["BrokerGarbage_SellIcon"] then
 		iconbutton = CreateFrame("Button", "BrokerGarbage_SellIcon", MerchantBuyBackItemItemButton)
+		iconbutton:SetParent(MerchantBuyBackItemItemButton)
 		iconbutton:SetWidth(36); iconbutton:SetHeight(36)
 		iconbutton:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
 		iconbutton:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
@@ -266,7 +258,7 @@ function BrokerGarbage:Tooltip(self)
 	end
 	
 	-- shows up to n lines of deletable items
-	local cheapList = BrokerGarbage:GetCheapest(BG_GlobalDB.tooltipNumItems)
+	local cheapList = BrokerGarbage.cheapestItems or {}
 	for i = 1, #cheapList do
 		-- adds lines: itemLink, count, itemPrice, source
 		lineNum = BrokerGarbage.tt:AddLine(
@@ -308,7 +300,7 @@ function BrokerGarbage:OnClick(itemTable, button)
 	local LDBclick = false
 	if not itemTable.itemID or type(itemTable.itemID) ~= "number" then
 		BrokerGarbage:Debug("Click on LDB")
-		itemTable = BrokerGarbage.cheapestItem
+		itemTable = BrokerGarbage.cheapestItems[1]
 		LDBclick = true
 	end
 	
@@ -327,7 +319,6 @@ function BrokerGarbage:OnClick(itemTable, button)
 			BrokerGarbage:Debug("Not at vendor", "Deleting")
 			BrokerGarbage:Delete(itemTable)
 		end
-		UpdateLDB()
 	
 	--[[elseif itemTable and IsAltKeyDown() and IsControlKeyDown() then
 		-- disenchant
@@ -343,22 +334,22 @@ function BrokerGarbage:OnClick(itemTable, button)
 		end
 		BrokerGarbage:Print(format(BrokerGarbage.locale.addedToSaveList, select(2,GetItemInfo(itemTable.itemID))))
 		BrokerGarbage.itemsCache = {}
-		UpdateLDB()
 		
 		if BrokerGarbage.optionsLoaded then
 			BrokerGarbage:ListOptionsUpdate("exclude")
 		end
+		BrokerGarbage:ScanInventory()
 		
 	elseif itemTable and IsAltKeyDown() then
 		-- add to force vendor price list
 		BG_GlobalDB.forceVendorPrice[itemTable.itemID] = true
 		BrokerGarbage:Print(format(BrokerGarbage.locale.addedToPriceList, select(2,GetItemInfo(itemTable.itemID))))
 		BrokerGarbage.itemsCache = {}
-		UpdateLDB()
 		
 		if BrokerGarbage.optionsLoaded then
 			BrokerGarbage:ListOptionsUpdate("forceprice")
 		end
+		BrokerGarbage:ScanInventory()
 		
 	elseif button == "RightButton" then
 		-- open config
@@ -370,7 +361,7 @@ function BrokerGarbage:OnClick(itemTable, button)
 		BrokerGarbage:ScanInventory()
 	end
 	
-	BrokerGarbage.debugItemTable = itemTable
+	UpdateLDB()
 end
 
 -- Item Value Calculation
@@ -624,7 +615,6 @@ function BrokerGarbage:ScanInventory()
 	for container = 0,4 do
 		BrokerGarbage:ScanInventoryContainer(container)
 	end
-	UpdateLDB()
 end
 
 -- scans your inventory bags for possible junk items and updates LDB display
@@ -651,6 +641,9 @@ function BrokerGarbage:ScanInventoryContainer(container)
 			end
 		end
 	end
+	
+	BrokerGarbage:GetCheapest()
+	UpdateLDB()
 end
 
 -- Find Cheap Items
@@ -674,7 +667,7 @@ end
 
 -- returns the n cheapest items in your bags  in a table
 function BrokerGarbage:GetCheapest(number)
-	if not number then number = 1 end
+	if not number then number = BG_GlobalDB.tooltipNumItems end
 	local cheapestItems = {}
 	local numSlots, count, quality, canOpen, itemLink, itemID, stackSize
 	local item, maxValue, insert
@@ -790,7 +783,7 @@ function BrokerGarbage:GetCheapest(number)
 		end
 	end
 	
-	BrokerGarbage.cheapestItem = cheapestItems[1]
+	BrokerGarbage.cheapestItems = cheapestItems
 	return cheapestItems
 end
 

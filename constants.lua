@@ -54,6 +54,8 @@ BrokerGarbage.defaultLocalSettings = {
 	moneyEarned = 0,
 }
 
+BrokerGarbage.toSellValue = {}	-- value to show on sell icon
+
 -- item classification
 BrokerGarbage.EXCLUDE = 0		-- item is excluded. Nothing happened...
 BrokerGarbage.INCLUDE = 1		-- item is on include list
