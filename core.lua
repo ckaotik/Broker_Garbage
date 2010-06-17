@@ -382,9 +382,10 @@ function BrokerGarbage:GetItemValue(item, count)
 	end
 	
 	if BrokerGarbage:GetCached(itemID) then
-		return BrokerGarbage:GetCached(itemID).value * count
+		return BrokerGarbage:GetCached(itemID).value * (count or 1)
 	else
-		return nil
+		local value = BrokerGarbage:GetSingleItemValue(item)
+		return value and value * (count or 1) or nil
 	end
 end
 

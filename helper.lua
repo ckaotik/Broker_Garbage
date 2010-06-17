@@ -413,6 +413,7 @@ function BrokerGarbage:UpdateCache(itemID)
 		return nil
 	end
 	
+	local value, _ = BrokerGarbage:GetSingleItemValue(itemID)
 	-- check if item is excluded by itemID
 	if BG_GlobalDB.exclude[itemID] or BG_LocalDB.exclude[itemID] then
 		BrokerGarbage:Debug("Item "..itemID.." is excluded via its itemID.")
@@ -420,7 +421,7 @@ function BrokerGarbage:UpdateCache(itemID)
 	end
 	
 	-- check if the item is classified by its itemID
-	if not class then
+	if not class or class ~= BrokerGarbage.EXCLUDE then
 		if BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID] then
 			
 			if BG_LocalDB.include[itemID] and type(BG_LocalDB.include[itemID]) ~= "boolean" then
@@ -513,11 +514,11 @@ function BrokerGarbage:UpdateCache(itemID)
 		end
 	end
 	
-	if not class then
-		value, class = BrokerGarbage:GetSingleItemValue(itemID)
-	end
 	if not value then
 		value = 0
+	end
+	if not class then
+		_, class = BrokerGarbage:GetSingleItemValue(itemID)
 	end
 	
 	-- save to items cache
