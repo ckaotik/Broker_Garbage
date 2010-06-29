@@ -420,7 +420,7 @@ local function ShowOptions(frame)
 		BG_GlobalDB.showEarned = not BG_GlobalDB.showEarned
 	end)
 
-	local quality = LibStub("tekKonfig-Slider").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.dropQualityTitle, 0, 6, "TOPLEFT", showlost, "BOTTOMLEFT", 5, -10)
+	local quality = LibStub("tekKonfig-Slider").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.dropQualityTitle, 0, 7, "TOPLEFT", showlost, "BOTTOMLEFT", 5, -10)
 	quality.tiptext = BrokerGarbage.locale.dropQualityText
 	quality:SetWidth(200)
 	quality:SetValueStep(1)

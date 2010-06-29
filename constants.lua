@@ -98,6 +98,7 @@ BrokerGarbage.quality = {
 	[4] = select(4,GetItemQualityColor(4))..ITEM_QUALITY4_DESC.."|r",	-- purple
 	[5] = select(4,GetItemQualityColor(5))..ITEM_QUALITY5_DESC.."|r",	-- legendary
 	[6] = select(4,GetItemQualityColor(6))..ITEM_QUALITY6_DESC.."|r",	-- heirloom
+	[7] = select(4,GetItemQualityColor(7))..ITEM_QUALITY6_DESC.."|r",	-- artifact
 }
 
 BrokerGarbage.tradeSkills = {

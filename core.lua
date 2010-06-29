@@ -69,6 +69,7 @@ local function eventHandler(self, event, ...)
 	elseif event == "MERCHANT_SHOW" then
 		BrokerGarbage.isAtVendor = true
 		
+		BrokerGarbage:UpdateRepairButton()
 		local disable = BrokerGarbage.disableKey[BG_GlobalDB.disableKey]
 		if not (disable and disable()) then
 			BrokerGarbage:AutoRepair()
@@ -463,19 +464,25 @@ function BrokerGarbage:GetSingleItemValue(item)
 				end
 				DEMats = Enchantrix.Constants.baseDisenchantTable[itemQuality][itemType][itemLevel]
 				
-				local item, chance, amount, itemVal
-				for i = 1, #DEMats do
-					item = DEMats[i][1]
-					chance = DEMats[i][2]
-					amount = DEMats[i][3]
-					
-					itemVal = select(2, GetItemInfo(item))
-					itemVal = AucAdvanced.API.GetMarketValue(itemVal) or 0
-					
-					disenchantPrice = disenchantPrice + (itemVal * chance * amount)
+				if DEMats then
+					local item, chance, amount, itemVal
+					for i = 1, #DEMats do
+						item = DEMats[i][1]
+						chance = DEMats[i][2]
+						amount = DEMats[i][3]
+						
+						itemVal = select(2, GetItemInfo(item))
+						itemVal = AucAdvanced.API.GetMarketValue(itemLink) or 0
+						
+						disenchantPrice = disenchantPrice + (itemVal * chance * amount)
+					end
+					disenchantPrice = math.floor(disenchantPrice)
+				else
+					BrokerGarbage:Debug("Tried to get Enchantrix value of " .. itemLink .. " but failed.")
+					disenchantPrice = nil
 				end
-				disenchantPrice = math.floor(disenchantPrice)
 			else
+				BrokerGarbage:Debug("Invalid item quality for Enchantrix values of " .. itemLink .. ".")
 				disenchantPrice = nil
 			end
 		end

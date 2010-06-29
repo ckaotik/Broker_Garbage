@@ -85,7 +85,10 @@ function BrokerGarbage:CheckSettings()
 		end
 	end
 	
-	if not BG_LocalDB then BG_LocalDB = {}; first = false end
+	if not BG_LocalDB then 
+		BG_LocalDB = {}
+		if not first then first = false end
+	end
 	for key, value in pairs(BrokerGarbage.defaultLocalSettings) do
 		if BG_LocalDB[key] == nil then
 			BG_LocalDB[key] = value
