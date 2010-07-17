@@ -98,7 +98,7 @@ BrokerGarbage.quality = {
 	[4] = select(4,GetItemQualityColor(4))..ITEM_QUALITY4_DESC.."|r",	-- purple
 	[5] = select(4,GetItemQualityColor(5))..ITEM_QUALITY5_DESC.."|r",	-- legendary
 	[6] = select(4,GetItemQualityColor(6))..ITEM_QUALITY6_DESC.."|r",	-- heirloom
-	[7] = select(4,GetItemQualityColor(7))..ITEM_QUALITY6_DESC.."|r",	-- artifact
+	[7] = select(4,GetItemQualityColor(7))..ITEM_QUALITY7_DESC.."|r",	-- artifact
 }
 
 BrokerGarbage.tradeSkills = {
@@ -119,15 +119,14 @@ local armorTypes = { GetAuctionItemSubClasses(2) }
 local weaponTypes = { GetAuctionItemSubClasses(1) }
 local ammoTypes = { GetAuctionItemSubClasses(7) }
 BrokerGarbage.usableByClass = {
+-- ------------- TODO ---------------------------
 	["DEATHKNIGHT"] = {
 		[armorTypes[1]] = true,		-- misc, e.g. tabards
 		[armorTypes[2]] = true,		-- cloth
 		[armorTypes[3]] = true,		-- leather
 		[armorTypes[4]] = true,		-- mail
 		[armorTypes[5]] = true,		-- plate
-		
 		[armorTypes[10]] = true,	-- seal
-		[weaponTypes[17]] = true,	-- fishing rod
 		
 		[weaponTypes[1]] = true,	-- 1H axes
 		[weaponTypes[2]] = true,	-- 2H axes
@@ -137,14 +136,13 @@ BrokerGarbage.usableByClass = {
 		[weaponTypes[8]] = true,	-- 1H swords
 		[weaponTypes[9]] = true,	-- 2H swords
 		--[weaponTypes[12]] = true,	-- misc
+		[weaponTypes[17]] = true,	-- fishing rod
 	},
-	["DRUID"] = {	
+	["DRUID"] = {
 		[armorTypes[1]] = true,		-- misc, e.g. tabards
 		[armorTypes[2]] = true,		-- cloth
 		[armorTypes[3]] = true,		-- leather
-		
-		[armorTypes[8]] = true,		-- gotze
-		[weaponTypes[17]] = true,	-- fishing rod
+		[armorTypes[8]] = true,		-- relic
 		
 		[weaponTypes[5]] = true,	-- 1H maces
 		[weaponTypes[6]] = true,	-- 2H maces
@@ -153,6 +151,7 @@ BrokerGarbage.usableByClass = {
 		[weaponTypes[11]] = true,	-- fist weapons
 		--[weaponTypes[12]] = true,	-- misc
 		[weaponTypes[13]] = true,	-- daggers
+		[weaponTypes[17]] = true,	-- fishing rod
 	},
 	["HUNTER"] = {
 		[armorTypes[1]] = true,		-- misc, e.g. tabards
@@ -171,22 +170,22 @@ BrokerGarbage.usableByClass = {
 		[weaponTypes[11]] = true,	-- fist weapons
 		--[weaponTypes[12]] = true,	-- misc
 		[weaponTypes[13]] = true,	-- daggers
-		[weaponTypes[14]] = true,	-- thrown weapons
 		[weaponTypes[15]] = true,	-- crossbows
 		[weaponTypes[17]] = true,	-- fishing rod
+		
 		[ammoTypes[1]] = true,		-- arrow
 		[ammoTypes[2]] = true,		-- bullet
 	},
 	["MAGE"] = {
 		[armorTypes[1]] = true,		-- misc, e.g. tabards
 		[armorTypes[2]] = true,		-- cloth
+		
 		[weaponTypes[8]] = true,	-- 1H swords
 		[weaponTypes[10]] = true,	-- staves
 		--[weaponTypes[12]] = true,	-- misc
 		[weaponTypes[13]] = true,	-- daggers
 		[weaponTypes[16]] = true,	-- wands
 		[weaponTypes[17]] = true,	-- fishing rod
-		
 	},
 	["PALADIN"] = {
 		[armorTypes[1]] = true,		-- misc, e.g. tabards
@@ -194,7 +193,6 @@ BrokerGarbage.usableByClass = {
 		[armorTypes[3]] = true,		-- leather
 		[armorTypes[4]] = true,		-- mail
 		[armorTypes[5]] = true,		-- plate
-		
 		[armorTypes[6]] = true,		-- shields
 		[armorTypes[7]] = true,		-- librams
 		
@@ -211,6 +209,7 @@ BrokerGarbage.usableByClass = {
 	["PRIEST"] = {
 		[armorTypes[1]] = true,		-- misc, e.g. tabards
 		[armorTypes[2]] = true,		-- cloth
+		
 		[weaponTypes[5]] = true,	-- 1H maces
 		[weaponTypes[10]] = true,	-- staves
 		--[weaponTypes[12]] = true,	-- misc
@@ -222,6 +221,8 @@ BrokerGarbage.usableByClass = {
 		[armorTypes[1]] = true,		-- misc, e.g. tabards
 		[armorTypes[2]] = true,		-- cloth
 		[armorTypes[3]] = true,		-- leather
+		
+		[weaponTypes[1]] = true,	-- 1H axes
 		[weaponTypes[3]] = true,	-- bows
 		[weaponTypes[4]] = true,	-- guns
 		[weaponTypes[5]] = true,	-- 1H maces
@@ -232,6 +233,7 @@ BrokerGarbage.usableByClass = {
 		[weaponTypes[14]] = true,	-- thrown weapons
 		[weaponTypes[15]] = true,	-- crossbows
 		[weaponTypes[17]] = true,	-- fishing rod
+		
 		[ammoTypes[1]] = true,		-- arrow
 		[ammoTypes[2]] = true,		-- bullet
 	},
@@ -240,7 +242,6 @@ BrokerGarbage.usableByClass = {
 		[armorTypes[2]] = true,		-- cloth
 		[armorTypes[3]] = true,		-- leather
 		[armorTypes[4]] = true,		-- mail
-		
 		[armorTypes[6]] = true,		-- shields
 		[armorTypes[9]] = true,		-- totems
 		
@@ -257,6 +258,7 @@ BrokerGarbage.usableByClass = {
 	["WARLOCK"] = {
 		[armorTypes[1]] = true,		-- misc, e.g. tabards
 		[armorTypes[2]] = true,		-- cloth
+		
 		[weaponTypes[8]] = true,	-- 1H swords
 		[weaponTypes[10]] = true,	-- staves
 		--[weaponTypes[12]] = true,	-- misc
@@ -270,8 +272,8 @@ BrokerGarbage.usableByClass = {
 		[armorTypes[3]] = true,		-- leather
 		[armorTypes[4]] = true,		-- mail
 		[armorTypes[5]] = true,		-- plate
-		
 		[armorTypes[6]] = true,		-- shields
+		
 		[weaponTypes[1]] = true,	-- 1H axes
 		[weaponTypes[2]] = true,	-- 2H axes
 		[weaponTypes[3]] = true,	-- bows
@@ -288,6 +290,7 @@ BrokerGarbage.usableByClass = {
 		[weaponTypes[14]] = true,	-- thrown weapons
 		[weaponTypes[15]] = true,	-- crossbows
 		[weaponTypes[17]] = true,	-- fishing rod
+		
 		[ammoTypes[1]] = true,		-- arrow
 		[ammoTypes[2]] = true,		-- bullet
 	},

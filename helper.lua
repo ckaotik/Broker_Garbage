@@ -416,7 +416,6 @@ function BrokerGarbage:UpdateCache(itemID)
 		return nil
 	end
 	
-	local value, _ = BrokerGarbage:GetSingleItemValue(itemID)
 	-- check if item is excluded by itemID
 	if BG_GlobalDB.exclude[itemID] or BG_LocalDB.exclude[itemID] then
 		BrokerGarbage:Debug("Item "..itemID.." is excluded via its itemID.")
@@ -448,7 +447,7 @@ function BrokerGarbage:UpdateCache(itemID)
 			or BG_GlobalDB.forceVendorPrice[itemID] then
 			
 			BrokerGarbage:Debug("Item "..itemID.." has a forced vendor price via its itemID.")
-			class = BrokerGarbage.VENDORLIST
+			class = BrokerGarbage.VENDOR
 		
 		elseif quality 
 			and not IsUsableSpell(BrokerGarbage.enchanting)	and BrokerGarbage:IsItemSoulbound(itemLink)
@@ -517,15 +516,12 @@ function BrokerGarbage:UpdateCache(itemID)
 		end
 	end
 	
-	if not value then
-		value = 0
-	end
-	if not class then
-		_, class = BrokerGarbage:GetSingleItemValue(itemID)
-	end
+	local tvalue, tclass = BrokerGarbage:GetSingleItemValue(itemID)
+	if not class then class = tclass end
+	if not (class == BrokerGarbage.VENDOR or class == BrokerGarbage.VENDORLIST) then value = tvalue end
 	
 	-- save to items cache
-	if not value or not class or not quality then
+	if not class or not quality then
 		BrokerGarbage:Print("Error! Caching item "..itemID.." failed!")
 		return
 	end
@@ -533,7 +529,7 @@ function BrokerGarbage:UpdateCache(itemID)
 		BrokerGarbage.itemsCache[itemID] = {
 			classification = class,
 			quality = quality,
-			value = value,
+			value = value or 0,
 			limit = limit,
 			stackSize = stackSize,
 			isClam = BrokerGarbage:Find(BrokerGarbage.clams, itemID),
@@ -541,7 +537,7 @@ function BrokerGarbage:UpdateCache(itemID)
 	else
 		BrokerGarbage.itemsCache[itemID].classification = class
 		BrokerGarbage.itemsCache[itemID].quality = quality
-		BrokerGarbage.itemsCache[itemID].value = value
+		BrokerGarbage.itemsCache[itemID].value = value or 0
 		BrokerGarbage.itemsCache[itemID].limit = limit
 		BrokerGarbage.itemsCache[itemID].stackSize = stackSize
 		BrokerGarbage.itemsCache[itemID].isClam = BrokerGarbage:Find(BrokerGarbage.clams, itemID)
