@@ -69,6 +69,7 @@ BrokerGarbage.DISENCHANT = 7	-- disenchant price is highest value
 
 -- corresponding tags to be used in the LDB tooltip
 BrokerGarbage.tag = {
+	-- exclude doesn't show up on tooltip, so it's not needed here
 	[BrokerGarbage.INCLUDE] 	= "|cFFffffffI",	-- white
 	[BrokerGarbage.LIMITED] 	= "|cFFffffffL",	-- white
 	[BrokerGarbage.UNUSABLE] 	= "|cFF3c73abG",	-- blue
@@ -77,6 +78,7 @@ BrokerGarbage.tag = {
 	[BrokerGarbage.VENDORLIST] 	= "|cFFff592dV",	-- dark orange
 	[BrokerGarbage.DISENCHANT] 	= "|cFFe052ffD",	-- purple
 }
+-- |cffffd200 Blizzard Orange; textures: Spell_Holy_HolyGuidance, achievement_bg_returnxflags_def_wsg
 
 BrokerGarbage.clams = {15874, 5523, 5524, 7973, 24476, 36781, 45909}
 BrokerGarbage.playerClass = select(2,UnitClass("player"))

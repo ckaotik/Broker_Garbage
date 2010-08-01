@@ -443,11 +443,13 @@ function BrokerGarbage:UpdateCache(itemID)
 				class = BrokerGarbage.INCLUDE
 			end
 		
-		elseif BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID] 
-			or BG_GlobalDB.forceVendorPrice[itemID] then
-			
+		elseif BG_GlobalDB.forceVendorPrice[itemID] then
 			BrokerGarbage:Debug("Item "..itemID.." has a forced vendor price via its itemID.")
 			class = BrokerGarbage.VENDOR
+		
+		elseif BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID] then
+			BrokerGarbage:Debug("Item "..itemID.." is to be auto-sold via its itemID.")
+			class = BrokerGarbage.VENDORLIST
 		
 		elseif quality 
 			and not IsUsableSpell(BrokerGarbage.enchanting)	and BrokerGarbage:IsItemSoulbound(itemLink)

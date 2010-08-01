@@ -43,6 +43,7 @@ local cost = 0						-- the amount of money that we repaired for
 
 -- Event Handler
 -- ---------------------------------------------------------
+local frame = CreateFrame("frame")
 local function eventHandler(self, event, ...)
     if event == "PLAYER_ENTERING_WORLD" then
         BrokerGarbage:CheckSettings()
@@ -59,6 +60,7 @@ local function eventHandler(self, event, ...)
         
         -- full inventory scan to start with
         BrokerGarbage:ScanInventory()
+        frame:UnregisterEvent("PLAYER_ENTERING_WORLD")
         
     elseif event == "BAG_UPDATE" then
         -- whatever these weird arguments mean
@@ -126,8 +128,6 @@ local function eventHandler(self, event, ...)
 end
 
 -- register events
-local frame = CreateFrame("frame")
-
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 -- frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("BAG_UPDATE")
@@ -493,16 +493,14 @@ function BrokerGarbage:GetSingleItemValue(item)
         disenchantPrice = canDE and GetDisenchantValue and GetDisenchantValue(itemLink) or nil
     end
 
+    -- simply return the highest value price
     local maximum = math.max((disenchantPrice or 0), (auctionPrice or 0), (vendorPrice or 0))
     if vendorPrice and maximum == vendorPrice then
         return vendorPrice, BrokerGarbage.VENDOR
-        
     elseif auctionPrice and maximum == auctionPrice then
         return auctionPrice, BrokerGarbage.AUCTION
-        
     elseif disenchantPrice and maximum == disenchantPrice then
         return disenchantPrice, BrokerGarbage.DISENCHANT
-        
     else
         return nil, nil
     end
@@ -578,13 +576,16 @@ function BrokerGarbage:Delete(item, position)
         -- item given via its itemID
         itemID = item
     
-    else
+    elseif item then
         -- item given via its itemLink
         itemID = BrokerGarbage:GetItemID(item)
+    else
+        BrokerGarbage:Print("Error! BrokerGarbage:Delete() no argument supplied.")
+        return
     end
 
     -- security check
-    if not cursorType and GetContainerItemID(position[1], position[2]) ~= itemID then
+    if not cursorType and GetContainerItemID(position[1] or item.bag, position[2] or item.slot) ~= itemID then
         BrokerGarbage:Print("Error! Item to be deleted is not the expected item.")
         return
     end

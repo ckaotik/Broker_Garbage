@@ -9,10 +9,10 @@ BrokerGarbage.locale = {
 	repair = "Repaired for %s.",
 	sell = "Sold trash for %s.",
 	
-	addedToSaveList = "%s has been added to the save list.",
-	addedToPriceList = "%s will only have its vendor price considered.",
-	addedToIncludeList = "%s has been added to the Include List.",
-	addedToSellList = "%s will be automatically sold when at a merchant.",
+	addedTo_exclude = "%s has been added to the save list.",
+	addedTo_forceVendorPrice = "%s will only have its vendor price considered.",
+	addedTo_include = "%s has been added to the Include List.",
+	addedTo_autoSellList = "%s will be automatically sold when at a merchant.",
 	limitSet = "%s has been assigned a limit of %d.",
 	itemDeleted = "%1$sx%2$d has been deleted.",
 	couldNotRepair = "Could not repair because you don't have enough money. You need %s.",
@@ -132,9 +132,6 @@ BrokerGarbage.locale = {
 	rescanInventory = "Rescan Inventory",
 	rescanInventoryText = "Click to manually rescan you inventory. Should generally not be needed.",
 	
-	defaultListsText = "Create default lists",
-	defaultListsTooltip = "Click to manually create default local list entries. Right-Click to also create default global lists.",
-	
 	DKTitle = "Temp. disable key",
 	DKTooltip = "Set a key to temporarily disable BrokerGarbage.",
 	disableKeys = {
@@ -159,46 +156,51 @@ BrokerGarbage.locale = {
 		"[bagspacecolor]...[endcolor] to colorize",
 	
 	-- List Options Panel
-	LOPTitle = "Whitelist",
-	LOPSubTitle = "To add Items to lists, drag them over the corresponding '+' icon, to remove them select them and click the '-'. To add categories right-click on '+'.",
-		
-		-- Exclude List
-	LOPExcludeHeader = "Exclude List - these items will never be sold/deleted.",
-	LOPExcludePlusTT = "Add items to the Exclude List by dragging/placing them on me. Right click on me for categories!",
-	LOPExcludeMinusTT = "Select items you want to remove, then click here.",
-	LOPExcludePromoteTT = "Selected items will be written onto your global Exclude List, as seen by every character.",
-	LOPExcludeEmptyTT = "|cffff0000Caution! Click to empty your local Exclude List.\n"..
-		"SHIFT-Click to empty your global Exclude List.",
+	defaultListsText = "Default Lists",
+	defaultListsTooltip = "|cffffffffClick|r to manually create default local list entries.\n |cffffffffRight-Click|r to also create default global lists.",
 	
-		-- Force Vendor Price List
-	LOPForceHeader = "Vendor Price List - These items will only have their vendor price considered.",
-	LOPForcePlusTT = "Add items to the Exclude List by dragging/placing them on me. Right click on me for categories!",
-	LOPForceMinusTT = "Select items you want to remove, then click here.",
-	LOPForcePromoteTT = "The Vendor Price List is already global and effects every character.",
-	LOPForceEmptyTT = "|cffff0000Caution! SHIFT-Click to empty your Vendor Price List.",
+	LOTabTitleInclude = "Junk",
+	LOTabTitleExclude = "Keep",
+	LOTabTitleVendorPrice = "Vendor Price",
+	LOTabTitleAutoSell = "Sell",
 	
-	-- AutoSell Options Panel
-	LONTitle = "Blacklist",
-	LONSubTitle = "Similar usage to Positive Lists. To set an item limit, use your mousewheel when over the item icon.",
+	LOIncludeAutoSellText = "Sell Junk List items",
+	LOIncludeAutoSellTooltip = "Check this to automatically sell items on your include list when at a merchant. Items without a value will be ignored.",
 	
-		-- Include List
-	LONIncludeHeader = "Include List - items will be shown first and not be looted by the Loot Manager.",
-	LONIncludePlusTT = "Add items to the Exclude List by dragging/placing them on me. Right click on me for categories!",
-	LONIncludeMinusTT = "Select items you want to remove, then click here.",
-	LONIncludePromoteTT = "Selected items will be written onto your global Include List, as seen by every character.",
-	LONIncludeEmptyTT = "|cffff0000Caution! Click to empty your local Include List.\n"..
-		"SHIFT-Click to empty your global Include List.",
-		
-	LONIncludeAutoSellText = "Automatically sell include list items",
-	LONIncludeAutoSellTooltip = "Check this to sell items on your include list when at a merchant.\nItems without a value will be ignored.",
+	LOTitle = "List Options",
+	LOSubTitle = "If you need help click the \"?\"-tab.\n\n" .. 
+		"|cffffd200Junk|r: Items on this list can be thrown away if needed.\n" ..
+		"|cffffd200Keep|r: Items on this list will never be deleted.\n" ..
+		"|cffffd200Vendor Price|r: Items only use vendor values. (always global)\n" ..
+		"|cffffd200Sell|r: Items on this list will be sold when at a merchant.",
 	
-		-- Auto Sell List
-	LONAutoSellHeader = "Sell List - These items will be sold automatically when at a vendor.",
-	LONAutoSellPlusTT = "Add items to the Exclude List by dragging/placing them on me. Right click on me for categories!",
-	LONAutoSellMinusTT = "Select items you want to remove, then click here.",
-	LONAutoSellPromoteTT = "Selected items will be written onto your global Sell List, as seen by every character.",
-	LONAutoSellEmptyTT = "|cffff0000Caution! Click to empty your local Sell List.\n"..
-		"SHIFT-Click to empty your global Sell List.",
+	listsBestUse = "|cffffd200List Examples|r\n" .. 
+		"Don't forget to use the standard lists! They provide a great example.\n" ..
+		"First, put any items you don't want to lose on your |cffffd200Keep List|r. Make good use of categories (see below)! If the LootManager is active it will alwas try to loot these items. \n|cffAAAAAAe.g. class reagents, flasks|r\n" .. 
+		"Items which may be thrown away any time belong on the |cffffd200Junk List|r. \n|cffAAAAAAe.g. summoned food & drink, argent lance|r\n" .. 
+		"In case you encounter highly overrated items, put them on your |cffffd200Vendor Price List|r. They will only have their vendor value used instead of auction or disenchant values.\n|cffAAAAAAe.g. fish oil|r\n" .. 
+		"Put items on your |cffffd200Sell List|r that should be sold when visiting a merchant. \n|cffAAAAAAe.g. water as a warrior, cheese|r",
+	
+	iconButtonsUse = "|cffffd200Item Buttons|r\n" .. 
+		"For any item you'll either see its icon, a gear if it's a category or a question mark in case the server doesn't know this item.\n" .. 
+		"In the top left of each button you'll see a \"G\" (or not). If it's there, the item is on your |cffffd200global list|r meaning this rule is effective for every character.\n" .. 
+		"Items on your Junk List may also have a |cffffd200limit|r. This will be shown as a small number in the lower right corner. By using the |cffffd200mousewheel|r on this button you can change this number. Limited items will only be dropped/destroyed if you have more than their limit indicates.",
+	
+	actionButtonsUse = "|cffffd200Action Buttons|r\n" .. 
+		"Below this window you'll see five buttons and a search bar.\n" ..
+		"|cffffd200Plus|r: Use this to add items to the currently shown list. Simply drag/drop them onto the plus. To add a |cffffd200category|r, right-click the plus and then choose a category. \n|cffAAAAAAe.g. \"Tradeskill > Recipe\", \"Misc > Key\"|r\n" ..
+		"|cffffd200Minus|r: Mark items on the list (by clicking them). When you click the minus, they will be removed from this list.\n" ..
+		"|cffffd200Local|r: Marked items will be put on your local list, meaning the rule is only active for the current character.\n" ..
+		"|cffffd200Global|r: Same as local, only this time items will be put on your global list. Those rules are active for all your characters.\n" .. 
+		"|cffffd200Empty|r: Click this button to remove any character specific (local) items from it. Shift-click empties any account wide (global) rules. |cffff0000Use with caution!|r",
+	
+	LOPlus = "Add items to this list by |cffffffffdragging|r/ |cffffffffdropping|r them onto this button.\n|cffffffffRight-click|r to add categories!",
+	LOMinus = "Choose items to be removed from the list, then |cffffffffclick|r here.",
+	LODemote = "|cffffffffClick|r to have any marked items used as character specific rules.",
+	LOPromote = "|cffffffffClick|r to use any marked item as account wide rule.",
+	LOEmptyList = "|cffff0000Caution!|r\n|cffffffffClick|r to empty any local entries on this list.\n"..
+		"|cffffffffShift-Click|r to empty any global entries.",
+	search = "Search...",
 	
 	-- LibPeriodicTable category testing
 	PTCategoryTest = "Test category strings",
