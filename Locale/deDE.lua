@@ -9,21 +9,22 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.repair = "Repariert für %s."
 	BrokerGarbage.locale.sell = "Müll verkauft für %s."
 	
-	BrokerGarbage.locale.addedTo_exclude = "%s zur Ausnahmeliste hinzugefügt."
+	BrokerGarbage.locale.addedTo_exclude = "%s zur Behalten-Liste hinzugefügt."
 	BrokerGarbage.locale.addedTo_forceVendorPrice = "Für %s wird nun nur der Händlerpreis genutzt."
-	BrokerGarbage.locale.addedTo_include = "%s zur Einschlussliste hinzugefügt."
+	BrokerGarbage.locale.addedTo_include = "%s zur Müll-Liste hinzugefügt."
 	BrokerGarbage.locale.addedTo_autoSellList = "%s wird bei Händlern automatisch verkauft."
+	BrokerGarbage.locale.itemAlreadyOnList = "%s ist bereits auf dieser Liste!"
 	BrokerGarbage.locale.limitSet = "Für %s wurde das Limit auf %d gesetzt."
 	BrokerGarbage.locale.itemDeleted = "%1$sx%2$d wurde gelöscht."
 	BrokerGarbage.locale.couldNotRepair = "Konnte nicht reparieren, da du nicht genug Geld hast. Du brauchst %s."
 	
 	BrokerGarbage.locale.listsUpdatedPleaseCheck = "Die Listeneinstellungen wurden geändert. Bitte sieh in den Einstellungen nach, ob sie für dich passend sind."
-	BrokerGarbage.locale.slashCommandHelp = "Folgende Kommandos werden unterstützt: |cffc0c0c0/garbage|r\n"..
-		"|cffc0c0c0config|r öffnet die Optionen.\n"..
-		"|cffc0c0c0format |cffc0c0ffformatstring|r lässt dich das Format der LDB Anzeige anpassen, |cffc0c0c0 format reset|r setzt es zurück.\n"..
-		"|cffc0c0c0limit |cffc0c0ffitemLink/ID Anzahl|r setzt ein Limit für das gewählte Item für den aktuellen Charakter.\n"..
-		"|cffc0c0c0globallimit |cffc0c0ffitemLink/ID Anzahl|r setzt ein Limit für alle Charaktere.\n"..
-		"|cffc0c0c0value |cffc0c0ffWertInKupfer|r setzt den Itemwert, ab dem Items gelootet werden (benötigt den Loot Manager)."
+	BrokerGarbage.locale.slashCommandHelp = [[Folgende Kommandos werden unterstützt:
+/garbage |cffc0c0c0config|r öffnet die Optionen.
+/garbage |cffc0c0c0format |cffc0c0ffformatstring|r lässt dich das Format der LDB Anzeige anpassen, |cffc0c0c0 format reset|r setzt es zurück.
+/garbage |cffc0c0c0limit |cffc0c0ffitemLink/ID Anzahl|r setzt ein Limit für das gewählte Item für den aktuellen Charakter.
+/garbage |cffc0c0c0globallimit |cffc0c0ffitemLink/ID Anzahl|r setzt ein Limit für alle Charaktere.
+/garbage |cffc0c0c0value |cffc0c0ffWertInKupfer|r setzt den Itemwert, ab dem Items gelootet werden (benötigt den Loot Manager).]]
 	BrokerGarbage.locale.minValueSet = "Mindestwert für items wurde auf %s gesetzt."
 	
 	BrokerGarbage.locale.warningMessagePrefit = "Warnung"
@@ -38,7 +39,6 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.increaseTreshold = "Erhöhe die Item Qualität"
 	
 	BrokerGarbage.locale.categoriesHeading = "Kategorien"
-	BrokerGarbage.locale.unknownAuctionAddon = "Unbekannt/Keins"
 	BrokerGarbage.locale.LPTNotLoaded = "LibPeriodicTable nicht aktiv"
 	
 	BrokerGarbage.locale.autoSellTooltip = "Müll für %s verkaufen"
@@ -78,12 +78,12 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.ResetLocalDataTooltip = "Klicke um alle charakterspezifischen Statistiken zurückzusetzen."
 	
 	BrokerGarbage.locale.AuctionAddon = "Auktionsaddon"
-	BrokerGarbage.locale.AuctionAddonUnknown = "Unbekannt/Keins"
+	BrokerGarbage.locale.unknown = "Unbekannt"	-- refers to auction addon
+	BrokerGarbage.locale.na = "Nicht vorhanden"
 	
 	-- Basic Options Frame
-	BrokerGarbage.locale.BasicOptionsTitle = "Grundeinstellungen"
-	BrokerGarbage.locale.BasicOptionsText = "Möchtest du einmal nicht automatisch verkaufen/reparieren? "..
-		"Halte SHIFT (je nach Einstellung) gedrückt, wenn du den Händler ansprichst!"
+	BrokerGarbage.locale.BasicOptionsTitle = "Allgemein"
+	BrokerGarbage.locale.BasicOptionsText = "Möchtest du einmal nicht automatisch verkaufen/reparieren? Halte SHIFT (je nach Einstellung) gedrückt, wenn du den Händler ansprichst!"
 	BrokerGarbage.locale.autoSellTitle = "Automatisch Verkaufen"
 	BrokerGarbage.locale.autoSellText = "Wenn ausgewählt, werden graue Gegenstände automatisch beim Händler verkauft."
 	
@@ -146,16 +146,24 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.LDBDisplayTextResetTooltip = "Setze den LDB Anzeigetext auf den Standardwert zurück."
 	BrokerGarbage.locale.LDBNoJunkTextTooltip = "Nutze diese Einstellung, um den Text zu ändern, der angezeigt wird, wenn du keinen Müll hast."
 	BrokerGarbage.locale.LDBNoJunkTextResetTooltip = "Setze den 'Kein Müll' Text auf den Standardwert zurück."
-	BrokerGarbage.locale.LDBDisplayTextHelpTooltip = "Schnellhilfe:\n"..
-		"[itemname] - Itemlink\n"..
-		"[itemcount] - Item Anzahl\n"..
-		"[itemvalue] - Itemwert\n"..
-		"[freeslots] - freier Taschenplatz\n"..
-		"[totalslots] - Gesamttaschenplatz\n"..
-		"[junkvalue] - Verkaufswert\n"..
-		"[bagspacecolor]...[endcolor] zum färben"
+	BrokerGarbage.locale.LDBDisplayTextHelpTooltip = [[Schnellhilfe:
+[itemname] - Itemlink
+[itemcount] - Item Anzahl
+[itemvalue] - Itemwert
+[freeslots] - freier Taschenplatz
+[totalslots] - Gesamttaschenplatz
+[junkvalue] - Verkaufswert
+[bagspacecolor]...[endcolor] zum färben]]
 		
 	-- List Options Panel
+	BrokerGarbage.locale.LOTitle = "Listen"
+	BrokerGarbage.locale.LOSubTitle = [[Wenn du Hilfe brauchst, klicke das "?"-Tab an.
+
+|cffffd200Müll|r: Diese Liste beinhaltet Items, die  weggeworfen werden können.
+|cffffd200Behalten|r: Items auf dieser Liste werden nie weggeworfen.
+|cffffd200Händlerpreis|r: Items nutzen keine Auktionspreise. (immer global!)
+|cffffd200Verkaufen|r: Diese Items werden bei Händlern automatisch verkauft.]]
+
 	BrokerGarbage.locale.defaultListsText = "Standardlisten"
 	BrokerGarbage.locale.defaultListsTooltip = "|cffffffffKlicke|r, um manuell die lokalen Standardeinträge für Listen einzufügen.\n|cffffffffRechtsklick|r um auch die globalen Einträge zu erstellen."
 	
@@ -167,32 +175,30 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.LOIncludeAutoSellText = "Müll-Items verkaufen"
 	BrokerGarbage.locale.LOIncludeAutoSellTooltip = "Aktivieren, um Items von deiner Müll-Liste automatisch beim Händler zu verkaufen. Items ohne Wert werden ignoriert."
 	
-	BrokerGarbage.locale.LOTitle = "Listeneinstellungen"
-	BrokerGarbage.locale.LOSubTitle = "Wenn du Hilfe brauchst, klicke das \"?\"-Tab an.\n\n" .. 
-		"|cffffd200" .. BrokerGarbage.locale.LOTabTitleInclude .. "|r: Diese Liste beinhaltet Items, die  weggeworfen werden können.\n" ..
-		"|cffffd200" .. BrokerGarbage.locale.LOTabTitleExclude .. "|r: Items auf dieser Liste werden nie weggeworfen.\n" ..
-		"|cffffd200" .. BrokerGarbage.locale.LOTabTitleVendorPrice .. "|r: Items nutzen keine Auktionspreise. (immer global)\n" ..
-		"|cffffd200" .. BrokerGarbage.locale.LOTabTitleAutoSell .. "|r: Diese Items werden bei Händlern automatisch verkauft."
+	BrokerGarbage.locale.listsBestUse = [[|cffffd200Listen-Beispiele|r
+Die Standardlisten geben eine Hilfestellung, was auf welcher Liste nützlich sein könnte.
+Setze erst alle Items, die du auf jeden Fall behalten möchtest, auf die |cffffd200Behalten-Liste|r. Denke auch daran, dass es Kategorien (s.u.) gibt! Ist der LootManager aktiv, wird er Items von dieser Liste immer plündern.
+|cffAAAAAAz.B. Klassenreagenzien, Fläschchen|r
+Dinge, von denen du weißt, dass sie sorglos weggeworfen werden können, gehören auf die |cffffd200Müll-Liste|r.
+|cffAAAAAAz.B. Herbeigezauberter Manakeks, Argentumlanze|r
+Sollte ein Item einen ungewollt hohen Wert zugewiesen bekommen, setze das Item auf die |cffffd200Händlerpreis-Liste|r. Diese Items werden nur den Händlerpreis nutzen.
+|cffAAAAAAz.B. Fischöl|r
+Auf die |cffffd200Verkaufen-Liste|r kannst du alles setzen, was Broker_Garbage verkaufen soll.
+|cffAAAAAAz.B. Wasser (als Krieger), Alterachochkäse|r]]
 	
-	BrokerGarbage.locale.listsBestUse = "|cffffd200Listen-Beispiele|r\n" .. 
-		"Die Standardlisten geben eine Hilfestellung, was auf welcher Liste nützlich sein könnte.\n" ..
-		"Setze erst alle Items, die du auf jeden Fall behalten möchtest, auf die |cffffd200Behalten-Liste|r. Denke auch daran, dass es Kategorien (s.u.) gibt! Ist der LootManager aktiv, wird er Items von dieser Liste immer plündern. \n|cffAAAAAAz.B. Klassenreagenzien, Fläschchen|r\n" .. 
-		"Dinge, von denen du weißt, dass sie sorglos weggeworfen werden können, gehören auf die |cffffd200Müll-Liste|r. \n|cffAAAAAAz.B. Herbeigezauberter Manakeks, Argentumlanze|r\n" .. 
-		"Sollte ein Item ungewollt einen exorbitant hohen Wert zugewiesen bekommen, setze das Item auf die |cffffd200Händlerpreis-Liste|r. Diese Items werden nur den Händlerpreis nutzen. \n|cffAAAAAAz.B. Fischöl|r\n" .. 
-		"Auf die |cffffd200Verkaufen-Liste|r kannst du alles setzen, was Broker_Garbage verkaufen soll. \n|cffAAAAAAz.B. Wasser (als Krieger), Alterachochkäse|r"
+	BrokerGarbage.locale.iconButtonsUse = [[|cffffd200Item-Buttons|r
+Angezeigt wird entweder das Icon des Items, ein Zahnrad, wenn es sich um eine Kategorie handelt, oder ein Fragezeichen, wenn der Server das Item nicht finden kann.
+Oben links jedes Buttons kann ein "G" stehen. Ist dies der Fall, ist das entsprechende Item auf der |cffffd200globalen Liste|r, d.h. diese Regel gilt für alle Charaktere.
+Items auf der Müll-Liste können ein |cffffd200Limit|r haben. Dies wird als kleine Zahl in der unteren rechten Ecke angezeigt. Zum Ändern nutze das |cffffd200Mausrad|r über dem Button. Diese Items werden erst gelöscht, sollte das Limit überschritten werden.]]
 	
-	BrokerGarbage.locale.iconButtonsUse = "|cffffd200Item-Buttons|r\n" .. 
-		"Angezeigt wird entweder das Icon des Items, ein Zahnrad, wenn es sich um eine Kategorie handelt, oder ein Fragezeichen, wenn der Server das Item nicht finden kann.\n" .. 
-		"Oben links jedes Buttons befindet sich ein \"G\" (oder auch nicht). Steht es dort, ist dieses Item auf der |cffffd200globalen Liste|r, d.h. diese Regel gilt für alle Charaktere.\n" .. 
-		"Items auf der Müll-Liste können ein |cffffd200Limit|r haben. Dies wird als kleine Zahl in der unteren rechten Ecke angezeigt. Zum Ändern nutze das |cffffd200Mausrad|r über dem Button. Diese Items werden erst gelöscht, sollte das Limit überschritten werden."
-	
-	BrokerGarbage.locale.actionButtonsUse = "|cffffd200Aktions-Buttons|r\n" .. 
-		"Unterhalb dieses Fensters siehst du 5 Buttons und eine Suchleiste.\n" ..
-		"|cffffd200Plus|r: Hier kannst du Items zu der angezeigten Liste hinzufügen. Ziehe dazu einfach ein Item auf das Plus. Um eine |cffffd200Kategorie|r hinzuzufügen, rechtsklicke das Plus und wähle dann in dem neuen Menü eine Kategorie aus. \n|cffAAAAAAz.B. \"Tradeskill > Recipe\", \"Misc > Key\"|r\n" ..
-		"|cffffd200Minus|r: Markiere Items aus der Liste (anklicken). Beim Klick auf das Minus werden diese Items von der Liste entfernt.\n" ..
-		"|cffffd200Lokal|r: Markierte Items werden auf die lokale Liste gesetzt, gelten also nur für diesen Charakter.\n" ..
-		"|cffffd200Global|r: Analog zu Lokal, nur werden hierbei die Items auf die globale Liste gesetzt, die Regeln gelten damit für alle Charaktere.\n" .. 
-		"|cffffd200Leeren|r: Ein Klick auf diesen Button leert die charakterspezifischen Regeln dieser Liste. Shift-Klick leert die accountweiten Regeln. |cffff0000Mit Vorsicht benutzen!|r"
+	BrokerGarbage.locale.actionButtonsUse = [[|cffffd200Aktions-Buttons|r
+Unterhalb dieses Fensters siehst du 5 Buttons und eine Suchleiste.
+|TInterface\Icons\Spell_ChargePositive:18|t |cffffd200Plus|r: Hier kannst du Items zu der angezeigten Liste hinzufügen. Ziehe dazu einfach ein Item auf das Plus. Um eine |cffffd200Kategorie|r hinzuzufügen, rechtsklicke das Plus und wähle dann in dem neuen Menü eine Kategorie aus.
+|cffAAAAAAz.B. "Tradeskill > Recipe", "Misc > Key"|r
+|TInterface\Icons\Spell_ChargeNegative:18|t |cffffd200Minus|r: Markiere Items aus der Liste (anklicken). Beim Klick auf das Minus werden diese Items von der Liste entfernt.
+|TInterface\Icons\INV_Misc_GroupLooking:18|t |cffffd200Lokal|r: Markierte Items werden auf die lokale Liste gesetzt, gelten also nur für diesen Charakter.
+|TInterface\Icons\INV_Misc_GroupNeedMore:18|t |cffffd200Global|r: Analog zu Lokal, nur werden hierbei die Items auf die globale Liste gesetzt, die Regeln gelten damit für alle Charaktere.
+|TInterface\Buttons\UI-GroupLoot-Pass-UP:18|t |cffffd200Leeren|r: Ein Klick auf diesen Button leert die charakterspezifischen Regeln dieser Liste. Shift-Klick leert die accountweiten Regeln. |cffff0000Mit Vorsicht benutzen!|r]]
 	
 	BrokerGarbage.locale.LOPlus = "Füge Items zu dieser Liste hinzu, indem du sie hierher |cffffffffziehst|r/hier |cffffffffablegst|r.\n|cffffffffRechtsklick|r, um Kategorien hinzuzufügen!"
 	BrokerGarbage.locale.LOMinus = "Wähle oben die Items, die du von dieser Liste entfernen willst. Dann |cffffffffklicke|r hier."
@@ -203,7 +209,7 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.search = "Suchen..."
 	
 	-- LibPeriodicTable category testing
-	BrokerGarbage.locale.PTCategoryTest = "Teste Kategorien"
+	BrokerGarbage.locale.PTCategoryTest = "Kategorientest"
 	BrokerGarbage.locale.PTCategoryTestTitle = "LibPeriodicTable Kategorietest"
 	BrokerGarbage.locale.PTCategoryTestSubTitle = "Wenn du unsicher bist, warum ein Item irgendwo auftaucht oder welche Items zu welcher Kategorie zählen, kannst du das hier testen."
 	BrokerGarbage.locale.PTCategoryTestExplanation = "Wähle einfach unten eine Kategorie aus und es wird dir alle Gegenstände aus deinem Inventar anzeigen, die dazuzählen.\nKategoriedaten kommen von LPT und nicht Broker_Garbage."

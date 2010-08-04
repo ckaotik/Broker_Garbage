@@ -488,8 +488,12 @@ function BrokerGarbage:GetSingleItemValue(item)
         end
         
     else
-        BrokerGarbage.auctionAddon = BrokerGarbage.locale.unknownAuctionAddon
-        auctionPrice = GetAuctionBuyout and GetAuctionBuyout(itemLink) or nil
+        if GetAuctionBuyout then
+            BrokerGarbage.auctionAddon = BrokerGarbage.locale.unknown
+            auctionPrice = GetAuctionBuyout(itemLink)
+        else
+            BrokerGarbage.auctionAddon = BrokerGarbage.locale.na
+        end
         disenchantPrice = canDE and GetDisenchantValue and GetDisenchantValue(itemLink) or nil
     end
 

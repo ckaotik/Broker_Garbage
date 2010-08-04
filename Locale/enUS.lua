@@ -9,21 +9,22 @@ BrokerGarbage.locale = {
 	repair = "Repaired for %s.",
 	sell = "Sold trash for %s.",
 	
-	addedTo_exclude = "%s has been added to the save list.",
+	addedTo_exclude = "%s has been added to the Keep List.",
 	addedTo_forceVendorPrice = "%s will only have its vendor price considered.",
-	addedTo_include = "%s has been added to the Include List.",
+	addedTo_include = "%s has been added to the Junk List.",
 	addedTo_autoSellList = "%s will be automatically sold when at a merchant.",
+	itemAlreadyOnList = "%s is already on this list!",
 	limitSet = "%s has been assigned a limit of %d.",
 	itemDeleted = "%1$sx%2$d has been deleted.",
 	couldNotRepair = "Could not repair because you don't have enough money. You need %s.",
 	
 	listsUpdatedPleaseCheck = "Your lists have been updated. Please have a look at your settings and check if they fit your needs.",
-	slashCommandHelp = "The following commands are available: |cffc0c0c0/garbage|r\n"..
-		"|cffc0c0c0config|r opens the options panel.\n"..
-		"|cffc0c0c0format |cffc0c0ffformatstring|r lets you customize the LDB display text, |cffc0c0c0 format reset|r resets it.\n"..
-		"|cffc0c0c0limit |cffc0c0ffitemLink/ID count|r sets a limit for the given item on the current character.\n"..
-		"|cffc0c0c0globallimit |cffc0c0ffitemLink/ID count|r sets a limit for all characters.\n"..
-		"|cffc0c0c0value |cffc0c0ffvalueInCopper|r sets the minimum value for items to be looted (Loot Manager needed).",
+	slashCommandHelp = [[The following commands are available:
+/garbage |cffc0c0c0config|r opens the options panel.
+/garbage |cffc0c0c0format |cffc0c0ffformatstring|r lets you customize the LDB display text, |cffc0c0c0 format reset|r resets it.
+/garbage |cffc0c0c0limit |cffc0c0ffitemLink/ID count|r sets a limit for the given item on the current character.
+/garbage |cffc0c0c0globallimit |cffc0c0ffitemLink/ID count|r sets a limit for all characters.
+/garbage |cffc0c0c0value |cffc0c0ffvalueInCopper|r sets the minimum value for items to be looted (Loot Manager needed).]],
 	minValueSet = "Items with a value less than %s will not be looted anymore.",
 	
 	warningMessagePrefit = "Warning",
@@ -146,16 +147,24 @@ BrokerGarbage.locale = {
 	LDBDisplayTextResetTooltip = "Reset LDB string to default value.",
 	LDBNoJunkTextTooltip = "Use this to change the text you see when there is no junk to be displayed.",
 	LDBNoJunkTextResetTooltip = "Reset 'No Junk' text to default value.",
-	LDBDisplayTextHelpTooltip = "Format string help:\n"..
-		"[itemname] - item link\n"..
-		"[itemcount] - item count\n"..
-		"[itemvalue] - item value\n"..
-		"[freeslots] - free bag slots\n"..
-		"[totalslots] - total bag slots\n"..
-		"[junkvalue] - total autosell value\n"..
-		"[bagspacecolor]...[endcolor] to colorize",
+	LDBDisplayTextHelpTooltip = [[Format string help:
+[itemname] - item link
+[itemcount] - item count
+[itemvalue] - item value
+[freeslots] - free bag slots
+[totalslots] - total bag slots
+[junkvalue] - total autosell value
+[bagspacecolor]...[endcolor] to colorize]],
 	
 	-- List Options Panel
+	LOTitle = "Lists",
+	LOSubTitle = [[If you need help click the "?"-tab.
+	
+|cffffd200Junk|r: Items on this list can be thrown away if needed.
+|cffffd200Keep|r: Items on this list will never be deleted.
+|cffffd200Vendor Price|r: Items only use vendor values. (always global)
+|cffffd200Sell|r: Items on this list will be sold when at a merchant.]],
+	
 	defaultListsText = "Default Lists",
 	defaultListsTooltip = "|cffffffffClick|r to manually create default local list entries.\n |cffffffffRight-Click|r to also create default global lists.",
 	
@@ -167,33 +176,31 @@ BrokerGarbage.locale = {
 	LOIncludeAutoSellText = "Sell Junk List items",
 	LOIncludeAutoSellTooltip = "Check this to automatically sell items on your include list when at a merchant. Items without a value will be ignored.",
 	
-	LOTitle = "List Options",
-	LOSubTitle = "If you need help click the \"?\"-tab.\n\n" .. 
-		"|cffffd200Junk|r: Items on this list can be thrown away if needed.\n" ..
-		"|cffffd200Keep|r: Items on this list will never be deleted.\n" ..
-		"|cffffd200Vendor Price|r: Items only use vendor values. (always global)\n" ..
-		"|cffffd200Sell|r: Items on this list will be sold when at a merchant.",
+	listsBestUse = [[|cffffd200List Examples|r
+Don't forget to use the standard lists! They provide a great example.
+First, put any items you don't want to lose on your |cffffd200Keep List|r. Make good use of categories (see below)! If the LootManager is active it will alwas try to loot these items.
+|cffAAAAAAe.g. class reagents, flasks|r
+Items which may be thrown away any time belong on the |cffffd200Junk List|r.
+|cffAAAAAAe.g. summoned food & drink, argent lance|r
+In case you encounter highly overrated items, put them on your |cffffd200Vendor Price List|r. They will only have their vendor value used instead of auction or disenchant values.
+|cffAAAAAAe.g. fish oil|r
+Put items on your |cffffd200Sell List|r that should be sold when visiting a merchant.
+|cffAAAAAAe.g. water as a warrior, cheese|r]],
 	
-	listsBestUse = "|cffffd200List Examples|r\n" .. 
-		"Don't forget to use the standard lists! They provide a great example.\n" ..
-		"First, put any items you don't want to lose on your |cffffd200Keep List|r. Make good use of categories (see below)! If the LootManager is active it will alwas try to loot these items. \n|cffAAAAAAe.g. class reagents, flasks|r\n" .. 
-		"Items which may be thrown away any time belong on the |cffffd200Junk List|r. \n|cffAAAAAAe.g. summoned food & drink, argent lance|r\n" .. 
-		"In case you encounter highly overrated items, put them on your |cffffd200Vendor Price List|r. They will only have their vendor value used instead of auction or disenchant values.\n|cffAAAAAAe.g. fish oil|r\n" .. 
-		"Put items on your |cffffd200Sell List|r that should be sold when visiting a merchant. \n|cffAAAAAAe.g. water as a warrior, cheese|r",
+	iconButtonsUse = [[|cffffd200Item Buttons|r
+For any item you'll either see its icon, a gear if it's a category or a question mark in case the server doesn't know this item.
+In the top left of each button you'll see a "G" (or not). If it's there, the item is on your |cffffd200global list|r meaning this rule is effective for every character.
+Items on your Junk List may also have a |cffffd200limit|r. This will be shown as a small number in the lower right corner. By using the |cffffd200mousewheel|r on this button you can change this number. Limited items will only be dropped/destroyed if you have more than their limit indicates.]],
 	
-	iconButtonsUse = "|cffffd200Item Buttons|r\n" .. 
-		"For any item you'll either see its icon, a gear if it's a category or a question mark in case the server doesn't know this item.\n" .. 
-		"In the top left of each button you'll see a \"G\" (or not). If it's there, the item is on your |cffffd200global list|r meaning this rule is effective for every character.\n" .. 
-		"Items on your Junk List may also have a |cffffd200limit|r. This will be shown as a small number in the lower right corner. By using the |cffffd200mousewheel|r on this button you can change this number. Limited items will only be dropped/destroyed if you have more than their limit indicates.",
-	
-	actionButtonsUse = "|cffffd200Action Buttons|r\n" .. 
-		"Below this window you'll see five buttons and a search bar.\n" ..
-		"|cffffd200Plus|r: Use this to add items to the currently shown list. Simply drag/drop them onto the plus. To add a |cffffd200category|r, right-click the plus and then choose a category. \n|cffAAAAAAe.g. \"Tradeskill > Recipe\", \"Misc > Key\"|r\n" ..
-		"|cffffd200Minus|r: Mark items on the list (by clicking them). When you click the minus, they will be removed from this list.\n" ..
-		"|cffffd200Local|r: Marked items will be put on your local list, meaning the rule is only active for the current character.\n" ..
-		"|cffffd200Global|r: Same as local, only this time items will be put on your global list. Those rules are active for all your characters.\n" .. 
-		"|cffffd200Empty|r: Click this button to remove any character specific (local) items from it. Shift-click empties any account wide (global) rules. |cffff0000Use with caution!|r",
-	
+	actionButtonsUse = [[|cffffd200Action Buttons|r
+Below this window you'll see five buttons and a search bar.
+|TInterface\Icons\Spell_ChargePositive:18|t |cffffd200Plus|r: Use this to add items to the currently shown list. Simply drag/drop them onto the plus. To add a |cffffd200category|r, right-click the plus and then choose a category.
+|cffAAAAAAe.g. "Tradeskill > Recipe", "Misc > Key"|r
+|TInterface\Icons\Spell_ChargeNegative:18|t |cffffd200Minus|r: Mark items on the list (by clicking them). When you click the minus, they will be removed from this list.
+|TInterface\Icons\INV_Misc_GroupLooking:18|t |cffffd200Local|r: Marked items will be put on your local list, meaning the rule is only active for the current character.
+|TInterface\Icons\INV_Misc_GroupNeedMore:18|t |cffffd200Global|r: Same as local, only this time items will be put on your global list. Those rules are active for all your characters.
+|TInterface\Buttons\UI-GroupLoot-Pass-UP:18|t |cffffd200Empty|r: Click this button to remove any character specific (local) items from it. Shift-click empties any account wide (global) rules. |cffff0000Use with caution!|r]],
+
 	LOPlus = "Add items to this list by |cffffffffdragging|r/ |cffffffffdropping|r them onto this button.\n|cffffffffRight-click|r to add categories!",
 	LOMinus = "Choose items to be removed from the list, then |cffffffffclick|r here.",
 	LODemote = "|cffffffffClick|r to have any marked items used as character specific rules.",
@@ -203,7 +210,7 @@ BrokerGarbage.locale = {
 	search = "Search...",
 	
 	-- LibPeriodicTable category testing
-	PTCategoryTest = "Test category strings",
+	PTCategoryTest = "Category Test",
 	PTCategoryTestTitle = "LibPeriodicTable Category String Test",
 	PTCategoryTestSubTitle = "If you're unsure why an item shows up as it does or which items are included in which category, you can test that here.",
 	PTCategoryTestExplanation = "Simply select a category below and it will display all items in your inventory that match this category.\nCategory information comes from LPT and not Broker_Garbage.",

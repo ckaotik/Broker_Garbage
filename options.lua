@@ -723,7 +723,7 @@ local function ShowListOptions(frame)
 	plus:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	plus:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
 	plus.tiptext = BrokerGarbage.locale.LOPlus
-	plus:RegisterForClicks("RightButtonUp")
+	plus:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 	local minus = CreateFrame("Button", "BrokerGarbage_RemoveButton", frame)
 	minus:SetPoint("LEFT", plus, "RIGHT", 4, 0)
 	minus:SetWidth(25);	minus:SetHeight(25)
@@ -1103,7 +1103,7 @@ local function ShowListOptions(frame)
 	
 	local function AddItem(self, item)
 		local cursorType, itemID, link = GetCursorInfo()
-		if not itemID and (item == "RightButton" or item == "LeftButton" or item == "MiddleButton") then
+		if self == plus and not (cursorType and itemID and link) then
 			return
 		end
 		
@@ -1128,13 +1128,14 @@ local function ShowListOptions(frame)
 			BrokerGarbage:Print(format(BrokerGarbage.locale["addedTo_" .. frame.current], link))
 			BrokerGarbage:ListOptionsUpdate()
 			ClearCursor()
-		elseif BG_GlobalDB[frame.current] and BG_GlobalDB[frame.current][itemID] == nil then
+		elseif BG_LocalDB[frame.current] == nil and 
+			BG_GlobalDB[frame.current] and BG_GlobalDB[frame.current][itemID] == nil then
 			BG_GlobalDB[frame.current][itemID] = true
 			BrokerGarbage:Print(format(BrokerGarbage.locale["addedTo_" .. frame.current], link))
 			BrokerGarbage:ListOptionsUpdate()
 			ClearCursor()
 		else
-			BrokerGarbage:Print("<Item is already on that list.>")
+			BrokerGarbage:Print(string.format(BrokerGarbage.locale.itemAlreadyOnList, link))
 		end
 		
 		BrokerGarbage:ScanInventory()
