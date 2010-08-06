@@ -63,7 +63,6 @@ local function eventHandler(self, event, ...)
         frame:UnregisterEvent("PLAYER_ENTERING_WORLD")
         
     elseif event == "BAG_UPDATE" then
-        -- whatever these weird arguments mean
         if arg1 < 0 or arg1 > 4 then return end
         
         BrokerGarbage:ScanInventoryContainer(arg1)	-- partial inventory scan on the relevant container
@@ -92,8 +91,7 @@ local function eventHandler(self, event, ...)
         -- Update cache auction values if needed
         BrokerGarbage.itemsCache = {}
     
-    elseif (locked or cost ~=0) and event == "PLAYER_MONEY" then
-        -- regular unlock
+    elseif (locked or cost ~=0) and event == "PLAYER_MONEY" then -- regular unlock
         -- wrong player_money event (resulting from repair, not sell)
         if sellValue ~= 0 and cost ~= 0 and ((-1)*sellValue <= cost+2 and (-1)*sellValue >= cost-2) then 
             BrokerGarbage:Debug("Not yet ... Waiting for actual money change.")
@@ -129,7 +127,6 @@ end
 
 -- register events
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
--- frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("BAG_UPDATE")
 frame:RegisterEvent("MERCHANT_SHOW")
 frame:RegisterEvent("MERCHANT_CLOSED")
