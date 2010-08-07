@@ -139,31 +139,28 @@ frame:SetScript("OnEvent", eventHandler)
 -- ---------------------------------------------------------
 function BrokerGarbage:UpdateRepairButton(...)
     if not BG_GlobalDB.showAutoSellIcon then
-        -- resets guild repair icon
-        MerchantGuildBankRepairButton:ClearAllPoints()
-        MerchantGuildBankRepairButton:SetPoint("LEFT", MerchantRepairAllButton, "RIGHT", 4, 0)
-
         if _G["BrokerGarbage_SellIcon"] then
             BrokerGarbage_SellIcon:Hide()
         end
+        -- re-position all the buttons
+        MerchantRepairAllButton:ClearAllPoints()
+        MerchantGuildBankRepairButton:ClearAllPoints()
+        MerchantGuildBankRepairButton:SetPoint("LEFT", MerchantRepairAllButton, "RIGHT", 4, 0)
+        MerchantFrame_UpdateRepairButtons()
         return
     end
     
-    local junkValue = 0
-    for i = 0, 4 do
-        junkValue = junkValue + (BrokerGarbage.toSellValue[i] or 0)
-    end
-    local iconbutton
+    local sellIcon
     -- show auto-sell icon on vendor frame
     if not _G["BrokerGarbage_SellIcon"] then
-        iconbutton = CreateFrame("Button", "BrokerGarbage_SellIcon", MerchantFrame)
-        -- iconbutton:Raise() -- iconbutton:SetFrameStrata("Dialog")
-        iconbutton:SetWidth(36); iconbutton:SetHeight(36)
-        iconbutton:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
-        iconbutton:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-        iconbutton:SetScript("OnClick", BrokerGarbage.AutoSell)
-        iconbutton:SetScript("OnEnter", function(self) 
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        sellIcon = CreateFrame("Button", "BrokerGarbage_SellIcon", MerchantFrame)
+        -- sellIcon:Raise() -- sellIcon:SetFrameStrata("DIALOG")
+        sellIcon:SetWidth(36); sellIcon:SetHeight(36)
+        sellIcon:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
+        sellIcon:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+        sellIcon:SetScript("OnClick", BrokerGarbage.AutoSell)
+        sellIcon:SetScript("OnEnter", function(self) 
+            GameTooltip:SetOwner(self, "ANCHOR_NONE")
             local tiptext
             local junkValue = 0
             for i = 0, 4 do
@@ -176,37 +173,44 @@ function BrokerGarbage:UpdateRepairButton(...)
             end
             GameTooltip:SetText(tiptext, nil, nil, nil, nil, true)
         end)
-        iconbutton:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        sellIcon:SetScript("OnLeave", function() GameTooltip:Hide() end)
     else
-        iconbutton = _G["BrokerGarbage_SellIcon"]
+        sellIcon = _G["BrokerGarbage_SellIcon"]
     end
 
-    if CanMerchantRepair() then
-        if CanGuildBankRepair() then
-            MerchantGuildBankRepairButton:ClearAllPoints()
-            MerchantGuildBankRepairButton:SetPoint("BOTTOMRIGHT", MerchantBuyBackItemItemButton, "BOTTOMLEFT", -22, 4)
-            MerchantRepairAllButton:SetPoint("BOTTOMRIGHT", MerchantGuildBankRepairButton, "BOTTOMLEFT", -4, 0)
-            iconbutton:SetPoint("BOTTOMRIGHT", MerchantRepairItemButton, "BOTTOMLEFT", -4, 1)
-            iconbutton:SetWidth(30); iconbutton:SetHeight(30)
+    if MerchantBuyBackItemItemButton:IsVisible() then
+        if CanMerchantRepair() then
+            if CanGuildBankRepair() then    -- move all the default icons further to the right. blizz anchors weird -.-
+                MerchantGuildBankRepairButton:ClearAllPoints()
+                MerchantGuildBankRepairButton:SetPoint("RIGHT", MerchantBuyBackItemItemButton, "LEFT", -22, 0)
+                MerchantRepairAllButton:ClearAllPoints()
+                MerchantRepairAllButton:SetPoint("RIGHT", MerchantGuildBankRepairButton, "LEFT", -4, 0)
+            end
+            sellIcon:SetWidth(MerchantRepairAllButton:GetWidth())
+            sellIcon:SetHeight(MerchantRepairAllButton:GetHeight())
+            sellIcon:SetPoint("RIGHT", MerchantRepairItemButton, "LEFT", -4, 0)
         else
-            iconbutton:SetWidth(36); iconbutton:SetHeight(36)
-            iconbutton:SetPoint("BOTTOMRIGHT", MerchantRepairItemButton, "BOTTOMLEFT", -2, 0)
+            sellIcon:SetWidth(MerchantBuyBackItemItemButton:GetWidth())
+            sellIcon:SetHeight(MerchantBuyBackItemItemButton:GetHeight())
+            sellIcon:SetPoint("RIGHT", MerchantBuyBackItemItemButton, "LEFT", -18, 0)
         end
-        
-        iconbutton:Show()
+        MerchantRepairText:Hide()
+        sellIcon:Show()
     else
-        iconbutton:SetPoint("BOTTOMRIGHT", MerchantBuyBackItemItemButton, "BOTTOMLEFT", -18, 0)
-        iconbutton:Show()
+        sellIcon:Hide()
     end
-    MerchantRepairText:Hide()
     
+    local junkValue = 0
+    for i = 0, 4 do
+        junkValue = junkValue + (BrokerGarbage.toSellValue[i] or 0)
+    end
     if junkValue ~= 0 then
         _G["BrokerGarbage_SellIcon"]:GetNormalTexture():SetDesaturated(false)
     else
         _G["BrokerGarbage_SellIcon"]:GetNormalTexture():SetDesaturated(true)
     end
 end
-hooksecurefunc("MerchantFrame_UpdateRepairButtons", BrokerGarbage.UpdateRepairButton)
+hooksecurefunc("MerchantFrame_Update", BrokerGarbage.UpdateRepairButton)
 
 -- Tooltip
 -- ---------------------------------------------------------

@@ -361,6 +361,7 @@ local function ShowBasicOptions()
 	autosellicon:SetScript("OnClick", function(autosellicon)
 		checksound(autosellicon)
 		BG_GlobalDB.showAutoSellIcon = not BG_GlobalDB.showAutoSellIcon
+		BrokerGarbage:UpdateRepairButton()
 	end)
 	
 	local nothingtext = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showNothingToSellTitle, "TOPLEFT", autosellicon, "BOTTOMLEFT", 0, 0)
