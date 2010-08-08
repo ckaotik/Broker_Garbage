@@ -160,7 +160,7 @@ function BrokerGarbage:UpdateRepairButton(...)
         sellIcon:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
         sellIcon:SetScript("OnClick", BrokerGarbage.AutoSell)
         sellIcon:SetScript("OnEnter", function(self) 
-            GameTooltip:SetOwner(self, "ANCHOR_NONE")
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             local tiptext
             local junkValue = 0
             for i = 0, 4 do
