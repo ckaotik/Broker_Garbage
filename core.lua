@@ -154,7 +154,7 @@ function BrokerGarbage:UpdateRepairButton(...)
     -- show auto-sell icon on vendor frame
     if not _G["BrokerGarbage_SellIcon"] then
         sellIcon = CreateFrame("Button", "BrokerGarbage_SellIcon", MerchantFrame)
-        -- sellIcon:Raise() -- sellIcon:SetFrameStrata("DIALOG")
+        sellIcon:SetFrameStrata("DIALOG")   -- sellIcon:Raise()
         sellIcon:SetWidth(36); sellIcon:SetHeight(36)
         sellIcon:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
         sellIcon:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")

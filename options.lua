@@ -929,14 +929,15 @@ local function ShowListOptions(frame)
 				if type(itemID) ~= "number" then	-- this is an item category
 					itemLink = nil
 					button.tiptext = itemID			-- category description string
+					button.itemID = nil
 					texture = "Interface\\Icons\\Trade_engineering"
 				else	-- this is an explicit item
 					_, itemLink, _, _, _, _, _, _, _, texture, _ = GetItemInfo(itemID)
+					button.itemID = itemID
 					button.tiptext = nil
 				end
 				
 				if texture then	-- everything's fine
-					button.itemID = itemID
 					button.itemLink = itemLink
 					button:SetNormalTexture(texture)
 					
@@ -960,7 +961,6 @@ local function ShowListOptions(frame)
 						button.tiptext = button.tiptext .. "\n|cffff0000"..BrokerGarbage.locale.LPTNotLoaded
 					end
 				else	-- an item the server has not seen
-					button.itemID = itemID
 					button.tiptext = "ID: "..itemID
 					button:SetNormalTexture("Interface\\Icons\\Inv_misc_questionmark")
 				end
@@ -1177,7 +1177,7 @@ local function ShowListOptions(frame)
 						[1] = key
 					}
 					info.func = function(...) 
-						AddItem(BrokerGarbage.menuFrame.clickTarget, key)
+						AddItem(key)
 						BrokerGarbage:ListOptionsUpdate()
 					end
 					UIDropDownMenu_AddButton(info, level)
@@ -1244,7 +1244,7 @@ local function ShowListOptions(frame)
 		
 		-- add action
 		if self == plus then			
-			AddItem(self)
+			AddItem()
 		-- remove action
 		elseif self == minus then
 			for i, button in ipairs(BrokerGarbage.listButtons) do
