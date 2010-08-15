@@ -63,13 +63,13 @@ BrokerGarbage.listButtons = {}
 -- button tooltip infos
 local function ShowTooltip(self)
 	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-	if self.tiptext and self.itemID and self.tiptext ~= "ID: "..self.itemID then
+	if self.tiptext and not self.itemID then
 		local text = string.gsub(self.tiptext, "%.", " |cffffd200>|r ")
 		
 		GameTooltip:ClearLines() 
 		GameTooltip:AddLine("LibPeriodicTable")
 		GameTooltip:AddLine(text, 1, 1, 1, true)
-	elseif self.tiptext then
+	elseif self.tiptext and self.itemID then
 		GameTooltip:SetText(self.tiptext, nil, nil, nil, nil, true)
 	elseif self.itemLink then
 		GameTooltip:SetHyperlink(self.itemLink)
@@ -1380,7 +1380,7 @@ function SlashCmdList.BROKERGARBAGE(msg, editbox)
 		else
 			BG_LocalDB.include[itemID] = count
 		end
-		local itemLink = select(2,GetItemInfo(itemID))
+		local itemLink = select(2,GetItemInfo(itemID)) or BrokerGarbage.locale.unknown
 		BrokerGarbage:Print(format(BrokerGarbage.locale.limitSet, itemLink, count))
 		BrokerGarbage:ListOptionsUpdate("include")
 		

@@ -702,6 +702,7 @@ function BrokerGarbage:GetCheapest(number)
                     
                     insert = true
                     local value = count * item.value
+                    local vendorValue = select(11, GetItemInfo(itemID)) * count
                     local classification = item.classification
                     
                     -- remember lootable items
@@ -747,7 +748,7 @@ function BrokerGarbage:GetCheapest(number)
                         -- check if item is really soulbound
                         if BrokerGarbage:IsItemSoulbound(itemID, container, slot) then
                             -- use vendor price instead
-                            value = select(11, GetItemInfo(itemID))
+                            value = vendorValue
                             classification = BrokerGarbage.VENDOR
                         end
                     
@@ -760,7 +761,7 @@ function BrokerGarbage:GetCheapest(number)
                         value = 0
                         
                     elseif item.classification == BrokerGarbage.VENDORLIST or item.classification == BrokerGarbage.VENDOR then
-                        value = select(11, GetItemInfo(itemID))
+                        value = vendorValue
                     end
                     
                     if item.quality > BG_GlobalDB.dropQuality and 

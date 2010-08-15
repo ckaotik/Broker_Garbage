@@ -39,7 +39,6 @@ BrokerGarbage.locale = {
 	increaseTreshold = "Increase quality treshold",
 	
 	categoriesHeading = "Categories",
-	unknownAuctionAddon = "Unknown/None",
 	LPTNotLoaded = "LibPeriodicTable not loaded",
 	
 	autoSellTooltip = "Sell Items for %s",
@@ -79,12 +78,12 @@ BrokerGarbage.locale = {
 	ResetLocalDataTooltip = "Click here to reset all local statistics.",
 	
 	AuctionAddon = "Auction addon",
-	AuctionAddonUnknown = "Unknown/None",
+	unknown = "Unbekannt",	-- refers to auction addon
+	na = "Nicht vorhanden",
 	
 	-- Basic Options Frame
 	BasicOptionsTitle = "Basic Options",
-	BasicOptionsText = "Don't want to auto-sell/repair? "..
-		"Hold Shift (depending on your settings) when adressing the merchant!",
+	BasicOptionsText = "Don't want to auto-sell/repair? Hold Shift (depending on your settings) when adressing the merchant!",
 	autoSellTitle = "Auto Sell",
 	autoSellText = "Toggles whether to automatically sell your gray items when at a vendor.",
 	
