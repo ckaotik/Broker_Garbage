@@ -112,8 +112,10 @@ function BrokerGarbage:CreateDefaultLists(global)
 		BG_GlobalDB.include[46069] = true											-- argentum lance
 		if BG_GlobalDB.include[6265] == nil then BG_GlobalDB.include[6265] = 20 end	-- soulshards
 		BG_GlobalDB.include["Consumable.Water.Conjured"] = true
+		BG_GlobalDB.include["Consumable.Food.Edible.Basic.Conjured"] = true
 		BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible.Basic"] = true
 		BG_GlobalDB.forceVendorPrice["Consumable.Water.Basic"] = true
+		BG_GlobalDB.forceVendorPrice["tradeSkill.Mat.BySource.Vendor"] = true
 	end
 	
 	-- tradeskills

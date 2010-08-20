@@ -63,13 +63,13 @@ BrokerGarbage.listButtons = {}
 -- button tooltip infos
 local function ShowTooltip(self)
 	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-	if self.tiptext and not self.itemID then
+	if self.tiptext and self:GetParent() == _G["BG_ListOptionsScrollFrameContent"] then
 		local text = string.gsub(self.tiptext, "%.", " |cffffd200>|r ")
 		
 		GameTooltip:ClearLines() 
 		GameTooltip:AddLine("LibPeriodicTable")
 		GameTooltip:AddLine(text, 1, 1, 1, true)
-	elseif self.tiptext and self.itemID then
+	elseif self.tiptext then
 		GameTooltip:SetText(self.tiptext, nil, nil, nil, nil, true)
 	elseif self.itemLink then
 		GameTooltip:SetHyperlink(self.itemLink)
@@ -746,11 +746,11 @@ local function ShowListOptions(frame)
 	local emptyList = CreateFrame("Button", "BrokerGarbage_EmptyListButton", frame)
 	emptyList:SetPoint("LEFT", promote, "RIGHT", 14, 0)
 	emptyList:SetWidth(25); emptyList:SetHeight(25)
-	emptyList:SetNormalTexture("Interface\\Buttons\\Ui-grouploot-pass-up")
+	emptyList:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-UP")
 	emptyList.tiptext = BrokerGarbage.locale.LOEmptyList
 	
 	-- editbox curtesy of Tekkub
-	local searchbox = CreateFrame("EditBox", nil, frame)
+	local searchbox = CreateFrame("EditBox", frame:GetName().."SearchBox", frame)
 	searchbox:SetAutoFocus(false)
 	searchbox:SetPoint("TOPRIGHT", panel, "BOTTOMRIGHT", -4, 2)
 	searchbox:SetWidth(160)
@@ -1249,16 +1249,18 @@ local function ShowListOptions(frame)
 		elseif self == minus then
 			for i, button in ipairs(BrokerGarbage.listButtons) do
 				if button:IsVisible() and button:GetChecked() then
-					if type(button.itemID) == "number" then
-						BrokerGarbage.itemsCache[button.itemID] = nil
-					else
-						BrokerGarbage.itemsCache = {}
-					end
+					local item = button.itemID or button.tiptext
 					if BG_LocalDB[frame.current] then
-						BG_LocalDB[frame.current][button.itemID] = nil
+						BG_LocalDB[frame.current][item] = nil
 					end
 					if BG_GlobalDB[frame.current] then
-						BG_GlobalDB[frame.current][button.itemID] = nil
+						BG_GlobalDB[frame.current][item] = nil
+					end
+					
+					if type(item) == "number" then	-- regular item
+						BrokerGarbage.itemsCache[item] = nil
+					else					-- category string
+						BrokerGarbage.itemsCache = {}
 					end
 				end
 			end
@@ -1266,9 +1268,10 @@ local function ShowListOptions(frame)
 		elseif self == demote then
 			for i, button in ipairs(BrokerGarbage.listButtons) do
 				if button:IsVisible() and button:GetChecked() then
-					if BG_GlobalDB[frame.current][button.itemID] and BG_LocalDB[frame.current] then
-						BG_LocalDB[frame.current][button.itemID] = BG_GlobalDB[frame.current][button.itemID]
-						BG_GlobalDB[frame.current][button.itemID] = nil
+					local item = button.itemID or button.tiptext
+					if BG_GlobalDB[frame.current][item] and BG_LocalDB[frame.current] then
+						BG_LocalDB[frame.current][item] = BG_GlobalDB[frame.current][item]
+						BG_GlobalDB[frame.current][item] = nil
 					end
 				end
 			end
@@ -1276,9 +1279,10 @@ local function ShowListOptions(frame)
 		elseif self == promote then
 			for i, button in ipairs(BrokerGarbage.listButtons) do
 				if button:IsVisible() and button:GetChecked() then
-					if not BG_GlobalDB[frame.current][button.itemID] then
-						BG_GlobalDB[frame.current][button.itemID] = BG_LocalDB[frame.current][button.itemID]
-						BG_LocalDB[frame.current][button.itemID] = nil
+					local item = button.itemID or button.tiptext
+					if not BG_GlobalDB[frame.current][item] then
+						BG_GlobalDB[frame.current][item] = BG_LocalDB[frame.current][item]
+						BG_LocalDB[frame.current][item] = nil
 					end
 				end
 			end
