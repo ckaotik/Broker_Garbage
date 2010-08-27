@@ -153,11 +153,9 @@ function BrokerGarbage:UpdateRepairButton(...)
     local sellIcon
     -- show auto-sell icon on vendor frame
     if not _G["BrokerGarbage_SellIcon"] then
-        sellIcon = CreateFrame("Button", "BrokerGarbage_SellIcon", MerchantFrame)
-        sellIcon:SetFrameStrata("DIALOG")   -- sellIcon:Raise()
-        sellIcon:SetWidth(36); sellIcon:SetHeight(36)
-        sellIcon:SetNormalTexture("Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
-        sellIcon:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+        sellIcon = CreateFrame("Button", "BrokerGarbage_SellIcon", MerchantFrame, "ItemButtonTemplate")
+        SetItemButtonTexture(sellIcon, "Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
+        sellIcon:SetFrameStrata("HIGH")
         sellIcon:SetScript("OnClick", BrokerGarbage.AutoSell)
         sellIcon:SetScript("OnEnter", function(self) 
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -180,7 +178,7 @@ function BrokerGarbage:UpdateRepairButton(...)
 
     if MerchantBuyBackItemItemButton:IsVisible() then
         if CanMerchantRepair() then
-            if CanGuildBankRepair() then    -- move all the default icons further to the right. blizz anchors weird -.-
+            if CanGuildBankRepair() then    -- move all the default icons further to the right. blizz anchors are weird -.-
                 MerchantGuildBankRepairButton:ClearAllPoints()
                 MerchantGuildBankRepairButton:SetPoint("RIGHT", MerchantBuyBackItemItemButton, "LEFT", -22, 0)
                 MerchantRepairAllButton:ClearAllPoints()
@@ -204,11 +202,7 @@ function BrokerGarbage:UpdateRepairButton(...)
     for i = 0, 4 do
         junkValue = junkValue + (BrokerGarbage.toSellValue[i] or 0)
     end
-    if junkValue ~= 0 then
-        _G["BrokerGarbage_SellIcon"]:GetNormalTexture():SetDesaturated(false)
-    else
-        _G["BrokerGarbage_SellIcon"]:GetNormalTexture():SetDesaturated(true)
-    end
+    SetItemButtonDesaturated(_G["BrokerGarbage_SellIcon"], junkValue == 0)
 end
 hooksecurefunc("MerchantFrame_Update", BrokerGarbage.UpdateRepairButton)
 

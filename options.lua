@@ -1259,7 +1259,7 @@ local function ShowListOptions(frame)
 					
 					if type(item) == "number" then	-- regular item
 						BrokerGarbage.itemsCache[item] = nil
-					else					-- category string
+					else							-- category string
 						BrokerGarbage.itemsCache = {}
 					end
 				end

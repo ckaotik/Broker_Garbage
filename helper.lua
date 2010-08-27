@@ -115,7 +115,7 @@ function BrokerGarbage:CreateDefaultLists(global)
 		BG_GlobalDB.include["Consumable.Food.Edible.Basic.Conjured"] = true
 		BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible.Basic"] = true
 		BG_GlobalDB.forceVendorPrice["Consumable.Water.Basic"] = true
-		BG_GlobalDB.forceVendorPrice["tradeSkill.Mat.BySource.Vendor"] = true
+		BG_GlobalDB.forceVendorPrice["Tradeskill.Mat.BySource.Vendor"] = true
 	end
 	
 	-- tradeskills
