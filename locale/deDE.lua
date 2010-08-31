@@ -159,7 +159,7 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.LOTitle = "Listen"
 	BrokerGarbage.locale.LOSubTitle = [[Wenn du Hilfe brauchst, klicke das "?"-Tab an.
 
-|cffffd200Müll|r: Diese Liste beinhaltet Items, die  weggeworfen werden können.
+|cffffd200Müll|r: Diese Liste beinhaltet Items, die weggeworfen werden können.
 |cffffd200Behalten|r: Items auf dieser Liste werden nie weggeworfen.
 |cffffd200Händlerpreis|r: Items nutzen keine Auktionspreise. (immer global!)
 |cffffd200Verkaufen|r: Diese Items werden bei Händlern automatisch verkauft.]]

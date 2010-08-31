@@ -294,7 +294,7 @@ end
 function BrokerGarbage:OnClick(itemTable, button)	
     -- handle LDB clicks seperately
     local LDBclick = false
-    if not itemTable.itemID or type(itemTable.itemID) ~= "number" then
+    if not itemTable or not itemTable.itemID or type(itemTable.itemID) ~= "number" then
         BrokerGarbage:Debug("Click on LDB")
         itemTable = BrokerGarbage.cheapestItems[1]
         LDBclick = true
@@ -622,6 +622,9 @@ end
 function BrokerGarbage:ScanInventory()
     for container = 0,4 do
         BrokerGarbage:ScanInventoryContainer(container)
+    end
+    if BrokerGarbage.isAtVendor then
+        BrokerGarbage:UpdateRepairButton()
     end
 end
 

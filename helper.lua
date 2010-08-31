@@ -522,7 +522,10 @@ function BrokerGarbage:UpdateCache(itemID)
 	
 	local tvalue, tclass = BrokerGarbage:GetSingleItemValue(itemID)
 	if not class then class = tclass end
-	if not (class == BrokerGarbage.VENDOR or class == BrokerGarbage.VENDORLIST) then value = tvalue end
+	if not (class == BrokerGarbage.VENDOR or class == BrokerGarbage.VENDORLIST or 
+		(class == BrokerGarbage.INCLUDE and BG_GlobalDB.autoSellIncludeItems)) then 
+		value = tvalue
+	end
 	
 	-- save to items cache
 	if not class or not quality then

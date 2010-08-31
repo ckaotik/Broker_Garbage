@@ -691,6 +691,8 @@ local function ShowListOptions(frame)
 	autoSellIncludeItems:SetScript("OnClick", function(autoSellIncludeItems)
 		checksound(autoSellIncludeItems)
 		BG_GlobalDB.autoSellIncludeItems = not BG_GlobalDB.autoSellIncludeItems
+		BrokerGarbage.itemsCache = {}
+		BrokerGarbage:ScanInventory()
 	end)
 	
 	local topTab = LibStub("tekKonfig-TopTab")
