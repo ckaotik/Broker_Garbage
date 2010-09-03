@@ -79,7 +79,7 @@ BrokerGarbage.locale = {
 	
 	AuctionAddon = "Auction addon",
 	unknown = "Unbekannt",	-- refers to auction addon
-	na = "Nicht vorhanden",
+	na = "Not Available",
 	
 	-- Basic Options Frame
 	BasicOptionsTitle = "Basic Options",
