@@ -346,7 +346,7 @@ local function ShowBasicOptions()
 	local title0, subtitle0 = LibStub("tekKonfig-Heading").new(BrokerGarbage.basicOptions, "Broker_Garbage - "..BrokerGarbage.locale.BasicOptionsTitle, BrokerGarbage.locale.BasicOptionsText)
 
 	local autosell = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.autoSellTitle, "TOPLEFT", subtitle0, "BOTTOMLEFT", -2, -4)
-	autosell.tiptext = BrokerGarbage.locale.autoSellText
+	autosell.tiptext = BrokerGarbage.locale.autoSellText .. BrokerGarbage.locale.GlobalSetting
 	autosell:SetChecked(BG_GlobalDB.autoSellToVendor)
 	local checksound = autosell:GetScript("OnClick")
 	autosell:SetScript("OnClick", function(autosell)
@@ -355,7 +355,7 @@ local function ShowBasicOptions()
 	end)
 	
 	local autosellicon = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showAutoSellIconTitle, "TOPLEFT", autosell, "BOTTOMLEFT", 14, 0)
-	autosellicon.tiptext = BrokerGarbage.locale.showAutoSellIconText
+	autosellicon.tiptext = BrokerGarbage.locale.showAutoSellIconText .. BrokerGarbage.locale.GlobalSetting
 	autosellicon:SetChecked(BG_GlobalDB.showAutoSellIcon)
 	local checksound = autosellicon:GetScript("OnClick")
 	autosellicon:SetScript("OnClick", function(autosellicon)
@@ -365,7 +365,7 @@ local function ShowBasicOptions()
 	end)
 	
 	local nothingtext = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showNothingToSellTitle, "TOPLEFT", autosellicon, "BOTTOMLEFT", 0, 0)
-	nothingtext.tiptext = BrokerGarbage.locale.showNothingToSellText
+	nothingtext.tiptext = BrokerGarbage.locale.showNothingToSellText .. BrokerGarbage.locale.GlobalSetting
 	nothingtext:SetChecked(BG_GlobalDB.reportNothingToSell)
 	local checksound = nothingtext:GetScript("OnClick")
 	nothingtext:SetScript("OnClick", function(nothingtext)
@@ -374,7 +374,7 @@ local function ShowBasicOptions()
 	end)
 
 	local autorepair = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.autoRepairTitle, "LEFT", autosell, "LEFT", 200, 0)
-	autorepair.tiptext = BrokerGarbage.locale.autoRepairText
+	autorepair.tiptext = BrokerGarbage.locale.autoRepairText .. BrokerGarbage.locale.GlobalSetting
 	autorepair:SetChecked(BG_GlobalDB.autoRepairAtVendor)
 	local checksound = autorepair:GetScript("OnClick")
 	autorepair:SetScript("OnClick", function(autorepair)
@@ -392,7 +392,7 @@ local function ShowBasicOptions()
 	end)
 	
 	local showsource = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showSourceTitle, "TOPLEFT", guildrepair, "BOTTOMLEFT", -14, 0)
-	showsource.tiptext = BrokerGarbage.locale.showSourceText
+	showsource.tiptext = BrokerGarbage.locale.showSourceText .. BrokerGarbage.locale.GlobalSetting
 	showsource:SetChecked(BG_GlobalDB.showSource)
 	local checksound = showsource:GetScript("OnClick")
 	showsource:SetScript("OnClick", function(showsource)
@@ -401,7 +401,7 @@ local function ShowBasicOptions()
 	end)
 	
 	local showlost = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showLostTitle, "TOPLEFT", nothingtext, "BOTTOMLEFT", -14, 0)
-	showlost.tiptext = BrokerGarbage.locale.showLostText
+	showlost.tiptext = BrokerGarbage.locale.showLostText .. BrokerGarbage.locale.GlobalSetting
 	showlost:SetChecked(BG_GlobalDB.showLost)
 	local checksound = showlost:GetScript("OnClick")
 	showlost:SetScript("OnClick", function(showlost)
@@ -410,7 +410,7 @@ local function ShowBasicOptions()
 	end)
 	
 	local showearned = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.showEarnedTitle, "LEFT", showlost, "LEFT", 200, 0)
-	showearned.tiptext = BrokerGarbage.locale.showEarnedText
+	showearned.tiptext = BrokerGarbage.locale.showEarnedText .. BrokerGarbage.locale.GlobalSetting
 	showearned:SetChecked(BG_GlobalDB.showEarned)
 	local checksound = showearned:GetScript("OnClick")
 	showearned:SetScript("OnClick", function(showearned)
@@ -419,7 +419,7 @@ local function ShowBasicOptions()
 	end)
 
 	local quality = LibStub("tekKonfig-Slider").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.dropQualityTitle, 0, 7, "TOPLEFT", showlost, "BOTTOMLEFT", 5, -10)
-	quality.tiptext = BrokerGarbage.locale.dropQualityText
+	quality.tiptext = BrokerGarbage.locale.dropQualityText .. BrokerGarbage.locale.GlobalSetting
 	quality:SetWidth(200)
 	quality:SetValueStep(1)
 	quality:SetValue(BG_GlobalDB.dropQuality)
@@ -434,7 +434,7 @@ local function ShowBasicOptions()
 
 	local testValue = 130007
 	local moneyFormat = LibStub("tekKonfig-Slider").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.moneyFormatTitle, 0, 4, "LEFT", quality, "LEFT", 200, 0)
-	moneyFormat.tiptext = BrokerGarbage.locale.moneyFormatText
+	moneyFormat.tiptext = BrokerGarbage.locale.moneyFormatText .. BrokerGarbage.locale.GlobalSetting
 	moneyFormat:SetWidth(200)
 	moneyFormat:SetValueStep(1);
 	moneyFormat:SetValue(BG_GlobalDB.showMoney)
@@ -447,7 +447,7 @@ local function ShowBasicOptions()
 	end)
 
 	local ttMaxItems = LibStub("tekKonfig-Slider").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.maxItemsTitle, 0, 50, "TOPLEFT", quality, "BOTTOMLEFT", 0, -15)
-	ttMaxItems.tiptext = BrokerGarbage.locale.maxItemsText
+	ttMaxItems.tiptext = BrokerGarbage.locale.maxItemsText .. BrokerGarbage.locale.GlobalSetting
 	ttMaxItems:SetWidth(200)
 	ttMaxItems:SetValueStep(1);
 	ttMaxItems:SetValue(BG_GlobalDB.tooltipNumItems)
@@ -460,7 +460,7 @@ local function ShowBasicOptions()
 	end)
 
 	local ttMaxHeight = LibStub("tekKonfig-Slider").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.maxHeightTitle, 0, 400, "LEFT", ttMaxItems, "LEFT", 200, 0)
-	ttMaxHeight.tiptext = BrokerGarbage.locale.maxHeightText
+	ttMaxHeight.tiptext = BrokerGarbage.locale.maxHeightText .. BrokerGarbage.locale.GlobalSetting
 	ttMaxHeight:SetWidth(200)
 	ttMaxHeight:SetValueStep(10);
 	ttMaxHeight:SetValue(BG_GlobalDB.tooltipMaxHeight)
@@ -473,7 +473,7 @@ local function ShowBasicOptions()
 	end)
 	
 	local sellNotUsable = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.sellNotUsableTitle, "TOPLEFT", ttMaxItems, "BOTTOMLEFT", 0, -10)
-	sellNotUsable.tiptext = BrokerGarbage.locale.sellNotUsableText
+	sellNotUsable.tiptext = BrokerGarbage.locale.sellNotUsableText .. BrokerGarbage.locale.GlobalSetting
 	sellNotUsable:SetChecked(BG_GlobalDB.sellNotWearable)
 	local checksound = sellNotUsable:GetScript("OnClick")
 	sellNotUsable:SetScript("OnClick", function(sellNotUsable)
@@ -482,7 +482,7 @@ local function ShowBasicOptions()
 		BrokerGarbage:ScanInventory()
 	end)
 	local sellNUQuality = LibStub("tekKonfig-Slider").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.SNUMaxQualityTitle, 0, 6, "TOPLEFT", sellNotUsable, "BOTTOMLEFT", 25, -4)
-	sellNUQuality.tiptext = BrokerGarbage.locale.SNUMaxQualityText
+	sellNUQuality.tiptext = BrokerGarbage.locale.SNUMaxQualityText .. BrokerGarbage.locale.GlobalSetting
 	sellNUQuality:SetWidth(200)
 	sellNUQuality:SetValueStep(1);
 	sellNUQuality:SetValue(BG_GlobalDB.sellNWQualityTreshold)
@@ -497,12 +497,12 @@ local function ShowBasicOptions()
 	
 	local disableKey, disableKeytext, disableKeycontainer = LibStub("tekKonfig-Dropdown").new(BrokerGarbage.basicOptions, BrokerGarbage.locale.DKTitle, "TOPLEFT", sellNUQuality, "BOTTOMLEFT", -25, -16)
 	disableKeytext:SetText(BrokerGarbage.locale.disableKeys[BG_GlobalDB.disableKey])
-	disableKey.tiptext = BrokerGarbage.locale.DKTooltip
+	disableKey.tiptext = BrokerGarbage.locale.DKTooltip .. BrokerGarbage.locale.GlobalSetting
 	
-	local function OnClick()
-		UIDropDownMenu_SetSelectedValue(disableKey, this.value)
-		disableKeytext:SetText(BrokerGarbage.locale.disableKeys[this.value])
-		BG_GlobalDB.disableKey = this.value
+	local function OnClick(self)
+		UIDropDownMenu_SetSelectedValue(disableKey, self.value)
+		disableKeytext:SetText(BrokerGarbage.locale.disableKeys[self.value])
+		BG_GlobalDB.disableKey = self.value
 	end
 	UIDropDownMenu_Initialize(disableKey, function()
 		local selected, info = UIDropDownMenu_GetSelectedValue(disableKey), UIDropDownMenu_CreateInfo()
@@ -517,7 +517,7 @@ local function ShowBasicOptions()
 	end)
 	
 	local enchanter = LibStub("tekKonfig-Checkbox").new(BrokerGarbage.basicOptions, nil, BrokerGarbage.locale.enchanterTitle, "LEFT", sellNotUsable, "LEFT", 200, 0)
-	enchanter.tiptext = BrokerGarbage.locale.enchanterTooltip
+	enchanter.tiptext = BrokerGarbage.locale.enchanterTooltip .. BrokerGarbage.locale.GlobalSetting
 	enchanter:SetChecked(BG_GlobalDB.hasEnchanter)
 	local checksound = enchanter:GetScript("OnClick")
 	enchanter:SetScript("OnClick", function(enchanter)
@@ -531,7 +531,7 @@ local function ShowBasicOptions()
 	editbox:SetWidth(150); editbox:SetHeight(32)
 	editbox:SetFontObject("GameFontHighlightSmall")
 	editbox:SetText(BG_GlobalDB.LDBformat)
-	editbox.tiptext = BrokerGarbage.locale.LDBDisplayTextTooltip
+	editbox.tiptext = BrokerGarbage.locale.LDBDisplayTextTooltip .. BrokerGarbage.locale.GlobalSetting
 	
 	local left = editbox:CreateTexture(nil, "BACKGROUND")
 	left:SetWidth(8) left:SetHeight(20)
@@ -598,7 +598,7 @@ local function ShowBasicOptions()
 	editbox2:SetWidth(150); editbox2:SetHeight(32)
 	editbox2:SetFontObject("GameFontHighlightSmall")
 	editbox2:SetText(BG_GlobalDB.LDBNoJunk)
-	editbox2.tiptext = BrokerGarbage.locale.LDBNoJunkTextTooltip
+	editbox2.tiptext = BrokerGarbage.locale.LDBNoJunkTextTooltip .. BrokerGarbage.locale.GlobalSetting
 	
 	local left2 = editbox2:CreateTexture(nil, "BACKGROUND")
 	left2:SetWidth(8) left2:SetHeight(20)
@@ -685,7 +685,7 @@ local function ShowListOptions(frame)
 	end)
 	
 	local autoSellIncludeItems = LibStub("tekKonfig-Checkbox").new(frame, nil, BrokerGarbage.locale.LOIncludeAutoSellText, "LEFT", default, "RIGHT", 10, 0)
-	autoSellIncludeItems.tiptext = BrokerGarbage.locale.LOIncludeAutoSellTooltip
+	autoSellIncludeItems.tiptext = BrokerGarbage.locale.LOIncludeAutoSellTooltip .. BrokerGarbage.locale.GlobalSetting
 	autoSellIncludeItems:SetChecked(BG_GlobalDB.autoSellIncludeItems)
 	local checksound = autoSellIncludeItems:GetScript("OnClick")
 	autoSellIncludeItems:SetScript("OnClick", function(autoSellIncludeItems)

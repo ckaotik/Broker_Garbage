@@ -82,7 +82,7 @@ BrokerGarbage.tag = {
 
 BrokerGarbage.clams = {15874, 5523, 5524, 7973, 24476, 36781, 45909}
 BrokerGarbage.playerClass = select(2,UnitClass("player"))
-BrokerGarbage.enchanting = select(1,GetSpellInfo(7411))
+BrokerGarbage.enchanting = GetSpellInfo(7411)
 
 BrokerGarbage.disableKey = {
 	["None"] 	= function() return false end,

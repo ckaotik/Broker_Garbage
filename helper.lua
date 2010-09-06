@@ -119,19 +119,25 @@ function BrokerGarbage:CreateDefaultLists(global)
 	end
 	
 	-- tradeskills
-	local tradeSkills = BrokerGarbage:CheckSkills() or {}
-	local numSkills = #tradeSkills
-	for i = 1, numSkills do
-		local englishSkill = BrokerGarbage:UnLocalize(tradeSkills[i][1])
+	local tradeSkills, limit
+	if GetProfessions then
+		tradeSkills =  { GetProfessions() }
+		limit = 6		-- GetProfessions() returns 6 indices
+	else
+		tradeSkills = BrokerGarbage:CheckSkills() or {}
+		limit = #tradeSkills
+	end
+	for i = 1, limit do
+		local englishSkill, isGather = BrokerGarbage:UnLocalize(tradeSkills[i])
 		if englishSkill then
-			if tradeSkills[i][2] then
-				BG_LocalDB.exclude["Tradeskill.Gather."..englishSkill] = true
+			if isGather then
+				BG_LocalDB.exclude["Tradeskill.Gather." .. englishSkill] = true
 				if englishSkill ~= "Herbalism" then
-					BG_LocalDB.exclude["Tradeskill.Tool."..englishSkill] = true
+					BG_LocalDB.exclude["Tradeskill.Tool." .. englishSkill] = true
 				end
 			else
-				BG_LocalDB.exclude["Tradeskill.Mat.ByProfession."..englishSkill] = true
-				BG_LocalDB.exclude["Tradeskill.Tool."..englishSkill] = true
+				BG_LocalDB.exclude["Tradeskill.Mat.ByProfession." .. englishSkill] = true
+				BG_LocalDB.exclude["Tradeskill.Tool." .. englishSkill] = true
 			end
 		end
 	end
@@ -175,16 +181,22 @@ function BrokerGarbage:GetItemID(itemLink)
 end
 
 -- returns original English names for non-English locales
-function BrokerGarbage:UnLocalize(skillName)
-	if not skillName then return nil end
+function BrokerGarbage:UnLocalize(skillIndex)
+	if not skillIndex then return nil, nil end
+	local skillName
+	if type(skillIndex) == "number" then
+		skillName = GetProfessionInfo(skillIndex)
+	else
+		skillName = skillIndex
+	end
 	if string.find(GetLocale(), "en") then return skillName end
 	
 	-- crafting skills
 	local searchString = ""
-	for i=2,12 do
+	for i = 2,12 do
 		searchString = select(i, GetAuctionItemSubClasses(9))
 		if string.find(skillName, searchString) then
-			return BrokerGarbage.tradeSkills[i]
+			return BrokerGarbage.tradeSkills[i], false
 		end
 	end
 	
@@ -202,7 +214,7 @@ function BrokerGarbage:UnLocalize(skillName)
 		end
 	end
 	
-	return skill
+	return skill, skill and true or nil
 end
 
 -- easier syntax for LDB display strings
@@ -309,6 +321,7 @@ function BrokerGarbage:GetTradeSkill(skillName)
 	return nil
 end
 
+-- BEGIN :: REMOVE IN CATACLYSM
 -- returns all tradeskills found
 function BrokerGarbage:CheckSkills()
 	local result = {}
@@ -325,6 +338,7 @@ function BrokerGarbage:CheckSkills()
 	end
 	if result == {} then return nil else return result end
 end
+-- END :: REMOVE IN CATACLYSM
 
 local scanTooltip = CreateFrame('GameTooltip', 'BGItemScanTooltip', UIParent, 'GameTooltipTemplate')
 -- misc: either "true" to check only for the current character, or a table {container, slot} for reference
@@ -338,15 +352,21 @@ function BrokerGarbage:CanDisenchant(itemLink, misc)
 			and (not count or count == 1) then
 			
 			-- can we DE ourself?
+			-- name, icon, rank, maxrank, numspells, spelloffset, skillline = GetProfessionInfo(index)
+			
 			if IsUsableSpell(BrokerGarbage.enchanting) then
-				local skill = BrokerGarbage:GetTradeSkill(BrokerGarbage.enchanting) or 0
+				local prof1, prof2 = GetProfessions()
+				local name, _, rank, maxRank = GetProfessionInfo(prof1)
+				if name ~= BrokerGarbage.enchanting then
+					name, _, rank, maxRank = GetProfessionInfo(prof2)
+				end
 				
 				local requiredSkill = 0
 				if level <= 20 then
 					requiredSkill = 1
 				elseif level <= 60 then
 					requiredSkill = 5*5*math.ceil(level/5)-100
-				elseif level < 100 then		-- BC starts here
+				elseif level < 100 then						-- BC starts here
 					requiredSkill = 225
 				elseif level <= 115 then
 					requiredSkill = 275
@@ -358,10 +378,10 @@ function BrokerGarbage:CanDisenchant(itemLink, misc)
 					requiredSkill = 375
 				end
 
-				if skill >= requiredSkill then
+				if rank >= requiredSkill then
 					return true
 				end
-				-- if skill is too low, still check if we can send it
+				-- if skill rank is too low, still check if we can send it
 			end
 			-- misc = "true" => we only care if we ourselves can DE. no twink mail etc.
 			if misc and type(misc) == "boolean" then return false end
@@ -411,7 +431,7 @@ function BrokerGarbage:UpdateCache(itemID)
 	local class, temp, limit
 	
 	local _, itemLink, quality, _, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
-	
+	BrokerGarbage:Debug("updating cache", itemID)
 	-- weird ...
 	if not quality then
 		BrokerGarbage:Debug("Could not retrieve quality information for "..(itemID or "<none>").." ("..(itemLink or "")..")")

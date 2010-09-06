@@ -28,6 +28,7 @@ BrokerGarbage.locale = {
 	minValueSet = "Items with a value less than %s will not be looted anymore.",
 	
 	warningMessagePrefit = "Warning",
+	GlobalSetting = "\n|cffffff9aThis setting is global.",
 	
 	-- Tooltip
 	headerRightClick = "Right-Click for options",

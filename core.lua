@@ -44,7 +44,7 @@ local cost = 0						-- the amount of money that we repaired for
 -- Event Handler
 -- ---------------------------------------------------------
 local frame = CreateFrame("frame")
-local function eventHandler(self, event, ...)
+local function eventHandler(self, event, arg1, ...)
     if event == "PLAYER_ENTERING_WORLD" then
         BrokerGarbage:CheckSettings()
 
@@ -63,7 +63,7 @@ local function eventHandler(self, event, ...)
         frame:UnregisterEvent("PLAYER_ENTERING_WORLD")
         
     elseif event == "BAG_UPDATE" then
-        if arg1 < 0 or arg1 > 4 then return end
+        if not arg1 or arg1 < 0 or arg1 > 4 then BrokerGarbage:Debug("Unknown bag id") return end
         
         BrokerGarbage:ScanInventoryContainer(arg1)	-- partial inventory scan on the relevant container
         
@@ -639,7 +639,7 @@ function BrokerGarbage:ScanInventoryContainer(container)
     for slot = 1, numSlots do
         local itemID = GetContainerItemID(container,slot)
         local item = BrokerGarbage:GetCached(itemID)
-        
+        BrokerGarbage:Debug("checking", itemID, item)
         if itemID and item then
             -- update toSellValue
             if item.classification == BrokerGarbage.VENDORLIST or 

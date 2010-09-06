@@ -28,6 +28,7 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.minValueSet = "Mindestwert für items wurde auf %s gesetzt."
 	
 	BrokerGarbage.locale.warningMessagePrefit = "Warnung"
+	BrokerGarbage.locale.GlobalSetting = "\n|cffffff9aDiese Einstellung ist global."
 	
 	-- Tooltip
 	BrokerGarbage.locale.headerRightClick = "Rechts-Klick: Optionen"
