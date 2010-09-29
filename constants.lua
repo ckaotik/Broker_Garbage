@@ -80,10 +80,7 @@ BrokerGarbage.tag = {
 }
 -- |cffffd200 Blizzard Orange; textures: Spell_Holy_HolyGuidance, achievement_bg_returnxflags_def_wsg
 
-<<<<<<< HEAD
 BrokerGarbage.tabs = {}		-- plugins get saved in here
-=======
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 BrokerGarbage.clams = {15874, 5523, 5524, 7973, 24476, 36781, 45909}
 BrokerGarbage.playerClass = select(2,UnitClass("player"))
 BrokerGarbage.enchanting = GetSpellInfo(7411)

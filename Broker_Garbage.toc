@@ -1,16 +1,11 @@
-<<<<<<< HEAD
 ﻿## Interface: 30300
 ## X-Compatible-With: 40000
-=======
-﻿## Interface: 40000
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 ## Dependencies: 
 ## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auc-Advanced, Enchantrix, WOWEcon_PriceMod
 ## SavedVariables: BG_GlobalDB
 ## SavedVariablesPerCharacter: BG_LocalDB
 
 ## Title: Broker_Garbage
-<<<<<<< HEAD
 ## Notes: Full bags no more! Distinguish between junk and treasure, find items to drop quickly. 
 ## Notes-deDE: Endlich wieder Platz! Unterscheide Trödel von Schätzen und finde Items zum Wegwerfen.
 ## Author: ckaotik
@@ -18,16 +13,6 @@
 ## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 ## X-RelSite-WoWI: 15531
 ## X-Category: Inventory
-=======
-## Notes: Full bags no more! Find your least valuable item .. and destroy it!
-## Notes-deDE: Endlich wieder Platz! Finde dein billigstes Item ... und zerstöre es.
-## Author: ckaotik
-## Version: 3.3v30
-## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
-## X-RelSite-WoWI: 15531
-## X-Category: Inventory
-## X-Embeds: LibPeriodicTable-3.1
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 ## X-Localizations: enUS, deDE. Works in any language. You can help!
 ## X-Credits: GarbageFu, tekKonfig, Mirroar (<3)
 ## X-License: BSD

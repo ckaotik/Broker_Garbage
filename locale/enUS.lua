@@ -27,10 +27,6 @@ BrokerGarbage.locale = {
 /garbage |cffc0c0c0value |cffc0c0ffvalueInCopper|r sets the minimum value for items to be looted (Loot Manager needed).]],
 	minValueSet = "Items with a value less than %s will not be looted anymore.",
 	
-<<<<<<< HEAD
-=======
-	warningMessagePrefit = "Warning",
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	GlobalSetting = "\n|cffffff9aThis setting is global.",
 	
 	-- Tooltip
@@ -49,7 +45,6 @@ BrokerGarbage.locale = {
 	reportNothingToSell = "Nothing to sell!",
 	
 	-- Statistics Frame
-<<<<<<< HEAD
 	StatisticsHeading = "Statistics",
 	ResetStatistic = "|cffffffffClick|r to reset this statistic.\n|cFFff0000Warning: This cannot be undone.",
 	
@@ -76,48 +71,11 @@ BrokerGarbage.locale = {
 	AuctionAddon = "Auction addon",
 	AuctionAddonTooltip = "Broker_Garbage will take auction values from this addon. If none is listed, you may still have auction values available by an addon that Broker_Garbage doesn't know.",
 	unknown = "Unknown",	-- refers to auction addon
-=======
-	StatisticsHeading = "Statistics, everone needs them!\n"..
-		"To delete any part of them, click the red x.",
-	
-	LPTNoticeText = "|cffFF6600You don't seem to have LibPeriodicTable loaded. You will not be able to use category strings, but the addon should work just fine - with a few features less.|r",
-	MemoryUsageTitle = "Memory Usage (kB)",
-	CollectMemoryUsageTooltip = "Click to start the garbage collection (Blizzard function).",
-	
-	GlobalStatisticsHeading = "Global Money statistics:",
-	AverageSellValueTitle = "Average sell value",
-	AverageDropValueTitle = "Average drop value",
-	
-	GlobalMoneyEarnedTitle = "Total amount earned",
-	ResetGlobalMoneyEarnedTooltip = "Click to reset your (global) money earned data.",
-	GlobalMoneyLostTitle = "Total amount lost",
-	ResetGlobalMoneyLostTooltip = "Click to reset your (global) money lost data.",
-	
-	GlobalItemsSoldTitle = "Items sold",
-	ResetGlobalItemsSoldTooltip = "Click to reset the number of items you sold so far.",
-	ItemsDroppedTitle = "Items dropped",
-	ResetGlobalItemsDroppedTooltip = "Click to reset the number of items you dropped so far.",
-	
-	LocalStatisticsHeading = "%s's statistics:",
-	StatisticsLocalAmountEarned = "Amount earned",
-	ResetLocalMoneyEarnedTooltip = "Click to reset your (local) money earned data.",
-	StatisticsLocalAmountLost = "Amount lost",
-	ResetLocalMoneyLostTooltip = "Click to reset your (local) money lost data.",
-	
-	ResetGlobalDataText = "Reset Global Statistics",
-	ResetGlobalDataTooltip = "Click here to reset alls global statistics.",
-	ResetLocalDataText = "Reset Local Statistics",
-	ResetLocalDataTooltip = "Click here to reset all local statistics.",
-	
-	AuctionAddon = "Auction addon",
-	unknown = "Unbekannt",	-- refers to auction addon
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	na = "Not Available",
 	
 	-- Basic Options Frame
 	BasicOptionsTitle = "Basic Options",
 	BasicOptionsText = "Don't want to auto-sell/repair? Hold Shift (depending on your settings) when adressing the merchant!",
-<<<<<<< HEAD
 	
 	GroupBehavior = "Behavior",
 	GroupTresholds = "Tresholds",
@@ -153,37 +111,6 @@ BrokerGarbage.locale = {
 	
 	moneyFormatTitle = "Money Format",
 	moneyFormatText = "Change the way money is being displayed.",
-=======
-	autoSellTitle = "Auto Sell",
-	autoSellText = "Toggles whether to automatically sell your gray items when at a vendor.",
-	
-	showAutoSellIconTitle = "Show Icon",
-	showAutoSellIconText = "Toggles whether to show an icon to manually auto-sell when at a vendor.",
-	
-	showNothingToSellTitle = "'Nothing to sell'",
-	showNothingToSellText = "Toggles whether to show a notice when at a vendor and there is nothing to sell.",
-	
-	autoRepairTitle = "Auto Repair",
-	autoRepairText = "Toggles whether to automatically repair your gear when at a vendor.",
-	
-	autoRepairGuildTitle = "No Guild Repair", 
-	autoRepairGuildText = "If selected, Broker_Garbage will never try to repair using the guild bank's money",
-	
-	showLostTitle = "Show Money Lost",
-	showLostText = "Toggles whether to show the tooltip line 'Money Lost'.",
-	
-	showSourceTitle = "Show Source",
-	showSourceText = "Toggles whether to show the last column in the tooltip, displaying the item value source.",
-	
-	showEarnedTitle = "Show Money Earned",
-	showEarnedText = "Toggles whether to show the tooltip line 'Money Earned'.",
-	
-	dropQualityTitle = "Quality Treshold",
-	dropQualityText = "Select up to which treshold items may be listed as deletable. Default: Poor (0)",
-	
-	moneyFormatTitle = "Money Format",
-	moneyFormatText = "Change the way money (i.e. gold/silver/copper) is being displayed. Default: 2",
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	
 	maxItemsTitle = "Max. Items",
 	maxItemsText = "Set how many lines you would like to have displayed in the tooltip. Default: 9",
@@ -191,31 +118,16 @@ BrokerGarbage.locale = {
 	maxHeightTitle = "Max. Height",
 	maxHeightText = "Set the height of the tooltip. Default: 220",
 	
-<<<<<<< HEAD
 	sellNotUsableTitle = "Sell Unusable Gear",
 	sellNotUsableText = "Check this to have Broker_Garbage sell all soulbound gear that you cannot wear.\n(Only applies to BoP items and if not an enchanter)",
 	
 	SNUMaxQualityTitle = "Sell Quality",
 	SNUMaxQualityText = "Select the maximum item quality to sell when 'Sell Unusable Gear' is checked.",
-=======
-	sellNotUsableTitle = "Sell gear",
-	sellNotUsableText = "Check this to have Broker_Garbage sell all soulbound gear that you cannot wear.\n(Only applies if not an enchanter)",
-	
-	SNUMaxQualityTitle = "Max. Quality",
-	SNUMaxQualityText = "Select the maximum quality to sell when 'Sell gear' is checked.",
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	
 	enchanterTitle = "Enchanter",
 	enchanterTooltip = "Check this if you have/know an enchanter. When checked, Broker_Garbage will use disenchant values for disenchantable items, which are usually higher than vendor prices.",
 	
-<<<<<<< HEAD
 	DKTitle = "Temporary disable key",
-=======
-	rescanInventory = "Rescan Inventory",
-	rescanInventoryText = "Click to manually rescan you inventory. Should generally not be needed.",
-	
-	DKTitle = "Temp. disable key",
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	DKTooltip = "Set a key to temporarily disable BrokerGarbage.",
 	disableKeys = {
 		["None"] = "None",
@@ -225,16 +137,9 @@ BrokerGarbage.locale = {
 	},
 	
 	LDBDisplayTextTitle = "LDB Display texts",
-<<<<<<< HEAD
 	LDBDisplayTextTooltip = "Set the text to display in the LDB plugin.",
 	LDBNoJunkTextTooltip = "Set the text to display when no junk was found.",
 	ResetToDefault = "Reset to default value.",
-=======
-	LDBDisplayTextTooltip = "Use this to change the text you see in your LDB display.",
-	LDBDisplayTextResetTooltip = "Reset LDB string to default value.",
-	LDBNoJunkTextTooltip = "Use this to change the text you see when there is no junk to be displayed.",
-	LDBNoJunkTextResetTooltip = "Reset 'No Junk' text to default value.",
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	LDBDisplayTextHelpTooltip = [[Format string help:
 [itemname] - item link
 [itemcount] - item count
@@ -247,22 +152,14 @@ BrokerGarbage.locale = {
 	-- List Options Panel
 	LOTitle = "Lists",
 	LOSubTitle = [[If you need help click the "?"-tab.
-<<<<<<< HEAD
 
-=======
-	
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 |cffffd200Junk|r: Items on this list can be thrown away if needed.
 |cffffd200Keep|r: Items on this list will never be deleted.
 |cffffd200Vendor Price|r: Items only use vendor values. (always global)
 |cffffd200Sell|r: Items on this list will be sold when at a merchant.]],
 	
 	defaultListsText = "Default Lists",
-<<<<<<< HEAD
 	defaultListsTooltip = "|cffffffffClick|r to manually create default local list entries.\n |cffffffffShift-Click|r to also create default global lists.", -- changed
-=======
-	defaultListsTooltip = "|cffffffffClick|r to manually create default local list entries.\n |cffffffffRight-Click|r to also create default global lists.",
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	
 	LOTabTitleInclude = "Junk",
 	LOTabTitleExclude = "Keep",
@@ -307,13 +204,7 @@ Below this window you'll see five buttons and a search bar.
 	
 	-- LibPeriodicTable category testing
 	PTCategoryTest = "Category Test",
-<<<<<<< HEAD
 	PTCategoryTestExplanation = "Simply select a category below and it will display all items in your inventory that match this category.\nCategory information is provided by LibPeriodicTable.",
-=======
-	PTCategoryTestTitle = "LibPeriodicTable Category String Test",
-	PTCategoryTestSubTitle = "If you're unsure why an item shows up as it does or which items are included in which category, you can test that here.",
-	PTCategoryTestExplanation = "Simply select a category below and it will display all items in your inventory that match this category.\nCategory information comes from LPT and not Broker_Garbage.",
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	PTCategoryTestDropdownTitle = "Category to check",
 	PTCategoryTestDropdownText = "Choose a category string",
 }

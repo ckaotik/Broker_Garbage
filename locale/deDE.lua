@@ -27,10 +27,6 @@ if GetLocale() == "deDE" then
 /garbage |cffc0c0c0value |cffc0c0ffWertInKupfer|r setzt den Itemwert, ab dem Items gelootet werden (benötigt den Loot Manager).]]
 	BrokerGarbage.locale.minValueSet = "Mindestwert für items wurde auf %s gesetzt."
 	
-<<<<<<< HEAD
-=======
-	BrokerGarbage.locale.warningMessagePrefit = "Warnung"
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	BrokerGarbage.locale.GlobalSetting = "\n|cffffff9aDiese Einstellung ist global."
 	
 	-- Tooltip
@@ -49,7 +45,6 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.reportNothingToSell = "Nichts zu verkaufen!"
 	
 	-- Statistics Frame
-<<<<<<< HEAD
 	BrokerGarbage.locale.StatisticsHeading = "Statistiken"
 	BrokerGarbage.locale.ResetStatistic = "|cffffffffKlicke|r um diese Statistik zurückzusetzen.\n|cFFff0000Warnung: Dies lässt sich nicht tückgängig machen!."
 	
@@ -75,48 +70,12 @@ if GetLocale() == "deDE" then
 	
 	BrokerGarbage.locale.AuctionAddon = "Auktionsaddon"
 	BrokerGarbage.locale.AuctionAddonTooltip = "Broker_Garbage nutzt Auktionswerte von diesem Addon. Wurde kein Addon gefunden, kann es trotzdem sein, dass ein Addon vorhanden ist, das Broker_Garbage nicht kennt"
-=======
-	BrokerGarbage.locale.StatisticsHeading = "Statistiken, jeder braucht sie!\n"..
-		"Um Teile davon zu löschen, klicke auf das jeweilige 'x'."
-	
-	BrokerGarbage.locale.LPTNoticeText = "|cffFF6600Es scheint, als hättest du kein LibPeriodicTable aktiv. Du wirst keine Kategorien nutzen können, aber sonst sollte das Addon einwandfrei funktionieren - mit ein paar Features weniger.|r"
-	BrokerGarbage.locale.MemoryUsageTitle = "Speicherverbrauch (kB)"
-	BrokerGarbage.locale.CollectMemoryUsageTooltip = "Klicke um den Garbage Collector (Blizzard Funktion) manuell zu starten."
-	
-	BrokerGarbage.locale.GlobalStatisticsHeading = "Globale Geldstatistiken:"
-	BrokerGarbage.locale.AverageSellValueTitle = "Durchschnittl. Verkaufswert"
-	BrokerGarbage.locale.AverageDropValueTitle = "Durchschnittl. weggeworfen"
-	
-	BrokerGarbage.locale.GlobalMoneyEarnedTitle = "Gesamtverdienst"
-	BrokerGarbage.locale.ResetGlobalMoneyEarnedTooltip = "Klicke um deinen Gesamtverdienst zurückzusetzen."
-	BrokerGarbage.locale.GlobalMoneyLostTitle = "Gesamtverlust"
-	BrokerGarbage.locale.ResetGlobalMoneyLostTooltip = "Klicke um deinen Gesamtverlust zurückzusetzen."
-	
-	BrokerGarbage.locale.GlobalItemsSoldTitle = "Items verkauft"
-	BrokerGarbage.locale.ResetGlobalItemsSoldTooltip = "Klicke um die Anzahl an verkauften Items zurückzusetzen."
-	BrokerGarbage.locale.ItemsDroppedTitle = "Items weggeworfen"
-	BrokerGarbage.locale.ResetGlobalItemsDroppedTooltip = "Klicke um die Anzahl der weggeworfenen Items zurückzusetzen."
-	
-	BrokerGarbage.locale.LocalStatisticsHeading = "Statistiken von %s:"
-	BrokerGarbage.locale.StatisticsLocalAmountEarned = "Verdienst"
-	BrokerGarbage.locale.ResetLocalMoneyEarnedTooltip = "Klicke um deinen (lokalen) Verdienst zurückzusetzen."
-	BrokerGarbage.locale.StatisticsLocalAmountLost = "Verlust"
-	BrokerGarbage.locale.ResetLocalMoneyLostTooltip = "Klicke um deinen (lokalen) Verlust zurückzusetzen."
-	
-	BrokerGarbage.locale.ResetGlobalDataText = "Reset: Global"
-	BrokerGarbage.locale.ResetGlobalDataTooltip = "Klicke hier um alle globalen Statistikdaten zurückzusetzen."
-	BrokerGarbage.locale.ResetLocalDataText = "Reset: Lokal"
-	BrokerGarbage.locale.ResetLocalDataTooltip = "Klicke um alle charakterspezifischen Statistiken zurückzusetzen."
-	
-	BrokerGarbage.locale.AuctionAddon = "Auktionsaddon"
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	BrokerGarbage.locale.unknown = "Unbekannt"	-- refers to auction addon
 	BrokerGarbage.locale.na = "Nicht vorhanden"
 	
 	-- Basic Options Frame
 	BrokerGarbage.locale.BasicOptionsTitle = "Allgemein"
 	BrokerGarbage.locale.BasicOptionsText = "Möchtest du einmal nicht automatisch verkaufen/reparieren? Halte SHIFT (je nach Einstellung) gedrückt, wenn du den Händler ansprichst!"
-<<<<<<< HEAD
 	
 	BrokerGarbage.locale.GroupBehavior = "Verhalten"
 	BrokerGarbage.locale.GroupTresholds = "Grenzwerte"
@@ -154,45 +113,11 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.moneyFormatText = "Ändere die Art, wie Geldbeträge angezeigt werden."
 	
 	BrokerGarbage.locale.maxItemsTitle = "Anzahl an Items"
-=======
-	BrokerGarbage.locale.autoSellTitle = "Automatisch Verkaufen"
-	BrokerGarbage.locale.autoSellText = "Wenn ausgewählt, werden graue Gegenstände automatisch beim Händler verkauft."
-	
-	BrokerGarbage.locale.showAutoSellIconTitle = "Icon anzeigen"
-	BrokerGarbage.locale.showAutoSellIconText = "Wenn ausgewählt, wird bei Händlern ein Icon zum automatischen Verkaufen angezeigt."
-	
-	BrokerGarbage.locale.showNothingToSellTitle = "'Nichts zu verkaufen'"
-	BrokerGarbage.locale.showNothingToSellText = "Wenn ausgewählt, wird bei Besuch eines Händlers eine Nachricht ausgegeben, falls es nichts zu verkaufen gibt."
-	
-	BrokerGarbage.locale.autoRepairTitle = "Automatisch Reparieren"
-	BrokerGarbage.locale.autoRepairText = "Wenn ausgewählt, wird deine Ausrüstung automatisch repariert wenn möglich."
-	
-	BrokerGarbage.locale.autoRepairGuildTitle = "Reparatur selbst zahlen" 
-	BrokerGarbage.locale.autoRepairGuildText = "Wenn ausgewählt, wird Broker_Garbage nicht auf Gildenkosten reparieren."
-	
-	BrokerGarbage.locale.showLostTitle = "'Verlorenes Gold' zeigen"
-	BrokerGarbage.locale.showLostText = "Wenn ausgewählt, wird im Tooltip die Zeile 'Verlorenes Gold' gezeigt."
-	
-	BrokerGarbage.locale.showSourceTitle = "Quelle anzeigen"
-	BrokerGarbage.locale.showSourceText = "Wenn ausgewählt, wird im Tooltip als letzte Spalte die Preisquelle gezeigt."
-	
-	BrokerGarbage.locale.showEarnedTitle = "'Verdientes Gold' zeigen"
-	BrokerGarbage.locale.showEarnedText = "Wenn ausgewählt, wird im Tooltip die Zeile 'Verdientes Gold' gezeigt."
-	
-	BrokerGarbage.locale.dropQualityTitle = "Item Qualität"
-	BrokerGarbage.locale.dropQualityText = "Wähle, bis zu welcher Qualität Items zum Löschen vorgeschlagen werden. Standard: Schlecht (0)"
-	
-	BrokerGarbage.locale.moneyFormatTitle = "Geldformat"
-	BrokerGarbage.locale.moneyFormatText = "Ändere die Art, wie Geldbeträge angezeigt werden. Standard: 2"
-	
-	BrokerGarbage.locale.maxItemsTitle = "Max. Items"
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	BrokerGarbage.locale.maxItemsText = "Lege fest, wie viele Zeilen im Tooltip angezeigt werden. Standard: 9"
 	
 	BrokerGarbage.locale.maxHeightTitle = "Max. Höhe"
 	BrokerGarbage.locale.maxHeightText = "Lege fest, wie hoch der Tooltip sein darf. Standard: 220"
 	
-<<<<<<< HEAD
 	BrokerGarbage.locale.sellNotUsableTitle = "Ausrüstung verkaufen"
 	BrokerGarbage.locale.sellNotUsableText = "Auswählen um Broker_Garbage Ausrüstung, die du niemals tragen kannst, automatisch verkaufen zu lassen.\n(inaktiv bei Verzauberern, wirkt nur für seelengebundene Items)"
 	
@@ -201,19 +126,6 @@ if GetLocale() == "deDE" then
 	
 	BrokerGarbage.locale.enchanterTitle = "Verzauberer"
 	BrokerGarbage.locale.enchanterTooltip = "Auswählen wenn du einen Verzauberer hast/kennst. Wenn aktiviert, wird Broker_Garbage Entzauberpreise verwenden, welche in der Regel höher sind als Händlerpreise."
-=======
-	BrokerGarbage.locale.sellNotUsableTitle = "Verkaufe Ausrüstung"
-	BrokerGarbage.locale.sellNotUsableText = "Wenn ausgewählt, wird Broker_Garbage seelengebundene Ausrüstung, die du niemals tragen kannst, automatisch verkaufen.\n(inaktiv bei Verzauberern)"
-	
-	BrokerGarbage.locale.SNUMaxQualityTitle = "Max. Qualität"
-	BrokerGarbage.locale.SNUMaxQualityText = "Wähle die maximale Itemqualität, bei der von 'Verkaufe Ausrüstung' verkauft werden soll."
-	
-	BrokerGarbage.locale.enchanterTitle = "Verzauberer"
-	BrokerGarbage.locale.enchanterTooltip = "Setze das Häkchen, wenn du einen Verzauberer besitzt/kennst. Wenn aktiviert, wird Broker_Garbage Entzauberpreise verwenden, welche in der Regel höher sind als Händlerpreise."
-	
-	BrokerGarbage.locale.rescanInventory = "Inventar neu scannen"
-	BrokerGarbage.locale.rescanInventoryText = "Klicke um dein Inventar neu zu scannen. Dies sollte normalerweise nicht nötig sein!"
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	
 	BrokerGarbage.locale.DKTitle = "Temp. deaktivieren mit"
 	BrokerGarbage.locale.DKTooltip = "Wähle die Taste, die die Aktionen von BrokerGarbage temporär deaktiviert."
@@ -226,14 +138,8 @@ if GetLocale() == "deDE" then
 	
 	BrokerGarbage.locale.LDBDisplayTextTitle = "LDB Anzeigetexte"
 	BrokerGarbage.locale.LDBDisplayTextTooltip = "Nutze diese Einstellung, um den Text zu ändern, den du in deinem LDB Display siehst."
-<<<<<<< HEAD
 	BrokerGarbage.locale.LDBNoJunkTextTooltip = "Nutze diese Einstellung, um den Text zu ändern, der angezeigt wird, wenn du keinen Müll hast."
 	BrokerGarbage.locale.ResetToDefault = "Auf den Standardwert zurücksetzen"
-=======
-	BrokerGarbage.locale.LDBDisplayTextResetTooltip = "Setze den LDB Anzeigetext auf den Standardwert zurück."
-	BrokerGarbage.locale.LDBNoJunkTextTooltip = "Nutze diese Einstellung, um den Text zu ändern, der angezeigt wird, wenn du keinen Müll hast."
-	BrokerGarbage.locale.LDBNoJunkTextResetTooltip = "Setze den 'Kein Müll' Text auf den Standardwert zurück."
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	BrokerGarbage.locale.LDBDisplayTextHelpTooltip = [[Schnellhilfe:
 [itemname] - Itemlink
 [itemcount] - Item Anzahl
@@ -298,13 +204,7 @@ Unterhalb dieses Fensters siehst du 5 Buttons und eine Suchleiste.
 	
 	-- LibPeriodicTable category testing
 	BrokerGarbage.locale.PTCategoryTest = "Kategorientest"
-<<<<<<< HEAD
 	BrokerGarbage.locale.PTCategoryTestExplanation = "Wähle unten eine Kategorie aus um dir alle Gegenstände aus deinem Inventar anzeigen zu lassen, die dazuzählen.\nKategoriedaten kommen von LibPeriodicTable."
-=======
-	BrokerGarbage.locale.PTCategoryTestTitle = "LibPeriodicTable Kategorietest"
-	BrokerGarbage.locale.PTCategoryTestSubTitle = "Wenn du unsicher bist, warum ein Item irgendwo auftaucht oder welche Items zu welcher Kategorie zählen, kannst du das hier testen."
-	BrokerGarbage.locale.PTCategoryTestExplanation = "Wähle einfach unten eine Kategorie aus und es wird dir alle Gegenstände aus deinem Inventar anzeigen, die dazuzählen.\nKategoriedaten kommen von LPT und nicht Broker_Garbage."
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	BrokerGarbage.locale.PTCategoryTestDropdownTitle = "Kategorie, die getestet werden soll"
 	BrokerGarbage.locale.PTCategoryTestDropdownText = "Wähle eine Kategorie"
 end
