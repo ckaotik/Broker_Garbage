@@ -660,7 +660,7 @@ end
 -- ---------------------------------------------------------
 local function TableSort(a, b)
     -- put included items even prior to forced vendor price items
-    if (a.source == b.source) or (a.source ~= BrokerGarbage.INCLUDE and b.source ~= BrokerGarbage.INCLUDE) then
+    if (a.source == b.source) or (a.source ~= BrokerGarbage.INCLUDE and b.source ~= BrokerGarbage.INCLUDE) or BG_GlobalDB.useRealValues then
         if a.value == b.value then
             if a.itemID == b.itemID then
                 return a.count < b.count
@@ -675,7 +675,7 @@ local function TableSort(a, b)
     end
 end
 
--- returns the n cheapest items in your bags  in a table
+-- returns the n cheapest items in your bags in a table
 function BrokerGarbage:GetCheapest(number)
     if not number then number = BG_GlobalDB.tooltipNumItems end
     local cheapestItems = {}
@@ -737,7 +737,7 @@ function BrokerGarbage:GetCheapest(number)
                         end
                         if insert then
                             -- treat like a regular include item
-                            value = 0
+                            value = BG_GlobalDB.useRealValues and value or 0
                         end
                     
                     elseif item.classification == BrokerGarbage.DISENCHANT or item.classification == BrokerGarbage.AUCTION then
@@ -754,7 +754,7 @@ function BrokerGarbage:GetCheapest(number)
                         end
                     
                     elseif item.classification == BrokerGarbage.INCLUDE then
-                        value = 0
+                        value = BG_GlobalDB.useRealValues and value or 0
                         
                     elseif item.classification == BrokerGarbage.VENDORLIST or item.classification == BrokerGarbage.VENDOR then
                         value = vendorValue

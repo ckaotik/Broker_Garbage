@@ -12,10 +12,12 @@ BrokerGarbage.defaultGlobalSettings = {
 	autoSellToVendor = true,
 	autoRepairAtVendor = true,
 	disableKey = "SHIFT",
-	hideZeroValue = true,		-- TODO: provide interface options. disable this to have zero value items (quest items, event items etc.) show up in BG tooltip, enable it to hide them
 	sellNotWearable = false,
 	sellNWQualityTreshold = 4,
 	autoSellIncludeItems = false,
+	-- hidden options
+	hideZeroValue = true,		-- false: have zero value items (quest items, event items etc.) show up in BG tooltip, true: hide them [DEFAULT]
+	useRealValues = false,		-- false: use zero value for included items (junk list items) [DEFAULT], true: use the item's actual value
 	
 	-- default values
 	tooltipMaxHeight = 220,
