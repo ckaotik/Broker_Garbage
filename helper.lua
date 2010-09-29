@@ -11,11 +11,7 @@ end
 
 -- prints debug messages only when debug mode is active
 function BrokerGarbage:Debug(...)
-<<<<<<< HEAD
   if BG_GlobalDB and BG_GlobalDB.debug then
-=======
-  if BG_GlobalDB.debug then
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	BrokerGarbage:Print("! "..string.join(", ", tostringall(...)))
   end
 end
@@ -114,11 +110,7 @@ end
 function BrokerGarbage:CreateDefaultLists(global)
 	if global then
 		BG_GlobalDB.include[46069] = true											-- argentum lance
-<<<<<<< HEAD
 		if BG_GlobalDB.include[6265] == nil then BG_GlobalDB.include[6265] = 20 end	-- soulshards	CATYCLYSM: remove this
-=======
-		if BG_GlobalDB.include[6265] == nil then BG_GlobalDB.include[6265] = 20 end	-- soulshards
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 		BG_GlobalDB.include["Consumable.Water.Conjured"] = true
 		BG_GlobalDB.include["Consumable.Food.Edible.Basic.Conjured"] = true
 		BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible.Basic"] = true
@@ -127,27 +119,17 @@ function BrokerGarbage:CreateDefaultLists(global)
 	end
 	
 	-- tradeskills
-<<<<<<< HEAD
 	-- CATACLYSM compatibility:begin --
 	local tradeSkills, limit
 	if GetProfessions then
 		tradeSkills =  { GetProfessions() }
 		limit = 6			-- GetProfessions() returns 6 indices
-=======
-	local tradeSkills, limit
-	if GetProfessions then
-		tradeSkills =  { GetProfessions() }
-		limit = 6		-- GetProfessions() returns 6 indices
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	else
 		tradeSkills = BrokerGarbage:CheckSkills() or {}
 		limit = #tradeSkills
 	end
 	for i = 1, limit do
-<<<<<<< HEAD
 	-- CATACLYSM compatibility:end --
-=======
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 		local englishSkill, isGather = BrokerGarbage:UnLocalize(tradeSkills[i])
 		if englishSkill then
 			if isGather then
@@ -178,12 +160,9 @@ function BrokerGarbage:CreateDefaultLists(global)
 	BrokerGarbage:Print(BrokerGarbage.locale.listsUpdatedPleaseCheck)
 	BrokerGarbage.itemsCache = {}
 	BrokerGarbage:ScanInventory()
-<<<<<<< HEAD
 	if BrokerGarbage.ListOptionsUpdate then
 		BrokerGarbage:ListOptionsUpdate()
 	end
-=======
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 end
 
 -- returns options for plugin use
@@ -209,20 +188,14 @@ end
 -- returns original English names for non-English locales
 function BrokerGarbage:UnLocalize(skillIndex)
 	if not skillIndex then return nil, nil end
-<<<<<<< HEAD
 	-- CATACLYSM compatibility:begin --
-=======
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	local skillName
 	if type(skillIndex) == "number" then
 		skillName = GetProfessionInfo(skillIndex)
 	else
 		skillName = skillIndex
 	end
-<<<<<<< HEAD
 	-- CATACLYSM compatibility:end --
-=======
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	if string.find(GetLocale(), "en") then return skillName end
 	
 	-- crafting skills
@@ -289,7 +262,6 @@ function BrokerGarbage:FormatString(text)
 end
 
 -- returns a red-to-green color depending on the given percentage
-<<<<<<< HEAD
 function BrokerGarbage:Colorize(min, max)
 	local color
 	if not min then
@@ -306,20 +278,6 @@ function BrokerGarbage:Colorize(min, max)
 	end
 	
 	color = string.format("|cff%02x%02x%02x", color[1], color[2], color[3])
-=======
-function BrokerGarbage:Colorize(top, bottom)
-	if not bottom and (top >= 1 or top < 0) then return "" end
-	local percentage = top/(bottom ~= 0 and bottom or 1)
-	local color
-	if percentage <= 0.5 then
-		color =  {255, percentage*510, 0}
-	else
-		color =  {510 - percentage*510, 255, 0}
-	end
-	
-	color = string.format("|cff%02x%02x%02x", color[1], color[2], color[3])
-	
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	return color
 end
 
@@ -339,20 +297,6 @@ function BrokerGarbage:ResetMoney(which, global)
 	end
 end
 
-<<<<<<< HEAD
-=======
-function BrokerGarbage:ResetList(which)
-	if which == "exclude" then
-		BG_GlobalDB.exclude = {}
-	elseif which == "include" then
-		BG_GlobalDB.include = {}
-	elseif which == "autosell" then
-		-- TODO: add to options
-		BG_GlobalDB.autoSellList = {}
-	end
-end
-
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 -- resets statistics. global = true -> global, otherwise local
 function BrokerGarbage:ResetAll(global)
 	if global then
@@ -366,10 +310,7 @@ function BrokerGarbage:ResetAll(global)
 	end
 end
 
-<<<<<<< HEAD
 -- CATACLYSM compatibility:begin [remove] --
-=======
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 -- returns the skill rank of a given tradeskill, or nil
 function BrokerGarbage:GetTradeSkill(skillName)
 	for i=1, GetNumSkillLines() do
@@ -381,10 +322,6 @@ function BrokerGarbage:GetTradeSkill(skillName)
 	return nil
 end
 
-<<<<<<< HEAD
-=======
--- BEGIN :: REMOVE IN CATACLYSM
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 -- returns all tradeskills found
 function BrokerGarbage:CheckSkills()
 	local result = {}
@@ -401,11 +338,7 @@ function BrokerGarbage:CheckSkills()
 	end
 	if result == {} then return nil else return result end
 end
-<<<<<<< HEAD
 -- CATACLYSM compatibility:end --
-=======
--- END :: REMOVE IN CATACLYSM
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 
 local scanTooltip = CreateFrame('GameTooltip', 'BGItemScanTooltip', UIParent, 'GameTooltipTemplate')
 -- misc: either "true" to check only for the current character, or a table {container, slot} for reference
@@ -420,7 +353,6 @@ function BrokerGarbage:CanDisenchant(itemLink, misc)
 			
 			-- can we DE ourself?
 			-- name, icon, rank, maxrank, numspells, spelloffset, skillline = GetProfessionInfo(index)
-<<<<<<< HEAD
 			if IsUsableSpell(BrokerGarbage.enchanting) then
 				local name, _, rank, maxRank
 				-- CATACLYSM compatibility:begin --
@@ -434,15 +366,6 @@ function BrokerGarbage:CanDisenchant(itemLink, misc)
 					 rank = BrokerGarbage:GetTradeSkill(BrokerGarbage.enchanting) or 0
 				end
 				-- CATACLYSM compatibility:end --
-=======
-			
-			if IsUsableSpell(BrokerGarbage.enchanting) then
-				local prof1, prof2 = GetProfessions()
-				local name, _, rank, maxRank = GetProfessionInfo(prof1)
-				if name ~= BrokerGarbage.enchanting then
-					name, _, rank, maxRank = GetProfessionInfo(prof2)
-				end
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 				
 				local requiredSkill = 0
 				if level <= 20 then
@@ -457,11 +380,7 @@ function BrokerGarbage:CanDisenchant(itemLink, misc)
 					requiredSkill = 300
 				elseif level <= 200 and quality <= 3 then	-- WotLK starts here
 					requiredSkill = 325
-<<<<<<< HEAD
 				else	-- TODO: get cataclysm values
-=======
-				else
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 					requiredSkill = 375
 				end
 
@@ -683,14 +602,9 @@ function BrokerGarbage:GetBagSlots()
 end
 
 -- formats money int values, depending on settings
-<<<<<<< HEAD
 function BrokerGarbage:FormatMoney(amount, displayMode)
 	if not amount then return "" end
 	displayMode = displayMode or BG_GlobalDB.showMoney
-=======
-function BrokerGarbage:FormatMoney(amount)
-	if not amount then return "" end
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 	
 	local signum
 	if amount < 0 then 
@@ -704,7 +618,6 @@ function BrokerGarbage:FormatMoney(amount)
 	local silver = math.fmod(floor(amount / 100), 100)
 	local copper = math.fmod(floor(amount), 100)
 	
-<<<<<<< HEAD
 	if displayMode == 0 then
 		return format(signum.."%i.%i.%i", gold, silver,copper)
 
@@ -713,16 +626,6 @@ function BrokerGarbage:FormatMoney(amount)
 
 	-- copied from Ara Broker Money
 	elseif displayMode == 2 then
-=======
-	if BG_GlobalDB.showMoney == 0 then
-		return format(signum.."%i.%i.%i", gold, silver,copper)
-
-	elseif BG_GlobalDB.showMoney == 1 then
-		return format(signum.."|cffffd700%i|r.|cffc7c7cf%.2i|r.|cffeda55f%.2i|r", gold, silver, copper)
-
-	-- copied from Ara Broker Money
-	elseif BG_GlobalDB.showMoney == 2 then
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 		if amount>9999 then
 			return format(signum.."|cffeeeeee%i|r|cffffd700g|r |cffeeeeee%.2i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r", floor(amount*.0001), floor(amount*.01)%100, amount%100 )
 		
@@ -734,28 +637,17 @@ function BrokerGarbage:FormatMoney(amount)
 		end
 	
 	-- copied from Haggler
-<<<<<<< HEAD
 	elseif displayMode == 3 then
 		gold         = gold   > 0 and gold  .."|TInterface\\MoneyFrame\\UI-GoldIcon:0|t" or ""
 		silver       = silver > 0 and silver.."|TInterface\\MoneyFrame\\UI-SilverIcon:0|t" or ""
 		copper       = copper > 0 and copper.."|TInterface\\MoneyFrame\\UI-CopperIcon:0|t" or ""
-=======
-	elseif BG_GlobalDB.showMoney == 3 then
-		gold         = gold   > 0 and gold  .."|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:4:0|t" or ""
-		silver       = silver > 0 and silver.."|TInterface\\MoneyFrame\\UI-SilverIcon:12:12:4:0|t" or ""
-		copper       = copper > 0 and copper.."|TInterface\\MoneyFrame\\UI-CopperIcon:12:12:4:0|t" or ""
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 		-- add spaces if needed
 		copper       = (silver ~= "" and copper ~= "") and " "..copper or copper
 		silver       = (gold   ~= "" and silver ~= "") and " "..silver or silver
 	
 		return signum..gold..silver..copper
 		
-<<<<<<< HEAD
 	elseif displayMode == 4 then		
-=======
-	elseif BG_GlobalDB.showMoney == 4 then		
->>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
 		gold         = gold   > 0 and "|cffeeeeee"..gold  .."|r|cffffd700g|r" or ""
 		silver       = silver > 0 and "|cffeeeeee"..silver.."|r|cffc7c7cfs|r" or ""
 		copper       = copper > 0 and "|cffeeeeee"..copper.."|r|cffeda55fc|r" or ""
