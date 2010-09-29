@@ -45,7 +45,10 @@ local cost = 0						-- the amount of money that we repaired for
 -- ---------------------------------------------------------
 local frame = CreateFrame("frame")
 local function eventHandler(self, event, arg1, ...)
+<<<<<<< HEAD
     BrokerGarbage:Debug("EVENT", event, arg1, ...)
+=======
+>>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
     if event == "PLAYER_ENTERING_WORLD" then
         BrokerGarbage:CheckSettings()
 
@@ -64,7 +67,11 @@ local function eventHandler(self, event, arg1, ...)
         frame:UnregisterEvent("PLAYER_ENTERING_WORLD")
         
     elseif event == "BAG_UPDATE" then
+<<<<<<< HEAD
         if not arg1 or arg1 < 0 or arg1 > 4 then return end
+=======
+        if not arg1 or arg1 < 0 or arg1 > 4 then BrokerGarbage:Debug("Unknown bag id") return end
+>>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
         
         BrokerGarbage:ScanInventoryContainer(arg1)	-- partial inventory scan on the relevant container
         
@@ -89,7 +96,11 @@ local function eventHandler(self, event, arg1, ...)
         end
     
     elseif event == "AUCTION_HOUSE_CLOSED" then
+<<<<<<< HEAD
         -- Update cached auction values if needed
+=======
+        -- Update cache auction values if needed
+>>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
         BrokerGarbage.itemsCache = {}
     
     elseif (locked or cost ~=0) and event == "PLAYER_MONEY" then -- regular unlock
@@ -350,6 +361,10 @@ function BrokerGarbage:OnClick(itemTable, button)
         
     elseif button == "RightButton" then
         -- open config
+<<<<<<< HEAD
+=======
+        BrokerGarbage:OptionsFirstLoad()
+>>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
         InterfaceOptionsFrame_OpenToCategory(BrokerGarbage.options)
         
     elseif LDBclick then
@@ -639,6 +654,10 @@ function BrokerGarbage:ScanInventoryContainer(container)
     for slot = 1, numSlots do
         local itemID = GetContainerItemID(container,slot)
         local item = BrokerGarbage:GetCached(itemID)
+<<<<<<< HEAD
+=======
+        BrokerGarbage:Debug("checking", itemID, item)
+>>>>>>> 5718466e0636150e9aca329ad638bf22e4e21cfa
         if itemID and item then
             -- update toSellValue
             if item.classification == BrokerGarbage.VENDORLIST or 
