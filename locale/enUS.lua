@@ -169,8 +169,11 @@ BrokerGarbage.locale = {
 	LOIncludeAutoSellText = "Sell Junk List items",
 	LOIncludeAutoSellTooltip = "Check this to automatically sell items on your include list when at a merchant. Items without a value will be ignored.",
 	
+	LOUseRealValues = "Use actual value for junk items",
+	LOUseRealValuesTooltip = "Check this to have junk items considered with their actual value, rather than 0c.",
+	
 	listsBestUse = [[|cffffd200List Examples|r
-Don't forget to use the standard lists! They provide a great example.
+Don't forget to use the default lists! They provide a great example.
 First, put any items you don't want to lose on your |cffffd200Keep List|r. Make good use of categories (see below)! If the LootManager is active it will alwas try to loot these items.
 |cffAAAAAAe.g. class reagents, flasks|r
 Items which may be thrown away any time belong on the |cffffd200Junk List|r.
@@ -179,6 +182,10 @@ In case you encounter highly overrated items, put them on your |cffffd200Vendor 
 |cffAAAAAAe.g. fish oil|r
 Put items on your |cffffd200Sell List|r that should be sold when visiting a merchant.
 |cffAAAAAAe.g. water as a warrior, cheese|r]],
+
+	listsSpecialOptions = [[|cffffd200Junk List special options|r
+|cffffd200Sell Junk List items|r: This setting is useful for those who do not want to distinguish between the Sell List and the Junk List. If you check this, any items on your Junk -or- Sell List will be sold when you visit a vendor.
+|cffffd200Use actual values|r: This setting changes the behavior of the Junk List. By default (disabled) Junk List items will get their value set to 0c (statistics will still work just fine!) and they will be shown first in the tooltip. If you enable this setting, these items will retain their regular value and will only show up in the tooltip once their value is reached.]],
 	
 	iconButtonsUse = [[|cffffd200Item Buttons|r
 For any item you'll either see its icon, a gear if it's a category or a question mark in case the server doesn't know this item.

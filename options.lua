@@ -684,7 +684,7 @@ local function ShowListOptions(frame)
 		BrokerGarbage:CreateDefaultLists(IsShiftKeyDown())
 	end)
 	
-	local autoSellIncludeItems = LibStub("tekKonfig-Checkbox").new(frame, nil, BrokerGarbage.locale.LOIncludeAutoSellText, "LEFT", default, "RIGHT", 10, 0)
+	local autoSellIncludeItems = LibStub("tekKonfig-Checkbox").new(frame, nil, BrokerGarbage.locale.LOIncludeAutoSellText, "LEFT", default, "RIGHT", 10, 8)
 	autoSellIncludeItems.tiptext = BrokerGarbage.locale.LOIncludeAutoSellTooltip .. BrokerGarbage.locale.GlobalSetting
 	autoSellIncludeItems:SetChecked(BG_GlobalDB.autoSellIncludeItems)
 	local checksound = autoSellIncludeItems:GetScript("OnClick")
@@ -695,7 +695,19 @@ local function ShowListOptions(frame)
 		BrokerGarbage:ScanInventory()
 	end)
 	
-	local panel = LibStub("tekKonfig-Group").new(frame, nil, "TOP", default, "BOTTOM", 0, -24)
+	local includeMode = LibStub("tekKonfig-Checkbox").new(frame, nil, BrokerGarbage.locale.LOUseRealValues, "TOPLEFT", autoSellIncludeItems, "BOTTOMLEFT", 0, 8)
+	includeMode.tiptext = BrokerGarbage.locale.LOUseRealValuesTooltip .. BrokerGarbage.locale.GlobalSetting
+	includeMode:SetChecked(BG_GlobalDB.useRealValues)
+	local checksound = includeMode:GetScript("OnClick")
+	includeMode:SetScript("OnClick", function(includeMode)
+		checksound(includeMode)
+		BG_GlobalDB.useRealValues = not BG_GlobalDB.useRealValues
+		BrokerGarbage.itemsCache = {}
+		BrokerGarbage:ScanInventory()
+		-- maybe: Update LDB
+	end)
+	
+	local panel = LibStub("tekKonfig-Group").new(frame, nil, "TOP", default, "BOTTOM", 0, -28)
 	panel:SetPoint("LEFT", 8 + 3, 0)
 	panel:SetPoint("BOTTOMRIGHT", -8 -4, 34)
 	
@@ -759,6 +771,9 @@ local function ShowListOptions(frame)
 	searchbox:SetFontObject("GameFontHighlightSmall")
 	CreateFrameBorders(searchbox)
 
+	searchbox:SetTextColor(0.75, 0.75, 0.75, 1)
+	searchbox:SetText(BrokerGarbage.locale.search)
+	
 	searchbox:SetScript("OnEscapePressed", searchbox.ClearFocus)
 	searchbox:SetScript("OnEnterPressed", searchbox.ClearFocus)
 	searchbox:SetScript("OnEditFocusGained", function(self)
@@ -778,8 +793,6 @@ local function ShowListOptions(frame)
 		self.searchString = t ~= "" and t ~= BrokerGarbage.locale.search and t:lower() or nil
 		BrokerGarbage:UpdateSearch(self.searchString)
 	end)
-	searchbox:SetText(BrokerGarbage.locale.search)
-	searchbox:SetTextColor(0.75, 0.75, 0.75, 1)
 	
 	-- tab changing actions
 	include:SetScript("OnClick", function(self)
@@ -1036,29 +1049,16 @@ local function ShowListOptions(frame)
 			local helpFrame = CreateFrame("Frame", "BG_HelpFrame", scrollContent)
 			helpFrame:SetAllPoints()
 			
-			local bestUse = helpFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-			bestUse:SetHeight(190)
-			bestUse:SetPoint("TOPLEFT", helpFrame, "TOPLEFT", 8, -4)
-			bestUse:SetPoint("RIGHT", helpFrame, -4, 0)
-			bestUse:SetNonSpaceWrap(true)
-			bestUse:SetJustifyH("LEFT"); bestUse:SetJustifyV("TOP")
-			bestUse:SetText(BrokerGarbage.locale.listsBestUse)
-			
-			local iconButtons = helpFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-			iconButtons:SetHeight(124)
-			iconButtons:SetPoint("TOPLEFT", bestUse, "BOTTOMLEFT", 0, -10)
-			iconButtons:SetPoint("RIGHT", helpFrame, -4, 0)
-			iconButtons:SetNonSpaceWrap(true)
-			iconButtons:SetJustifyH("LEFT"); iconButtons:SetJustifyV("TOP")
-			iconButtons:SetText(BrokerGarbage.locale.iconButtonsUse)
-			
-			local actionButtons = helpFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-			actionButtons:SetHeight(180)
-			actionButtons:SetPoint("TOPLEFT", iconButtons, "BOTTOMLEFT", 0, -10)
-			actionButtons:SetPoint("RIGHT", helpFrame, -4, 0)
-			actionButtons:SetNonSpaceWrap(true)
-			actionButtons:SetJustifyH("LEFT"); actionButtons:SetJustifyV("TOP")
-			actionButtons:SetText(BrokerGarbage.locale.actionButtonsUse)
+			local helpTexts = helpFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+			helpTexts:SetPoint("TOPLEFT", helpFrame, "TOPLEFT", 8, -4)
+			helpTexts:SetWidth(helpFrame:GetWidth() - 8)	-- substract the offset we added to the left
+			helpTexts:SetWordWrap(true)
+			helpTexts:SetJustifyH("LEFT")
+			helpTexts:SetJustifyV("TOP")
+			helpTexts:SetText(BrokerGarbage.locale.listsBestUse .. "\n\n" ..
+				BrokerGarbage.locale.listsSpecialOptions .. "\n\n" ..
+				BrokerGarbage.locale.iconButtonsUse .. "\n\n" ..
+				BrokerGarbage.locale.actionButtonsUse .. "\n")
 		else
 			_G["BG_HelpFrame"]:Show()
 		end

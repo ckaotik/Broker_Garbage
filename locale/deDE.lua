@@ -169,6 +169,9 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.LOIncludeAutoSellText = "Müll-Items verkaufen"
 	BrokerGarbage.locale.LOIncludeAutoSellTooltip = "Aktivieren, um Items von deiner Müll-Liste automatisch beim Händler zu verkaufen. Items ohne Wert werden ignoriert."
 	
+	BrokerGarbage.locale.LOUseRealValues = "Echte Werte für Müll-Items"
+	BrokerGarbage.locale.LOUseRealValuesTooltip = "Aktivieren, um für Müll-Items den tatsächlichen Preis zu nutzen, anstatt sie auf 0c zu setzen."
+
 	BrokerGarbage.locale.listsBestUse = [[|cffffd200Listen-Beispiele|r
 Die Standardlisten geben eine Hilfestellung, was auf welcher Liste nützlich sein könnte.
 Setze erst alle Items, die du auf jeden Fall behalten möchtest, auf die |cffffd200Behalten-Liste|r. Denke auch daran, dass es Kategorien (s.u.) gibt! Ist der LootManager aktiv, wird er Items von dieser Liste immer plündern.
@@ -179,6 +182,10 @@ Sollte ein Item einen ungewollt hohen Wert zugewiesen bekommen, setze das Item a
 |cffAAAAAAz.B. Fischöl|r
 Auf die |cffffd200Verkaufen-Liste|r kannst du alles setzen, was Broker_Garbage verkaufen soll.
 |cffAAAAAAz.B. Wasser (als Krieger), Alterachochkäse|r]]
+
+	BrokerGarbage.locale.listsSpecialOptions = [[|cffffd200Spezielle Müll-Listen Optionen|r
+|cffffd200Verkaufen|r: Diese Einstellung ist nützlich für all diejenigen, die keine Unterscheidung zwischen Müll und zu verkaufenden Items treffen wollen. Wenn ausgewählt, werden sowohl die Items aus der Müll-Liste als auch die aus der Verkaufen-Liste bei Händlern verkauft.
+|cffffd200Echte Werte|r: Diese Einstellungen ändert das Verhalten der Müll-Liste. Standardmäßig (deaktiviert) bekommen Müll-Items einen Wert von 0c zugewiesen (beeinflusst nicht die Statistiken) und erscheinen damit als erstes im Tooltip. Wenn aktiviert, behalten diese Items ihren normalen Wert und tauchen entsprechend später in der Liste auf.]]
 	
 	BrokerGarbage.locale.iconButtonsUse = [[|cffffd200Item-Buttons|r
 Angezeigt wird entweder das Icon des Items, ein Zahnrad, wenn es sich um eine Kategorie handelt, oder ein Fragezeichen, wenn der Server das Item nicht finden kann.
