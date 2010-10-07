@@ -971,19 +971,18 @@ local function ShowListOptions(frame)
 				end)
 				button:SetScript("OnEnter", ShowTooltip)
 				button:SetScript("OnLeave", HideTooltip)				
-				
-				-- TODO: make even more generic
-				if not numCols and panel:GetWidth() - (index+1)*(button:GetWidth() + 2) < 2 then
-					-- we found the width limit, set the column count
-					numCols = index - 1
-				end
-				if index == 1 then		-- place first icon
-					button:SetPoint("TOPLEFT", scrollContent, "TOPLEFT", 6, -6)
-				elseif numCols and mod(index, numCols) == 1 then	-- new row
-					button:SetPoint("TOPLEFT", _G[scrollContent:GetName().."_Item" .. index - numCols], "BOTTOMLEFT", 0, -6)
-				else					-- new button next to the old one
-					button:SetPoint("LEFT", _G[scrollContent:GetName().."_Item" .. index - 1], "RIGHT", 4, 0)
-				end
+			end
+			
+			-- update button positions
+			if panel:GetWidth() - (index+1)*(button:GetWidth() + 2) < 2 then	-- we found the width limit, set the column count
+				numCols = index - 1
+			end
+			if index == 1 then		-- place first icon
+				button:SetPoint("TOPLEFT", scrollContent, "TOPLEFT", 6, -6)
+			elseif numCols and mod(index, numCols) == 1 then	-- new row
+				button:SetPoint("TOPLEFT", _G[scrollContent:GetName().."_Item" .. index - numCols], "BOTTOMLEFT", 0, -6)
+			else					-- new button next to the old one
+				button:SetPoint("LEFT", _G[scrollContent:GetName().."_Item" .. index - 1], "RIGHT", 4, 0)
 			end
 			
 			-- update this button with data
