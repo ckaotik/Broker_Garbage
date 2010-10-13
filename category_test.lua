@@ -102,40 +102,11 @@ if BrokerGarbage.PT then
 			end
 		end
 		
-		local function OnDropDownClick(self)
-			UIDropDownMenu_SetSelectedValue(categoryString, self.value)
-			categoryText:SetText(self.value)
-			UpdatePreviewBox()
-		end
-		
 		UIDropDownMenu_Initialize(categoryString, function(self, level)
-			local selected = UIDropDownMenu_GetSelectedValue(categoryString)
-			
-			local dataTable = BrokerGarbage.PTSets or {}
-			if UIDROPDOWNMENU_MENU_VALUE and string.find(UIDROPDOWNMENU_MENU_VALUE, ".") then
-				local parts = { strsplit(".", UIDROPDOWNMENU_MENU_VALUE) } or {}
-				for k = 1, #parts do
-					dataTable = dataTable[ parts[k] ]
-				end
-			elseif UIDROPDOWNMENU_MENU_VALUE then
-				dataTable = dataTable[ UIDROPDOWNMENU_MENU_VALUE ] or {}
-			end
-			
-			for key, value in pairs(dataTable) do
-				local info = UIDropDownMenu_CreateInfo()
-				local prefix = ""
-				if UIDROPDOWNMENU_MENU_VALUE then
-					prefix = UIDROPDOWNMENU_MENU_VALUE .. "."
-				end
-				
-				info.text = key
-				info.value = prefix .. key
-				info.hasArrow = type(value) == "table" and true or false
-				info.checked = info.value == selected
-				info.func = OnDropDownClick
-				
-				UIDropDownMenu_AddButton(info, level);
-			end
+			BrokerGarbage:LPTDropDown(self, level, function(self)
+				UIDropDownMenu_SetSelectedValue(categoryString, self.value)
+				categoryText:SetText(self.value); UpdatePreviewBox()
+			end)
 		end)
 	end
 	local _ = BrokerGarbage:RegisterPlugin(BrokerGarbage.locale.PTCategoryTest, Options_CategoryTest)

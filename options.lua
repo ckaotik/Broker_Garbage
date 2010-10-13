@@ -893,7 +893,7 @@ local function ShowListOptions(frame)
 	end
 	
 	-- function that updates & shows items from various lists
-	local numCols
+	-- local numCols
 	function BrokerGarbage:ListOptionsUpdate()
 		scrollContent:SetWidth(scrollFrame:GetWidth())	-- update scrollframe content to full width
 		if frame.current == nil then
@@ -927,6 +927,7 @@ local function ShowListOptions(frame)
 			end
 		end)
 
+		local numCols = math.floor((scrollContent:GetWidth() - 20 - 2)/(36 + 2))	-- or is it panel's width we want?
 		for index, itemID in ipairs(data) do
 			local button = _G[scrollContent:GetName().."_Item"..index]
 			if not button then	-- create another button
@@ -974,12 +975,9 @@ local function ShowListOptions(frame)
 			end
 			
 			-- update button positions
-			if panel:GetWidth() - (index+1)*(button:GetWidth() + 2) < 2 then	-- we found the width limit, set the column count
-				numCols = index - 1
-			end
 			if index == 1 then		-- place first icon
 				button:SetPoint("TOPLEFT", scrollContent, "TOPLEFT", 6, -6)
-			elseif numCols and mod(index, numCols) == 1 then	-- new row
+			elseif mod(index, numCols) == 1 then	-- new row
 				button:SetPoint("TOPLEFT", _G[scrollContent:GetName().."_Item" .. index - numCols], "BOTTOMLEFT", 0, -6)
 			else					-- new button next to the old one
 				button:SetPoint("LEFT", _G[scrollContent:GetName().."_Item" .. index - 1], "RIGHT", 4, 0)
@@ -1127,53 +1125,11 @@ local function ShowListOptions(frame)
 	if not _G["BG_LPTMenuFrame"] then		
 		--initialize dropdown menu for adding setstrings
 		BrokerGarbage.menuFrame = CreateFrame("Frame", "BG_LPTMenuFrame", UIParent, "UIDropDownMenuTemplate")
-		
 		UIDropDownMenu_Initialize(BrokerGarbage.menuFrame, function(self, level)
-			local dataTable = BrokerGarbage.PTSets or {}
-			if UIDROPDOWNMENU_MENU_VALUE and string.find(UIDROPDOWNMENU_MENU_VALUE, ".") then
-				local parts = { strsplit(".", UIDROPDOWNMENU_MENU_VALUE) } or {}
-				for k = 1, #parts do
-					dataTable = dataTable[ parts[k] ]
-				end
-			elseif UIDROPDOWNMENU_MENU_VALUE then
-				dataTable = dataTable[ UIDROPDOWNMENU_MENU_VALUE ] or {}
-			end
-
-			-- display a heading
-			if (level == 1) then		
-				local info = UIDropDownMenu_CreateInfo()
-				info.isTitle = true
-				info.notCheckable = true
-				info.text = BrokerGarbage.locale.categoriesHeading
-				UIDropDownMenu_AddButton(info, level)
-
-				-- and some warning text, in case LPT is not available
-				if not BrokerGarbage.PT then
-					local info = UIDropDownMenu_CreateInfo()
-					info.isTitle = true
-					info.notCheckable = true
-					info.text = BrokerGarbage.locale.LPTNotLoaded
-					UIDropDownMenu_AddButton(info, level)
-				end
-			end
-			
-			for key, value in pairs(dataTable) do
-				local info = UIDropDownMenu_CreateInfo()
-				local prefix = ""
-				if UIDROPDOWNMENU_MENU_VALUE then
-					prefix = UIDROPDOWNMENU_MENU_VALUE .. "."
-				end
-				
-				info.text = key
-				info.value = prefix .. key
-				info.hasArrow = type(value) == "table" and true or false
-				info.func = function(...) 
-					AddItem(value)
-					BrokerGarbage:ListOptionsUpdate()
-				end
-				
-				UIDropDownMenu_AddButton(info, level);
-			end
+			BrokerGarbage:LPTDropDown(self, level, function(self)
+				AddItem(self.value)
+				BrokerGarbage:ListOptionsUpdate()
+			end)
 		end, "MENU")
 	end
 	

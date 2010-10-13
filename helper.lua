@@ -110,7 +110,6 @@ end
 function BrokerGarbage:CreateDefaultLists(global)
 	if global then
 		BG_GlobalDB.include[46069] = true											-- argentum lance
-		if BG_GlobalDB.include[6265] == nil then BG_GlobalDB.include[6265] = 20 end	-- soulshards	CATYCLYSM: remove this
 		BG_GlobalDB.include["Consumable.Water.Conjured"] = true
 		BG_GlobalDB.include["Consumable.Food.Edible.Basic.Conjured"] = true
 		BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible.Basic"] = true
@@ -119,17 +118,8 @@ function BrokerGarbage:CreateDefaultLists(global)
 	end
 	
 	-- tradeskills
-	-- CATACLYSM compatibility:begin --
-	local tradeSkills, limit
-	if GetProfessions then
-		tradeSkills =  { GetProfessions() }
-		limit = 6			-- GetProfessions() returns 6 indices
-	else
-		tradeSkills = BrokerGarbage:CheckSkills() or {}
-		limit = #tradeSkills
-	end
-	for i = 1, limit do
-	-- CATACLYSM compatibility:end --
+	local tradeSkills =  { GetProfessions() }
+	for i = 1, 6 do	-- we get at most 6 professions (2x primary, cooking, fishing, first aid, archeology)
 		local englishSkill, isGather = BrokerGarbage:UnLocalize(tradeSkills[i])
 		if englishSkill then
 			if isGather then
@@ -186,16 +176,8 @@ function BrokerGarbage:GetItemID(itemLink)
 end
 
 -- returns original English names for non-English locales
-function BrokerGarbage:UnLocalize(skillIndex)
-	if not skillIndex then return nil, nil end
-	-- CATACLYSM compatibility:begin --
-	local skillName
-	if type(skillIndex) == "number" then
-		skillName = GetProfessionInfo(skillIndex)
-	else
-		skillName = skillIndex
-	end
-	-- CATACLYSM compatibility:end --
+function BrokerGarbage:UnLocalize(skillName)
+	if not skillName then return nil, nil end
 	if string.find(GetLocale(), "en") then return skillName end
 	
 	-- crafting skills
@@ -310,35 +292,69 @@ function BrokerGarbage:ResetAll(global)
 	end
 end
 
--- CATACLYSM compatibility:begin [remove] --
--- returns the skill rank of a given tradeskill, or nil
-function BrokerGarbage:GetTradeSkill(skillName)
-	for i=1, GetNumSkillLines() do
-		local name, _, _, skillRank, _, _, _, _, _, _, _, _, _ = GetSkillLineInfo(i)
-		if name == skillName then 
-			return skillRank
+function BrokerGarbage:LPTDropDown(self, level, functionHandler)
+	local dataTable = BrokerGarbage.PTSets or {}
+	if UIDROPDOWNMENU_MENU_VALUE and string.find(UIDROPDOWNMENU_MENU_VALUE, ".") then
+		local parts = { strsplit(".", UIDROPDOWNMENU_MENU_VALUE) } or {}
+		for k = 1, #parts do
+			dataTable = dataTable[ parts[k] ]
+		end
+	elseif UIDROPDOWNMENU_MENU_VALUE then
+		dataTable = dataTable[ UIDROPDOWNMENU_MENU_VALUE ] or {}
+	end
+
+	-- display a heading
+	if (level == 1) then		
+		local info = UIDropDownMenu_CreateInfo()
+		info.isTitle = true
+		info.notCheckable = true
+		info.text = BrokerGarbage.locale.categoriesHeading
+		UIDropDownMenu_AddButton(info, level)
+
+		-- and some warning text, in case LPT is not available
+		if not BrokerGarbage.PT then
+			local info = UIDropDownMenu_CreateInfo()
+			info.isTitle = true
+			info.notCheckable = true
+			info.text = BrokerGarbage.locale.LPTNotLoaded
+			UIDropDownMenu_AddButton(info, level)
 		end
 	end
-	return nil
+	
+	for key, value in pairs(dataTable) do
+		local info = UIDropDownMenu_CreateInfo()
+		local prefix = ""
+		if UIDROPDOWNMENU_MENU_VALUE then
+			prefix = UIDROPDOWNMENU_MENU_VALUE .. "."
+		end
+		
+		info.text = key
+		info.value = prefix .. key
+		info.hasArrow = type(value) == "table" and true or false
+		info.func = functionHandler
+		
+		UIDropDownMenu_AddButton(info, level);
+	end
 end
 
--- returns all tradeskills found
-function BrokerGarbage:CheckSkills()
-	local result = {}
-	for i=1, GetNumSkillLines() do
-		local name, _, _, skillRank, _, _, _, tradeSkill = GetSkillLineInfo(i)
-		if tradeSkill then
-			local isGather = true
-			if name == GetSpellInfo(2259) or name == GetSpellInfo(2018) or name == GetSpellInfo(7411) or name == GetSpellInfo(4036) or name == GetSpellInfo(45357) or name == GetSpellInfo(25229) or name == GetSpellInfo(2108) or name == GetSpellInfo(3908) then 
-				-- crafting skill
-				isGather = false
-			end
-			tinsert(result, {name, isGather, skillRank})
+function BrokerGarbage:GetProfessionSkill(skill)
+	if not skill or (type(skill) ~= "number" and type(skill) ~= "string") then return end
+	if type(skill) == "number" then
+		skill = GetSpellInfo(skill)
+	end
+	
+	local rank, maxRank
+	for i = 1, 6 do
+		local profession = select(i, GetProfessions())
+		local pName, _, pRank, pMaxRank = profession and GetProfessionInfo(profession)
+		if name and name == skill then
+			rank = pRank
+			maxRank = pMaxRank
+			break;
 		end
 	end
-	if result == {} then return nil else return result end
+	return rank, maxRank
 end
--- CATACLYSM compatibility:end --
 
 local scanTooltip = CreateFrame('GameTooltip', 'BGItemScanTooltip', UIParent, 'GameTooltipTemplate')
 -- misc: either "true" to check only for the current character, or a table {container, slot} for reference
@@ -351,22 +367,8 @@ function BrokerGarbage:CanDisenchant(itemLink, misc)
 			string.find(bagSlot, "INVTYPE") and not string.find(bagSlot, "BAG") 
 			and (not count or count == 1) then
 			
-			-- can we DE ourself?
-			-- name, icon, rank, maxrank, numspells, spelloffset, skillline = GetProfessionInfo(index)
+			-- can this character disenchant?
 			if IsUsableSpell(BrokerGarbage.enchanting) then
-				local name, _, rank, maxRank
-				-- CATACLYSM compatibility:begin --
-				if GetProfessions then
-					local prof1, prof2 = GetProfessions()
-					name, _, rank, maxRank = GetProfessionInfo(prof1)
-					if name ~= BrokerGarbage.enchanting then
-						name, _, rank, maxRank = GetProfessionInfo(prof2)
-					end
-				else
-					 rank = BrokerGarbage:GetTradeSkill(BrokerGarbage.enchanting) or 0
-				end
-				-- CATACLYSM compatibility:end --
-				
 				local requiredSkill = 0
 				if level <= 20 then
 					requiredSkill = 1
@@ -384,7 +386,8 @@ function BrokerGarbage:CanDisenchant(itemLink, misc)
 					requiredSkill = 375
 				end
 
-				if rank >= requiredSkill then
+				local rank = BrokerGarbage:GetProfessionSkill(BrokerGarbage.enchanting)
+				if rank and rank >= requiredSkill then
 					return true
 				end
 				-- if skill rank is too low, still check if we can send it

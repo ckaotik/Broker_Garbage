@@ -1,5 +1,4 @@
-﻿## Interface: 30300
-## X-Compatible-With: 40000
+﻿## Interface: 40000
 ## Dependencies: 
 ## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auc-Advanced, Enchantrix, WOWEcon_PriceMod
 ## SavedVariables: BG_GlobalDB
