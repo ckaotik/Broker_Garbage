@@ -135,10 +135,7 @@ function BrokerGarbage:CreateDefaultLists(global)
 	end
 	
 	-- class specific
-	if BrokerGarbage.playerClass == "HUNTER" then	
-		BG_LocalDB.exclude["Misc.Reagent.Ammo"] = true
-	
-	elseif BrokerGarbage.playerClass == "WARRIOR" or BrokerGarbage.playerClass == "ROGUE" or BrokerGarbage.playerClass == "DEATHKNIGHT" then
+	if BrokerGarbage.playerClass == "WARRIOR" or BrokerGarbage.playerClass == "ROGUE" or BrokerGarbage.playerClass == "DEATHKNIGHT" then
 		BG_LocalDB.autoSellList["Consumable.Water"] = true
 	
 	elseif BrokerGarbage.playerClass == "SHAMAN" then

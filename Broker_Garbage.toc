@@ -1,4 +1,4 @@
-﻿## Interface: 40000
+## Interface: 40000
 ## Dependencies: 
 ## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auc-Advanced, Enchantrix, WOWEcon_PriceMod
 ## SavedVariables: BG_GlobalDB
@@ -8,7 +8,7 @@
 ## Notes: Full bags no more! Distinguish between junk and treasure, find items to drop quickly. 
 ## Notes-deDE: Endlich wieder Platz! Unterscheide Trödel von Schätzen und finde Items zum Wegwerfen.
 ## Author: ckaotik
-## Version: 4.0v2
+## Version: 4.0v3
 ## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 ## X-RelSite-WoWI: 15531
 ## X-Category: Inventory
