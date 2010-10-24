@@ -294,7 +294,7 @@ function BrokerGarbage:LPTDropDown(self, level, functionHandler)
 	if UIDROPDOWNMENU_MENU_VALUE and string.find(UIDROPDOWNMENU_MENU_VALUE, ".") then
 		local parts = { strsplit(".", UIDROPDOWNMENU_MENU_VALUE) } or {}
 		for k = 1, #parts do
-			dataTable = dataTable[ parts[k] ]
+			dataTable = dataTable[ parts[k] ] or {}
 		end
 	elseif UIDROPDOWNMENU_MENU_VALUE then
 		dataTable = dataTable[ UIDROPDOWNMENU_MENU_VALUE ] or {}
@@ -318,7 +318,7 @@ function BrokerGarbage:LPTDropDown(self, level, functionHandler)
 		end
 	end
 	
-	for key, value in pairs(dataTable) do
+	for key, value in pairs(dataTable or {}) do
 		local info = UIDropDownMenu_CreateInfo()
 		local prefix = ""
 		if UIDROPDOWNMENU_MENU_VALUE then

@@ -26,6 +26,8 @@ if GetLocale() == "deDE" then
 /garbage |cffc0c0c0globallimit |cffc0c0ffitemLink/ID Anzahl|r setzt ein Limit für alle Charaktere.
 /garbage |cffc0c0c0value |cffc0c0ffWertInKupfer|r setzt den Itemwert, ab dem Items gelootet werden (benötigt den Loot Manager).]]
 	BrokerGarbage.locale.minValueSet = "Mindestwert für items wurde auf %s gesetzt."
+	BrokerGarbage.locale.minSlotsSet = "Der Loot Manager wird versuchen, mindestens %s Inventarplätze frei halten."
+	BrokerGarbage.locale.invalidArgument = "Ungültiges Argument. Bitte überprüfe deine Eingabe!"
 	
 	BrokerGarbage.locale.GlobalSetting = "\n|cffffff9aDiese Einstellung ist global."
 	

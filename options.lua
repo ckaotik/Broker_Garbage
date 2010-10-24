@@ -1269,9 +1269,12 @@ function SlashCmdList.BROKERGARBAGE(msg, editbox)
 		
 	elseif command == "limit" or command == "glimit" or command == "globallimit" then
 		local itemID, count = rest:match("^[^0-9]-([0-9]+).-([0-9]+)$")
-		itemID = tonumber(itemID)
-		count = tonumber(count)
+		itemID = tonumber(itemID) or -1
+		count = tonumber(count) or -1
 		
+		if itemID < 1 or count < 0 then
+			BrokerGarbage:Print(BrokerGarbage.locale.invalidArgument)
+		end
 		BrokerGarbage.itemsCache[itemID] = nil
 		
 		if string.find(command, "g") then
@@ -1283,12 +1286,25 @@ function SlashCmdList.BROKERGARBAGE(msg, editbox)
 		BrokerGarbage:Print(format(BrokerGarbage.locale.limitSet, itemLink, count))
 		BrokerGarbage:ListOptionsUpdate("include")
 		
-	elseif command == "value" or command == "minvalue" and LootManager then
-		rest = tonumber(rest)
-		if not rest then return end
+	elseif LootManager and (command == "value" or command == "minvalue") then
+		rest = tonumber(rest) or -1
+		if rest < 0 then
+			BrokerGarbage:Print(BrokerGarbage.locale.invalidArgument)
+			return
+		end
 		
 		BrokerGarbage_LootManager:SetMinValue(rest)
-		BrokerGarbage:Print(format(BrokerGarbage.locale.minValueSet, BrokerGarbage:FormatMoney(BG_LocalDB.itemMinValue)))
+		BrokerGarbage:Print(format(BrokerGarbage.locale.minValueSet, BrokerGarbage:FormatMoney(BGLM_LocalDB.itemMinValue)))
+		
+	elseif LootManager and (command == "freeslots" or command == "slots" or command == "free" or command == "minfree") then
+		rest = tonumber(rest)
+		if not rest then 
+			BrokerGarbage:Print(BrokerGarbage.locale.invalidArgument)
+			return
+		end
+		
+		BrokerGarbage_LootManager:SetMinSlots(rest)
+		BrokerGarbage:Print(format(BrokerGarbage.locale.minSlotsSet, BGLM_GlobalDB.tooFewSlots))
 		
 	else
 		BrokerGarbage:Print(BrokerGarbage.locale.slashCommandHelp)

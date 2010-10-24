@@ -26,6 +26,8 @@ BrokerGarbage.locale = {
 /garbage |cffc0c0c0globallimit |cffc0c0ffitemLink/ID count|r sets a limit for all characters.
 /garbage |cffc0c0c0value |cffc0c0ffvalueInCopper|r sets the minimum value for items to be looted (Loot Manager needed).]],
 	minValueSet = "Items with a value less than %s will not be looted anymore.",
+	minSlotsSet = "The Loot Manager will try to keep at least %s slots free.",
+	invalidArgument = "You supplied an invalid argument. Please check your input and try again.",
 	
 	GlobalSetting = "\n|cffffff9aThis setting is global.",
 	
