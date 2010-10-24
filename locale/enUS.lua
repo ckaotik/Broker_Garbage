@@ -24,7 +24,8 @@ BrokerGarbage.locale = {
 /garbage |cffc0c0c0format |cffc0c0ffformatstring|r lets you customize the LDB display text, |cffc0c0c0 format reset|r resets it.
 /garbage |cffc0c0c0limit |cffc0c0ffitemLink/ID count|r sets a limit for the given item on the current character.
 /garbage |cffc0c0c0globallimit |cffc0c0ffitemLink/ID count|r sets a limit for all characters.
-/garbage |cffc0c0c0value |cffc0c0ffvalueInCopper|r sets the minimum value for items to be looted (Loot Manager needed).]],
+/garbage |cffc0c0c0value |cffc0c0ffvalueInCopper|r sets the minimum value for items to be looted (Loot Manager needed).
+/garbage |cffc0c0c0freeslots |cffc0c0ffnumber|r sets the number of inventory slots to keep empty.]],
 	minValueSet = "Items with a value less than %s will not be looted anymore.",
 	minSlotsSet = "The Loot Manager will try to keep at least %s slots free.",
 	invalidArgument = "You supplied an invalid argument. Please check your input and try again.",

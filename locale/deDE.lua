@@ -24,7 +24,8 @@ if GetLocale() == "deDE" then
 /garbage |cffc0c0c0format |cffc0c0ffformatstring|r lässt dich das Format der LDB Anzeige anpassen, |cffc0c0c0 format reset|r setzt es zurück.
 /garbage |cffc0c0c0limit |cffc0c0ffitemLink/ID Anzahl|r setzt ein Limit für das gewählte Item für den aktuellen Charakter.
 /garbage |cffc0c0c0globallimit |cffc0c0ffitemLink/ID Anzahl|r setzt ein Limit für alle Charaktere.
-/garbage |cffc0c0c0value |cffc0c0ffWertInKupfer|r setzt den Itemwert, ab dem Items gelootet werden (benötigt den Loot Manager).]]
+/garbage |cffc0c0c0value |cffc0c0ffWertInKupfer|r setzt den Itemwert, ab dem Items gelootet werden (benötigt den Loot Manager).
+/garbage |cffc0c0c0freeslots |cffc0c0ffnumber|r setzt die Anzahl an Taschenplätzen, die frei bleiben sollen.]]
 	BrokerGarbage.locale.minValueSet = "Mindestwert für items wurde auf %s gesetzt."
 	BrokerGarbage.locale.minSlotsSet = "Der Loot Manager wird versuchen, mindestens %s Inventarplätze frei halten."
 	BrokerGarbage.locale.invalidArgument = "Ungültiges Argument. Bitte überprüfe deine Eingabe!"
