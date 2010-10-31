@@ -341,13 +341,13 @@ function BrokerGarbage:GetProfessionSkill(skill)
 	end
 	
 	local rank, maxRank
-	for i = 1, 6 do
-		local profession = select(i, GetProfessions())
-		local pName, _, pRank, pMaxRank = profession and GetProfessionInfo(profession)
-		if name and name == skill then
+	local professions = { GetProfessions() }
+	for _, profession in ipairs(professions) do
+		local pName, _, pRank, pMaxRank = GetProfessionInfo(profession)
+		if pName and pName == skill then
 			rank = pRank
 			maxRank = pMaxRank
-			break;
+			break
 		end
 	end
 	return rank, maxRank
@@ -433,12 +433,12 @@ end
 
 -- gets an item's classification and saves it to the item cache
 function BrokerGarbage:UpdateCache(itemID)
+	BrokerGarbage:Debug("updating cache", itemID)
 	if not itemID then return nil end
 	local class, temp, limit
 	
 	local _, itemLink, quality, _, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
-	BrokerGarbage:Debug("updating cache", itemID)
-	-- weird ...
+	local family = GetItemFamily(itemID)
 	if not quality then
 		BrokerGarbage:Debug("Could not retrieve quality information for "..(itemID or "<none>").." ("..(itemLink or "")..")")
 		return nil
@@ -562,6 +562,7 @@ function BrokerGarbage:UpdateCache(itemID)
 		BrokerGarbage.itemsCache[itemID] = {
 			classification = class,
 			quality = quality,
+			family = family,
 			value = value or 0,
 			limit = limit,
 			stackSize = stackSize,
@@ -570,6 +571,7 @@ function BrokerGarbage:UpdateCache(itemID)
 	else
 		BrokerGarbage.itemsCache[itemID].classification = class
 		BrokerGarbage.itemsCache[itemID].quality = quality
+		BrokerGarbage.itemsCache[itemID].family = family
 		BrokerGarbage.itemsCache[itemID].value = value or 0
 		BrokerGarbage.itemsCache[itemID].limit = limit
 		BrokerGarbage.itemsCache[itemID].stackSize = stackSize
@@ -586,7 +588,7 @@ function BrokerGarbage:GetCached(itemID)
 end
 
 -- returns total bag slots and free bag slots of your whole inventory
-function BrokerGarbage:GetBagSlots()
+--[[function BrokerGarbage:GetBagSlots()
 	local total, free = 0, 0
 	local num
 	
@@ -599,6 +601,20 @@ function BrokerGarbage:GetBagSlots()
 	end
 	
 	return total, free
+end]]
+
+function BrokerGarbage:GetBagSlots()
+	local numSlots, freeSlots = 0, 0
+	
+	for i = 0, 4 do
+		numSlots = numSlots + (GetContainerNumSlots(i) or 0)
+		emptySlots, bagType = GetContainerNumFreeSlots(i)
+		
+		if bagType and bagType == 0 then
+			freeSlots = freeSlots + emptySlots
+		end
+	end
+	return numSlots, freeSlots
 end
 
 -- formats money int values, depending on settings
