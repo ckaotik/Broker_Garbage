@@ -588,21 +588,6 @@ function BrokerGarbage:GetCached(itemID)
 end
 
 -- returns total bag slots and free bag slots of your whole inventory
---[[function BrokerGarbage:GetBagSlots()
-	local total, free = 0, 0
-	local num
-	
-	for i = 0, 4 do
-		num = GetContainerNumSlots(i)
-		if num then
-			total = total + num
-			free = free + (GetContainerFreeSlots(i) and #GetContainerFreeSlots(i) or 0)
-		end
-	end
-	
-	return total, free
-end]]
-
 function BrokerGarbage:GetBagSlots()
 	local numSlots, freeSlots = 0, 0
 	
