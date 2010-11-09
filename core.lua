@@ -878,6 +878,7 @@ function BrokerGarbage:AutoSell()
         end
         _G["BrokerGarbage_SellIcon"]:GetNormalTexture():SetDesaturated(true)
     end
+	BrokerGarbage:UpdateRepairButton()
 end
 
 -- automatically repair at a vendor

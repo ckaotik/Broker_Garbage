@@ -122,7 +122,7 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.maxHeightText = "Lege fest, wie hoch der Tooltip sein darf. Standard: 220"
 	
 	BrokerGarbage.locale.sellNotUsableTitle = "Ausrüstung verkaufen"
-	BrokerGarbage.locale.sellNotUsableText = "Auswählen um Broker_Garbage Ausrüstung, die du niemals tragen kannst, automatisch verkaufen zu lassen.\n(inaktiv bei Verzauberern, wirkt nur für seelengebundene Items)"
+	BrokerGarbage.locale.sellNotUsableText = "Auswählen um Broker_Garbage seelengebundene Ausrüstung, die du niemals tragen kannst, automatisch verkaufen zu lassen.\n(inaktiv bei Verzauberern)"
 	
 	BrokerGarbage.locale.SNUMaxQualityTitle = "Höchstens verkaufen bis"
 	BrokerGarbage.locale.SNUMaxQualityText = "Wähle die maximale Itemqualität, bei der unnütze Ausrüstung verkauft werden soll."

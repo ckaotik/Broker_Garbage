@@ -122,7 +122,7 @@ BrokerGarbage.locale = {
 	maxHeightText = "Set the height of the tooltip. Default: 220",
 	
 	sellNotUsableTitle = "Sell Unusable Gear",
-	sellNotUsableText = "Check this to have Broker_Garbage sell all soulbound gear that you cannot wear.\n(Only applies to BoP items and if not an enchanter)",
+	sellNotUsableText = "Check this to have Broker_Garbage sell all soulbound gear you cannot wear.\n(Only applies if not an enchanter)",
 	
 	SNUMaxQualityTitle = "Sell Quality",
 	SNUMaxQualityText = "Select the maximum item quality to sell when 'Sell Unusable Gear' is checked.",

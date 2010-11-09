@@ -1,7 +1,7 @@
 Broker_Garbage
 ==============
 Author: ckaotik
-Version: 4.0v3
+Version: 4.0v4
 WoW Version: 4.0.1
 
 WoWInterface: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html	(with Loot Manager)
@@ -134,7 +134,7 @@ Same as the above, just adds the item to the global include list.
 	/garb value <value in copper> -or- /garb minvalue <value in copper>
 Sets the minimum item value in order for the item to be looted. '0' means every item may be looted. This only works if the Loot Manager is active.
 
-10. How you can help
+11. How you can help
 -----------------
 I still need a few translations to get done. If you would like to help me with that, please do so on http://wow.curseforge.com/addons/broker_garbage/localization/  .
 Likewise, I need people to test the addon with different auction addons. If you have one that isn't yet supported, make a Feature Suggestion (see 4.).
