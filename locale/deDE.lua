@@ -143,15 +143,24 @@ if GetLocale() == "deDE" then
 	BrokerGarbage.locale.LDBDisplayTextTooltip = "Nutze diese Einstellung, um den Text zu ändern, den du in deinem LDB Display siehst."
 	BrokerGarbage.locale.LDBNoJunkTextTooltip = "Nutze diese Einstellung, um den Text zu ändern, der angezeigt wird, wenn du keinen Müll hast."
 	BrokerGarbage.locale.ResetToDefault = "Auf den Standardwert zurücksetzen"
-	BrokerGarbage.locale.LDBDisplayTextHelpTooltip = [[Schnellhilfe:
+	BrokerGarbage.locale.LDBDisplayTextHelpTooltip = [[|cffffffffBasistags:|r
 [itemname] - Itemlink
 [itemcount] - Item Anzahl
 [itemvalue] - Itemwert
+[junkvalue] - Verkaufswert
+
+|cffffffffInventarplatz Tags:|r
 [freeslots] - freier Taschenplatz
 [totalslots] - Gesamttaschenplatz
-[junkvalue] - Verkaufswert
-[bagspacecolor]...[endcolor] zum färben]]
-		
+[basicfree],[specialfree] - frei
+[basicslots],[specialslots] - total
+
+|cffffffffFarbtags:|r
+[bagspacecolor]... - alle Taschen
+[basicbagcolor]... - nur allgemein
+[specialbagcolor]... - nur spezial
+...[endcolor] beendet Textfärbung]],
+
 	-- List Options Panel
 	BrokerGarbage.locale.LOTitle = "Listen"
 	BrokerGarbage.locale.LOSubTitle = [[Wenn du Hilfe brauchst, klicke das "?"-Tab an.
