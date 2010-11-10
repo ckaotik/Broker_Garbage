@@ -207,11 +207,7 @@ end
 function BrokerGarbage:FormatString(text)
 	local item
 	if not BrokerGarbage.cheapestItems or not BrokerGarbage.cheapestItems[1] then
-		item = {
-			itemID = 0,
-			count = 0,
-			value = 0,
-		}
+		item = { itemID = 0, count = 0, value = 0 }
 	else
 		item = BrokerGarbage.cheapestItems[1]
 	end
@@ -229,12 +225,22 @@ function BrokerGarbage:FormatString(text)
 	text = string.gsub(text, "%[itemvalue%]", BrokerGarbage:FormatMoney(item.value))
 	
 	-- [freeslots][totalslots]
-	text = string.gsub(text, "%[freeslots%]", BrokerGarbage.totalFreeSlots)
-	text = string.gsub(text, "%[totalslots%]", BrokerGarbage.totalBagSpace)
+	text = string.gsub(text, "%[freeslots%]", BrokerGarbage.totalFreeSlots + BrokerGarbage.freeSpecialSlots)
+	text = string.gsub(text, "%[totalslots%]", BrokerGarbage.totalBagSpace + BrokerGarbage.specialSlots)
+
+	-- [specialfree][specialslots][specialslots][basicslots]
+	text = string.gsub(text, "%[specialfree%]", BrokerGarbage.freeSpecialSlots)
+	text = string.gsub(text, "%[specialslots%]", BrokerGarbage.specialSlots)
+	text = string.gsub(text, "%[basicfree%]", BrokerGarbage.totalFreeSlots)
+	text = string.gsub(text, "%[basicslots%]", BrokerGarbage.totalBagSpace)
 	
-	-- [bagspacecolor][endcolor]
+	-- [bagspacecolor][basicbagcolor][specialbagcolor][endcolor]
 	text = string.gsub(text, "%[bagspacecolor%]", 
-		BrokerGarbage:Colorize(BrokerGarbage.totalFreeSlots, BrokerGarbage.totalBagSpace))
+		BrokerGarbage:Colorize(BrokerGarbage.totalFreeSlots + BrokerGarbage.freeSpecialSlots, BrokerGarbage.totalBagSpace + BrokerGarbage.specialSlots))
+	text = string.gsub(text, "%[basicbagcolor%]", 
+			BrokerGarbage:Colorize(BrokerGarbage.totalFreeSlots, BrokerGarbage.totalBagSpace))
+	text = string.gsub(text, "%[specialbagcolor%]", 
+			BrokerGarbage:Colorize(BrokerGarbage.freeSpecialSlots, BrokerGarbage.specialSlots))
 	text = string.gsub(text, "%[endcolor%]", "|r")
 	
 	return text
@@ -590,16 +596,22 @@ end
 -- returns total bag slots and free bag slots of your whole inventory
 function BrokerGarbage:GetBagSlots()
 	local numSlots, freeSlots = 0, 0
+	local specialSlots, specialFree = 0, 0
+	local bagSlots, emptySlots, bagType
 	
 	for i = 0, 4 do
-		numSlots = numSlots + (GetContainerNumSlots(i) or 0)
+		bagSlots = GetContainerNumSlots(i) or 0
 		emptySlots, bagType = GetContainerNumFreeSlots(i)
 		
 		if bagType and bagType == 0 then
+			numSlots = numSlots + bagSlots
 			freeSlots = freeSlots + emptySlots
+		else
+			specialSlots = specialSlots + bagSlots
+			specialFree = specialFree + emptySlots
 		end
 	end
-	return numSlots, freeSlots
+	return numSlots, freeSlots, specialSlots, specialFree
 end
 
 -- formats money int values, depending on settings

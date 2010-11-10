@@ -25,7 +25,7 @@ local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
 })
 
 local function UpdateLDB()
-    BrokerGarbage.totalBagSpace, BrokerGarbage.totalFreeSlots = BrokerGarbage:GetBagSlots()
+    BrokerGarbage.totalBagSpace, BrokerGarbage.totalFreeSlots, BrokerGarbage.specialSlots, BrokerGarbage.freeSpecialSlots = BrokerGarbage:GetBagSlots()
     
     if BrokerGarbage.cheapestItems[1] then
         LDB.text = BrokerGarbage:FormatString(BG_GlobalDB.LDBformat)
@@ -210,15 +210,9 @@ hooksecurefunc("MerchantFrame_Update", BrokerGarbage.UpdateRepairButton)
 -- Tooltip
 -- ---------------------------------------------------------
 function BrokerGarbage:Tooltip(self)
-    local colNum, lineNum
-    if BG_GlobalDB.showSource then
-        BrokerGarbage.tt = LibStub("LibQTip-1.0"):Acquire("BrokerGarbage_TT", 4, "LEFT", "RIGHT", "RIGHT", "CENTER")
-        colNum = 4
-    else
-        BrokerGarbage.tt = LibStub("LibQTip-1.0"):Acquire("BrokerGarbage_TT", 3, "LEFT", "RIGHT", "RIGHT")
-        colNum = 3
-    end
-    BrokerGarbage.tt:Clear()
+    local colNum = BG_GlobalDB.showSource and 4 or 3
+	BrokerGarbage.tt = LibStub("LibQTip-1.0"):Acquire("BrokerGarbage_TT", colNum, "LEFT", "RIGHT", "RIGHT", colNum == 4 and "CENTER" or nil)
+	BrokerGarbage.tt:Clear()
    
     -- font settings
     local tooltipHFont = CreateFont("TooltipHeaderFont")
@@ -253,8 +247,9 @@ function BrokerGarbage:Tooltip(self)
         end
         BrokerGarbage.tt:AddSeparator(2)
     end
-    
+	
     -- shows up to n lines of deletable items
+	local lineNum
     local cheapList = BrokerGarbage.cheapestItems or {}
     for i = 1, #cheapList do
         -- adds lines: itemLink, count, itemPrice, source

@@ -128,7 +128,7 @@ BrokerGarbage.locale = {
 	SNUMaxQualityText = "Select the maximum item quality to sell when 'Sell Unusable Gear' is checked.",
 	
 	enchanterTitle = "Enchanter",
-	enchanterTooltip = "Check this if you have/know an enchanter. When checked, Broker_Garbage will use disenchant values for disenchantable items, which are usually higher than vendor prices.",
+	enchanterTooltip = "Check this if you have/know an enchanter.\nWhen checked disenchant values are considered, which are higher than vendor prices.",
 	
 	DKTitle = "Temporary disable key",
 	DKTooltip = "Set a key to temporarily disable BrokerGarbage.",
@@ -143,14 +143,23 @@ BrokerGarbage.locale = {
 	LDBDisplayTextTooltip = "Set the text to display in the LDB plugin.",
 	LDBNoJunkTextTooltip = "Set the text to display when no junk was found.",
 	ResetToDefault = "Reset to default value.",
-	LDBDisplayTextHelpTooltip = [[Format string help:
+	LDBDisplayTextHelpTooltip = [[|cffffffffBasic tags:|r
 [itemname] - item link
 [itemcount] - item count
 [itemvalue] - item value
+[junkvalue] - total autosell value
+
+|cffffffffInventory space tags:|r
 [freeslots] - free bag slots
 [totalslots] - total bag slots
-[junkvalue] - total autosell value
-[bagspacecolor]...[endcolor] to colorize]],
+[basicfree],[specialfree] - free
+[basicslots],[specialslots] - total
+
+|cffffffffColor tags:|r
+[bagspacecolor]... - all bags
+[basicbagcolor]... - basic only
+[specialbagcolor]... - special only
+...[endcolor] ends a color section]],
 	
 	-- List Options Panel
 	LOTitle = "Lists",

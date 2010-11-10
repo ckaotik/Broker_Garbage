@@ -89,10 +89,17 @@ In 3.3v15 I added the possibility to adjust the LDB display text to your liking.
 	[itemcount]		item count
 	[itemvalue]		item value
 	
-	[freeslots]		number of free slots
-	[totalslots]	number of maximum bag capacity
+	[freeslots]		number of free inventory slots
+	[totalslots]	total number of inventory slots
+	
+	[basicfree]		number of general type free bag slots (i.e. bags that can hold any item)
+	[basicslots]	total number of general type bag slots
+	[specialfree]	number of special type free bag slots (i.e. mining bags)
+	[specialslots]	total number of special type bag slots
 	
 	[bagspacecolor]	colors the following text corresponding to your bag situation
+	[basicbagcolor]	colors the following text corresponding to your basic bag situation
+	[specialbagcolor]	colors the following text corresponding to your specialty bag situation
 	[endcolor]		resets the coloring
 	
 	[junkvalue]		the amount a vendor would give you for your junk/auto sell items
@@ -101,6 +108,9 @@ Some examples:
 
 [Hearthstone]x1 (0c) - 8/32					can be achieved with
 	[itemname]x[itemcount] ([itemvalue]) - [bagspacecolor][freeslots]/[totalslots][endcolor]
+
+0c [Hearthstone]x1 - 13/9/136				can be achieved with
+	[itemvalue] [itemname]x[itemcount] - [basicbagcolor][basicfree][endcolor]/[specialbagcolor][specialfree][endcolor]/[bagspacecolor][freeslots][endcolor]
 
 [Hearthstone] - (18/48) - 0c				can be achieved with
 	[itemname] - ([freeslots]/[totalslots]) - [itemvalue]
@@ -119,20 +129,23 @@ Items on your Junk List will never be looted, while the Loot Manager will always
 -----------------
 Broker_Garbage supports a hand full of slash commands. These are /garbage or short, /garb. Parameters supported:
 	
-	/garb format <formatstring>
-See information on this one above, in part 7.
+	/garbage format <formatstring>
+See information on this one above, in part 8.
 	
-	/garb option -or- /garb options -or- /garb menu -or- /garb config
+	/garbage option -or- /garbage options -or- /garbage menu -or- /garbage config
 All of these just open up the config window ;)
 
-	/garb limit <itemLink or itemID> <amount>
+	/garbage limit <itemLink or itemID> <amount>
 This will add the corresponding item to the character's include list and add a limit to it.
 	
-	/garb glimit -or- /garb globallimit
+	/garbage glimit -or- /garbage globallimit
 Same as the above, just adds the item to the global include list.
 
-	/garb value <value in copper> -or- /garb minvalue <value in copper>
-Sets the minimum item value in order for the item to be looted. '0' means every item may be looted. This only works if the Loot Manager is active.
+	/garbage tooltiplines -or- /garbage numlines
+Sets the number of lines the tooltip will display. This setting can also be changed in the options panel.
+
+	/garbage tooltipheight -or- /garbage height
+Sets the height of the LDB tooltip. This setting can also be changed in the options panel
 
 11. How you can help
 -----------------

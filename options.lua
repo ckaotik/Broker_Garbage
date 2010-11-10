@@ -115,6 +115,9 @@ local function ChangeView(pluginID)
 		
 		if i == pluginID then
 			plugin.tab:Activate()
+			if plugin.panel.Update then
+				plugin.panel:Update()
+			end
 			plugin.panel:Show()
 			
 			BrokerGarbage.options.currentTab = pluginID
@@ -525,6 +528,23 @@ local function Options_BasicOptions(pluginID)
 		tooltipHeightText:SetText(BrokerGarbage.locale.maxHeightTitle .. ": " .. tooltipHeight:GetValue())
 	end)
 	low:Hide(); high:Hide()
+	
+	function panel:Update()
+		junkText:SetText(BG_GlobalDB.LDBformat)
+		noJunkText:SetText(BG_GlobalDB.LDBNoJunk)
+		
+		local min, max = numItems:GetMinMaxValues()
+		if BG_GlobalDB.tooltipNumItems > min and BG_GlobalDB.tooltipNumItems < max then
+			numItems:SetValue(BG_GlobalDB.tooltipNumItems)
+		end
+		numItemsText:SetText(BrokerGarbage.locale.maxItemsTitle .. ": " .. BG_GlobalDB.tooltipNumItems)
+		
+		min, max = tooltipHeight:GetMinMaxValues()
+		if BG_GlobalDB.tooltipMaxHeight > min and BG_GlobalDB.tooltipMaxHeight < max then
+			tooltipHeight:SetValue(BG_GlobalDB.tooltipMaxHeight)
+		end
+		tooltipHeightText:SetText(BrokerGarbage.locale.maxHeightTitle .. ": " .. BG_GlobalDB.tooltipMaxHeight)
+	end
 end
 local defaultTab = BrokerGarbage:RegisterPlugin(BrokerGarbage.locale.BasicOptionsTitle, Options_BasicOptions)
 
@@ -1255,18 +1275,18 @@ function SlashCmdList.BROKERGARBAGE(msg, editbox)
 	local command = strlower(command)
 	local LootManager = IsAddOnLoaded("Broker_Garbage-LootManager")
 	
-	if command == "format" then
+	if command == "options" or command == "config" or command == "option" or command == "menu" then
+		BrokerGarbage:OptionsFirstLoad()
+		InterfaceOptionsFrame_OpenToCategory(BrokerGarbage.options)
+		
+	elseif command == "format" then
 		if strlower(rest) ~= "reset" then
 			BG_GlobalDB.LDBformat = rest
 		else
 			BG_GlobalDB.LDBformat = BrokerGarbage.defaultGlobalSettings.LDBformat
 		end
 		BrokerGarbage:ScanInventory()
-	
-	elseif command == "options" or command == "config" or command == "option" or command == "menu" then
-		BrokerGarbage:OptionsFirstLoad()
-		InterfaceOptionsFrame_OpenToCategory(BrokerGarbage.options)
-		
+
 	elseif command == "limit" or command == "glimit" or command == "globallimit" then
 		local itemID, count = rest:match("^[^0-9]-([0-9]+).-([0-9]+)$")
 		itemID = tonumber(itemID) or -1
@@ -1285,6 +1305,29 @@ function SlashCmdList.BROKERGARBAGE(msg, editbox)
 		local itemLink = select(2,GetItemInfo(itemID)) or BrokerGarbage.locale.unknown
 		BrokerGarbage:Print(format(BrokerGarbage.locale.limitSet, itemLink, count))
 		BrokerGarbage:ListOptionsUpdate("include")
+	
+	elseif command == "tooltiplines" or command == "numlines" then
+		rest = tonumber(rest)
+		if not rest then 
+			BrokerGarbage:Print(BrokerGarbage.locale.invalidArgument)
+			return
+		end
+		BG_GlobalDB.tooltipNumItems = rest
+		BrokerGarbage:ScanInventory()
+		if BrokerGarbage.options.currentTab and BrokerGarbage.tabs[BrokerGarbage.options.currentTab].panel.Update then
+			BrokerGarbage.tabs[BrokerGarbage.options.currentTab].panel:Update()
+		end
+		
+	elseif command == "tooltipheight" or command == "height" then
+		rest = tonumber(rest)
+		if not rest then 
+			BrokerGarbage:Print(BrokerGarbage.locale.invalidArgument)
+			return
+		end
+		BG_GlobalDB.tooltipMaxHeight = rest
+		if BrokerGarbage.options.currentTab and BrokerGarbage.tabs[BrokerGarbage.options.currentTab].panel.Update then
+			BrokerGarbage.tabs[BrokerGarbage.options.currentTab].panel:Update()
+		end
 		
 	elseif LootManager and (command == "value" or command == "minvalue") then
 		rest = tonumber(rest) or -1

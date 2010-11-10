@@ -8,7 +8,7 @@
 ## X-Category: Library
 ## X-License: LGPL v2.1
 ## X-PeriodicTable-3.1-Module: Misc
-## X-Curse-Packaged-Version: r294
+## X-Curse-Packaged-Version: r295
 ## X-Curse-Project-Name: LibPeriodicTable-3.1
 ## X-Curse-Project-ID: libperiodictable-3-1
 ## X-Curse-Repository-ID: wow/libperiodictable-3-1/mainline
