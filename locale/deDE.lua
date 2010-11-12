@@ -159,7 +159,7 @@ if GetLocale() == "deDE" then
 [bagspacecolor]... - alle Taschen
 [basicbagcolor]... - nur allgemein
 [specialbagcolor]... - nur spezial
-...[endcolor] beendet Textfärbung]],
+...[endcolor] beendet Textfärbung]]
 
 	-- List Options Panel
 	BrokerGarbage.locale.LOTitle = "Listen"
