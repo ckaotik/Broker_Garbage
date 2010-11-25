@@ -394,16 +394,18 @@ function BrokerGarbage:GetSingleItemValue(item)
     
     if not itemID or not itemLink then
         -- invalid argument
-        BrokerGarbage:Print("Error! GetSingleItemValue: Invalid argument "..(item or "<none>").." supplied.")
+        BrokerGarbage:Debug("Error! GetSingleItemValue: Invalid argument "..(item or "<none>").." supplied.")
         return nil
     end
     
     local canDE = BrokerGarbage:CanDisenchant(itemLink)
-    local _, _, itemQuality, _, _, _, _, _, _, _, vendorPrice = GetItemInfo(itemID)
+    local _, itemLink, itemQuality, itemLevel, _, _, _, _, _, _, vendorPrice = GetItemInfo(itemID)
     local auctionPrice, disenchantPrice, source
     
     -- gray items on the AH?
-    if itemQuality == 0 then
+    if not itemQuality then
+		return 
+	elseif itemQuality == 0 then
         return vendorPrice, BrokerGarbage.VENDOR
     end
     
@@ -438,17 +440,16 @@ function BrokerGarbage:GetSingleItemValue(item)
         
         if canDE and IsAddOnLoaded("Enchantrix") then
             disenchantPrice = 0
-            local itemType
+            local itemType = select(6, GetItemInfo(itemID))
             local weaponString, armorString = GetAuctionItemClasses()
-            if select(6, GetItemInfo(itemID)) == weaponString then
+            if itemType == weaponString then
                 itemType = 2
-            else
+            elseif itemType == armorString then
                 itemType = 4
             end
             
-            local itemLevel = select(4, GetItemInfo(itemID))
             local enchItemQuality = Enchantrix.Constants.baseDisenchantTable[itemQuality]
-            if enchItemQuality then
+            if itemQuality and itemLevel and enchItemQuality then
                 while not enchItemQuality[itemType][itemLevel] and itemLevel < 500 do
                     itemLevel = itemLevel + 1
                 end
@@ -461,7 +462,6 @@ function BrokerGarbage:GetSingleItemValue(item)
                         chance = DEMats[i][2]
                         amount = DEMats[i][3]
                         
-                        itemVal = select(2, GetItemInfo(item))
                         itemVal = AucAdvanced.API.GetMarketValue(itemLink) or 0
                         
                         disenchantPrice = disenchantPrice + (itemVal * chance * amount)
@@ -686,11 +686,10 @@ function BrokerGarbage:GetCheapest(number)
             for slot = 1, numSlots do
                 -- "Gather Information"
                 _, count, _, _, _, canOpen, itemLink = GetContainerItemInfo(container, slot)
-                itemID = BrokerGarbage:GetItemID(itemLink)
+                itemID = itemLink and BrokerGarbage:GetItemID(itemLink)
+				item = itemID and BrokerGarbage:GetCached(itemID)
                 
-                if itemLink and BrokerGarbage:GetCached(itemID) then
-                    item = BrokerGarbage:GetCached(itemID)
-                    
+                if item then
                     insert = true
                     local value = count * item.value
                     local vendorValue = select(11, GetItemInfo(itemID)) * count

@@ -445,7 +445,7 @@ function BrokerGarbage:UpdateCache(itemID)
 	
 	local _, itemLink, quality, _, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
 	local family = GetItemFamily(itemID)
-	if not quality then
+	if not (itemLink and quality) then
 		BrokerGarbage:Debug("Could not retrieve quality information for "..(itemID or "<none>").." ("..(itemLink or "")..")")
 		return nil
 	end
