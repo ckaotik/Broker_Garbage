@@ -372,21 +372,44 @@ function BrokerGarbage:CanDisenchant(itemLink, misc)
 			
 			-- can this character disenchant?
 			if IsUsableSpell(BrokerGarbage.enchanting) then
-				local requiredSkill = 0
-				if level <= 20 then
-					requiredSkill = 1
-				elseif level <= 60 then
-					requiredSkill = 5*5*math.ceil(level/5)-100
-				elseif level < 100 then						-- BC starts here
-					requiredSkill = 225
-				elseif level <= 115 then
-					requiredSkill = 275
-				elseif level <= 130 then
-					requiredSkill = 300
-				elseif level <= 200 and quality <= 3 then	-- WotLK starts here
-					requiredSkill = 325
-				else	-- TODO: get cataclysm values
-					requiredSkill = 375
+				local req = 0
+				
+				if level <=  20 then
+					req = 1
+				elseif level <=  60 then
+					req = 5*5*math.ceil(level/5)-100
+				elseif level <=  99 then
+					req = 225
+				elseif level <= 120 then
+					req = 275
+				else
+					if quality == 2 then		-- green
+						if level <= 150 then
+							req = 325
+						elseif level <= 200 then
+							req = 350
+						elseif level <= 305 then
+							req = 425
+						else
+							req = 475
+						end
+					elseif quality == 3 then	-- blue
+						if level <= 200 then
+							req = 325
+						elseif level <= 325 then
+							req = 450
+						else
+							req = 500
+						end
+					elseif quality == 4 then	-- purple
+						if level <= 199 then
+							req = 300
+						elseif level <= 277 then
+							req = 375
+						else
+							req = 500
+						end
+					end
 				end
 
 				local rank = BrokerGarbage:GetProfessionSkill(BrokerGarbage.enchanting)
