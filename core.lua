@@ -382,63 +382,61 @@ end
 
 -- returns which of the items values is the highest (value, type)
 function BrokerGarbage:GetSingleItemValue(item)
-    local itemID, itemLink
-    if item and type(item) == "number" then
-        itemID = item
-        itemLink = select(2, GetItemInfo(itemID))
-    
-    elseif item and type(item) == "string" then
-        itemID = BrokerGarbage:GetItemID(item)
-        itemLink = item
-    end
-    
-    if not itemID or not itemLink then
-        -- invalid argument
-        BrokerGarbage:Debug("Error! GetSingleItemValue: Invalid argument "..(item or "<none>").." supplied.")
+	local hasData, itemLink, itemQuality, itemLevel, _, _, _, _, _, _, vendorPrice = item and GetItemInfo(item) or nil
+	local itemID = itemLink and BrokerGarbage:GetItemID(itemLink) or nil
+
+	if not hasData or not itemID then		-- invalid argument
+        BrokerGarbage:Debug("Error! GetSingleItemValue: Failed on "..(itemLink or "<unknown>")..".")
         return nil
-    end
-    
-    local canDE = BrokerGarbage:CanDisenchant(itemLink)
-    local _, itemLink, itemQuality, itemLevel, _, _, _, _, _, _, vendorPrice = GetItemInfo(itemID)
-    local auctionPrice, disenchantPrice, source
-    
-    -- gray items on the AH?
-    if not itemQuality then
-		return 
-	elseif itemQuality == 0 then
+	end
+	
+	-- ignore AH prices for gray items
+    if not itemQuality or itemQuality == 0 then
         return vendorPrice, BrokerGarbage.VENDOR
     end
-    
+	
+    local auctionPrice, disenchantPrice, source
+	local canDE = BrokerGarbage:CanDisenchant(itemLink)
+
     -- calculate auction value
     if IsAddOnLoaded("Auctionator") then
         BrokerGarbage.auctionAddon = "Auctionator"
         auctionPrice = Atr_GetAuctionBuyout(itemLink)
         disenchantPrice = canDE and Atr_GetDisenchantValue(itemLink)
+
+		if auctionPrice and auctionPrice == 0 then
+			auctionPrice = nil
+		end
+		if disenchantPrice and disenchantPrice == 0 then
+			disenchantPrice = nil
+		end
+	end
     
-    elseif IsAddOnLoaded("AuctionLite") then
-        BrokerGarbage.auctionAddon = "AuctionLite"
-        auctionPrice = AuctionLite:GetAuctionValue(itemLink)
-        disenchantPrice = canDE and AuctionLite:GetDisenchantValue(itemLink)
+    if IsAddOnLoaded("AuctionLite") then
+        BrokerGarbage.auctionAddon = (BrokerGarbage.auctionAddon and BrokerGarbage.auctionAddon..", " or "") .. "AuctionLite"
+        auctionPrice = auctionPrice or AuctionLite:GetAuctionValue(itemLink)
+        disenchantPrice = disenchantPrice or (canDE and AuctionLite:GetDisenchantValue(itemLink))
+	end
         
-    elseif IsAddOnLoaded("WOWEcon_PriceMod") then
-        BrokerGarbage.auctionAddon = "WoWecon"
-        auctionPrice = Wowecon.API.GetAuctionPrice_ByLink(itemLink)
+    if IsAddOnLoaded("WOWEcon_PriceMod") then
+        BrokerGarbage.auctionAddon = (BrokerGarbage.auctionAddon and BrokerGarbage.auctionAddon..", " or "") .. "WoWecon"
+        auctionPrice = auctionPrice or Wowecon.API.GetAuctionPrice_ByLink(itemLink)
         
-        if canDE then
+        if canDE and not disenchantPrice then
             disenchantPrice = 0
             local DEData = Wowecon.API.GetDisenchant_ByLink(itemLink)
-            for i,data in pairs(DEData) do
-                -- data[1] = itemLink, data[2] = quantity, data[3] = chance
+            for i,data in pairs(DEData) do				-- data[1] = itemLink, data[2] = quantity, data[3] = chance
                 disenchantPrice = disenchantPrice + (Wowecon.API.GetAuctionPrice_ByLink(data[1]) * data[2] * data[3])
             end
-            disenchantPrice = canDE and math.floor(disenchantPrice)
+            disenchantPrice = disenchantPrice ~= 0 and math.floor(disenchantPrice) or nil
         end
+	end
 
-    elseif IsAddOnLoaded("Auc-Advanced") then
-        BrokerGarbage.auctionAddon = "Auc-Advanced"
-        auctionPrice = AucAdvanced.API.GetMarketValue(itemLink)
+    if IsAddOnLoaded("Auc-Advanced") then
+        BrokerGarbage.auctionAddon = (BrokerGarbage.auctionAddon and BrokerGarbage.auctionAddon..", " or "") .. "Auc-Advanced"
+        auctionPrice = auctionPrice or AucAdvanced.API.GetMarketValue(itemLink)
         
-        if canDE and IsAddOnLoaded("Enchantrix") then
+        if canDE and not disenchantPrice and IsAddOnLoaded("Enchantrix") then
             disenchantPrice = 0
             local itemType = select(6, GetItemInfo(itemID))
             local weaponString, armorString = GetAuctionItemClasses()
@@ -450,7 +448,7 @@ function BrokerGarbage:GetSingleItemValue(item)
             
             local enchItemQuality = Enchantrix.Constants.baseDisenchantTable[itemQuality]
             if itemQuality and itemLevel and enchItemQuality then
-                while not enchItemQuality[itemType][itemLevel] and itemLevel < 500 do
+                while not enchItemQuality[itemType][itemLevel] and itemLevel < 800 do
                     itemLevel = itemLevel + 1
                 end
                 DEMats = Enchantrix.Constants.baseDisenchantTable[itemQuality][itemType][itemLevel]
@@ -476,15 +474,16 @@ function BrokerGarbage:GetSingleItemValue(item)
                 disenchantPrice = nil
             end
         end
-        
-    else
+    end
+
+	if not auctionPrice then		-- last chance to get auction values
         if GetAuctionBuyout then
-            BrokerGarbage.auctionAddon = BrokerGarbage.locale.unknown
+            BrokerGarbage.auctionAddon = BrokerGarbage.auctionAddon or BrokerGarbage.locale.unknown
             auctionPrice = GetAuctionBuyout(itemLink)
         else
-            BrokerGarbage.auctionAddon = BrokerGarbage.locale.na
+            BrokerGarbage.auctionAddon = BrokerGarbage.auctionAddon or BrokerGarbage.locale.na
         end
-        disenchantPrice = canDE and GetDisenchantValue and GetDisenchantValue(itemLink) or nil
+        disenchantPrice = (canDE and not disenchantPrice and GetDisenchantValue) and GetDisenchantValue(itemLink) or nil
     end
 
     -- simply return the highest value price

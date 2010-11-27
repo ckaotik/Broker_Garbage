@@ -413,7 +413,7 @@ function BrokerGarbage:CanDisenchant(itemLink, misc)
 				end
 
 				local rank = BrokerGarbage:GetProfessionSkill(BrokerGarbage.enchanting)
-				if rank and rank >= requiredSkill then
+				if rank and rank >= req then
 					return true
 				end
 				-- if skill rank is too low, still check if we can send it
@@ -466,9 +466,9 @@ function BrokerGarbage:UpdateCache(itemID)
 	if not itemID then return nil end
 	local class, temp, limit
 	
-	local _, itemLink, quality, _, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
+	local hasData, itemLink, quality, _, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
 	local family = GetItemFamily(itemID)
-	if not (itemLink and quality) then
+	if not hasData or not itemLink or not quality) then
 		BrokerGarbage:Debug("Could not retrieve quality information for "..(itemID or "<none>").." ("..(itemLink or "")..")")
 		return nil
 	end
@@ -584,7 +584,7 @@ function BrokerGarbage:UpdateCache(itemID)
 	
 	-- save to items cache
 	if not class or not quality then
-		BrokerGarbage:Print("Error! Caching item "..itemID.." failed!")
+		BrokerGarbage:Debug("Error! Caching item "..itemID.." failed!")
 		return
 	end
 	if not BrokerGarbage.itemsCache[itemID] then
