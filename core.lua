@@ -382,7 +382,10 @@ end
 
 -- returns which of the items values is the highest (value, type)
 function BrokerGarbage:GetSingleItemValue(item)
-	local hasData, itemLink, itemQuality, itemLevel, _, _, _, _, _, _, vendorPrice = item and GetItemInfo(item) or nil
+	local hasData = item and GetItemInfo(item) or nil
+	BrokerGarbage:Debug("GetSingleItemValue("..(item or "?")..")", hasData)
+
+	local hasData, itemLink, itemQuality, itemLevel, vendorPrice = GetItemInfo(item)
 	local itemID = itemLink and BrokerGarbage:GetItemID(itemLink) or nil
 
 	if not hasData or not itemID then		-- invalid argument
@@ -392,12 +395,13 @@ function BrokerGarbage:GetSingleItemValue(item)
 	
 	-- ignore AH prices for gray items
     if not itemQuality or itemQuality == 0 then
-        return vendorPrice, BrokerGarbage.VENDOR
+        return vendorPrice, vendorPrice and BrokerGarbage.VENDOR
     end
 	
     local auctionPrice, disenchantPrice, source
 	local canDE = BrokerGarbage:CanDisenchant(itemLink)
 
+	BrokerGarbage.auctionAddon = nil
     -- calculate auction value
     if IsAddOnLoaded("Auctionator") then
         BrokerGarbage.auctionAddon = "Auctionator"
@@ -485,6 +489,8 @@ function BrokerGarbage:GetSingleItemValue(item)
         end
         disenchantPrice = (canDE and not disenchantPrice and GetDisenchantValue) and GetDisenchantValue(itemLink) or nil
     end
+
+	BrokerGarbage:Print("AuctionAddon: "..(BrokerGarbage.auctionAddon or "?"))
 
     -- simply return the highest value price
     local maximum = math.max((disenchantPrice or 0), (auctionPrice or 0), (vendorPrice or 0))

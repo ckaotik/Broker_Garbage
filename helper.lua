@@ -462,13 +462,12 @@ end
 
 -- gets an item's classification and saves it to the item cache
 function BrokerGarbage:UpdateCache(itemID)
-	BrokerGarbage:Debug("updating cache", itemID)
 	if not itemID then return nil end
 	local class, temp, limit
-	
+	-- TODO: maybe a second call to getiteminfo is needed?
 	local hasData, itemLink, quality, _, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
 	local family = GetItemFamily(itemID)
-	if not hasData or not itemLink or not quality) then
+	if not hasData or not itemLink or not quality then
 		BrokerGarbage:Debug("Could not retrieve quality information for "..(itemID or "<none>").." ("..(itemLink or "")..")")
 		return nil
 	end
