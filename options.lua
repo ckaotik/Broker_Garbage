@@ -573,7 +573,7 @@ local function Options_Statistics(pluginID)
 		
 		local textRight = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 		textRight:SetPoint("LEFT", textLeft, "RIGHT", 4, 0)
-		textRight:SetWidth(120)
+		textRight:SetWidth(150)
 		textRight:SetJustifyH("LEFT")
 		textRight:SetText(value)
 		
