@@ -490,8 +490,6 @@ function BrokerGarbage:GetSingleItemValue(item)
         disenchantPrice = (canDE and not disenchantPrice and GetDisenchantValue) and GetDisenchantValue(itemLink) or nil
     end
 
-	BrokerGarbage:Print("AuctionAddon: "..(BrokerGarbage.auctionAddon or "?"))
-
     -- simply return the highest value price
     local maximum = math.max((disenchantPrice or 0), (auctionPrice or 0), (vendorPrice or 0))
     if vendorPrice and maximum == vendorPrice then
