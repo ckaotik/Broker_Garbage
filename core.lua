@@ -428,7 +428,7 @@ function BrokerGarbage:GetSingleItemValue(item)
         if canDE and not disenchantPrice then
             disenchantPrice = 0
             local DEData = Wowecon.API.GetDisenchant_ByLink(itemLink)
-            for i,data in pairs(DEData) do				-- data[1] = itemLink, data[2] = quantity, data[3] = chance
+            for i, data in pairs(DEData) do	-- [1] = item link, [2] = quantity, [3] = chance
                 disenchantPrice = disenchantPrice + (Wowecon.API.GetAuctionPrice_ByLink(data[1]) * data[2] * data[3])
             end
             disenchantPrice = disenchantPrice ~= 0 and math.floor(disenchantPrice) or nil
@@ -443,7 +443,7 @@ function BrokerGarbage:GetSingleItemValue(item)
             disenchantPrice = 0
 			BrokerGarbage:Debug("Item Type?", itemType)
 			itemType = Enchantrix.Constants.InventoryTypes[itemType]
-			BrokerGarbage:Debug("Enchantriy Item Type?", itemType)
+			BrokerGarbage:Debug("Enchantrix Item Type?", itemType)
             
             local DETable = Enchantrix.Constants.baseDisenchantTable[itemQuality]
 			BrokerGarbage:Debug("Auc-Advanced: Available data?", itemLink, itemQuality, itemLevel, itemType, 
@@ -460,11 +460,11 @@ function BrokerGarbage:GetSingleItemValue(item)
 				DETable = DETable and DETable[itemType] and DETable[itemType][itemLevel]
                 if DETable then
                     local item, chance, amount, itemVal
-                    for i = 1, #DETable do
-                        item = DETable[i][1] and select(2, GetItemInfo(DETable[i][1]))
+                    for i, data in pairs(DETable) do	-- [1] = itemID, [2] = drop chance, [3] = quantity
+                        item = data[1] and select(2, GetItemInfo(data[1]))
 						itemVal = AucAdvanced.API.GetMarketValue(item) or 0
 
-                        disenchantPrice = disenchantPrice + (itemVal * DETable[i][2] * DETable[i][3])	-- enchant mat value * chance * quantity
+                        disenchantPrice = disenchantPrice + (itemVal * data[2] * data[3])
                     end
                     disenchantPrice = math.floor(disenchantPrice)
                 else
