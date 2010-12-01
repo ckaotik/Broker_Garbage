@@ -121,6 +121,7 @@ function BrokerGarbage:CreateDefaultLists(global)
 	local tradeSkills =  { GetProfessions() }
 	for i = 1, 6 do	-- we get at most 6 professions (2x primary, cooking, fishing, first aid, archeology)
 		local englishSkill, isGather = BrokerGarbage:UnLocalize(tradeSkills[i])
+		BrokerGarbage:Print("Found "..(englishSkill or "nil"))
 		if englishSkill then
 			if isGather then
 				BG_LocalDB.exclude["Tradeskill.Gather." .. englishSkill] = true
@@ -174,12 +175,15 @@ end
 
 -- returns original English names for non-English locales
 function BrokerGarbage:UnLocalize(skillName)
+	BrokerGarbage:Print("Checking "..(skillName or "nil"))
 	if not skillName then return nil, nil end
+	skillName = GetProfessionInfo(skillName)
+	BrokerGarbage:Print("Got name "..(skillName or "nil"))
 	if string.find(GetLocale(), "en") then return skillName end
 	
 	-- crafting skills
 	local searchString = ""
-	for i = 2,12 do
+	for i = 2, 12 do
 		searchString = select(i, GetAuctionItemSubClasses(9))
 		if string.find(skillName, searchString) then
 			return BrokerGarbage.tradeSkills[i], false

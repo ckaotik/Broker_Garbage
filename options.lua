@@ -46,6 +46,7 @@ BrokerGarbage.listOptions.parent = "Broker_Garbage"
 -- button tooltip infos
 local function ShowTooltip(self)
 	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+	-- LibPeriodicTable pretty tooltips
 	if self.tiptext and self:GetParent() == _G["BG_ListOptions_ScrollFrame"] and 
 		not (self.itemID and string.find(self.tiptext, self.itemID)) then
 		local text = string.gsub(self.tiptext, "%.", " |cffffd200>|r ")
@@ -53,10 +54,17 @@ local function ShowTooltip(self)
 		GameTooltip:ClearLines() 
 		GameTooltip:AddLine("LibPeriodicTable")
 		GameTooltip:AddLine(text, 1, 1, 1, true)
-	elseif self.tiptext then
-		GameTooltip:SetText(self.tiptext, nil, nil, nil, nil, true)
-	elseif self.itemLink then
-		GameTooltip:SetHyperlink(self.itemLink)
+	else	-- all other tooltips
+		local itemLink = self.itemLink or (self.itemID and select(2,GetItemInfo(self.itemID)))
+		if itemLink then
+			GameTooltip:SetHyperlink(itemLink)
+			if not self.itemLink and self:GetParent() == _G["BG_ListOptions_ScrollFrame"] then
+				-- we just got new data for this tooltip!
+				BrokerGarbage:ListOptionsUpdate()
+			end
+		elseif self.tiptext then
+			GameTooltip:SetText(self.tiptext, nil, nil, nil, nil, true)
+		end
 	end
 	GameTooltip:Show()
 end
@@ -1137,7 +1145,6 @@ local function ShowListOptions(frame)
 		else
 			BrokerGarbage:Print(string.format(BrokerGarbage.locale.itemAlreadyOnList, link))
 		end
-		
 		BrokerGarbage:ScanInventory()
 		BrokerGarbage:UpdateRepairButton()
 	end
