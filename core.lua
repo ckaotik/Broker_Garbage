@@ -386,7 +386,7 @@ function BrokerGarbage:GetSingleItemValue(item)
 	local itemID = itemLink and BrokerGarbage:GetItemID(itemLink) or nil
 	
 	BrokerGarbage:Debug("GetSingleItemValue("..(item or "?")..")", hasData)
-	local hasData, itemLink, itemQuality, itemLevel, _, itemType, _, _, _, _, vendorPrice = GetItemInfo(item)
+	local hasData, itemLink, itemQuality, itemLevel, _, _, _, _, itemType, _, vendorPrice = GetItemInfo(item)
 	if not hasData then		-- invalid argument
        	BrokerGarbage:Debug("Error! GetSingleItemValue: Failed on "..(itemLink or item or "<unknown>")..".", hasData)
        	return nil
@@ -441,35 +441,30 @@ function BrokerGarbage:GetSingleItemValue(item)
         
         if canDE and not disenchantPrice and IsAddOnLoaded("Enchantrix") then
             disenchantPrice = 0
-            local weaponString, armorString = GetAuctionItemClasses()
-            if itemType == weaponString then
-                itemType = 2
-            elseif itemType == armorString then
-                itemType = 4
-            end
+			BrokerGarbage:Debug("Item Type?", itemType)
+			itemType = Enchantrix.Constants.InventoryTypes[itemType]
+			BrokerGarbage:Debug("Enchantriy Item Type?", itemType)
             
-            local enchItemQuality = Enchantrix.Constants.baseDisenchantTable[itemQuality]
+            local DETable = Enchantrix.Constants.baseDisenchantTable[itemQuality]
 			BrokerGarbage:Debug("Auc-Advanced: Available data?", itemLink, itemQuality, itemLevel, itemType, 
-				enchItemQuality and "EIQ" or "no EIQ", 
-				enchItemQuality and enchItemQuality[itemType] and "EIQ[type]" or "no EIQ[type]", 
-				enchItemQuality and enchItemQuality[itemType] and enchItemQuality[itemType][itemLevel] and "EIQ[type][Level]" or "no EIQ[type][level]")
-            if itemQuality and itemLevel and enchItemQuality then
-                while not enchItemQuality[itemType][itemLevel] and itemLevel < 800 do
-                    itemLevel = itemLevel + 1
+				DETable and "EIQ" or "no EIQ", 
+				DETable and DETable[itemType] and "EIQ[type]" or "no EIQ[type]", 
+				DETable and DETable[itemType] and DETable[itemType][itemLevel] and "EIQ[type][level]" or "no EIQ[type][level]")
+			
+            if itemQuality and itemLevel and DETable then
+                while itemLevel < 800 and DETable[itemType] and not DETable[itemType][itemLevel] do
+                    itemLevel = itemLevel + 1	-- we don't know which range is specified in Enchantrix's data
                 end
-				BrokerGarbage:Debug(enchItemQuality and enchItemQuality[itemType] and enchItemQuality[itemType][itemLevel] and "EIQ[type][Level]" or "no EIQ[type][level]")
-                DEMats = Enchantrix.Constants.baseDisenchantTable[itemQuality][itemType][itemLevel]
+				BrokerGarbage:Debug(DETable and DETable[itemType] and DETable[itemType][itemLevel] and "EIQ[type][level] found at level "..itemLevel or "no EIQ[type][level] found after 800 cycles!")
                 
-                if DEMats then
+				DETable = DETable and DETable[itemType] and DETable[itemType][itemLevel]
+                if DETable then
                     local item, chance, amount, itemVal
-                    for i = 1, #DEMats do
-                        item = DEMats[i][1]
-                        chance = DEMats[i][2]
-                        amount = DEMats[i][3]
-                        
-                        itemVal = AucAdvanced.API.GetMarketValue(itemLink) or 0
-                        
-                        disenchantPrice = disenchantPrice + (itemVal * chance * amount)
+                    for i = 1, #DETable do
+                        item = DETable[i][1] and select(2, GetItemInfo(DETable[i][1]))
+						itemVal = AucAdvanced.API.GetMarketValue(item) or 0
+
+                        disenchantPrice = disenchantPrice + (itemVal * DETable[i][2] * DETable[i][3])	-- enchant mat value * chance * quantity
                     end
                     disenchantPrice = math.floor(disenchantPrice)
                 else
