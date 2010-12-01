@@ -383,16 +383,15 @@ end
 -- returns which of the items values is the highest (value, type)
 function BrokerGarbage:GetSingleItemValue(item)
 	local hasData = item and GetItemInfo(item) or nil
-	BrokerGarbage:Debug("GetSingleItemValue("..(item or "?")..")", hasData)
-
-	local hasData, itemLink, itemQuality, itemLevel, vendorPrice = GetItemInfo(item)
 	local itemID = itemLink and BrokerGarbage:GetItemID(itemLink) or nil
-
-	if not hasData or not itemID then		-- invalid argument
-        BrokerGarbage:Debug("Error! GetSingleItemValue: Failed on "..(itemLink or "<unknown>")..".")
-        return nil
-	end
 	
+	BrokerGarbage:Debug("GetSingleItemValue("..(item or "?")..")", hasData)
+	local hasData, itemLink, itemQuality, itemLevel, _, itemType, _, _, _, _, vendorPrice = GetItemInfo(item)
+	if not hasData then		-- invalid argument
+       	BrokerGarbage:Debug("Error! GetSingleItemValue: Failed on "..(itemLink or item or "<unknown>")..".", hasData)
+       	return nil
+	end
+
 	-- ignore AH prices for gray items
     if not itemQuality or itemQuality == 0 then
         return vendorPrice, vendorPrice and BrokerGarbage.VENDOR
@@ -442,7 +441,6 @@ function BrokerGarbage:GetSingleItemValue(item)
         
         if canDE and not disenchantPrice and IsAddOnLoaded("Enchantrix") then
             disenchantPrice = 0
-            local itemType = select(6, GetItemInfo(itemID))
             local weaponString, armorString = GetAuctionItemClasses()
             if itemType == weaponString then
                 itemType = 2
@@ -451,10 +449,15 @@ function BrokerGarbage:GetSingleItemValue(item)
             end
             
             local enchItemQuality = Enchantrix.Constants.baseDisenchantTable[itemQuality]
+			BrokerGarbage:Debug("Auc-Advanced: Available data?", itemLink, itemQuality, itemLevel, itemType, 
+				enchItemQuality and "EIQ" or "no EIQ", 
+				enchItemQuality and enchItemQuality[itemType] and "EIQ[type]" or "no EIQ[type]", 
+				enchItemQuality and enchItemQuality[itemType] and enchItemQuality[itemType][itemLevel] and "EIQ[type][Level]" or "no EIQ[type][level]")
             if itemQuality and itemLevel and enchItemQuality then
                 while not enchItemQuality[itemType][itemLevel] and itemLevel < 800 do
                     itemLevel = itemLevel + 1
                 end
+				BrokerGarbage:Debug(enchItemQuality and enchItemQuality[itemType] and enchItemQuality[itemType][itemLevel] and "EIQ[type][Level]" or "no EIQ[type][level]")
                 DEMats = Enchantrix.Constants.baseDisenchantTable[itemQuality][itemType][itemLevel]
                 
                 if DEMats then

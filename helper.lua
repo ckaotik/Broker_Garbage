@@ -468,11 +468,11 @@ end
 function BrokerGarbage:UpdateCache(itemID)
 	if not itemID then return nil end
 	local class, temp, limit
-	-- TODO: maybe a second call to getiteminfo is needed?
+	
 	local hasData, itemLink, quality, _, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
 	local family = GetItemFamily(itemID)
-	if not hasData or not itemLink or not quality then
-		BrokerGarbage:Debug("Could not retrieve quality information for "..(itemID or "<none>").." ("..(itemLink or "")..")")
+	if not hasData then
+		BrokerGarbage:Debug("UpdateCache("..(itemID or "<none>")..") failed - no GetItemInfo() data available!")
 		return nil
 	end
 	
@@ -616,6 +616,7 @@ function BrokerGarbage:GetCached(itemID)
 	if not BrokerGarbage.itemsCache[itemID] then
 		BrokerGarbage:UpdateCache(itemID)
 	end
+	
 	return BrokerGarbage.itemsCache[itemID]
 end
 
