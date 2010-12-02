@@ -5,10 +5,14 @@
 ## SavedVariablesPerCharacter: BG_LocalDB
 
 ## Title: Broker_Garbage
-## Notes: Full bags no more! Distinguish between junk and treasure, find items to drop quickly. 
-## Notes-deDE: Endlich wieder Platz! Unterscheide Trödel von Schätzen und finde billigen Müll.
 ## Author: ckaotik
 ## Version: 4.0v4
+## Notes: Full bags no more! Distinguish between junk and treasure, find items to drop quickly. 
+## Notes-deDE: Endlich wieder Platz! Unterscheide Trödel von Schätzen und finde billigen Müll.
+
+## LoadManagers: AddonLoader
+## X-LoadOn-Always: Delayed
+
 ## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 ## X-RelSite-WoWI: 15531
 ## X-Category: Inventory

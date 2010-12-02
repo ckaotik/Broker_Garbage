@@ -34,6 +34,11 @@ for set, _ in pairs( BrokerGarbage.PT and BrokerGarbage.PT.sets or {} ) do
 	end
 end
 
+-- In case the addon is loaded from another condition, always call the remove interface options
+if AddonLoader and AddonLoader.RemoveInterfaceOptions then
+	AddonLoader:RemoveInterfaceOptions("Broker_Garbage")
+end
+
 -- options panel / statistics
 BrokerGarbage.options = CreateFrame("Frame", "BG_Options", InterfaceOptionsFramePanelContainer)
 BrokerGarbage.options.name = "Broker_Garbage"
@@ -677,19 +682,6 @@ local function Options_Statistics(pluginID)
 end
 local _ = BrokerGarbage:RegisterPlugin(BrokerGarbage.locale.StatisticsHeading, Options_Statistics)
 
-function BrokerGarbage.CreateOptionsPanel(frame)
-	local title, subtitle = LibStub("tekKonfig-Heading").new(frame, "Broker_Garbage", BrokerGarbage.locale.BasicOptionsText)
-
-	local group = LibStub("tekKonfig-Group").new(frame, nil, "TOP", subtitle, "BOTTOM", 0, -24)
-	group:SetPoint("LEFT")
-	group:SetPoint("BOTTOMRIGHT")
-	group:SetBackdropColor(0.1, 0.1, 0.1, 0.3)
-	frame.group = group
-	
-	ChangeView(defaultTab)
-	frame:SetScript("OnShow", UpdateOptionsPanel)
-end
-
 -- creates child options frame for setting up one's lists
 local function ShowListOptions(frame)
 	local title = LibStub("tekKonfig-Heading").new(frame, "Broker_Garbage - " .. BrokerGarbage.locale.LOTitle)
@@ -1266,10 +1258,25 @@ local function ShowListOptions(frame)
 	BrokerGarbage.listOptions:SetScript("OnShow", BrokerGarbage.ListOptionsUpdate)
 end
 
+function BrokerGarbage.CreateOptionsPanel(frame)
+	local title, subtitle = LibStub("tekKonfig-Heading").new(frame, "Broker_Garbage", BrokerGarbage.locale.BasicOptionsText)
+
+	local group = LibStub("tekKonfig-Group").new(frame, nil, "TOP", subtitle, "BOTTOM", 0, -24)
+	group:SetPoint("LEFT")
+	group:SetPoint("BOTTOMRIGHT")
+	group:SetBackdropColor(0.1, 0.1, 0.1, 0.3)
+	frame.group = group
+	
+	ChangeView(defaultTab)
+	ShowListOptions(BrokerGarbage.listOptions)
+	collectgarbage()
+	frame:SetScript("OnShow", UpdateOptionsPanel)
+end
+
 BrokerGarbage.options:SetScript("OnShow", BrokerGarbage.CreateOptionsPanel)
 InterfaceOptions_AddCategory(BrokerGarbage.options)
 
-BrokerGarbage.listOptions:SetScript("OnShow", ShowListOptions)
+-- BrokerGarbage.listOptions:SetScript("OnShow", ShowListOptions)
 InterfaceOptions_AddCategory(BrokerGarbage.listOptions)
 
 LibStub("tekKonfig-AboutPanel").new("Broker_Garbage", "Broker_Garbage")

@@ -163,6 +163,32 @@ function BrokerGarbage:GetOption(optionName, global)
 		return BG_GlobalDB[optionName]
 	end
 end
+function BrokerGarbage:SetOption(optionName, global, value)
+	if not global then
+		BG_LocalDB[optionName] = value
+	else
+		BG_GlobalDB[optionName] = value
+	end
+end
+function BrokerGarbage:ToggleOption(optionName, global)
+	if not global then
+		BG_LocalDB[optionName] = not BG_LocalDB[optionName]
+	else
+		BG_GlobalDB[optionName] = not BG_GlobalDB[optionName]
+	end
+end
+function BrokerGarbage:RegisterPlugin(name, init)
+	if not name or not init then
+		BGC:Print("Error! Cannot register a plugin without a name and initialize function.")
+		return
+	end
+	
+	table.insert(BrokerGarbage.tabs, {
+		name = name,
+		init = init
+	})
+	return #BrokerGarbage.tabs
+end
 
 -- Helpers
 -- ---------------------------------------------------------
@@ -299,6 +325,37 @@ function BrokerGarbage:ResetAll(global)
 	end
 end
 
+local interestingPTSets = {"Consumable", "Misc", "Tradeskill"}
+BrokerGarbage.PTSets = {}
+for set, _ in pairs( BrokerGarbage.PT and BrokerGarbage.PT.sets or {} ) do
+	local interesting = false
+	local partials = { strsplit(".", set) }
+	local maxParts = #partials
+	
+	for i = 1, #interestingPTSets do
+		if strfind(partials[1], interestingPTSets[i]) then 
+			interesting = true
+			break
+		end
+	end
+	
+	if interesting then
+		local pre = BrokerGarbage.PTSets
+		
+		for i = 1, maxParts do
+			if i == maxParts then
+				-- actual clickable entries
+				pre[ partials[i] ] = set
+			else
+				-- all parts before that
+				if not pre[ partials[i] ] or type(pre[ partials[i] ]) == "string" then
+					pre[ partials[i] ] = {}
+				end
+				pre = pre[ partials[i] ]
+			end
+		end
+	end
+end
 function BrokerGarbage:LPTDropDown(self, level, functionHandler)
 	local dataTable = BrokerGarbage.PTSets or {}
 	if UIDROPDOWNMENU_MENU_VALUE and string.find(UIDROPDOWNMENU_MENU_VALUE, ".") then
@@ -365,76 +422,83 @@ end
 
 local scanTooltip = CreateFrame('GameTooltip', 'BGItemScanTooltip', UIParent, 'GameTooltipTemplate')
 -- misc: either "true" to check only for the current character, or a table {container, slot} for reference
-function BrokerGarbage:CanDisenchant(itemLink, misc)
-	if (itemLink) then
+function BrokerGarbage:CanDisenchant(itemLink, location)
+	if not itemLink then return end
+	
+	local required, skillRank = 0	-- required disenchant skill
+	if IsAddOnLoaded("Enchantrix") then
+		required = Enchantrix.Util.DisenchantSkillRequiredForItem(itemLink)	-- might be more accurate/up to date in case I miss something
+		skillRank = Enchantrix.Util.GetUserEnchantingSkill()	-- Enchantrix caches this. So let's use it!
+	else
+		local item = BrokerGarbage:GetCached(BrokerGarbage:GetItemID(itemLink))
+		if not item then return end
+		
+		quality, level, stackSize = item.quality, item.level, item.stackSize
 		local _, _, quality, level, _, _, _, count, bagSlot = GetItemInfo(itemLink)
 
 		-- stackables are not DE-able, legendary/heirlooms are not DE-able
-		if quality and quality >= 2 and quality < 5 and 
-			string.find(bagSlot, "INVTYPE") and not string.find(bagSlot, "BAG") 
-			and (not count or count == 1) then
-			
-			-- can this character disenchant?
-			if IsUsableSpell(BrokerGarbage.enchanting) then
-				local req = 0
-				
-				if level <=  20 then
-					req = 1
-				elseif level <=  60 then
-					req = 5*5*math.ceil(level/5)-100
-				elseif level <=  99 then
-					req = 225
-				elseif level <= 120 then
-					req = 275
+		if item.quality >= 2 and item.quality < 5 and item.stackSize == 1 
+			and string.find(item.itemType, "INVTYPE") and not string.find(item.itemType, "BAG") then
+
+			skillRank = BrokerGarbage:GetProfessionSkill(BrokerGarbage.enchanting) or 0
+			if skillRank > 0 then
+				if item.level <=  20 then
+					required = 1
+				elseif item.level <=  60 then
+					required = 5*5*math.ceil(level/5)-100
+				elseif item.level <=  99 then
+					required = 225
+				elseif item.level <= 120 then
+					required = 275
 				else
-					if quality == 2 then		-- green
-						if level <= 150 then
-							req = 325
-						elseif level <= 200 then
-							req = 350
-						elseif level <= 305 then
-							req = 425
+					if item.quality == 2 then		-- green
+						if item.level <= 150 then
+							required = 325
+						elseif item.level <= 200 then
+							required = 350
+						elseif item.level <= 305 then
+							required = 425
 						else
-							req = 475
+							required = 475
 						end
-					elseif quality == 3 then	-- blue
-						if level <= 200 then
-							req = 325
-						elseif level <= 325 then
-							req = 450
+					elseif item.quality == 3 then	-- blue
+						if item.level <= 200 then
+							required = 325
+						elseif item.level <= 325 then
+							required = 450
 						else
-							req = 500
+							required = 500
 						end
-					elseif quality == 4 then	-- purple
-						if level <= 199 then
-							req = 300
-						elseif level <= 277 then
-							req = 375
+					elseif item.quality == 4 then	-- purple
+						if item.level <= 199 then
+							required = 300
+						elseif item.level <= 277 then
+							required = 375
 						else
-							req = 500
+							required = 500
 						end
 					end
 				end
-
-				local rank = BrokerGarbage:GetProfessionSkill(BrokerGarbage.enchanting)
-				if rank and rank >= req then
-					return true
-				end
-				-- if skill rank is too low, still check if we can send it
-			end
-			-- misc = "true" => we only care if we ourselves can DE. no twink mail etc.
-			if misc and type(misc) == "boolean" then return false end
-			
-			-- so we can't DE, but can we send it to someone who may? i.e. is the item not soulbound?
-			if not BG_GlobalDB.hasEnchanter then return false end
-			if misc and type(misc) == "table" then
-				return not BrokerGarbage:IsItemSoulbound(itemLink, misc.bag, misc.slot)
-			else 
-				return not BrokerGarbage:IsItemSoulbound(itemLink)
 			end
 		end
 	end
-	return false
+	
+	if skillRank >= required then
+		-- this character can disenchant the item. Perfect!
+		return true
+	elseif BG_GlobalDB.hasEnchanter then
+		if location and type(location) == "boolean" then
+			-- misc = true => Only regard this character. Exit.
+			return false
+		elseif location and type(location) == "table" then
+			-- misc = {bag, slot} => Can we mail this item?
+			return not BrokerGarbage:IsItemSoulbound(itemLink, location.bag, location.slot)
+		else
+			return not BrokerGarbage:IsItemSoulbound(itemLink)
+		end
+	else
+		return false
+	end
 end
 
 -- returns true if the given item is soulbound
@@ -469,7 +533,7 @@ function BrokerGarbage:UpdateCache(itemID)
 	if not itemID then return nil end
 	local class, temp, limit
 	
-	local hasData, itemLink, quality, _, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
+	local hasData, itemLink, quality, itemLevel, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
 	local family = GetItemFamily(itemID)
 	if not hasData then
 		BrokerGarbage:Debug("UpdateCache("..(itemID or "<none>")..") failed - no GetItemInfo() data available!")
@@ -595,6 +659,8 @@ function BrokerGarbage:UpdateCache(itemID)
 			classification = class,
 			quality = quality,
 			family = family,
+			itemType = itemType,
+			level = itemLevel,
 			value = value or 0,
 			limit = limit,
 			stackSize = stackSize,
@@ -604,8 +670,10 @@ function BrokerGarbage:UpdateCache(itemID)
 		BrokerGarbage.itemsCache[itemID].classification = class
 		BrokerGarbage.itemsCache[itemID].quality = quality
 		BrokerGarbage.itemsCache[itemID].family = family
+		BrokerGarbage.itemsCache[itemID].itemType = itemType
 		BrokerGarbage.itemsCache[itemID].value = value or 0
 		BrokerGarbage.itemsCache[itemID].limit = limit
+		BrokerGarbage.itemsCache[itemID].level = itemLevel
 		BrokerGarbage.itemsCache[itemID].stackSize = stackSize
 		BrokerGarbage.itemsCache[itemID].isClam = BrokerGarbage:Find(BrokerGarbage.clams, itemID)
 	end
@@ -613,10 +681,10 @@ end
 
 -- fetch an item from the item cache, or insert if it doesn't exist yet
 function BrokerGarbage:GetCached(itemID)
+	if not itemID then return end
 	if not BrokerGarbage.itemsCache[itemID] then
 		BrokerGarbage:UpdateCache(itemID)
 	end
-	
 	return BrokerGarbage.itemsCache[itemID]
 end
 
