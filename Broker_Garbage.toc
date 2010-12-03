@@ -11,7 +11,7 @@
 ## Notes-deDE: Endlich wieder Platz! Unterscheide Trödel von Schätzen und finde billigen Müll.
 
 ## LoadManagers: AddonLoader
-## X-LoadOn-Always: Delayed
+## X-LoadOn-Always: delayed
 
 ## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 ## X-RelSite-WoWI: 15531

@@ -40,6 +40,7 @@ BrokerGarbage.optionsModules = {}	-- used for ordering/showing entries in the op
 local locked = false				-- set to true while selling stuff
 local sellValue = 0					-- represents the actual value that we sold stuff for
 local cost = 0						-- the amount of money that we repaired for
+local initialized = false
 
 -- Event Handler
 -- ---------------------------------------------------------
@@ -61,9 +62,10 @@ local function eventHandler(self, event, arg1, ...)
 
 	    -- full inventory scan to start with
 	    BrokerGarbage:ScanInventory()
+		initialized = true
         frame:UnregisterEvent("ADDON_LOADED")
         
-    elseif event == "BAG_UPDATE" then
+    elseif event == "BAG_UPDATE" and initialized then
         if not arg1 or arg1 < 0 or arg1 > 4 then return end
         
         BrokerGarbage:ScanInventoryContainer(arg1)	-- partial inventory scan on the relevant container
@@ -385,10 +387,10 @@ function BrokerGarbage:GetSingleItemValue(item)
 	if not item then return nil end
 	local hasData, itemLink, itemQuality, itemLevel, _, _, _, _, itemType, _, vendorPrice = GetItemInfo(item)
 	
-	BrokerGarbage:Print("GetSingleItemValue("..(item or "?").."), "..(hasData or "no data"))
+	BrokerGarbage:Debug("GetSingleItemValue("..(item or "?").."), "..(hasData or "no data"))
 	hasData, itemLink, itemQuality, itemLevel, _, _, _, _, itemType, _, vendorPrice = GetItemInfo(item)
 	if not hasData then		-- invalid argument
-       	BrokerGarbage:Print("Error! GetSingleItemValue: Failed on "..(itemLink or item or "<unknown>").."."..(hasData or "no data"))
+       	BrokerGarbage:Debug("Error! GetSingleItemValue: Failed on "..(itemLink or item or "<unknown>").."."..(hasData or "no data"))
        	return nil
 	end
 

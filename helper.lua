@@ -430,49 +430,45 @@ function BrokerGarbage:CanDisenchant(itemLink, location)
 		required = Enchantrix.Util.DisenchantSkillRequiredForItem(itemLink)	-- might be more accurate/up to date in case I miss something
 		skillRank = Enchantrix.Util.GetUserEnchantingSkill()	-- Enchantrix caches this. So let's use it!
 	else
-		local item = BrokerGarbage:GetCached(BrokerGarbage:GetItemID(itemLink))
-		if not item then return end
-		
-		quality, level, stackSize = item.quality, item.level, item.stackSize
-		local _, _, quality, level, _, _, _, count, bagSlot = GetItemInfo(itemLink)
+		local _, _, quality, level, _, _, _, stackSize, invType = GetItemInfo(itemLink)
 
 		-- stackables are not DE-able, legendary/heirlooms are not DE-able
-		if item.quality >= 2 and item.quality < 5 and item.stackSize == 1 
-			and string.find(item.itemType, "INVTYPE") and not string.find(item.itemType, "BAG") then
+		if quality >= 2 and quality < 5 and stackSize == 1 
+			and string.find(invType, "INVTYPE") and not string.find(invType, "BAG") then
 
 			skillRank = BrokerGarbage:GetProfessionSkill(BrokerGarbage.enchanting) or 0
 			if skillRank > 0 then
-				if item.level <=  20 then
+				if level <=  20 then
 					required = 1
-				elseif item.level <=  60 then
+				elseif level <=  60 then
 					required = 5*5*math.ceil(level/5)-100
-				elseif item.level <=  99 then
+				elseif level <=  99 then
 					required = 225
-				elseif item.level <= 120 then
+				elseif level <= 120 then
 					required = 275
 				else
-					if item.quality == 2 then		-- green
-						if item.level <= 150 then
+					if quality == 2 then		-- green
+						if level <= 150 then
 							required = 325
-						elseif item.level <= 200 then
+						elseif level <= 200 then
 							required = 350
-						elseif item.level <= 305 then
+						elseif level <= 305 then
 							required = 425
 						else
 							required = 475
 						end
-					elseif item.quality == 3 then	-- blue
-						if item.level <= 200 then
+					elseif quality == 3 then	-- blue
+						if level <= 200 then
 							required = 325
-						elseif item.level <= 325 then
+						elseif level <= 325 then
 							required = 450
 						else
 							required = 500
 						end
-					elseif item.quality == 4 then	-- purple
-						if item.level <= 199 then
+					elseif quality == 4 then	-- purple
+						if level <= 199 then
 							required = 300
-						elseif item.level <= 277 then
+						elseif level <= 277 then
 							required = 375
 						else
 							required = 500
