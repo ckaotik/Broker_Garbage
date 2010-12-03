@@ -479,7 +479,10 @@ function BrokerGarbage:CanDisenchant(itemLink, location)
 		end
 	end
 	
-	if skillRank >= required then
+	if not skillRank or not required then
+		-- this item is not disenchantable
+		return false
+	elseif skillRank >= required then
 		-- this character can disenchant the item. Perfect!
 		return true
 	elseif BG_GlobalDB.hasEnchanter then

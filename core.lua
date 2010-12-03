@@ -20,8 +20,9 @@ local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
     label	= "Garbage",
     text 	= "",
     
-    OnClick = function(...) BrokerGarbage:OnClick(...) end,
+	OnClick = function(...) BrokerGarbage:OnClick(...) end,
     OnEnter = function(...) BrokerGarbage:Tooltip(...) end,
+	OnLeave = function() end,	-- needed for e.g. NinjaPanel
 })
 
 local function UpdateLDB()
@@ -289,7 +290,9 @@ function BrokerGarbage:Tooltip(self)
 end
 
 -- onClick function - works for both, the LDB plugin -and- tooltip lines
-function BrokerGarbage:OnClick(itemTable, button)	
+function BrokerGarbage:OnClick(itemTable, button)
+	BrokerGarbage.debug1 = itemTable
+	BrokerGarbage.debug2 = button
     -- handle LDB clicks seperately
     local LDBclick = false
     if not itemTable or not itemTable.itemID or type(itemTable.itemID) ~= "number" then
