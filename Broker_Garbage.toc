@@ -6,7 +6,7 @@
 
 ## Title: Broker_Garbage
 ## Author: ckaotik
-## Version: 4.0v4
+## Version: 4.0v5
 ## Notes: Full bags no more! Distinguish between junk and treasure, find items to drop quickly. 
 ## Notes-deDE: Endlich wieder Platz! Unterscheide Trödel von Schätzen und finde billigen Müll.
 
