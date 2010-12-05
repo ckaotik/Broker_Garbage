@@ -325,37 +325,6 @@ function BrokerGarbage:ResetAll(global)
 	end
 end
 
-local interestingPTSets = {"Consumable", "Misc", "Tradeskill"}
-BrokerGarbage.PTSets = {}
-for set, _ in pairs( BrokerGarbage.PT and BrokerGarbage.PT.sets or {} ) do
-	local interesting = false
-	local partials = { strsplit(".", set) }
-	local maxParts = #partials
-	
-	for i = 1, #interestingPTSets do
-		if strfind(partials[1], interestingPTSets[i]) then 
-			interesting = true
-			break
-		end
-	end
-	
-	if interesting then
-		local pre = BrokerGarbage.PTSets
-		
-		for i = 1, maxParts do
-			if i == maxParts then
-				-- actual clickable entries
-				pre[ partials[i] ] = set
-			else
-				-- all parts before that
-				if not pre[ partials[i] ] or type(pre[ partials[i] ]) == "string" then
-					pre[ partials[i] ] = {}
-				end
-				pre = pre[ partials[i] ]
-			end
-		end
-	end
-end
 function BrokerGarbage:LPTDropDown(self, level, functionHandler)
 	local dataTable = BrokerGarbage.PTSets or {}
 	if UIDROPDOWNMENU_MENU_VALUE and string.find(UIDROPDOWNMENU_MENU_VALUE, ".") then

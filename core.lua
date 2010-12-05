@@ -418,7 +418,7 @@ function BrokerGarbage:GetSingleItemValue(item)
         auctionPrice = math.max(auctionPrice, AucAdvanced.API.GetMarketValue(itemLink))
         
         if IsAddOnLoaded("Enchantrix") then
-            disenchantPrice = canDE and math.max(disenchantPrice, select(3, Enchantrix.Storage.GetItemDisenchantTotals(itemLink)))
+            disenchantPrice = canDE and math.max(disenchantPrice, select(3, Enchantrix.Storage.GetItemDisenchantTotals(itemLink)) or 0)
         end
     end
     
@@ -436,9 +436,9 @@ function BrokerGarbage:GetSingleItemValue(item)
             local tmpPrice = 0
             local DEData = Wowecon.API.GetDisenchant_ByLink(itemLink)
             for i, data in pairs(DEData) do	-- [1] = item link, [2] = quantity, [3] = chance
-                tmpPrice = tmpPrice + (Wowecon.API.GetAuctionPrice_ByLink(data[1]) * data[2] * data[3])
+                tmpPrice = tmpPrice + ((Wowecon.API.GetAuctionPrice_ByLink(data[1] or 0)) * data[2] * data[3])
             end
-            disenchantPrice = math.max(disenchantPrice, math.floor(tmpPrice))
+            disenchantPrice = math.max(disenchantPrice, math.floor(tmpPrice or 0))
         end
 	end
 
