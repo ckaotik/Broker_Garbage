@@ -1,7 +1,7 @@
 Broker_Garbage
 ==============
 Author: ckaotik
-Version: 4.0v5
+Version: 4.0v6
 WoW Version: 4.0.3
 
 WoWInterface: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html	(with Loot Manager)
