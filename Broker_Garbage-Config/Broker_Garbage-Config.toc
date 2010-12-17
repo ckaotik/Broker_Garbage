@@ -1,0 +1,37 @@
+## Interface: 40000
+## Dependencies: Broker_Garbage
+## OptionalDeps: Broker_Garbage-LootManager
+
+## Title: Broker_Garbage-Config
+## Author: ckaotik
+## Version: 4.0v7
+## Notes: *TODO*
+## Notes-deDE: *TODO*
+
+## LoadOnDemand: 1
+## LoadManagers: AddonLoader, Addon Control Panel
+## X-LoadOn-InterfaceOptions: Broker_Garbage
+## X-LoadOn-Slash: /garbage, /garb
+
+## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
+## X-RelSite-WoWI: 15531
+## X-Category: Inventory
+## X-Localizations: enUS, deDE. Works in any language. You can help!
+## X-Credits: tekKonfig
+## X-License: BSD
+
+# libraries
+libs\tekKonfig\tekKonfig.xml
+
+# locale
+locale\enUS.lua
+locale\deDE.lua
+
+# main files
+util.lua
+options_main.lua
+options_statistics.lua
+options_lists.lua
+options_slash.lua
+category_test.lua
+core.lua

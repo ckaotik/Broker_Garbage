@@ -1,0 +1,25 @@
+## Interface: 40000
+## Dependencies: Broker_Garbage
+## SavedVariables: BGLM_GlobalDB
+## SavedVariablesPerCharacter: BGLM_LocalDB
+
+## Title: Broker_Garbage-LootManager
+## Author: ckaotik
+## Version: 4.0v7
+## Notes: Plugin for Broker_Garbage. Selective looting and more!
+## Notes-deDE: Plugin für Broker_Garbage. Selektives Plündern und mehr!
+
+## LoadManagers: AddonLoader, Addon Control Panel
+## LoadWith: Broker_Garbage, Broker_Garbage-Config
+
+## X-Category: Inventory
+## X-Credits: KarniCrap(Karnifex)
+
+# localization files
+locale\enUS.lua
+locale\deDE.lua
+
+# code files
+util.lua
+core.lua
+options.lua
