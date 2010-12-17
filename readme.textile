@@ -45,9 +45,8 @@ h3. Broker_Garbage - Loot Manager
 
 h2. Support
 
-Do you enjoy Broker_Garbage? So do I! But keeping it up to date and supporting it takes quite a bit of time. If you feel like treating me to a steaming hot chocolate (YUM!), have a loot at the donations page :)
+Do you enjoy Broker_Garbage? So do I! But keeping it up to date and supporting it takes quite a bit of time. If you feel like treating me to a steaming hot chocolate (YUM!) … Please do so ;) Every donation is highly appreciated!
 !https://www.paypal.com/en_US/i/btn/btn_donate_LG.gif!:https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7955703
-Every donation is highly appreciated!
 
 As with any addon: I provide no warranty for this addon but it should do The Right Thing(tm).
 If it does *not* do The Right Thing(tm) or something doesn't feel right, leave me a note (see below) containing as much information on your problem as possible, so I can try to fix it.
