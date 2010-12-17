@@ -1,6 +1,6 @@
 Broker_Garbage is a WoW add-on trying to manage that mess in your bags. Not enough information? Read on below!
 
-bq.Have you ever been in a situation where you just can't turn in a quest because your inventory is full? Trying to figure out an item to delete that's cheap and won't make you loose much gold? This is one of the many situations where Broker_Garbage makes your life easier.
+Have you ever been in a situation where you just can't turn in a quest because your inventory is full? Trying to figure out an item to delete that's cheap and won't make you loose much gold? This is one of the many situations where Broker_Garbage makes your life easier.
 
 h3. What it does
 
@@ -13,7 +13,7 @@ Some are "Bagnon":http://www.wowinterface.com/downloads/fileinfo.php?id=4459, "D
 
 h2. Features
 
-You can disable almost any of these in the options panel. Default values are non destructive, so you don't loose anything by just installing the addon.
+You can disable almost all of these in the options panel. Default values are non destructive, so you don't loose anything by just installing the addon.
 
 h3. Broker_Garbage (Main Addon)
 * show cheap items in LDB tooltip to gain a quick overview
