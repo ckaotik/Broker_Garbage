@@ -86,14 +86,18 @@ if GetLocale() == "deDE" then
 	BGC.locale.autoRepairGuildTitle = "selbst zahlen"
 	BGC.locale.autoRepairGuildText = "Auswählen um niemals auf Gildenkosten zu reparieren"
 	
-	BGC.locale.showLostTitle = "Verlust"
-	BGC.locale.showLostText = "Auswählen um im Tooltip die Zeile 'Verlorenes Gold' anzuzeigen"
-	
-	BGC.locale.showSourceTitle = "Preisquelle"
+	BGC.locale.showSourceTitle = "Quelle"
 	BGC.locale.showSourceText = "Auswählen um im Tooltip als letzte Spalte die Preisquelle anzuzeigen"
+	
+	BGC.locale.showIconTitle = "Icon"
+	BGC.locale.showIconText = "Auswählen um im Tooltip vor dem Itemlink das jeweilige Icon anzuzeigen"
+	
 	
 	BGC.locale.showEarnedTitle = "Gewinn"
 	BGC.locale.showEarnedText = "Auswählen um im Tooltip die Zeile 'Verdientes Gold' anzuzeigen"
+	
+	BGC.locale.showLostTitle = "Verlust"
+	BGC.locale.showLostText = "Auswählen um im Tooltip die Zeile 'Verlorenes Gold' anzuzeigen"
 	
 	BGC.locale.warnContainersTitle = "Behälter"
 	BGC.locale.warnContainersText = "Wenn ausgewählt wird Broker_Garbage eine Warnung ausgeben, solltest du ungeöffnete Behälter bei dir haben."

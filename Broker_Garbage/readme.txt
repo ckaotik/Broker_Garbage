@@ -1,7 +1,7 @@
 Broker_Garbage
 ==============
 Author: ckaotik
-Version: 4.0v7
+Version: 4.0v8
 WoW Version: 4.0.3
 
 WoWInterface: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html

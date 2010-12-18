@@ -151,59 +151,72 @@ function BG:Tooltip(self)
     tooltipFont:SetFont(GameTooltipText:GetFont(), 11)
     tooltipFont:SetTextColor(255/255,176/255,25/255)
     
+    local lineNum
     -- add header lines
-    BG.tt:SetHeaderFont(tooltipHFont)
-    BG.tt:AddHeader('Broker_Garbage', '', BG.locale.headerRightClick)
+    lineNum = BG.tt:AddLine("Broker_Garbage", "", BG.locale.headerRightClick, colNum == 4 and "" or nil)
+    BG.tt:SetCell(lineNum, 1, "Broker_Garbage", tooltipHFont, 2)
+    BG.tt:SetCell(lineNum, 3, BG.locale.headerRightClick, tooltipFont, colNum - 2)
    
     -- add info lines
     BG.tt:SetFont(tooltipFont)
-    BG.tt:AddLine(BG.locale.headerShiftClick, '', BG.locale.headerCtrlClick)
-    BG.tt:AddSeparator(2)
+    lineNum = BG.tt:AddLine()
+    BG.tt:SetCell(lineNum, 1, BG.locale.headerShiftClick, tooltipFont, "LEFT", 2)
+    BG.tt:SetCell(lineNum, 3, BG.locale.headerCtrlClick, tooltipFont, "RIGHT", colNum - 2)
+    
+    lineNum = BG.tt:AddSeparator(2)
     
     -- add clam information
     if IsAddOnLoaded("Broker_Garbage-LootManager") then
-    	local line = false
         if BG_GlobalDB.openContainers and BG.containerInInventory then
             lineNum = BG.tt:AddLine()
             BG.tt:SetCell(lineNum, 1, BG.locale.openPlease, tooltipFont, "CENTER", colNum)
-            line = true
         end
         if BG_GlobalDB.openClams and BG.clamInInventory then
             lineNum = BG.tt:AddLine()
             BG.tt:SetCell(lineNum, 1, BG.locale.openClams, tooltipFont, "CENTER", colNum)
-            line = true
-        end
-        if line then
-        	BG.tt:AddSeparator(2)
         end
     end
+    if BG.tt:GetLineCount() > lineNum then
+    	BG.tt:AddSeperator(2)
+    end 
 	
     -- shows up to n lines of deletable items
-	local lineNum
     local cheapList = BG.cheapestItems or {}
     for i = 1, #cheapList do
         -- adds lines: itemLink, count, itemPrice, source
+        local _, link, _, _, _, _, _, _, _, icon, _ = GetItemInfo(cheapList[i].itemID)
         lineNum = BG.tt:AddLine(
-            select(2,GetItemInfo(cheapList[i].itemID)), 
+            (BG_GlobalDB.showIcon and "|T"..icon..":0|t " or "")..link, 
             cheapList[i].count,
-            BG:FormatMoney(cheapList[i].value),
-            (BG_GlobalDB.showSource and BG.tag[cheapList[i].source] or nil))
+            BG:FormatMoney(cheapList[i].value))
+
+        if colNum > 3 then
+	        BG.tt:SetCell(lineNum, 4, BG.tag[cheapList[i].source], "RIGHT", 1, 5, 0, 50, 10)
+	    end
+        
         BG.tt:SetLineScript(lineNum, "OnMouseDown", BG.OnClick, cheapList[i])
     end
-    if lineNum == nil then 
-        BG.tt:AddLine(BG.locale.noItems, '', BG.locale.increaseTreshold)
+    if #cheapList == 0 then 
+    	lineNum = BG.tt:AddLine(BG.locale.noItems, "", BG.locale.increaseTreshold, colNum == 4 and "" or nil)
+    	BG.tt:SetCell(lineNum, 1, BG.locale.noItems, tooltipFont, "CENTER", colNum)
+    	lineNum = BG.tt:AddLine("", "", "", colNum == 4 and "" or nil)
+    	BG.tt:SetCell(lineNum, 1, BG.locale.increaseTreshold, tooltipFont, "CENTER", colNum)
     end
     
     -- add statistics information
     if (BG_GlobalDB.showLost and BG_LocalDB.moneyLostByDeleting ~= 0)
         or (BG_GlobalDB.showEarned and BG_LocalDB.moneyEarned ~= 0) then
-        BG.tt:AddSeparator(2)
+        lineNum = BG.tt:AddSeparator(2)
         
         if BG_LocalDB.moneyLostByDeleting ~= 0 then
-            BG.tt:AddLine(BG.locale.moneyLost, '', BG:FormatMoney(BG_LocalDB.moneyLostByDeleting))
+            lineNum = BG.tt:AddLine(BG.locale.moneyLost, "", BG:FormatMoney(BG_LocalDB.moneyLostByDeleting), colNum == 4 and "" or nil)
+            BG.tt:SetCell(lineNum, 1, BG.locale.moneyLost, tooltipFont, "LEFT", 2)
+            BG.tt:SetCell(lineNum, 3, BG:FormatMoney(BG_LocalDB.moneyLostByDeleting), tooltipFont, "RIGHT", colNum - 2)
         end
         if BG_LocalDB.moneyEarned ~= 0 then
-            BG.tt:AddLine(BG.locale.moneyEarned, '', BG:FormatMoney(BG_LocalDB.moneyEarned))
+            lineNum = BG.tt:AddLine(BG.locale.moneyEarned, "", BG:FormatMoney(BG_LocalDB.moneyEarned), colNum == 4 and "" or nil)
+            BG.tt:SetCell(lineNum, 1, BG.locale.moneyEarned, tooltipFont, "LEFT", 2)
+            BG.tt:SetCell(lineNum, 3, BG:FormatMoney(BG_LocalDB.moneyEarned), tooltipFont, "RIGHT", colNum - 2)
         end
     end
     
@@ -216,10 +229,8 @@ function BG:Tooltip(self)
     BG.tt:UpdateScrolling(BG_GlobalDB.tooltipMaxHeight)
 end
 
--- onClick function - works for both, the LDB plugin -and- tooltip lines
+-- OnClick function - works for both, the LDB plugin -and- tooltip lines
 function BG:OnClick(itemTable, button)
-	BG.debug1 = itemTable
-	BG.debug2 = button
     -- handle LDB clicks seperately
     local LDBclick = false
     if not itemTable or not itemTable.itemID or type(itemTable.itemID) ~= "number" then

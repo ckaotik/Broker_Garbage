@@ -86,14 +86,17 @@ BGC.locale = {
 	autoRepairGuildTitle = "No Guild Repair", 
 	autoRepairGuildText = "Check to never repair using guild funds.",
 	
-	showLostTitle = "Lost",
-	showLostText = "Check to show the character's lost money on the tooltip",
-	
-	showSourceTitle = "Price Source",
+	showSourceTitle = "Source",
 	showSourceText = "Check to show the last column in the tooltip, displaying the item value source.",
+	
+	showIconTitle = "Icon",
+	showIconText = "Check to show the item's icon in front of the item link on the tooltip.",
 	
 	showEarnedTitle = "Earned",
 	showEarnedText = "Check to show the character's earned money (by selling junk items).",
+	
+	showLostTitle = "Lost",
+	showLostText = "Check to show the character's lost money on the tooltip",
 	
 	warnContainersTitle = "Containers",
 	warnContainersText = "When checked, Broker_Garbage will warn you of unopened containers.",

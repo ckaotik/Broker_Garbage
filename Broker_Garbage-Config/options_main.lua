@@ -7,7 +7,7 @@ local function Options_BasicOptions(pluginID)
 	behavior:SetHeight(190); behavior:SetWidth(180)
 	behavior:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 	
-	local sell = LibStub("tekKonfig-Checkbox").new(behavior, nil, BGC.locale.autoSellTitle, "TOPLEFT", behavior, "TOPLEFT", 4, -2)
+	local sell = BGC.CreateCheckBox(behavior, nil, BGC.locale.autoSellTitle, "TOPLEFT", behavior, "TOPLEFT", 4, -2)
 	sell.tiptext = BGC.locale.autoSellText .. BGC.locale.GlobalSetting
 	sell:SetChecked( Broker_Garbage:GetOption("autoSellToVendor", true) )
 	local checksound = sell:GetScript("OnClick")
@@ -16,7 +16,7 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("autoSellToVendor", true)
 	end)
 	
-	local nothingToSell = LibStub("tekKonfig-Checkbox").new(behavior, nil, BGC.locale.showNothingToSellTitle, "TOPLEFT", sell, "BOTTOMLEFT", 14, 4)
+	local nothingToSell = BGC.CreateCheckBox(behavior, nil, BGC.locale.showNothingToSellTitle, "TOPLEFT", sell, "BOTTOMLEFT", 14, 4)
 	nothingToSell.tiptext = BGC.locale.showNothingToSellText .. BGC.locale.GlobalSetting
 	nothingToSell:SetChecked( Broker_Garbage:GetOption("reportNothingToSell", true) )
 	local checksound = nothingToSell:GetScript("OnClick")
@@ -25,7 +25,7 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("reportNothingToSell", true)
 	end)
 	
-	local repair = LibStub("tekKonfig-Checkbox").new(behavior, nil, BGC.locale.autoRepairTitle, "TOPLEFT", nothingToSell, "BOTTOMLEFT", -14, 4)
+	local repair = BGC.CreateCheckBox(behavior, nil, BGC.locale.autoRepairTitle, "TOPLEFT", nothingToSell, "BOTTOMLEFT", -14, 4)
 	repair.tiptext = BGC.locale.autoRepairText .. BGC.locale.GlobalSetting
 	repair:SetChecked( Broker_Garbage:GetOption("autoRepairAtVendor", true) )
 	local checksound = repair:GetScript("OnClick")
@@ -34,7 +34,7 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("autoRepairGuildTitle", true)
 	end)
 
-	local guildrepair = LibStub("tekKonfig-Checkbox").new(behavior, nil, BGC.locale.autoRepairGuildTitle, "TOPLEFT", repair, "BOTTOMLEFT", 14, 4)
+	local guildrepair = BGC.CreateCheckBox(behavior, nil, BGC.locale.autoRepairGuildTitle, "TOPLEFT", repair, "BOTTOMLEFT", 14, 4)
 	guildrepair.tiptext = BGC.locale.autoRepairGuildText
 	guildrepair:SetChecked( Broker_Garbage:GetOption("neverRepairGuildBank", true) )
 	local checksound = guildrepair:GetScript("OnClick")
@@ -43,7 +43,7 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("neverRepairGuildBank", true)
 	end)
 	
-	local sellGear = LibStub("tekKonfig-Checkbox").new(behavior, nil, BGC.locale.sellNotUsableTitle, "TOPLEFT", guildrepair, "BOTTOMLEFT", -14, 4)
+	local sellGear = BGC.CreateCheckBox(behavior, nil, BGC.locale.sellNotUsableTitle, "TOPLEFT", guildrepair, "BOTTOMLEFT", -14, 4)
 	sellGear.tiptext = BGC.locale.sellNotUsableText .. BGC.locale.GlobalSetting
 	sellGear:SetChecked( Broker_Garbage:GetOption("sellNotWearable", true) )
 	local checksound = sellGear:GetScript("OnClick")
@@ -53,7 +53,7 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ScanInventory()
 	end)
 	
-	local enchanter = LibStub("tekKonfig-Checkbox").new(behavior, nil, BGC.locale.enchanterTitle, "TOPLEFT", sellGear, "BOTTOMLEFT", 0, 4)
+	local enchanter = BGC.CreateCheckBox(behavior, nil, BGC.locale.enchanterTitle, "TOPLEFT", sellGear, "BOTTOMLEFT", 0, 4)
 	enchanter.tiptext = BGC.locale.enchanterTooltip .. BGC.locale.GlobalSetting
 	enchanter:SetChecked( Broker_Garbage:GetOption("hasEnchanter", true) )
 	local checksound = enchanter:GetScript("OnClick")
@@ -164,7 +164,7 @@ local function Options_BasicOptions(pluginID)
 	display:SetHeight(150); display:SetWidth(180)
 	display:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
-	local sellIcon = LibStub("tekKonfig-Checkbox").new(display, nil, BGC.locale.showAutoSellIconTitle, "TOPLEFT", display, "TOPLEFT", 4, -2)
+	local sellIcon = BGC.CreateCheckBox(display, nil, BGC.locale.showAutoSellIconTitle, "TOPLEFT", display, "TOPLEFT", 4, -2)
 	sellIcon.tiptext = BGC.locale.showAutoSellIconText .. BGC.locale.GlobalSetting
 	sellIcon:SetChecked( Broker_Garbage:GetOption("showAutoSellIcon", true) )
 	local checksound = sellIcon:GetScript("OnClick")
@@ -304,7 +304,7 @@ local function Options_BasicOptions(pluginID)
 	tooltip:SetHeight(140); tooltip:SetWidth(180)
 	tooltip:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
-	local showSource = LibStub("tekKonfig-Checkbox").new(tooltip, nil, BGC.locale.showSourceTitle, "TOPLEFT", tooltip, "TOPLEFT", 4, -2)
+	local showSource = BGC.CreateCheckBox(tooltip, nil, BGC.locale.showSourceTitle, "TOPLEFT", tooltip, "TOPLEFT", 4, -2)
 	showSource.tiptext = BGC.locale.showSourceText .. BGC.locale.GlobalSetting
 	showSource:SetChecked( Broker_Garbage:GetOption("showSource", true) )
 	local checksound = showSource:GetScript("OnClick")
@@ -313,7 +313,16 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("showSource", true)
 	end)
 	
-	local showEarned = LibStub("tekKonfig-Checkbox").new(tooltip, nil, BGC.locale.showEarnedTitle, "TOPLEFT", showSource, "BOTTOMLEFT", 0, 4)
+	local showIcon = BGC.CreateCheckBox(tooltip, nil, BGC.locale.showIconTitle, "LEFT", showSource, "RIGHT", 70, 0)
+	showIcon.tiptext = BGC.locale.showIconText .. BGC.locale.GlobalSetting
+	showIcon:SetChecked( Broker_Garbage:GetOption("showIcon", true) )
+	local checksound = showIcon:GetScript("OnClick")
+	showIcon:SetScript("OnClick", function(showIcon)
+		checksound(showIcon)
+		Broker_Garbage:ToggleOption("showIcon", true)
+	end)
+	
+	local showEarned = BGC.CreateCheckBox(tooltip, nil, BGC.locale.showEarnedTitle, "TOPLEFT", showSource, "BOTTOMLEFT", 0, 4)
 	showEarned.tiptext = BGC.locale.showEarnedText .. BGC.locale.GlobalSetting
 	showEarned:SetChecked( Broker_Garbage:GetOption("showEarned", true) )
 	local checksound = showEarned:GetScript("OnClick")
@@ -322,7 +331,7 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("showEarned", true)
 	end)
 	
-	local showLost = LibStub("tekKonfig-Checkbox").new(tooltip, nil, BGC.locale.showLostTitle, "LEFT", showEarned, "RIGHT", 70, 0) -- "TOPLEFT", showEarned, "BOTTOMLEFT", 0, 4)
+	local showLost = BGC.CreateCheckBox(tooltip, nil, BGC.locale.showLostTitle, "LEFT", showEarned, "RIGHT", 70, 0) -- "TOPLEFT", showEarned, "BOTTOMLEFT", 0, 4)
 	showLost.tiptext = BGC.locale.showLostText .. BGC.locale.GlobalSetting
 	showLost:SetChecked( Broker_Garbage:GetOption("showLost", true) )
 	local checksound = showLost:GetScript("OnClick")
@@ -331,7 +340,7 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("showLost", true)
 	end)
 	
-	local showContainers = LibStub("tekKonfig-Checkbox").new(tooltip, nil, BGC.locale.warnContainersTitle, "TOPLEFT", showEarned, "BOTTOMLEFT", 0, 4)
+	local showContainers = BGC.CreateCheckBox(tooltip, nil, BGC.locale.warnContainersTitle, "TOPLEFT", showEarned, "BOTTOMLEFT", 0, 4)
 	showContainers.tiptext = BGC.locale.warnContainersText .. BGC.locale.GlobalSetting
 	showContainers:SetChecked( Broker_Garbage:GetOption("showLost", true) )
 	local checksound = showContainers:GetScript("OnClick")
@@ -340,7 +349,7 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("showContainers", true)
 	end)
 	
-	local showClams = LibStub("tekKonfig-Checkbox").new(tooltip, nil, BGC.locale.warnClamsTitle, "LEFT", showContainers, "RIGHT", 70, 0)
+	local showClams = BGC.CreateCheckBox(tooltip, nil, BGC.locale.warnClamsTitle, "LEFT", showContainers, "RIGHT", 70, 0)
 	showClams.tiptext = BGC.locale.warnClamsText .. BGC.locale.GlobalSetting
 	showClams:SetChecked( Broker_Garbage:GetOption("showLost", true) )
 	local checksound = showClams:GetScript("OnClick")

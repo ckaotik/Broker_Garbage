@@ -293,7 +293,6 @@ end
 -- return true if item is found in LPT/Equipment list, nil otherwise
 function BG:IsItemInList(itemID, itemList)
 	local temp
-	
 	if type(itemList) == "string" and string.match(itemList, "^BEQ_(%d+)") then
 		-- equipment set
 		local setID = string.match(itemList, "^BEQ_(%d+)")

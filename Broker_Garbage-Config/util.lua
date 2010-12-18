@@ -120,6 +120,13 @@ function BGC.CreateFrameBorders(frame)
 	return left, center, right
 end
 
+function BGC.CreateCheckBox(parent, size, text, ...)
+	local check, label = LibStub("tekKonfig-Checkbox").new(parent, size, text, ...)
+	check:SetHitRectInsets(0, -1 * label:GetStringWidth(), 0, 0)
+	
+	return check, label
+end
+
 local topTab = LibStub("tekKonfig-TopTab")
 function BGC:CreateOptionsTab(id)
 	if not id then BGC:Print("Error creating options tab: No id supplied."); return end

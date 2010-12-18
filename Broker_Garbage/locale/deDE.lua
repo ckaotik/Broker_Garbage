@@ -5,6 +5,9 @@ if GetLocale() == "deDE" then
 	BG.locale.label = "Kein Müll"
 	
 	-- Chat Messages
+	BG.locale.addedTo_exclude = "%s zur Behalten-Liste hinzugefügt."
+	BG.locale.addedTo_forceVendorPrice = "Für %s wird nun nur der Händlerpreis genutzt."
+	
 	BG.locale.reportNothingToSell = "Nichts zu verkaufen!"
 	BG.locale.sell = "Müll verkauft für %s."
 	BG.locale.sellAndRepair = "Müll für %1$s verkauft, repariert für %2$s. Änderung: %3$s."

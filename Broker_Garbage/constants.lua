@@ -45,6 +45,7 @@ BG.defaultGlobalSettings = {
 	LDBNoJunk = BG.locale.label,
 	
 	-- tooltip
+	showIcon = true,
 	showLost = true,
 	showEarned = true,
 	showSource = false,

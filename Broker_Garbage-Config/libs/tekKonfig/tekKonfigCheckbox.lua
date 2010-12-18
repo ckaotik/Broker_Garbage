@@ -41,8 +41,6 @@ function lib.new(parent, size, label, ...)
 	local fs = check:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
 	fs:SetPoint("LEFT", check, "RIGHT", 0, 1)
 	fs:SetText(label)
-	
-	check:SetHitRectInsets(0, -1 * fs:GetStringWidth(), 0, 0)
 
 	return check, fs
 end

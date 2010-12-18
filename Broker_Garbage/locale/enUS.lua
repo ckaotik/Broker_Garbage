@@ -5,6 +5,9 @@ BG.locale = {
 	label = "Junk, be gone!",
 		
 	-- Chat Messages
+	addedTo_exclude = "%s has been added to the Keep List.",
+	addedTo_forceVendorPrice = "%s will only have its vendor price considered.",
+	
 	reportNothingToSell = "Nothing to sell!",
 	sell = "Sold trash for %s.",
 	sellAndRepair = "Sold trash for %1$s, repaired for %2$s. Change: %3$s.",
