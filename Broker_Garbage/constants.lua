@@ -15,6 +15,7 @@ BG.defaultGlobalSettings = {
 	autoRepairAtVendor = true,
 	sellNotWearable = false,
 	sellOldGear = false,			-- TODO: to be used with TopFit
+	showSellLog = false,
 	
 	disableKey = "SHIFT",
 	autoSellIncludeItems = false,	-- toggle include list being sell list as well

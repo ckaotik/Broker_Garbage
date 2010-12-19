@@ -443,8 +443,8 @@ function BG:GetSingleItemValue(item)
        	return nil
 	end
 
-	-- ignore AH prices for gray items
-    if not itemQuality or itemQuality == 0 then
+	-- ignore AH prices for gray items and soulbound items
+    if not itemQuality or itemQuality == 0 or BG:IsItemSoulbound(itemLink) then
         return vendorPrice, vendorPrice and BG.VENDOR
     end
 	
@@ -591,8 +591,11 @@ function BG:Delete(item, position)
     end
 
     -- security check
-    if not cursorType and GetContainerItemID(position[1] or item.bag, position[2] or item.slot) ~= itemID then
+    local bag = position[1] or item.bag
+    local slot = position[2] or item.slot
+    if not cursorType and (not (bag and slot) or GetContainerItemID(bag, slot) ~= itemID) then
         BG:Print("Error! Item to be deleted is not the expected item.")
+        BG:Debug("I got these parameters:", item, bag, slot)
         return
     end
     
@@ -601,16 +604,10 @@ function BG:Delete(item, position)
         ClearCursor()
     end
     
-    if not cursorType and (not position or type(position) ~= "table") then
-        BG:Print("Error! No position given to delete from.")
-        return
-    
-    else
-        _, itemCount = GetContainerItemInfo(position[1], position[2])
-    end
+    _, itemCount = GetContainerItemInfo(bag, slot)
     
     -- actual deleting happening after this
-    securecall(PickupContainerItem, position[1], position[2])
+    securecall(PickupContainerItem, bag, slot)
     securecall(DeleteCursorItem)					-- comment this line to prevent item deletion
     
     local itemValue = (BG:GetCached(itemID).value or 0) * itemCount	-- if an item is unknown to the cache, statistics will not change
@@ -823,6 +820,9 @@ function BG:AutoSell()
                         BG:Debug("Selling", itemID)
                         ClearCursor()
                         UseContainerItem(container, slot)
+                        if BG_GlobalDB.showSellLog then
+                        	BG:Print(BG.locale.sellItem, itemLink, count, BG:FormatMoney(count * value))
+                        end
                         
                         sellValue = sellValue + (count * value)
                         -- update statistics

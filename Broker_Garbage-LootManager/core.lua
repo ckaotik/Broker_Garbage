@@ -331,9 +331,8 @@ function BGLM.SelectiveLooting(autoloot)	-- jwehgH"G$(&/&§$/!!" stupid . vs. : 
 							BGLM:Debug("Item can be made to fit.", itemLink)
 							lootAction = "deletePartial"
 						
-						elseif BGLM_LocalDB.autoDestroy and 
-							(((alwaysLoot or prepareSkinning) and compareTo) or 
-							(compareTo and value > compareTo.value)) then
+						elseif BGLM_LocalDB.autoDestroy and compareTo and compareTo.value and 
+							(alwaysLoot or prepareSkinning or value > compareTo.value) then
 							-- delete only if it's worth more, if it's an item we really need or if we want to skin the mob
 							BGLM:Debug("Deleting item", compareTo.itemLink, "to make room for", itemLink)
 							lootAction = "delete"

@@ -9,6 +9,7 @@ BG.locale = {
 	addedTo_forceVendorPrice = "%s will only have its vendor price considered.",
 	
 	reportNothingToSell = "Nothing to sell!",
+	sellItem = "Sold %1$sx%2$d for %3$s.",
 	sell = "Sold trash for %s.",
 	sellAndRepair = "Sold trash for %1$s, repaired for %2$s. Change: %3$s.",
 	repair = "Repaired for %s.",

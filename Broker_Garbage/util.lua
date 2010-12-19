@@ -424,8 +424,8 @@ function BG:UpdateCache(itemID)
 	end
 	
 	-- save to items cache
-	if not class or not quality then
-		BG:Debug("Error! Caching item "..itemID.." failed!")
+	if not class or not quality or not value then
+		BG:Debug("Error! Caching item "..itemID.." failed!", class, quality, value)
 		return
 	end
 	if not BG.itemsCache[itemID] then
