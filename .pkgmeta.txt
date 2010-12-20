@@ -1,0 +1,15 @@
+package-as: Broker_Garbage
+
+move-folders:
+  Broker_Garbage: Broker_Garbage
+  Broker_Garbage-Config: Broker_Garbage-Config
+  Broker_Garbage-LootManager: Broker_Garbage-LootManager
+
+optional-dependencies:
+  - libperiodictable-3-1
+
+enable-nolib-creation: no
+
+ignore:
+  - .gitignore
+  - .pkgmeta
