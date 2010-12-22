@@ -31,7 +31,7 @@ local function Options_BasicOptions(pluginID)
 	local checksound = repair:GetScript("OnClick")
 	repair:SetScript("OnClick", function(repair)
 		checksound(repair)
-		Broker_Garbage:ToggleOption("autoRepairGuildTitle", true)
+		Broker_Garbage:ToggleOption("autoRepairAtVendor", true)
 	end)
 
 	local guildrepair = BGC.CreateCheckBox(behavior, nil, BGC.locale.autoRepairGuildTitle, "TOPLEFT", repair, "BOTTOMLEFT", 14, 4)

@@ -2,9 +2,7 @@ local _, BG = ...
 
 -- default saved variables
 BG.defaultGlobalSettings = {
-	-- lists: key/value tables with
-	-- 		key 	- 	either an itemID -or- a LibPeriodicTable category string
-	--		value 	- 	true -or- int:limit
+	-- lists
 	exclude = {},				-- Keep List
 	include = {},				-- Junk List
 	autoSellList = {},			-- Sell List
