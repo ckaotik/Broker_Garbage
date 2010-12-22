@@ -1,9 +1,9 @@
-package-as: Garbage
+package-as: Broker_Garbage
 
 move-folders:
- Garbage/Broker_Garbage: Broker_Garbage
- Garbage/Broker_Garbage-Config: Broker_Garbage-Config
- Garbage/Broker_Garbage-LootManager: Broker_Garbage-LootManager
+ Broker_Garbage/Broker_Garbage-Config: Broker_Garbage-Config
+ Broker_Garbage/Broker_Garbage-LootManager: Broker_Garbage-LootManager
+ Broker_Garbage/Broker_Garbage: Broker_Garbage
 
 optional-dependencies:
  - libperiodictable-3-1
