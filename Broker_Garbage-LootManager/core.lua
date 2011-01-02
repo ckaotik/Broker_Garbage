@@ -301,7 +301,8 @@ function BGLM.SelectiveLooting(autoloot)	-- jwehgH"G$(&/&§$/!!" stupid . vs. : 
 			local _, _, quantity,  quality, locked = GetLootSlotInfo(slot)
 			local itemLink = GetLootSlotLink(slot)
 			local itemID = BGLM:GetItemID(itemLink)
-			local compareTo = select(1, Broker_Garbage:GetVariable("cheapestItems"))
+			local compareTo = Broker_Garbage:GetVariable("cheapestItems")
+			compareTo = compareTo and compareTo[1] or nil
 			
 			if itemLink then	-- needed because faulty loot slots or slots that contain money break things
 				local value = Broker_Garbage:GetItemValue(itemLink, quantity) or 0
