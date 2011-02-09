@@ -5,7 +5,7 @@ Broker_Garbage - Loot Manager
 
 Author: ckaotik
 Version: 4.0v8
-WoW Version: 4.0.3
+WoW Version: 4.0.6
 
 WoWInterface: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 Curse:        http://wow.curse.com/downloads/wow-addons/details/broker_garbage.aspx

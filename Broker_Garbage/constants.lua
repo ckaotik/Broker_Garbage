@@ -134,11 +134,7 @@ BG.usableGear = {
 	[armorTypes[4]] = {"DEATHKNIGHT", "HUNTER", "PALADIN", "SHAMAN", "WARRIOR"},		-- mail
 	[armorTypes[5]] = {"DEATHKNIGHT", "PALADIN", "WARRIOR"},		-- plate
 	[armorTypes[6]] = {"PALADIN", "SHAMAN", "WARRIOR"},		-- shields
-	[armorTypes[7]] = {"PALADIN"},		-- [old] librams
-	[armorTypes[8]] = {"DRUID"},		-- [old] relic
-	[armorTypes[9]] = {"SHAMAN"},		-- [old] totems
-	[armorTypes[10]] = {"DEATHKNIGHT"},	-- [old] seal
-	[armorTypes[11]] = {"DEATHKNIGHT", "DRUID", "PALADIN", "SHAMAN"},	-- [new] relic
+	[armorTypes[7]] = {"DEATHKNIGHT", "DRUID", "PALADIN", "SHAMAN"},	-- relic
 	
 	[weaponTypes[1]] = {"DEATHKNIGHT", "HUNTER", "PALADIN", "ROGUE", "SHAMAN", "WARRIOR"},	-- 1H axes
 	[weaponTypes[2]] = {"DEATHKNIGHT", "HUNTER", "PALADIN", "SHAMAN", "WARRIOR"},	-- 2H axes

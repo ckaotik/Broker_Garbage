@@ -24,23 +24,7 @@ local function eventHandler(self, event, arg1, ...)
 
 	elseif event == "LOOT_OPENED" then
 		-- restack inventory
-		if BGLM_GlobalDB.restackInventory then
-			local numSlots = 0
-			local justStacked = {}
-			
-			for container = 0, 4 do
-				numSlots = GetContainerNumSlots(container)
-				if numSlots then
-					for slot = 1, numSlots do
-						local itemID = GetContainerItemID(container,slot)
-						if itemID and not BGLM:Find(justStacked, itemID) then
-							BGLM:Restack(itemID)
-							table.insert(justStacked, itemID)
-						end
-					end
-				end
-			end
-		end
+		BGLM.DoFullRestack()
 		
 		-- looting
 		local disable = Broker_Garbage:GetVariable("disableKey")
@@ -81,6 +65,27 @@ frame:RegisterEvent("LOOT_OPENED")
 frame:SetScript("OnEvent", eventHandler)
 
 -- ---------------------------------------------------------
+-- initialize full inventory restacking, if the settings allow for it
+function BGLM.DoFullRestack()
+	if BGLM_GlobalDB.restackInventory then
+		local numSlots = 0
+		local justStacked = {}
+		
+		for container = 0, 4 do
+			numSlots = GetContainerNumSlots(container)
+			if numSlots then
+				for slot = 1, numSlots do
+					local itemID = GetContainerItemID(container,slot)
+					if itemID and not BGLM:Find(justStacked, itemID) then
+						BGLM:Restack(itemID)
+						table.insert(justStacked, itemID)
+					end
+				end
+			end
+		end
+	end
+end
+
 -- restacks items so when deleting you lose as few items as possible
 function BGLM.Restack(itemID)
 	if BGLM.currentRestackItems then
@@ -153,7 +158,7 @@ function BGLM:DeletePartialStack(itemID, num)
 	end
 end
 
--- returns true if the requested mob is skinnable with our skill
+-- returns true if the requested mob is skinnable with our skinning skill
 function BGLM:CanSkin(mobLevel)
 	local skinning = Broker_Garbage:GetProfessionSkill(8613)
 	if not skinning then return false end

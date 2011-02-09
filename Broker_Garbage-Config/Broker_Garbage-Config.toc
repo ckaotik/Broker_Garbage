@@ -4,7 +4,7 @@
 
 ## Title: Broker_Garbage-Config
 ## Author: ckaotik
-## Version: 4.0v8
+## Version: 4.0v10
 
 ## LoadOnDemand: 1
 ## LoadManagers: AddonLoader, Addon Control Panel
