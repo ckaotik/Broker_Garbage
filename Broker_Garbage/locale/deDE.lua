@@ -9,6 +9,7 @@ if GetLocale() == "deDE" then
 	BG.locale.addedTo_forceVendorPrice = "Für %s wird nun nur der Händlerpreis genutzt."
 	
 	BG.locale.reportNothingToSell = "Nichts zu verkaufen!"
+	BG.locale.reportCannotSell = "Dieser Händler kauft nichts."
 	BG.locale.sellItem = "%1$sx%2$d für %3$s verkauft."
 	BG.locale.sell = "Müll verkauft für %s."
 	BG.locale.sellAndRepair = "Müll für %1$s verkauft, repariert für %2$s. Änderung: %3$s."

@@ -1,4 +1,4 @@
---[[ Copyright (c) 2010, ckaotik
+--[[ Copyright (c) 2010-2011, ckaotik
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -16,7 +16,8 @@ BG.PT = LibStub("LibPeriodicTable-3.1", true)	-- don't scream if LPT isn't prese
 -- internal variables
 local locked = false				-- set to true while selling stuff
 local sellValue = 0					-- represents the actual value that we sold stuff for
-local cost = 0						-- the amount of money that we repaired for
+local repairCost = 0				-- the amount of money that we repaired for
+local itemCount = 0                 -- number of items we sold
 
 -- Event Handler
 -- ---------------------------------------------------------
@@ -28,9 +29,10 @@ local function eventHandler(self, event, arg1, ...)
 
 	    -- some default values initialization
 	    BG.isAtVendor = false
+	    BG.sellLog = {}
 	    BG.totalBagSpace = 0
 	    BG.totalFreeSlots = 0
-
+	    
 	    -- inventory database
 	    BG.itemsCache = {}
 	    BG.clamInInventory = false
@@ -66,40 +68,44 @@ local function eventHandler(self, event, arg1, ...)
         end
     
     elseif event == "AUCTION_HOUSE_CLOSED" then
-        -- Update cached auction values if needed
+        -- Update cached auction values in case anything changed
         BG.itemsCache = {}
     
-    elseif (locked or cost ~=0) and event == "PLAYER_MONEY" then -- regular unlock
-        -- wrong player_money event (resulting from repair, not sell)
-        if sellValue ~= 0 and cost ~= 0 and ((-1)*sellValue <= cost+2 and (-1)*sellValue >= cost-2) then 
-            BG:Debug("Not yet ... Waiting for actual money change.")
+    elseif (locked or repairCost ~=0) and event == "PLAYER_MONEY" then -- regular unlock
+        if sellValue ~= 0 and repairCost ~= 0 and ((-1)*sellValue <= repairCost+2 and (-1)*sellValue >= repairCost-2) then
+            -- wrong player_money event (resulting from repair, not sell)
+            BG:Debug("Not yet ... Waiting for relevant money change.")
             return 
         end
         
-        if sellValue ~= 0 and cost ~= 0 and BG_GlobalDB.autoRepairAtVendor and BG_GlobalDB.autoSellToVendor then
-            -- repair & auto-sell
+        -- print transaction information
+        if BG.didSell and BG.didRepair then
             BG:Print(format(BG.locale.sellAndRepair, 
                     BG:FormatMoney(sellValue), 
-                    BG:FormatMoney(cost), 
-                    BG:FormatMoney(sellValue - cost)
+                    BG:FormatMoney(repairCost), 
+                    BG:FormatMoney(sellValue - repairCost)
             ))
-            sellValue = 0
-            cost = 0
-            
-        elseif cost ~= 0 and BG_GlobalDB.autoRepairAtVendor then
-            -- repair only
-            BG:Print(format(BG.locale.repair, BG:FormatMoney(cost)))
-            cost = 0
-            
-        elseif sellValue ~= 0 and BG_GlobalDB.autoSellToVendor then
-            -- autosell only
-            BG:Print(format(BG.locale.sell, BG:FormatMoney(sellValue)))
-            sellValue = 0
-        
+        elseif BG.didRepair then
+            BG:Print(format(BG.locale.repair, BG:FormatMoney(repairCost)))
+        elseif BG.didSell then
+            BG.FinishSelling()
         end
+        
+        BG.didSell, BG.didRepair = nil, nil
+        sellValue, itemCount, repairCost = 0, 0, 0
         
         locked = false
         BG:Debug("Regular Unlock: Money received, scan lock released.")
+    elseif event == "UI_ERROR_MESSAGE" and arg1 and arg1 == ERR_VENDOR_DOESNT_BUY then
+        -- this merchant does not buy things! Revert any statistics changes
+        --BG_LocalDB.moneyEarned  = BG_LocalDB.moneyEarned    - sellValue
+        --BG_GlobalDB.moneyEarned = BG_GlobalDB.moneyEarned   - sellValue
+        --BG_GlobalDB.itemsSold   = BG_GlobalDB.itemsSold     - itemCount
+        
+        BG.didSell = nil
+        sellValue, itemCount = 0, 0
+        
+        BG:Print(BG.locale.reportCannotSell)
     end	
 end
 
@@ -110,6 +116,7 @@ frame:RegisterEvent("MERCHANT_SHOW")
 frame:RegisterEvent("MERCHANT_CLOSED")
 frame:RegisterEvent("AUCTION_HOUSE_CLOSED")
 frame:RegisterEvent("PLAYER_MONEY")
+frame:RegisterEvent("UI_ERROR_MESSAGE")
 
 frame:SetScript("OnEvent", eventHandler)
 
@@ -769,7 +776,9 @@ end
 -- ---------------------------------------------------------
 -- when at a merchant this will clear your bags of junk (gray quality) and items on your autoSellList
 function BG:AutoSell()
-    if not BG.isAtVendor then return end
+    if not BG.isAtVendor then
+        return
+    end
     
     if self == _G["BG_SellIcon"] then
         BG:Debug("AutoSell was triggered by a click on Sell Icon.")
@@ -778,10 +787,19 @@ function BG:AutoSell()
         -- we're not supposed to sell. jump out
         return
     end
+    
+    BG.PrepareAutoSell()
+    BG.GatherSellStatistics()
+    BG.FinishSelling(self == _G["BG_SellIcon"])
+end
+
+function BG.PrepareAutoSell()
     local sell, classification
     local item, itemID, value, count, numSlots
-    sellValue = 0
     
+    wipe(BG.sellLog)    -- reset data for refilling
+    
+    sellValue = 0
     for container = 0, 4 do
         numSlots = GetContainerNumSlots(container)
         if numSlots then
@@ -791,52 +809,62 @@ function BG:AutoSell()
                 
                 if itemLink and BG:GetCached(itemID) then
                     item 	= BG:GetCached(itemID)
-                    value 	= item.value
+                    value 	= item.value        -- single item value
                     
                     sell = false
                     -- various cases that have us sell this item
-                    if item.classification == BG.UNUSABLE then
-                        if BG_GlobalDB.sellNotWearable and item.quality <= BG_GlobalDB.sellNWQualityTreshold then 
+                    if item.classification == BG.UNUSABLE
+                        and BG_GlobalDB.sellNotWearable and item.quality <= BG_GlobalDB.sellNWQualityTreshold then 
                             sell = true
-                        end
-                    
                     elseif item.classification == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems then
                         sell = true
-                    
                     elseif item.classification == BG.SELL then
                         sell = true
-                    
                     elseif item.classification ~= BG.EXCLUDE and item.quality == 0 then
                         sell = true
                     end
                     
-                    -- Actual Selling
+                    -- mark item for selling
                     if value ~= 0 and sell then
                         if not locked then					
                             BG:Debug("Inventory scans locked")
                             locked = true
                         end
                         
-                        BG:Debug("Selling", itemID)
+                        BG:Debug("Selling", data.item)
+
                         ClearCursor()
-                        UseContainerItem(container, slot)
-                        if BG_GlobalDB.showSellLog then
-                        	BG:Print(BG.locale.sellItem, itemLink, count, BG:FormatMoney(count * value))
-                        end
-                        
-                        sellValue = sellValue + (count * value)
-                        -- update statistics
-                        BG_GlobalDB.moneyEarned = BG_GlobalDB.moneyEarned + (count * value)
-                        BG_LocalDB.moneyEarned = BG_LocalDB.moneyEarned + (count * value)
-                        BG_GlobalDB.itemsSold = BG_GlobalDB.itemsSold + count
+                        UseContainerItem(data.container, data.slot)
+                        table.insert(BG.sellLog, {container = container, slot = slot, item = itemLink, count = count, value = value})
                     end
                 end
             end
         end
     end
-    
+    if locked then BG.didSell = true end    -- otherwise we didn't sell anything
+end
+
+function BG.GatherSellStatistics()
+    if not BG.didSell then return end       -- in case something went wrong, e.g. merchant doesn't buy
+    sellValue, itemCount = 0, 0
+    for _, data in ipairs(BG.sellLog) do
+        if BG_GlobalDB.showSellLog then
+        	BG:Print(BG.locale.sellItem, data.item, data.count, BG:FormatMoney(data.count * data.value))
+        end
+        
+        sellValue = sellValue + (data.count * data.value)
+        itemCount = itemCount + data.count
+    end
+
+    -- update statistics
+    BG_LocalDB.moneyEarned  = BG_LocalDB.moneyEarned    + sellValue
+    BG_GlobalDB.moneyEarned = BG_GlobalDB.moneyEarned   + sellValue
+    BG_GlobalDB.itemsSold   = BG_GlobalDB.itemsSold     + itemCount
+end
+
+function BG.FinishSelling(isUserStarted)
     -- create output if needed
-    if self == _G["BG_SellIcon"] then
+    if isUserStarted then
         if sellValue == 0 and BG_GlobalDB.reportNothingToSell then
             BG:Print(BG.locale.reportNothingToSell)
         elseif sellValue ~= 0 and not BG_GlobalDB.autoSellToVendor then
@@ -844,27 +872,29 @@ function BG:AutoSell()
         end
         _G["BG_SellIcon"]:GetNormalTexture():SetDesaturated(true)
     end
-	BG:UpdateRepairButton()
+    
+    BG:UpdateRepairButton()
 end
 
 -- automatically repair at a vendor
 function BG:AutoRepair()
     if BG_GlobalDB.autoRepairAtVendor and CanMerchantRepair() then
-        cost = GetRepairAllCost()
-        local money = GetMoney()
+        repairCost = GetRepairAllCost()
         
-        if cost > 0 and not BG_LocalDB.neverRepairGuildBank and CanGuildBankRepair()
-        	and (GetGuildBankWithdrawMoney() == -1 or GetGuildBankWithdrawMoney() >= cost) then
+        if repairCost > 0 and not BG_LocalDB.neverRepairGuildBank and CanGuildBankRepair()
+        	and (GetGuildBankWithdrawMoney() == -1 or GetGuildBankWithdrawMoney() >= repairCost) then
             -- guild repair if we're allowed to and the user wants it
             RepairAllItems(1)
-        elseif cost > 0 and money >= cost then
+            BG.didRepair = true
+        elseif repairCost > 0 and GetMoney() >= repairCost then
             -- not enough allowance to guild bank repair, pay ourselves
             RepairAllItems(0)
-        elseif cost > 0 then
+            BG.didRepair = true
+        elseif repairCost > 0 then
             -- oops. give us your moneys!
-            BG:Print(format(BG.locale.couldNotRepair, BG:FormatMoney(cost)))
+            BG:Print(format(BG.locale.couldNotRepair, BG:FormatMoney(repairCost)))
         end
     else
-        cost = 0
+        repairCost = 0
     end
 end
