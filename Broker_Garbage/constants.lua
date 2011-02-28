@@ -91,6 +91,7 @@ BG.tag = {
 	[BG.VENDOR] 	= "|cFFff9c5aV",	-- orange
 	[BG.SELL] 		= "|cFFff592dV",	-- dark orange
 	[BG.DISENCHANT] = "|cFFe052ffD",	-- purple
+	[BG.OUTDATED]   = "|cFF3c73abO",	-- blue
 }
 
 BG.modules = {}		-- plugins get saved in here

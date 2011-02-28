@@ -91,7 +91,7 @@ BGC.locale = {
 	
 	showIconTitle = "Icon",
 	showIconText = "Check to show the item's icon in front of the item link on the tooltip.",
-	
+		
 	showEarnedTitle = "Earned",
 	showEarnedText = "Check to show the character's earned money (by selling junk items).",
 	
@@ -119,8 +119,11 @@ BGC.locale = {
 	sellNotUsableTitle = "Sell Unusable Gear",
 	sellNotUsableText = "Check this to have Broker_Garbage sell all soulbound gear you cannot wear.\n(Only applies if not an enchanter)",
 	
+	TopFitOldItem = "Outdated Armor",
+	TopFitOldItemText = "If the addon TopFit is loaded, BG can ask for outdated gear and directly sell it.",
+	
 	SNUMaxQualityTitle = "Sell Quality",
-	SNUMaxQualityText = "Select the maximum item quality to sell when 'Sell Unusable Gear' is checked.",
+	SNUMaxQualityText = "Select the maximum item quality to sell when 'Sell Unusable Gear' or 'Outdated Armor' is checked.",
 	
 	enchanterTitle = "Enchanter",
 	enchanterTooltip = "Check this if you have/know an enchanter.\nWhen checked disenchant values are considered, which are higher than vendor prices.",

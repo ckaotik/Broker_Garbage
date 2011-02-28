@@ -65,7 +65,6 @@ function BGC.ShowTooltip(self)
 			GameTooltip:ClearLines()
 			GameTooltip:AddLine(BGC.locale.armorClass)
 			GameTooltip:AddLine(self.tiptext or BGC.locale.unknown, 1, 1, 1, true)
-			
 		elseif string.find(self.itemID, "^BEQ_") then
 			-- Blizzard Equipment Manager item set
 			GameTooltip:ClearLines()

@@ -91,8 +91,7 @@ if GetLocale() == "deDE" then
 	
 	BGC.locale.showIconTitle = "Icon"
 	BGC.locale.showIconText = "Auswählen um im Tooltip vor dem Itemlink das jeweilige Icon anzuzeigen"
-	
-	
+		
 	BGC.locale.showEarnedTitle = "Gewinn"
 	BGC.locale.showEarnedText = "Auswählen um im Tooltip die Zeile 'Verdientes Gold' anzuzeigen"
 	
@@ -120,14 +119,17 @@ if GetLocale() == "deDE" then
 	BGC.locale.sellNotUsableTitle = "Ausrüstung verkaufen"
 	BGC.locale.sellNotUsableText = "Auswählen um Broker_Garbage seelengebundene Ausrüstung, die du niemals tragen kannst, automatisch verkaufen zu lassen.\n(inaktiv bei Verzauberern)"
 	
+	BGC.locale.TopFitOldItem = "Überholte Rüstung"
+	BGC.locale.TopFitOldItemText = "Wenn das Addon TopFit geladen ist, kann BG Items, die dir in keinem Rüstungsset Vorteile bringen, automatisch verkaufen."
+	
 	BGC.locale.SNUMaxQualityTitle = "Höchstens verkaufen bis"
-	BGC.locale.SNUMaxQualityText = "Wähle die maximale Itemqualität, bei der unnütze Ausrüstung verkauft werden soll."
+	BGC.locale.SNUMaxQualityText = "Wähle die maximale Itemqualität, bei der unnütze/überholte Ausrüstung verkauft werden soll."
 	
 	BGC.locale.enchanterTitle = "Verzauberer"
 	BGC.locale.enchanterTooltip = "Auswählen wenn du einen Verzauberer hast/kennst. Wenn aktiviert, wird Broker_Garbage Entzauberpreise verwenden, welche in der Regel höher sind als Händlerpreise."
 	
 	BGC.locale.DKTitle = "Temp. deaktivieren mit"
-	BGC.locale.DKTooltip = "Wähle die Taste, die die Aktionen von BGC temporär deaktiviert."
+	BGC.locale.DKTooltip = "Wähle die Taste, die Aktionen von Broker_Garbage temporär deaktiviert."
 	BGC.locale.disableKeys = {
 		["None"] = "Kein",
 		["SHIFT"] = "SHIFT",

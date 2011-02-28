@@ -302,7 +302,7 @@ function BG:IsItemInList(itemID, itemList)
 			itemList = GetEquipmentSetItemIDs(itemList)
 			temp = BG:Find(itemList, itemID)
 		end
-	elseif type(itemList) == "string" and string.match(itemList, "^AC_(%d+)") then
+    elseif type(itemList) == "string" and string.match(itemList, "^AC_(%d+)") then
 		-- armor class
 		local armorClass = string.match(itemList, "^AC_(%d+)")
 		local index = tonumber(armorClass) 
@@ -370,13 +370,19 @@ function BG:UpdateCache(itemID)
 			
 			BG:Debug("Item "..itemID.." should be sold as we can't ever wear it.")
 			class = BG.UNUSABLE
+		
+		elseif quality -- and BG_GlobalDB.sellOldGear
+		    and string.find(invType, "INVTYPE") and not string.find(invType, "BAG")
+		    and IsAddOnLoaded("TopFit") and TopFit.IsInterestingItem and not TopFit:IsInterestingItem(itemID) then
+		    BG:Debug("Item "..itemID.." is classified OUTDATED by TopFit.", invType)
+		    class = BG.OUTDATED
 			
 		-- check if the item is classified by its category
 		else
 			-- check if item is excluded by its category
 			for setName,_ in pairs(BG:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)) do
 				if BG:IsItemInList(itemID, setName) then
-					BG:Debug("Item "..itemID.." is excluded via its category.")
+					BG:Debug("Item "..itemID.." is EXCLUDED via its category.")
 					class = BG.EXCLUDE
 					break
 				end
@@ -386,7 +392,7 @@ function BG:UpdateCache(itemID)
 			if not class then
 				for setName,_ in pairs(BG:JoinTables(BG_LocalDB.include, BG_GlobalDB.include)) do
 					if BG:IsItemInList(itemID, setName) then
-						BG:Debug("Item "..itemID.." in included via its item category.")
+						BG:Debug("Item "..itemID.." in INCLUDED via its item category.")
 						class = BG.INCLUDE
 						break
 					end

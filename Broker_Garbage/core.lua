@@ -815,7 +815,9 @@ function BG.PrepareAutoSell()
                     -- various cases that have us sell this item
                     if item.classification == BG.UNUSABLE
                         and BG_GlobalDB.sellNotWearable and item.quality <= BG_GlobalDB.sellNWQualityTreshold then 
-                            sell = true
+                        sell = true
+                    elseif item.classification == BG.OUTDATED and BG_GlobalDB.sellOldGear and item.quality <= BG_GlobalDB.sellNWQualityTreshold then
+                        sell = true
                     elseif item.classification == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems then
                         sell = true
                     elseif item.classification == BG.SELL then
@@ -831,10 +833,10 @@ function BG.PrepareAutoSell()
                             locked = true
                         end
                         
-                        BG:Debug("Selling", data.item)
+                        BG:Debug("Selling", item, container, slot)
 
                         ClearCursor()
-                        UseContainerItem(data.container, data.slot)
+                        UseContainerItem(container, slot)
                         table.insert(BG.sellLog, {container = container, slot = slot, item = itemLink, count = count, value = value})
                     end
                 end

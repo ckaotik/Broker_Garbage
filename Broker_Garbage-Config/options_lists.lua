@@ -471,7 +471,7 @@ function BGC:ShowListOptions(frame)
 				local setID = string.match(item, "^BEQ_(%d+)")
 				setID = tonumber(setID)
 				link = setID and GetEquipmentSetInfo(setID) or "Invalid Set"
-			else
+		    else
 				-- LPT category
 				reset = true
 				itemID = item

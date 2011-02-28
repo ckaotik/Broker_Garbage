@@ -53,7 +53,17 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ScanInventory()
 	end)
 	
-	local enchanter = BGC.CreateCheckBox(behavior, nil, BGC.locale.enchanterTitle, "TOPLEFT", sellGear, "BOTTOMLEFT", 0, 4)
+	local sellOutdatedGear = BGC.CreateCheckBox(behavior, nil, BGC.locale.TopFitOldItem, "TOPLEFT", sellGear, "BOTTOMLEFT", 0, 4)
+	sellOutdatedGear.tiptext = BGC.locale.TopFitOldItemText .. BGC.locale.GlobalSetting
+	sellOutdatedGear:SetChecked( Broker_Garbage:GetOption("sellOldGear", true) )
+	local checksound = sellOutdatedGear:GetScript("OnClick")
+	sellOutdatedGear:SetScript("OnClick", function(sellOutdatedGear)
+		checksound(sellOutdatedGear)
+		Broker_Garbage:ToggleOption("sellOldGear", true)
+		Broker_Garbage:ScanInventory()
+	end)
+	
+	local enchanter = BGC.CreateCheckBox(behavior, nil, BGC.locale.enchanterTitle, "TOPLEFT", sellOutdatedGear, "BOTTOMLEFT", 0, 4)
 	enchanter.tiptext = BGC.locale.enchanterTooltip .. BGC.locale.GlobalSetting
 	enchanter:SetChecked( Broker_Garbage:GetOption("hasEnchanter", true) )
 	local checksound = enchanter:GetScript("OnClick")
