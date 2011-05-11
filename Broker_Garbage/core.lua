@@ -309,40 +309,37 @@ function BG:UpdateRepairButton(...)
             BG_SellIcon:Hide()
         end
         -- re-position all the buttons
-        MerchantRepairAllButton:ClearAllPoints()
+        --[[]MerchantRepairAllButton:ClearAllPoints()
         MerchantGuildBankRepairButton:ClearAllPoints()
-        MerchantGuildBankRepairButton:SetPoint("LEFT", MerchantRepairAllButton, "RIGHT", 4, 0)
+        MerchantGuildBankRepairButton:SetPoint("LEFT", MerchantRepairAllButton, "RIGHT", 4, 0)]]--
+        MerchantFrame_UpdateGuildBankRepair()
         MerchantFrame_UpdateRepairButtons()
+        MerchantFrame_UpdateCanRepairAll()
         return
     end
     
-    local sellIcon
+    local sellIcon = _G["BG_SellIcon"]
     -- show auto-sell icon on vendor frame
-    if not _G["BG_SellIcon"] then
+    if not sellIcon then
         sellIcon = CreateFrame("Button", "BG_SellIcon", MerchantFrame, "ItemButtonTemplate")
         SetItemButtonTexture(sellIcon, "Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
         sellIcon:SetFrameStrata("HIGH")
         sellIcon:SetScript("OnClick", BG.AutoSell)
         sellIcon:SetScript("OnEnter", function(self) 
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            local tiptext
-            local junkValue = 0
+            local junkValue = 0	-- reset, so we don't add up indefinetely
             for i = 0, 4 do
                 junkValue = junkValue + (BG.toSellValue[i] or 0)
             end
-            if junkValue ~= 0 then
-                tiptext = format(BG.locale.autoSellTooltip, BG:FormatMoney(junkValue))
-            else
-                tiptext = BG.locale.reportNothingToSell
-            end
-            GameTooltip:SetText(tiptext, nil, nil, nil, nil, true)
+            GameTooltip:SetText(
+            	junkValue ~= 0 
+            		and format(BG.locale.autoSellTooltip, BG:FormatMoney(junkValue)) 
+            		or BG.locale.reportNothingToSell, nil, nil, nil, nil, true)
         end)
         sellIcon:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    else
-        sellIcon = _G["BG_SellIcon"]
     end
 
-    if MerchantBuyBackItemItemButton:IsVisible() then
+    if MerchantFrame.selectedTab == 1 then
         if CanMerchantRepair() then
             if CanGuildBankRepair() then    -- move all the default icons further to the right. blizz anchors are weird -.-
                 MerchantGuildBankRepairButton:ClearAllPoints()
@@ -364,7 +361,7 @@ function BG:UpdateRepairButton(...)
         sellIcon:Hide()
     end
     
-    local junkValue = 0
+    local junkValue = 0	-- reset, so we don't add up indefinetely
     for i = 0, 4 do
         junkValue = junkValue + (BG.toSellValue[i] or 0)
     end
@@ -430,8 +427,9 @@ function BG:GetItemValue(item, count)
         return nil
     end
     
-    if BG:GetCached(itemID) then
-        return BG:GetCached(itemID).value * (count or 1)
+    local cachedItem = BG:GetCached(itemID)
+    if cachedItem then
+        return cachedItem.value * (count or 1)
     else
         local value = BG:GetSingleItemValue(item)
         return value and value * (count or 1) or nil
@@ -808,18 +806,24 @@ function BG.PrepareAutoSell()
                 itemID 	= BG:GetItemID(itemLink)
                 
                 if itemLink and BG:GetCached(itemID) then
-                    item 	= BG:GetCached(itemID)
-                    value 	= item.value        -- single item value
+                    item = BG:GetCached(itemID)
                     
-                    sell = false
+                    -- some rechecking for outdated items - both ways!
+                    if BG:IsNoLongerOutdated(itemID) or BG:IsOutdatedItem(itemID) then
+                    	BG:UpdateCache(itemID)
+                    	item = BG:GetCached(itemID)
+                    end
+                    
+                    value = item.value        -- single item value
                     -- various cases that have us sell this item
                     if item.classification == BG.EXCLUDE then
                     	sell = false
-                    elseif item.classification == BG.UNUSABLE
-                        and BG_GlobalDB.sellNotWearable and item.quality <= BG_GlobalDB.sellNWQualityTreshold then 
+                    elseif item.classification == BG.UNUSABLE and BG_GlobalDB.sellNotWearable 
+                        and item.quality <= BG_GlobalDB.sellNWQualityTreshold then 
                         sell = true
-                    elseif item.classification == BG.OUTDATED and BG_GlobalDB.sellOldGear and item.quality <= BG_GlobalDB.sellNWQualityTreshold then
-                        sell = true
+                    elseif item.classification == BG.OUTDATED and BG_GlobalDB.sellOldGear 
+                    	and item.quality <= BG_GlobalDB.sellNWQualityTreshold then
+                    	sell = true
                     elseif item.classification == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems then
                         sell = true
                     elseif item.classification == BG.SELL then

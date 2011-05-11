@@ -1,5 +1,5 @@
 -- to enable debug mode, run: /run BG_GlobalDB.debug = true
-local _, BG = ...
+ _, BG = ...
 
 -- Basic Functions
 -- ---------------------------------------------------------
@@ -186,6 +186,12 @@ end
 local scanTooltip = CreateFrame('GameTooltip', 'BGItemScanTooltip', UIParent, 'GameTooltipTemplate')
 -- returns true if the given item is soulbound
 function BG:IsItemSoulbound(itemLink, bag, slot)
+	if not itemLink then
+		return nil
+	elseif type(itemLink) == "number" then
+		itemLink = select(2, GetItemInfo(itemLink))
+	end
+	
 	scanTooltip:SetOwner(UIParent, 'ANCHOR_NONE')
 	local searchString
 	
@@ -315,9 +321,67 @@ function BG:IsItemInList(itemID, itemList)
 	return temp and true or nil
 end
 
+-- returns true if the item is equippable. **Trinkets don't count!**
+function BG:ItemIsEquipment(invType)
+	if not invType then
+		return nil
+	end
+	return (string.find(invType, "INVTYPE") and not string.find(invType, "BAG") and not string.find(invType, "TRINKET"))
+end
+
+-- returns true if, by TopFit's standard, the given item is "outdated"
+function BG:IsTopFitOutdatedItem(item)
+	local invType
+	if not item then
+		return nil
+	elseif type(item) == "number" or type(item) == "string" then
+		invType = select(9, GetItemInfo(item))
+	else
+		invType = item.itemType
+	end
+
+	if IsAddOnLoaded("TopFit") and TopFit.IsInterestingItem then
+		if not TopFit:IsInterestingItem(item) and BG:ItemIsEquipment(invType) then
+			return true
+		end
+	else
+		BG:Debug("TopFit is not loaded or too old.")
+	end
+end
+
+-- returns true if an item has been falsely labeled "outdated"
+function BG:IsNoLongerOutdated(itemID)
+	if not item then
+		return nil
+	elseif type(item) == "number" then
+		item = BG:GetCached(item)
+	elseif type(item) == "string" then
+		item = BG:GetCached(BG:GetItemID(item))
+	end
+	return (item.classification == BG.OUTDATED and TopFit:IsInterestingItem(item.itemID))
+end
+
+-- returns true if an item became "outdated" since filling the cache
+function BG:IsOutdatedItem(itemID)
+	local quality
+	if not itemID then
+		return nil
+	elseif type(itemID) == "number" or type(itemID) == "string" then
+		quality = select(3, GetItemInfo(itemID))
+	else	-- this is an item object
+		quality = itemID.quality
+		itemID = itemID.itemID
+	end
+	if BG_GlobalDB.sellOldGear and quality <= BG_GlobalDB.sellNWQualityTreshold
+		and BG:IsItemSoulbound(itemID) and BG:IsTopFitOutdatedItem(itemID) then
+		return true
+	end
+end
+
 -- gets an item's classification and saves it to the item cache
 function BG:UpdateCache(itemID)
 	if not itemID then return nil end
+	BG:Debug("Updating cache for "..itemID)
 	local class, temp, limit
 	
 	local hasData, itemLink, quality, itemLevel, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
@@ -362,15 +426,14 @@ function BG:UpdateCache(itemID)
 			BG:Debug("Item "..itemID.." is to be auto-sold via its itemID.")
 			class = BG.SELL
 		
-		elseif quality 
+		elseif quality and quality >= 2 and BG:ItemIsEquipment(item)
 			and not IsUsableSpell(BG.enchanting) and BG:IsItemSoulbound(itemLink)
-			and string.find(invType, "INVTYPE") and not string.find(invType, "BAG") 
 			and (not BG.usableGear[subClass] or not BG:Find(BG.usableGear[subClass], BG.playerClass))
 			and not BG.usableByAll[invType] then
 			
 			BG:Debug("Item "..itemID.." should be sold as we can't ever wear it.")
 			class = BG.UNUSABLE
-			
+		
 		-- check if the item is classified by its category
 		else
 			-- check if item is excluded by its category
@@ -415,19 +478,20 @@ function BG:UpdateCache(itemID)
 				end
 			end
 		end
-		
-		if not class and quality
-		    and string.find(invType, "INVTYPE") and not string.find(invType, "BAG") and not string.find(invType, "TRINKET")
-		    and BG:IsItemSoulbound(itemLink)
-		    and IsAddOnLoaded("TopFit") and TopFit.IsInterestingItem and not TopFit:IsInterestingItem(itemID) then
-		    BG:Debug("Item "..itemID.." is classified OUTDATED by TopFit.", invType)
-		    class = BG.OUTDATED
-		end
+	end
+	
+	if not class and quality and BG:IsOutdatedItem(itemID) then
+	    BG:Debug("Item "..itemID.." is classified OUTDATED by TopFit.", invType)
+	    class = BG.OUTDATED
 	end
 	
 	local tvalue, tclass = BG:GetSingleItemValue(itemID)
 	if not class then class = tclass end
-	if not (class == BG.VENDOR or class == BG.SELL or (class == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems)) then 
+	if not (class == BG.VENDOR or class == BG.SELL
+		or (class == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems))
+		or (class == BG.OUTDATED and BG_GlobalDB.sellOldGear)
+		or (class == BG.UNUSABLE and BG_GlobalDB.sellNotWearable) then
+		BG:Debug("Assigning simple classification "..class)
 		value = tvalue
 	end
 	
@@ -438,10 +502,11 @@ function BG:UpdateCache(itemID)
 	end
 	if not BG.itemsCache[itemID] then
 		BG.itemsCache[itemID] = {
+			itemID = itemID,
 			classification = class,
 			quality = quality,
 			family = family,
-			itemType = itemType,
+			itemType = invType,
 			level = itemLevel,
 			value = value or 0,
 			limit = limit,
@@ -449,10 +514,11 @@ function BG:UpdateCache(itemID)
 			isClam = BG:Find(BG.clams, itemID),
 		}
 	else
+		BG.itemsCache[itemID].itemID = itemID
 		BG.itemsCache[itemID].classification = class
 		BG.itemsCache[itemID].quality = quality
 		BG.itemsCache[itemID].family = family
-		BG.itemsCache[itemID].itemType = itemType
+		BG.itemsCache[itemID].itemType = invType
 		BG.itemsCache[itemID].value = value or 0
 		BG.itemsCache[itemID].limit = limit
 		BG.itemsCache[itemID].level = itemLevel
