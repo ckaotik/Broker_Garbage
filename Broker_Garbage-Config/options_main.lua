@@ -4,7 +4,7 @@ local function Options_BasicOptions(pluginID)
 	local panel, tab = BGC:CreateOptionsTab(pluginID)
 	
 	local behavior = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupBehavior, "TOPLEFT", 21, -16)
-	behavior:SetHeight(190); behavior:SetWidth(180)
+	behavior:SetHeight(304); behavior:SetWidth(180)	-- former height: 190
 	behavior:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 	
 	local sell = BGC.CreateCheckBox(behavior, nil, BGC.locale.autoSellTitle, "TOPLEFT", behavior, "TOPLEFT", 4, -2)
@@ -107,13 +107,13 @@ local function Options_BasicOptions(pluginID)
 		end
 	end)
 	
-	local treshold = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupTresholds, "TOPLEFT", behavior, "BOTTOMLEFT", 0, -14)
-	treshold:SetHeight(100); treshold:SetWidth(180)
-	treshold:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
+	-- local treshold = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupTresholds, "TOPLEFT", behavior, "BOTTOMLEFT", 0, -14)
+	-- treshold:SetHeight(100); treshold:SetWidth(180)
+	-- treshold:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
-	local qualityTreshold = CreateFrame("Frame", "BG_DropQualityDropDown", treshold, "UIDropDownMenuTemplate")
+	local qualityTreshold = CreateFrame("Frame", "BG_DropQualityDropDown", behavior, "UIDropDownMenuTemplate")
 	qualityTreshold.displayMode = "MENU"
-	qualityTreshold:SetPoint("TOPLEFT", treshold, -4, -20)
+	qualityTreshold:SetPoint("TOPLEFT", disableKey, "BOTTOMLEFT", 0, -12)
 	_G[qualityTreshold:GetName() .. "Button"]:SetPoint("LEFT", _G[qualityTreshold:GetName().."Middle"])
 	_G[qualityTreshold:GetName() .. "Button"].tiptext = BGC.locale.dropQualityText .. BGC.locale.GlobalSetting
 	_G[qualityTreshold:GetName() .. "Button"]:SetScript("OnEnter", BGC.ShowTooltip)
@@ -141,9 +141,9 @@ local function Options_BasicOptions(pluginID)
 	end)
 	
 	
-	local sellGearTeshold = CreateFrame("Frame", "BG_SellQualityDropDown", treshold, "UIDropDownMenuTemplate")
+	local sellGearTeshold = CreateFrame("Frame", "BG_SellQualityDropDown", behavior, "UIDropDownMenuTemplate")
 	sellGearTeshold.displayMode = "MENU"
-	sellGearTeshold:SetPoint("TOPLEFT", qualityTreshold, "BOTTOMLEFT", 0, -15)
+	sellGearTeshold:SetPoint("TOPLEFT", qualityTreshold, "BOTTOMLEFT", 0, -12)
 	_G[sellGearTeshold:GetName() .. "Button"]:SetPoint("LEFT", _G[sellGearTeshold:GetName().."Middle"])
 	_G[sellGearTeshold:GetName() .. "Button"].tiptext = BGC.locale.SNUMaxQualityText .. BGC.locale.GlobalSetting
 	_G[sellGearTeshold:GetName() .. "Button"]:SetScript("OnEnter", BGC.ShowTooltip)

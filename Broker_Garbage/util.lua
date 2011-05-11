@@ -370,12 +370,6 @@ function BG:UpdateCache(itemID)
 			
 			BG:Debug("Item "..itemID.." should be sold as we can't ever wear it.")
 			class = BG.UNUSABLE
-		
-		elseif quality -- and BG_GlobalDB.sellOldGear
-		    and string.find(invType, "INVTYPE") and not string.find(invType, "BAG")
-		    and IsAddOnLoaded("TopFit") and TopFit.IsInterestingItem and not TopFit:IsInterestingItem(itemID) then
-		    BG:Debug("Item "..itemID.." is classified OUTDATED by TopFit.", invType)
-		    class = BG.OUTDATED
 			
 		-- check if the item is classified by its category
 		else
@@ -420,6 +414,14 @@ function BG:UpdateCache(itemID)
 					end
 				end
 			end
+		end
+		
+		if not class and quality
+		    and string.find(invType, "INVTYPE") and not string.find(invType, "BAG") and not string.find(invType, "TRINKET")
+		    and BG:IsItemSoulbound(itemLink)
+		    and IsAddOnLoaded("TopFit") and TopFit.IsInterestingItem and not TopFit:IsInterestingItem(itemID) then
+		    BG:Debug("Item "..itemID.." is classified OUTDATED by TopFit.", invType)
+		    class = BG.OUTDATED
 		end
 	end
 	

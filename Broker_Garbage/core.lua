@@ -813,7 +813,9 @@ function BG.PrepareAutoSell()
                     
                     sell = false
                     -- various cases that have us sell this item
-                    if item.classification == BG.UNUSABLE
+                    if item.classification == BG.EXCLUDE then
+                    	sell = false
+                    elseif item.classification == BG.UNUSABLE
                         and BG_GlobalDB.sellNotWearable and item.quality <= BG_GlobalDB.sellNWQualityTreshold then 
                         sell = true
                     elseif item.classification == BG.OUTDATED and BG_GlobalDB.sellOldGear and item.quality <= BG_GlobalDB.sellNWQualityTreshold then
@@ -824,6 +826,8 @@ function BG.PrepareAutoSell()
                         sell = true
                     elseif item.classification ~= BG.EXCLUDE and item.quality == 0 then
                         sell = true
+                    else	-- whatever this case may be
+                    	sell = false
                     end
                     
                     -- mark item for selling
