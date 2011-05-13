@@ -808,6 +808,7 @@ function BG.PrepareAutoSell()
                 if itemLink and BG:GetCached(itemID) then
                     item = BG:GetCached(itemID)
                     
+                    -- TODO Alternative: Listen for EQUIPMENT_SETS_CHANGED / PLAYER_EQUIPMENT_CHANGED and re-check all equipment items in the inventory; Also check when new equipment is looted ... iergs
                     -- some rechecking for outdated items - both ways!
                     if BG:IsNoLongerOutdated(itemID) or BG:IsOutdatedItem(itemID) then
                     	BG:UpdateCache(itemID)
