@@ -804,13 +804,11 @@ function BG.PrepareAutoSell()
             for slot = 1, numSlots do
                 _, count, _, _, _, _, itemLink = GetContainerItemInfo(container, slot)
                 itemID 	= BG:GetItemID(itemLink)
-                
-                if itemLink and BG:GetCached(itemID) then
-                    item = BG:GetCached(itemID)
-                    
+                item = itemID and BG:GetCached(itemID) or nil
+                if itemLink and item then
                     -- TODO Alternative: Listen for EQUIPMENT_SETS_CHANGED / PLAYER_EQUIPMENT_CHANGED and re-check all equipment items in the inventory; Also check when new equipment is looted ... iergs
                     -- some rechecking for outdated items - both ways!
-                    if BG:IsNoLongerOutdated(itemID) or BG:IsOutdatedItem(itemID) then
+                    if BG:IsNoLongerOutdated(itemLink) or BG:IsOutdatedItem(itemLink) then
                     	BG:UpdateCache(itemID)
                     	item = BG:GetCached(itemID)
                     end

@@ -350,7 +350,7 @@ function BG:IsTopFitOutdatedItem(item)
 end
 
 -- returns true if an item has been falsely labeled "outdated"
-function BG:IsNoLongerOutdated(itemID)
+function BG:IsNoLongerOutdated(item)
 	if not item then
 		return nil
 	elseif type(item) == "number" then
