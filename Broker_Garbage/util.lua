@@ -396,7 +396,7 @@ function BG:UpdateCache(itemID)
 		BG:Debug("Item "..itemID.." is excluded via its itemID.")
 		class = BG.EXCLUDE
 	end
-		
+	
 	-- check if the item is classified by its itemID
 	if not class or class ~= BG.EXCLUDE then
 		if BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID] then
@@ -426,7 +426,7 @@ function BG:UpdateCache(itemID)
 			BG:Debug("Item "..itemID.." is to be auto-sold via its itemID.")
 			class = BG.SELL
 		
-		elseif quality and quality >= 2 and BG:ItemIsEquipment(itemLink)
+		elseif quality and quality >= 2 and BG:ItemIsEquipment(invType)
 			and not IsUsableSpell(BG.enchanting) and BG:IsItemSoulbound(itemLink)
 			and (not BG.usableGear[subClass] or not BG:Find(BG.usableGear[subClass], BG.playerClass))
 			and not BG.usableByAll[invType] then
