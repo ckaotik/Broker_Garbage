@@ -518,7 +518,7 @@ function BG:GetSingleItemValue(item)
 end
 
 -- finds all occurences of the given item and returns the least important location
-function BG:FindSlotToDelete(itemID, ignoreFullStack)
+function BG.FindSlotToDelete(itemID, ignoreFullStack)
     local locations = {}
     local _, _, _, _, _, _, _, maxStack = GetItemInfo(itemID)
     
@@ -684,7 +684,7 @@ function BG:GetCheapest(number)
                     
                     elseif item.classification == BG.LIMITED then
                         local saveStacks = ceil(item.limit/(item.stackSize or 1))
-                        local locations = BG:FindSlotToDelete(itemID)
+                        local locations = BG.FindSlotToDelete(itemID)
                         
                         if #locations > saveStacks then
                             local itemCount = 0

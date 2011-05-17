@@ -1,5 +1,5 @@
 -- to enable debug mode, run: /run BG_GlobalDB.debug = true
- _, BG = ...
+local _, BG = ...
 
 -- Basic Functions
 -- ---------------------------------------------------------
@@ -396,7 +396,7 @@ function BG:UpdateCache(itemID)
 		BG:Debug("Item "..itemID.." is excluded via its itemID.")
 		class = BG.EXCLUDE
 	end
-	
+		
 	-- check if the item is classified by its itemID
 	if not class or class ~= BG.EXCLUDE then
 		if BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID] then
@@ -426,7 +426,7 @@ function BG:UpdateCache(itemID)
 			BG:Debug("Item "..itemID.." is to be auto-sold via its itemID.")
 			class = BG.SELL
 		
-		elseif quality and quality >= 2 and BG:ItemIsEquipment(item)
+		elseif quality and quality >= 2 and BG:ItemIsEquipment(itemLink)
 			and not IsUsableSpell(BG.enchanting) and BG:IsItemSoulbound(itemLink)
 			and (not BG.usableGear[subClass] or not BG:Find(BG.usableGear[subClass], BG.playerClass))
 			and not BG.usableByAll[invType] then
@@ -488,9 +488,9 @@ function BG:UpdateCache(itemID)
 	local tvalue, tclass = BG:GetSingleItemValue(itemID)
 	if not class then class = tclass end
 	if not (class == BG.VENDOR or class == BG.SELL
-		or (class == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems))
+		or (class == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems)
 		or (class == BG.OUTDATED and BG_GlobalDB.sellOldGear)
-		or (class == BG.UNUSABLE and BG_GlobalDB.sellNotWearable) then
+		or (class == BG.UNUSABLE and BG_GlobalDB.sellNotWearable)) then
 		BG:Debug("Assigning simple classification "..class)
 		value = tvalue
 	end

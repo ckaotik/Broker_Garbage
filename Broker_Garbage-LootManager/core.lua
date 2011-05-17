@@ -77,7 +77,7 @@ function BGLM.DoFullRestack()
 				for slot = 1, numSlots do
 					local itemID = GetContainerItemID(container,slot)
 					if itemID and not BGLM:Find(justStacked, itemID) then
-						BGLM:Restack(itemID)
+						BGLM.Restack(itemID)
 						table.insert(justStacked, itemID)
 					end
 				end
@@ -88,17 +88,18 @@ end
 
 -- restacks items so when deleting you lose as few items as possible
 function BGLM.Restack(itemID)
+	BGLM:Debug("Restacking item "..(itemID or "nil"))
 	if BGLM.currentRestackItems then
 		tinsert(BGLM.currentRestackItems, itemID)
 	else
 		BGLM.currentRestackItems = { itemID }
-		if BGLM:RestackStep() then
+		if BGLM.RestackStep() then
 			-- wait for moved items
 			frame:RegisterEvent("ITEM_UNLOCKED")
 		else
 			-- nothing to restack
 			if BGLM.afterRestack ~= nil then
-				BGLM:afterRestack()
+				BGLM.afterRestack()
 				BGLM.afterRestack = nil
 			end
 		end
@@ -117,7 +118,7 @@ local function NextRestackStep()
 end
 
 -- move 1 item for restacking
-function BGLM:RestackStep()
+function BGLM.RestackStep()
 	if not BGLM.currentRestackItems then return false end
 	local itemID = BGLM.currentRestackItems[1]
 	if not itemID then return NextRestackStep() end
@@ -125,7 +126,7 @@ function BGLM:RestackStep()
 	local count = GetItemCount(itemID)
 	if not count or count <= 1 then return NextRestackStep() end
 	
-	local locations = Broker_Garbage:FindSlotToDelete(itemID, true)
+	local locations = Broker_Garbage.FindSlotsToDelete(itemID, true)
 	local maxLoc = #locations
 	if maxLoc <= 1 then
 		return NextRestackStep()
@@ -142,7 +143,7 @@ function BGLM:RestackStep()
 end
 
 -- calls restack and deletes as many items as needed
-function BGLM:DeletePartialStack(itemID, num)
+function BGLM.DeletePartialStack(itemID, num)
 	local locations = Broker_Garbage:FindSlotToDelete(itemID)
 	local maxStack = select(8, GetItemInfo(itemID))
 	

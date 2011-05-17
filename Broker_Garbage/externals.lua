@@ -90,7 +90,7 @@ Broker_Garbage = {
 	ScanInventory = BG.ScanInventory,
 	GetItemValue = BG.GetItemValue,
 	Delete = BG.Delete,
-	FindSlotsToDelete = BG.FindSlotsToDelete,
+	FindSlotsToDelete = BG.FindSlotToDelete,
 	
 	UpdateRepairButton = BG.UpdateRepairButton,
 	CreateDefaultLists = BG.CreateDefaultLists,
