@@ -82,8 +82,9 @@ Broker_Garbage = {
 	SetOption = BG.SetOption,
 	ToggleOption = BG.ToggleOption,
 	ResetOption = BG.ResetOption,
-	ResetStatustics = BG.ResetStatistics,
+	ResetStatistics = BG.ResetStatistics,
 	
+	ClearCache = BG.ClearCache,
 	GetCached = BG.GetCached,
 	UpdateCache = BG.UpdateCache,
 	GetBagSlots = BG.GetBagSlots,

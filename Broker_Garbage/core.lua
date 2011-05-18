@@ -34,12 +34,11 @@ local function eventHandler(self, event, arg1, ...)
 	    BG.totalFreeSlots = 0
 	    
 	    -- inventory database
-	    BG.itemsCache = {}
 	    BG.clamInInventory = false
 	    BG.containerInInventory = false
 
 	    -- full inventory scan to start with
-	    BG:ScanInventory()
+	    BG:ScanInventory(true)	-- initializes and fills cache
         frame:UnregisterEvent("ADDON_LOADED")
         
     elseif event == "BAG_UPDATE" then
@@ -69,7 +68,7 @@ local function eventHandler(self, event, arg1, ...)
     
     elseif event == "AUCTION_HOUSE_CLOSED" then
         -- Update cached auction values in case anything changed
-        BG.itemsCache = {}
+        BG:ScanInventory(true)
     
     elseif (locked or repairCost ~=0) and event == "PLAYER_MONEY" then -- regular unlock
         if sellValue ~= 0 and repairCost ~= 0 and ((-1)*sellValue <= repairCost+2 and (-1)*sellValue >= repairCost-2) then
@@ -268,23 +267,21 @@ function BG:OnClick(itemTable, button)
             BG_LocalDB.exclude[itemTable.itemID] = true
         end
         BG:Print(format(BG.locale.addedTo_exclude, select(2,GetItemInfo(itemTable.itemID))))
-        BG.itemsCache = {}
         
         if BG.optionsLoaded then
             BG:ListOptionsUpdate("exclude")
         end
-        BG:ScanInventory()
+        BG:ScanInventory(true)
         
     elseif itemTable and IsAltKeyDown() then
         -- add to force vendor price list
         BG_GlobalDB.forceVendorPrice[itemTable.itemID] = true
         BG:Print(format(BG.locale.addedTo_forceVendorPrice, select(2,GetItemInfo(itemTable.itemID))))
-        BG.itemsCache = {}
         
         if BG.optionsLoaded then
             BG:ListOptionsUpdate("forceprice")
         end
-        BG:ScanInventory()
+        BG:ScanInventory(true)
         
     elseif button == "RightButton" then
     	if not IsAddOnLoaded("Broker_Garbage-Config") then
@@ -374,7 +371,7 @@ hooksecurefunc("MerchantFrame_Update", BG.UpdateRepairButton)
 -- only used as a shortcut to cache any unknown item in the whole inventory
 function BG:ScanInventory(resetCache)
 	if resetCache then
-		BG.itemsCache = {}
+		BG.ClearCache()
 	end
     for container = 0,4 do
         BG:ScanInventoryContainer(container)
@@ -518,33 +515,36 @@ function BG:GetSingleItemValue(item)
 end
 
 -- finds all occurences of the given item and returns the least important location
-function BG.FindSlotToDelete(itemID, ignoreFullStack)
-    local locations = {}
-    local _, _, _, _, _, _, _, maxStack = GetItemInfo(itemID)
+function BG.FindSlotToDelete(item, ignoreFullStack)
+	local isCategory = type(item) == "string"
+	local locations = {}
+    local maxStack = select(8, GetItemInfo(item))
     
     local numSlots, freeSlots, ratio, bagType
+    local itemCount, itemLevel, itemLink, itemIsRelevant, isLocked
+    
     for container = 0,4 do
         numSlots = GetContainerNumSlots(container)
         freeSlots, bagType = GetContainerFreeSlots(container)
         freeSlots = freeSlots and #freeSlots or 0
         
-        if numSlots then
+        if item and numSlots then
             ratio = freeSlots/numSlots
-            
             for slot = 1, numSlots do
-                local _,count,_,_,_,_,link = GetContainerItemInfo(container, slot)
-                
-                if link and BG:GetItemID(link) == itemID then
-                    if not ignoreFullStack or (ignoreFullStack and count < maxStack) then
-                        -- found one
-                        table.insert(locations, {
-                            slot = slot, 
-                            bag = container, 
-                            count = count, 
-                            ratio = ratio, 
-                            bagType = (bagType or 0)
-                        })
-                    end
+                _, itemCount, isLocked, _, _, _, itemLink = GetContainerItemInfo(container, slot)
+                itemID = itemLink and BG:GetItemID(link)
+                itemLevel = itemID and select(4, GetItemInfo(item))
+                itemIsRelevant = itemID and ((isCategory and BG:IsItemInList(itemID, item) or itemID == item))
+                if itemIsRelevant and not isLocked and (not ignoreFullStack or count < maxStack) then
+                    -- found a slot with relevant items
+                    table.insert(locations, {
+                        slot = slot, 
+                        bag = container, 
+                        count = itemCount, 
+                        ratio = ratio, 
+                        level = itemLevel,
+                        bagType = (bagType or 0)
+                    })
                 end
             end
         end
@@ -555,10 +555,14 @@ function BG.FindSlotToDelete(itemID, ignoreFullStack)
         if a.bagType ~= b.bagType then
             return a.bagType == 0
         else
-            if a.count == b.count then
-                return a.ratio > b.ratio
-            else
-                return a.count < b.count
+        	if a.itemLevel == b.itemLevel then
+        		if a.count == b.count then
+                	return a.ratio > b.ratio
+	            else
+    	            return a.count < b.count
+    	        end
+    	    else
+    	    	return a.itemLevel < b.itemLevel
             end
         end
     end)

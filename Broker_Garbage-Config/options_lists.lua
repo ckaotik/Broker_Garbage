@@ -195,7 +195,7 @@ function BGC:ShowListOptions(frame)
 	
 	-- function to set the drop treshold (limit) via the mousewheel
 	local function OnMouseWheel(self, dir)
-		if type(self.itemID) ~= "number" then return end
+		-- if type(self.itemID) ~= "number" then return end -- only allow on actual items
 		
 		local text, limit = self.limit:GetText()
 		if self.isGlobal then
@@ -205,28 +205,33 @@ function BGC:ShowListOptions(frame)
 		end
 		
 		local change = IsShiftKeyDown() and 10 or 1
+		local item = self.itemID or self.tiptext
 		if dir == 1 then	-- up
-			if list[self.itemID] == true then	-- trouble ahead :/
-				list[self.itemID] = change
+			if list[item] == true then	-- trouble ahead :/
+				list[item] = change
 			else
-				list[self.itemID] = list[self.itemID] + change
+				list[item] = list[item] + change
 			end
-			text = list[self.itemID]
+			text = list[item]
 		else				-- down
-			if list[self.itemID] == true then	-- no change
+			if list[item] == true then	-- no change
 				text = ""
 			else
-				list[self.itemID] = list[self.itemID] - change
-				text = list[self.itemID]
+				list[item] = list[item] - change
+				text = list[item]
 			end
 			
-			if type(list[self.itemID]) == "number" and list[self.itemID] <= 0 then
-				list[self.itemID] = true
+			if type(list[item]) == "number" and list[item] <= 0 then
+				list[item] = true
 				text = ""
 			end
 		end
 		self.limit:SetText(text)
-		Broker_Garbage:UpdateCache(self.itemID)
+		if self.itemID then 
+			Broker_Garbage:UpdateCache(self.itemID)
+		else
+			Broker_Garbage:ScanInventory(true)
+		end
 	end
 	
 	-- function that updates & shows items from various lists

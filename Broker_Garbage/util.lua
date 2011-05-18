@@ -296,8 +296,16 @@ function BG:CanDisenchant(itemLink, location)
 	end
 end
 
+function BG.ClearCache()
+	BG.itemsCache = {}
+end
+
 -- return true if item is found in LPT/Equipment list, nil otherwise
 function BG:IsItemInList(itemID, itemList)
+	if type(itemID) == "string" then	-- convert itemLinks to their IDs
+		itemID = BG:GetItemID(itemID)
+	end
+	
 	local temp
 	if type(itemList) == "string" and string.match(itemList, "^BEQ_(%d+)") then
 		-- equipment set
