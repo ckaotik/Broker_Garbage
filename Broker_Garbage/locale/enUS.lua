@@ -18,6 +18,7 @@ BG.locale = {
 	
 	itemDeleted = "%1$sx%2$d has been deleted.",
 	listsUpdatedPleaseCheck = "Your lists have been updated. Please have a look at your settings and check if they fit your needs.",
+	disenchantOutdated = "%1$s is outdated and should get disenchanted.",
 
 	-- Tooltip
 	headerRightClick = "Right-Click for options",

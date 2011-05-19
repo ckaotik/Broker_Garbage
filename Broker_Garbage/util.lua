@@ -488,12 +488,17 @@ function BG:UpdateCache(itemID)
 		end
 	end
 	
+	local tvalue, tclass = BG:GetSingleItemValue(itemID)
 	if not class and quality and BG:IsOutdatedItem(itemID) then
-	    BG:Debug("Item "..itemID.." is classified OUTDATED by TopFit.", invType)
-	    class = BG.OUTDATED
+		if tclass ~= BG.DISENCHANT then
+		    BG:Debug("Item "..itemID.." is classified OUTDATED by TopFit.", invType)
+		    class = BG.OUTDATED
+		elseif IsUsableSpell(BG.enchanting) and BG_GlobalDB.reportDisenchantOutdated then
+			-- TODO: offer options checkbox for this!
+			BG:Print(string.format(BG.locale.disenchantOutdated, itemLink))
+		end
 	end
 	
-	local tvalue, tclass = BG:GetSingleItemValue(itemID)
 	if not class then class = tclass end
 	if not (class == BG.VENDOR or class == BG.SELL
 		or (class == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems)
