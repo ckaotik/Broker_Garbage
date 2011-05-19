@@ -12,8 +12,9 @@ BG.defaultGlobalSettings = {
 	autoSellToVendor = true,
 	autoRepairAtVendor = true,
 	sellNotWearable = false,
-	sellOldGear = false,			-- TODO: to be used with TopFit
+	sellOldGear = false,
 	showSellLog = false,
+	overrideLPT = false,			-- TODO add options dialog
 	
 	disableKey = "SHIFT",
 	autoSellIncludeItems = false,	-- toggle include list being sell list as well
@@ -36,7 +37,7 @@ BG.defaultGlobalSettings = {
 	
 	-- display options
 	useRealValues = false,
-	hideZeroValue = true,		-- TODO: show/hide items with '0c' value (quest, event items etc.)
+	hideZeroValue = true,		-- TODO: add options dialog; shows/hides any items with '0c' value (quest, event items etc.)
 	showAutoSellIcon = true,
 	
 	-- LibDataBroker Display
@@ -53,6 +54,7 @@ BG.defaultGlobalSettings = {
 	
 	-- output options
 	reportNothingToSell = true,
+	reportDisenchantOutdated = false,	-- TODO: add options dialog
 }
 
 BG.defaultLocalSettings = {

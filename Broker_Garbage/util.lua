@@ -447,9 +447,13 @@ function BG:UpdateCache(itemID)
 			-- check if item is excluded by its category
 			for setName,_ in pairs(BG:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)) do
 				if BG:IsItemInList(itemID, setName) then
-					BG:Debug("Item "..itemID.." is EXCLUDED via its category.")
-					class = BG.EXCLUDE
-					break
+					if quality == 0 and BG_GlobalDB.overrideLPT then
+						BG:Debug("Item "..itemID.." would get excluded but is junk!")
+					else
+						BG:Debug("Item "..itemID.." is EXCLUDED via its category.")
+						class = BG.EXCLUDE
+						break
+					end
 				end
 			end
 			
