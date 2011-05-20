@@ -1,4 +1,4 @@
-local addonName, BGLM = ...
+local _, BGLM = ...
 
 -- used to distinguish between raid loot and inventory loot
 hooksecurefunc("UseContainerItem", function(...)
@@ -88,10 +88,12 @@ end
 
 -- restacks items so when deleting you lose as few items as possible
 function BGLM.Restack(itemID)
-	BGLM:Debug("Restacking item "..(itemID or "nil"))
-	if BGLM.currentRestackItems then
+	-- BGLM:Debug("Restacking item "..(itemID or "nil"))
+	if BGLM.currentRestackItems ~= nil then
+		BGLM:Debug("Adding item to list", itemID)
 		tinsert(BGLM.currentRestackItems, itemID)
 	else
+		BGLM:Debug("Creating new restack list.", itemID)
 		BGLM.currentRestackItems = { itemID }
 		if BGLM.RestackStep() then
 			-- wait for moved items
@@ -109,6 +111,7 @@ end
 local function NextRestackStep()
 	-- go to next item if there is one
 	tremove(BGLM.currentRestackItems, 1)
+	BGLM:Debug("Removed first item from list.")
 	if #(BGLM.currentRestackItems) <= 0 then
 		BGLM.currentRestackItems = nil
 		return false
@@ -128,6 +131,7 @@ function BGLM.RestackStep()
 	
 	local locations = Broker_Garbage.FindSlotsToDelete(itemID, true)
 	local maxLoc = #locations
+	BGLM:Debug("RestackStep ...", itemID, count, maxLoc)
 	if maxLoc <= 1 then
 		return NextRestackStep()
 	end -- we're done, nothing to restack

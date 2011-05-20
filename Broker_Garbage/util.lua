@@ -316,7 +316,7 @@ function BG:IsItemInList(itemID, itemList)
 			itemList = GetEquipmentSetItemIDs(itemList)
 			temp = BG:Find(itemList, itemID)
 		end
-    elseif type(itemList) == "string" and string.match(itemList, "^AC_(%d+)") then
+	elseif type(itemList) == "string" and string.match(itemList, "^AC_(%d+)") then
 		-- armor class
 		local armorClass = string.match(itemList, "^AC_(%d+)")
 		local index = tonumber(armorClass) 
@@ -431,8 +431,15 @@ function BG:UpdateCache(itemID)
 			class = BG.VENDOR
 		
 		elseif BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID] then
-			BG:Debug("Item "..itemID.." is to be auto-sold via its itemID.")
-			class = BG.SELL
+			if BG_LocalDB.autoSellList[itemID] and type(BG_LocalDB.autoSellList[itemID]) ~= "boolean" then
+				-- limited item
+				BG:Debug("Item "..itemID.." is to be auto-sold after its limit; via itemID.")
+				class = BG.LIMITEDSELL
+				limit = BG_LocalDB.autoSellList[itemID]
+			else
+				BG:Debug("Item "..itemID.." is to be auto-sold via its itemID.")
+				class = BG.SELL
+			end
 		
 		elseif quality and quality >= 2 and BG:ItemIsEquipment(invType)
 			and not IsUsableSpell(BG.enchanting) and BG:IsItemSoulbound(itemLink)
@@ -448,7 +455,7 @@ function BG:UpdateCache(itemID)
 			for setName,_ in pairs(BG:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)) do
 				if BG:IsItemInList(itemID, setName) then
 					if quality == 0 and BG_GlobalDB.overrideLPT then
-						BG:Debug("Item "..itemID.." would get excluded but is junk!")
+						BG:Debug("Item "..itemID.." would get EXCLUDED but is junk!")
 					else
 						BG:Debug("Item "..itemID.." is EXCLUDED via its category.")
 						class = BG.EXCLUDE
@@ -461,8 +468,15 @@ function BG:UpdateCache(itemID)
 			if not class then
 				for setName,_ in pairs(BG:JoinTables(BG_LocalDB.include, BG_GlobalDB.include)) do
 					if BG:IsItemInList(itemID, setName) then
-						BG:Debug("Item "..itemID.." in INCLUDED via its item category.")
-						class = BG.INCLUDE
+						if BG_LocalDB.include[setName] and type(BG_LocalDB.include[setName]) ~= "boolean" then
+							-- limited item, local rule
+							BG:Debug("Item "..itemID.." is LIMITED via its item category.")
+							class = BG.LIMITED
+							limit = BG_LocalDB.include[itemID]
+						else
+							BG:Debug("Item "..itemID.." in INCLUDED via its item category.")
+							class = BG.INCLUDE
+						end
 						break
 					end
 				end
@@ -472,8 +486,15 @@ function BG:UpdateCache(itemID)
 			if not class then
 				for setName,_ in pairs(BG:JoinTables(BG_GlobalDB.autoSellList, BG_LocalDB.autoSellList)) do
 					if BG:IsItemInList(itemID, setName) then
-						BG:Debug("Item "..itemID.." is on the sell list via its item category.")
-						class = BG.SELL
+						if BG_LocalDB.include[setName] and type(BG_LocalDB.include[setName]) ~= "boolean" then
+							-- limited item
+							BG:Debug("Item "..itemID.." is LIMITED SELL via its item category.")
+							class = BG.LIMITEDSELL
+							limit = BG_LocalDB.include[itemID]
+						else
+							BG:Debug("Item "..itemID.." is on the SELL list via its item category.")
+							class = BG.SELL
+						end
 						break
 					end
 				end
@@ -495,8 +516,8 @@ function BG:UpdateCache(itemID)
 	local tvalue, tclass = BG:GetSingleItemValue(itemID)
 	if not class and quality and BG:IsOutdatedItem(itemID) then
 		if tclass ~= BG.DISENCHANT then
-		    BG:Debug("Item "..itemID.." is classified OUTDATED by TopFit.", invType)
-		    class = BG.OUTDATED
+			BG:Debug("Item "..itemID.." is classified OUTDATED by TopFit.", invType)
+			class = BG.OUTDATED
 		elseif IsUsableSpell(BG.enchanting) and BG_GlobalDB.reportDisenchantOutdated then
 			-- TODO: offer options checkbox for this!
 			BG:Print(string.format(BG.locale.disenchantOutdated, itemLink))

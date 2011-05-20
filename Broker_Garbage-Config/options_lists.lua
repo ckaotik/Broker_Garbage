@@ -391,7 +391,7 @@ function BGC:ShowListOptions(frame)
 			end
 			button:SetNormalTexture(texture or "Interface\\Icons\\Inv_misc_questionmark")
 			
-			if BGC.listOptions.current == "include" then
+			if BGC.listOptions.current == "include" or BGC.listOptions.current == "autoSellList" then
 				button:EnableMouseWheel(true)
 				button:SetScript("OnMouseWheel", OnMouseWheel)
 			else

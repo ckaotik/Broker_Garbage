@@ -76,18 +76,20 @@ BG.defaultLocalSettings = {
 BG.EXCLUDE = 0
 BG.INCLUDE = 1
 BG.LIMITED = 2		-- include + limit
-BG.UNUSABLE = 3		-- unusable gear, e.g. mail for a priest
-BG.OUTDATED = 4		-- item is gear but irrelevant (TopFit)
+BG.LIMITEDSELL = 3	-- sell list + limit
+BG.UNUSABLE = 4		-- unusable gear, e.g. mail for a priest
+BG.OUTDATED = 5		-- item is gear but irrelevant (TopFit)
 -- price type
-BG.AUCTION = 5
-BG.VENDOR = 6
-BG.SELL = 7
-BG.DISENCHANT = 8
+BG.AUCTION = 6
+BG.VENDOR = 7
+BG.SELL = 8
+BG.DISENCHANT = 9
 
 -- corresponding tags to be used in the LDB tooltip; EXCLUDE never shows up there!
 BG.tag = {
 	[BG.INCLUDE] 	= "|cFFffffffI",	-- white
 	[BG.LIMITED] 	= "|cFFffffffL",	-- white
+	[BG.LIMITEDSELL]= "|cFFff592dLV",	-- dark orange
 	[BG.UNUSABLE] 	= "|cFF3c73abG",	-- blue
 	[BG.AUCTION] 	= "|cFF2bff58A",	-- green
 	[BG.VENDOR] 	= "|cFFff9c5aV",	-- orange
