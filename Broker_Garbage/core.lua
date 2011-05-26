@@ -233,8 +233,8 @@ function BG.PrepareAutoSell()
 				BG.Debug("Selling", item.itemID, item.bag, item.slot)
 
 				ClearCursor()
-				-- UseContainerItem(item.bag, item.slot)
-				-- table.insert(BG.sellLog, item)
+				UseContainerItem(item.bag, item.slot)
+				table.insert(BG.sellLog, item)
 			end
 		end
 	end
