@@ -1,21 +1,20 @@
--- to enable debug mode, run: /run BG_GlobalDB.debug = true
-local _, BG = ...
+local addonName, BG = ...
 
--- Basic Functions
--- ---------------------------------------------------------
-function BG:Print(text)
-	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622Broker_Garbage|r "..text)
+-- == Debugging Functions ==
+function BG.Print(text)
+	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622"..addonName.."|r "..text)
 end
 
 -- prints debug messages only when debug mode is active
-function BG:Debug(...)
-  if BG_GlobalDB and BG_GlobalDB.debug then
-	BG:Print("! "..string.join(", ", tostringall(...)))
-  end
+function BG.Debug(...)
+	if BG_GlobalDB and BG_GlobalDB.debug then
+		BG.Print("! "..string.join(", ", tostringall(...)))
+	end
 end
 
+-- == Saved Variables ==
 -- checks for and sets default settings
-function BG:CheckSettings()
+function BG.CheckSettings()
 	local first
 	if not BG_GlobalDB then BG_GlobalDB = {}; first = true end
 	for key, value in pairs(BG.defaultGlobalSettings) do
@@ -35,14 +34,99 @@ function BG:CheckSettings()
 	end
 	
 	if first ~= nil then
-		BG:CreateDefaultLists(first)
+		BG.CreateDefaultLists(first) -- [TODO] needs to be updated
 	end
 end
 
--- Table Manipulation
--- ---------------------------------------------------------
--- check if a given value can be found in a table
-function BG:Find(table, value)
+function BG.AdjustLists_4_1()
+	for key, value in pairs(BG_GlobalDB.exclude) do
+		if value == true then
+			BG_GlobalDB.exclude[key] = 0
+		end
+	end
+	for key, value in pairs(BG_GlobalDB.include) do
+		if value == true then
+			BG_GlobalDB.include[key] = 0
+		end
+	end
+	for key, value in pairs(BG_GlobalDB.autoSellList) do
+		if value == true then
+			BG_GlobalDB.autoSellList[key] = 0
+		end
+	end
+	for key, value in pairs(BG_GlobalDB.forceVendorPrice) do
+		if value == true then
+			BG_GlobalDB.forceVendorPrice[key] = 0
+		end
+	end
+
+	for key, value in pairs(BG_LocalDB.exclude) do
+		if value == true then
+			BG_GlobalDB.exclude[key] = 0
+		end
+	end
+	for key, value in pairs(BG_LocalDB.include) do
+		if value == true then
+			BG_GlobalDB.include[key] = 0
+		end
+	end
+	for key, value in pairs(BG_LocalDB.autoSellList) do
+		if value == true then
+			BG_GlobalDB.autoSellList[key] = 0
+		end
+	end
+end
+
+-- inserts some basic list settings
+function BG.CreateDefaultLists(global)
+	if global then
+		BG_GlobalDB.include[46069] = 0											-- argentum lance
+		BG_GlobalDB.include["Consumable.Water.Conjured"] = 20
+		BG_GlobalDB.include["Consumable.Food.Edible.Basic.Conjured"] = 0
+		BG_GlobalDB.exclude["Misc.StartsQuest"] = 0
+		BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible.Basic"] = 0
+		BG_GlobalDB.forceVendorPrice["Consumable.Water.Basic"] = 0
+		BG_GlobalDB.forceVendorPrice["Tradeskill.Mat.BySource.Vendor"] = 0
+	end
+	
+	-- tradeskills
+	local tradeSkills =  { GetProfessions() }
+	for i = 1, 6 do	-- we get at most 6 professions (2x primary, cooking, fishing, first aid, archeology)
+		local englishSkill = BG.GetTradeSkill(tradeSkills[i])
+		if englishSkill then
+			if englishSkill == "Herbalism" or englishSkill == "Skinning" or englishSkill == "Mining" or englishSkill == "Fishing" then
+				BG_LocalDB.exclude["Tradeskill.Gather." .. englishSkill] = 0
+			else
+				BG_LocalDB.exclude["Tradeskill.Mat.ByProfession." .. englishSkill] = 0
+			end
+			
+			if englishSkill ~= "Herbalism" and englishSkill ~= "Archaeology" then
+				BG_LocalDB.exclude["Tradeskill.Tool." .. englishSkill] = 0
+			end
+		end
+	end
+	
+	-- class specific
+	if BG.playerClass == "WARRIOR" or BG.playerClass == "ROGUE" or BG.playerClass == "DEATHKNIGHT" or BG.playerClass == "HUNTER" then
+		BG_LocalDB.autoSellList["Consumable.Water"] = 0
+	
+	elseif BG.playerClass == "SHAMAN" then
+		if not BG_LocalDB.include[17058] then BG_LocalDB.include[17058] = 20 end	-- fish oil
+		if not BG_LocalDB.include[17057] then BG_LocalDB.include[17057] = 20 end	-- scales
+	end
+	BG_LocalDB.exclude["Misc.Reagent.Class."..string.gsub(string.lower(BG.playerClass), "^.", string.upper)] = true
+	
+	BG.Print(BG.locale.listsUpdatedPleaseCheck)
+
+	BG.ScanInventory(true)
+	if BG.ListOptionsUpdate then
+		BG:ListOptionsUpdate()
+	end
+end
+
+-- == Table Functions ==
+function BG.Find(table, value)
+	if not table then return end
 	for k, v in pairs(table) do
 		if (v == value) then return true end
 	end
@@ -50,14 +134,17 @@ function BG:Find(table, value)
 end
 
 -- counts table entries. for numerically indexed tables, use #table
-function BG:Count(table)
-  local i = 0
-  for _, _ in pairs(table) do i = i + 1 end
-  return i
+function BG.Count(table)
+	if not table then return 0 end
+	local i = 0
+	for _, _ in pairs(table) do
+		i = i + 1
+	end
+	return i
 end
 
 -- joins any number of non-basic index tables together, one after the other. elements within the input-tables _will_ get mixed
-function BG:JoinTables(...)
+function BG.JoinTables(...)
 	local result = {}
 	local tab
 	
@@ -74,7 +161,7 @@ function BG:JoinTables(...)
 end
 
 -- joins numerically indexed tables
-function BG:JoinSimpleTables(...)
+function BG.JoinSimpleTables(...)
 	local result = {}
 	local tab, i, j
 	
@@ -90,10 +177,9 @@ function BG:JoinSimpleTables(...)
 	return result
 end
 
--- Professions and default lists
--- ---------------------------------------------------------
+-- == Profession Infos ==
 -- returns the current and maximum rank of a given skill
-function BG:GetProfessionSkill(skill)
+function BG.GetProfessionSkill(skill)
 	if not skill or (type(skill) ~= "number" and type(skill) ~= "string") then return end
 	if type(skill) == "number" then
 		skill = GetSpellInfo(skill)
@@ -113,7 +199,7 @@ function BG:GetProfessionSkill(skill)
 end
 
 -- takes a tradeskill id (as returned in GetProfessions()) and returns its English name 
-function BG:GetTradeSkill(id)
+function BG.GetTradeSkill(id)
 	if not id then return end
 	local spellName
 	local compareName = GetProfessionInfo(id) 
@@ -124,597 +210,4 @@ function BG:GetTradeSkill(id)
 		end
 	end
 	return "Herbalism"
-end
-
--- inserts some basic list settings
-function BG:CreateDefaultLists(global)
-	if global then
-		BG_GlobalDB.include[46069] = true											-- argentum lance
-		BG_GlobalDB.include["Consumable.Water.Conjured"] = true
-		BG_GlobalDB.include["Consumable.Food.Edible.Basic.Conjured"] = true
-		BG_GlobalDB.exclude["Misc.StartsQuest"] = true
-		BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible.Basic"] = true
-		BG_GlobalDB.forceVendorPrice["Consumable.Water.Basic"] = true
-		BG_GlobalDB.forceVendorPrice["Tradeskill.Mat.BySource.Vendor"] = true
-	end
-	
-	-- tradeskills
-	local tradeSkills =  { GetProfessions() }
-	for i = 1, 6 do	-- we get at most 6 professions (2x primary, cooking, fishing, first aid, archeology)
-		local englishSkill = BG:GetTradeSkill(tradeSkills[i])
-		if englishSkill then
-			if englishSkill == "Herbalism" or englishSkill == "Skinning" or englishSkill == "Mining" or englishSkill == "Fishing" then
-				BG_LocalDB.exclude["Tradeskill.Gather." .. englishSkill] = true
-			else
-				BG_LocalDB.exclude["Tradeskill.Mat.ByProfession." .. englishSkill] = true
-			end
-			
-			if englishSkill ~= "Herbalism" and englishSkill ~= "Archaeology" then
-				BG_LocalDB.exclude["Tradeskill.Tool." .. englishSkill] = true
-			end
-		end
-	end
-	
-	-- class specific
-	if BG.playerClass == "WARRIOR" or BG.playerClass == "ROGUE" or BG.playerClass == "DEATHKNIGHT" or BG.playerClass == "HUNTER" then
-		BG_LocalDB.autoSellList["Consumable.Water"] = true
-	
-	elseif BG.playerClass == "SHAMAN" then
-		if not BG_LocalDB.include[17058] then BG_LocalDB.include[17058] = 20 end	-- fish oil
-		if not BG_LocalDB.include[17057] then BG_LocalDB.include[17057] = 20 end	-- scales
-	end
-	BG_LocalDB.exclude["Misc.Reagent.Class."..string.gsub(string.lower(BG.playerClass), "^.", string.upper)] = true
-	
-	BG:Print(BG.locale.listsUpdatedPleaseCheck)
-
-	BG.itemsCache = {}
-	BG:ScanInventory()
-	if BG.ListOptionsUpdate then
-		BG:ListOptionsUpdate()
-	end
-end
-
--- Helpers
--- ---------------------------------------------------------
--- returns an item's itemID
-function BG:GetItemID(itemLink)
-	if not itemLink then return end
-	local itemID = string.gsub(itemLink, ".-Hitem:([0-9]*):.*", "%1")
-	return tonumber(itemID)
-end
-
-local scanTooltip = CreateFrame('GameTooltip', 'BGItemScanTooltip', UIParent, 'GameTooltipTemplate')
--- returns true if the given item is soulbound
-function BG:IsItemSoulbound(itemLink, bag, slot)
-	if not itemLink then
-		return nil
-	elseif type(itemLink) == "number" then
-		itemLink = select(2, GetItemInfo(itemLink))
-	end
-	
-	scanTooltip:SetOwner(UIParent, 'ANCHOR_NONE')
-	local searchString
-	
-	if not (bag and slot) then
-		-- check if item is BOP
-		scanTooltip:SetHyperlink(itemLink)
-		searchString = ITEM_BIND_ON_PICKUP
-	else
-		-- check if item is soulbound
-		scanTooltip:SetBagItem(bag, slot)
-		searchString = ITEM_SOULBOUND
-	end
-
-	local numLines = scanTooltip:NumLines()
-	for i = 1, numLines do
-		local leftLine = getglobal("BGItemScanTooltip".."TextLeft"..i)
-		local leftLineText = leftLine:GetText()
-		
-		if string.find(leftLineText, searchString) then
-			return true
-		end
-	end
-	return false
-end
-
--- misc: either "true" to check only for the current character, or a table {container, slot} for reference
-function BG:CanDisenchant(itemLink, location)
-	if not itemLink then return end
-	
-	local required, skillRank = 0	-- required disenchant skill
-	if IsAddOnLoaded("Enchantrix") then
-		required = Enchantrix.Util.DisenchantSkillRequiredForItem(itemLink)	-- might be more accurate/up to date in case I miss something
-		skillRank = Enchantrix.Util.GetUserEnchantingSkill()	-- Enchantrix caches this. So let's use it!
-	else
-		local _, _, quality, level, _, _, _, stackSize, invType = GetItemInfo(itemLink)
-
-		-- stackables are not DE-able, legendary/heirlooms are not DE-able
-		if quality >= 2 and quality < 5 and stackSize == 1 
-			and string.find(invType, "INVTYPE") and not string.find(invType, "BAG") then
-
-			skillRank = BG:GetProfessionSkill(BG.enchanting) or 0
-			if skillRank > 0 then
-				if level <=  20 then
-					required = 1
-				elseif level <=  60 then
-					required = 5*5*math.ceil(level/5)-100
-				elseif level <=  99 then
-					required = 225
-				elseif level <= 120 then
-					required = 275
-				else
-					if quality == 2 then		-- green
-						if level <= 150 then
-							required = 325
-						elseif level <= 200 then
-							required = 350
-						elseif level <= 305 then
-							required = 425
-						else
-							required = 475
-						end
-					elseif quality == 3 then	-- blue
-						if level <= 200 then
-							required = 325
-						elseif level <= 325 then
-							required = 450
-						else
-							required = 500
-						end
-					elseif quality == 4 then	-- purple
-						if level <= 199 then
-							required = 300
-						elseif level <= 277 then
-							required = 375
-						else
-							required = 500
-						end
-					end
-				end
-			end
-		end
-	end
-	
-	if not skillRank or not required then
-		-- this item is not disenchantable
-		return false
-	elseif skillRank >= required then
-		-- this character can disenchant the item. Perfect!
-		return true
-	elseif BG_GlobalDB.hasEnchanter then
-		if location and type(location) == "boolean" then
-			-- misc = true => Only regard this character. Exit.
-			return false
-		elseif location and type(location) == "table" then
-			-- misc = {bag, slot} => Can we mail this item?
-			return not BG:IsItemSoulbound(itemLink, location.bag, location.slot)
-		else
-			return not BG:IsItemSoulbound(itemLink)
-		end
-	else
-		return false
-	end
-end
-
-function BG.ClearCache()
-	BG.itemsCache = {}
-end
-
--- return true if item is found in LPT/Equipment list, nil otherwise
-function BG:IsItemInList(itemID, itemList)
-	if type(itemID) == "string" then	-- convert itemLinks to their IDs
-		itemID = BG:GetItemID(itemID)
-	end
-	
-	local temp
-	if type(itemList) == "string" and string.match(itemList, "^BEQ_(%d+)") then
-		-- equipment set
-		local setID = string.match(itemList, "^BEQ_(%d+)")
-		setID = tonumber(setID) 
-		if setID and setID <= GetNumEquipmentSets() then
-			itemList = GetEquipmentSetInfo(setID)
-			itemList = GetEquipmentSetItemIDs(itemList)
-			temp = BG:Find(itemList, itemID)
-		end
-	elseif type(itemList) == "string" and string.match(itemList, "^AC_(%d+)") then
-		-- armor class
-		local armorClass = string.match(itemList, "^AC_(%d+)")
-		local index = tonumber(armorClass) 
-		armorClass = select(index, GetAuctionItemSubClasses(2))
-		temp = select(7, GetItemInfo(itemID)) == armorClass
-	elseif BG.PT and type(itemList) == "string" then
-		-- LPT category
-		_, temp = BG.PT:ItemInSet(itemID, itemList)
-	end
-	return temp and true or nil
-end
-
--- returns true if the item is equippable. **Trinkets don't count!**
-function BG:ItemIsEquipment(invType)
-	if not invType then
-		return nil
-	end
-	return (string.find(invType, "INVTYPE") and not string.find(invType, "BAG") and not string.find(invType, "TRINKET"))
-end
-
--- returns true if, by TopFit's standard, the given item is "outdated"
-function BG:IsTopFitOutdatedItem(item)
-	local invType
-	if not item then
-		return nil
-	elseif type(item) == "number" or type(item) == "string" then
-		invType = select(9, GetItemInfo(item))
-	else
-		invType = item.itemType
-	end
-
-	if IsAddOnLoaded("TopFit") and TopFit.IsInterestingItem then
-		if not TopFit:IsInterestingItem(item) and BG:ItemIsEquipment(invType) then
-			return true
-		end
-	else
-		BG:Debug("TopFit is not loaded or too old.")
-	end
-end
-
--- returns true if an item has been falsely labeled "outdated"
-function BG:IsNoLongerOutdated(item)
-	if not item then
-		return nil
-	elseif type(item) == "number" then
-		item = BG:GetCached(item)
-	elseif type(item) == "string" then
-		item = BG:GetCached(BG:GetItemID(item))
-	end
-	return (item.classification == BG.OUTDATED and TopFit:IsInterestingItem(item.itemID))
-end
-
--- returns true if an item became "outdated" since filling the cache
-function BG:IsOutdatedItem(itemID)
-	local quality
-	if not itemID then
-		return nil
-	elseif type(itemID) == "number" or type(itemID) == "string" then
-		quality = select(3, GetItemInfo(itemID))
-	else	-- this is an item object
-		quality = itemID.quality
-		itemID = itemID.itemID
-	end
-	if BG_GlobalDB.sellOldGear and quality <= BG_GlobalDB.sellNWQualityTreshold
-		and BG:IsItemSoulbound(itemID) and BG:IsTopFitOutdatedItem(itemID) then
-		return true
-	end
-end
-
--- gets an item's classification and saves it to the item cache
-function BG:UpdateCache(itemID)
-	if not itemID then return nil end
-	BG:Debug("Updating cache for "..itemID)
-	local class, temp, limit
-	
-	local hasData, itemLink, quality, itemLevel, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
-	local family = GetItemFamily(itemID)
-	if not hasData then
-		BG:Debug("UpdateCache("..(itemID or "<none>")..") failed - no GetItemInfo() data available!")
-		return nil
-	end
-	
-	-- check if item is excluded by itemID
-	if BG_GlobalDB.exclude[itemID] or BG_LocalDB.exclude[itemID] then
-		BG:Debug("Item "..itemID.." is excluded via its itemID.")
-		class = BG.EXCLUDE
-	end
-	
-	-- check if the item is classified by its itemID
-	if not class or class ~= BG.EXCLUDE then
-		if BG_GlobalDB.include[itemID] or BG_LocalDB.include[itemID] then
-			
-			if BG_LocalDB.include[itemID] and type(BG_LocalDB.include[itemID]) ~= "boolean" then
-				-- limited item, local rule
-				BG:Debug("Item "..itemID.." is locally limited via its itemID.")
-				class = BG.LIMITED
-				limit = BG_LocalDB.include[itemID]
-			
-			elseif BG_GlobalDB.include[itemID] and type(BG_GlobalDB.include[itemID]) ~= "boolean" then
-				-- limited item, global rule
-				BG:Debug("Item "..itemID.." is globally limited via its itemID.")
-				class = BG.LIMITED
-				limit = BG_GlobalDB.include[itemID]
-			
-			else
-				BG:Debug("Item "..itemID.." is included via its itemID.")
-				class = BG.INCLUDE
-			end
-		
-		elseif BG_GlobalDB.forceVendorPrice[itemID] then
-			BG:Debug("Item "..itemID.." has a forced vendor price via its itemID.")
-			class = BG.VENDOR
-		
-		elseif BG_GlobalDB.autoSellList[itemID] or BG_LocalDB.autoSellList[itemID] then
-			if BG_LocalDB.autoSellList[itemID] and type(BG_LocalDB.autoSellList[itemID]) ~= "boolean" then
-				-- limited item
-				BG:Debug("Item "..itemID.." is to be auto-sold after its limit; via itemID.")
-				class = BG.LIMITEDSELL
-				limit = BG_LocalDB.autoSellList[itemID]
-			else
-				BG:Debug("Item "..itemID.." is to be auto-sold via its itemID.")
-				class = BG.SELL
-			end
-		
-		elseif quality and quality >= 2 and BG:ItemIsEquipment(invType)
-			and not IsUsableSpell(BG.enchanting) and BG:IsItemSoulbound(itemLink)
-			and (not BG.usableGear[subClass] or not BG:Find(BG.usableGear[subClass], BG.playerClass))
-			and not BG.usableByAll[invType] then
-			
-			BG:Debug("Item "..itemID.." should be sold as we can't ever wear it.")
-			class = BG.UNUSABLE
-		
-		-- check if the item is classified by its category
-		else
-			-- check if item is excluded by its category
-			for setName,_ in pairs(BG:JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)) do
-				if BG:IsItemInList(itemID, setName) then
-					if quality == 0 and BG_GlobalDB.overrideLPT then
-						BG:Debug("Item "..itemID.." would get EXCLUDED but is junk!")
-					else
-						BG:Debug("Item "..itemID.." is EXCLUDED via its category.")
-						class = BG.EXCLUDE
-						break
-					end
-				end
-			end
-			
-			-- Include List
-			if not class then
-				for setName,_ in pairs(BG:JoinTables(BG_LocalDB.include, BG_GlobalDB.include)) do
-					if BG:IsItemInList(itemID, setName) then
-						if BG_LocalDB.include[setName] and type(BG_LocalDB.include[setName]) ~= "boolean" then
-							-- limited item, local rule
-							BG:Debug("Item "..itemID.." is LIMITED via its item category.")
-							class = BG.LIMITED
-							limit = BG_LocalDB.include[itemID]
-						else
-							BG:Debug("Item "..itemID.." in INCLUDED via its item category.")
-							class = BG.INCLUDE
-						end
-						break
-					end
-				end
-			end
-			
-			-- Sell List
-			if not class then
-				for setName,_ in pairs(BG:JoinTables(BG_GlobalDB.autoSellList, BG_LocalDB.autoSellList)) do
-					if BG:IsItemInList(itemID, setName) then
-						if BG_LocalDB.include[setName] and type(BG_LocalDB.include[setName]) ~= "boolean" then
-							-- limited item
-							BG:Debug("Item "..itemID.." is LIMITED SELL via its item category.")
-							class = BG.LIMITEDSELL
-							limit = BG_LocalDB.include[itemID]
-						else
-							BG:Debug("Item "..itemID.." is on the SELL list via its item category.")
-							class = BG.SELL
-						end
-						break
-					end
-				end
-			end
-			
-			-- Force Vendor Price List
-			if not class then
-				for setName,_ in pairs(BG_GlobalDB.forceVendorPrice) do
-					if BG:IsItemInList(itemID, setName) then
-						BG:Debug("Item "..itemID.." has a forced vendor price via its item category.")
-						class = BG.VENDOR
-						break
-					end
-				end
-			end
-		end
-	end
-	
-	local tvalue, tclass = BG:GetSingleItemValue(itemID)
-	if not class and quality and BG:IsOutdatedItem(itemID) then
-		if tclass ~= BG.DISENCHANT then
-			BG:Debug("Item "..itemID.." is classified OUTDATED by TopFit.", invType)
-			class = BG.OUTDATED
-		elseif IsUsableSpell(BG.enchanting) and BG_GlobalDB.reportDisenchantOutdated then
-			-- TODO: offer options checkbox for this!
-			BG:Print(string.format(BG.locale.disenchantOutdated, itemLink))
-		end
-	end
-	
-	if not class then class = tclass end
-	if not (class == BG.VENDOR or class == BG.SELL
-		or (class == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems)
-		or (class == BG.OUTDATED and BG_GlobalDB.sellOldGear)
-		or (class == BG.UNUSABLE and BG_GlobalDB.sellNotWearable)) then
-		BG:Debug("Assigning simple classification "..class)
-		value = tvalue
-	end
-	
-	-- save to items cache
-	if not class or not quality or not value then
-		BG:Debug("Error! Caching item "..itemID.." failed!", class, quality, value)
-		return
-	end
-	if not BG.itemsCache[itemID] then
-		BG.itemsCache[itemID] = {
-			itemID = itemID,
-			classification = class,
-			quality = quality,
-			family = family,
-			itemType = invType,
-			level = itemLevel,
-			value = value or 0,
-			limit = limit,
-			stackSize = stackSize,
-			isClam = BG:Find(BG.clams, itemID),
-		}
-	else
-		BG.itemsCache[itemID].itemID = itemID
-		BG.itemsCache[itemID].classification = class
-		BG.itemsCache[itemID].quality = quality
-		BG.itemsCache[itemID].family = family
-		BG.itemsCache[itemID].itemType = invType
-		BG.itemsCache[itemID].value = value or 0
-		BG.itemsCache[itemID].limit = limit
-		BG.itemsCache[itemID].level = itemLevel
-		BG.itemsCache[itemID].stackSize = stackSize
-		BG.itemsCache[itemID].isClam = BG:Find(BG.clams, itemID)
-	end
-end
-
--- fetch an item from the item cache, or insert if it doesn't exist yet
-function BG:GetCached(itemID)
-	if not itemID then return end
-	if not BG.itemsCache[itemID] then
-		BG:UpdateCache(itemID)
-	end
-	return BG.itemsCache[itemID]
-end
-
--- LDB formating
--- ---------------------------------------------------------
--- returns total bag slots and free bag slots of your whole inventory
-function BG:GetBagSlots()
-	local numSlots, freeSlots = 0, 0
-	local specialSlots, specialFree = 0, 0
-	local bagSlots, emptySlots, bagType
-	
-	for i = 0, 4 do
-		bagSlots = GetContainerNumSlots(i) or 0
-		emptySlots, bagType = GetContainerNumFreeSlots(i)
-		
-		if bagType and bagType == 0 then
-			numSlots = numSlots + bagSlots
-			freeSlots = freeSlots + emptySlots
-		else
-			specialSlots = specialSlots + bagSlots
-			specialFree = specialFree + emptySlots
-		end
-	end
-	return numSlots, freeSlots, specialSlots, specialFree
-end
-
--- returns a red-to-green color depending on the given percentage
-function BG:Colorize(min, max)
-	local color
-	if not min then
-		return ""
-	elseif type(min) == "table" then
-		color = { min.r*255, min.g*255, min.b*255}
-	else
-		local percentage = min/(max and max ~= 0 and max or 1)
-		if percentage <= 0.5 then
-			color =  {255, percentage*510, 0}
-		else
-			color =  {510 - percentage*510, 255, 0}
-		end
-	end
-	
-	color = string.format("|cff%02x%02x%02x", color[1], color[2], color[3])
-	return color
-end
-
--- easier syntax for LDB display strings
-function BG:FormatString(text)
-	local item
-	if not BG.cheapestItems or not BG.cheapestItems[1] then
-		item = { itemID = 0, count = 0, value = 0 }
-	else
-		item = BG.cheapestItems[1]
-	end
-	
-	-- [junkvalue]
-	local junkValue = 0
-	for i = 0, 4 do
-		junkValue = junkValue + (BG.toSellValue[i] or 0)
-	end
-	text = string.gsub(text, "%[junkvalue%]", BG:FormatMoney(junkValue))
-	
-	-- [itemname][itemcount][itemvalue]
-	text = string.gsub(text, "%[itemname%]", (select(2,GetItemInfo(item.itemID)) or ""))
-	text = string.gsub(text, "%[itemicon%]", "|T"..(select(10,GetItemInfo(item.itemID)) or "")..":0|t")
-	text = string.gsub(text, "%[itemcount%]", item.count)
-	text = string.gsub(text, "%[itemvalue%]", BG:FormatMoney(item.value))
-	
-	-- [freeslots][totalslots]
-	text = string.gsub(text, "%[freeslots%]", BG.totalFreeSlots + BG.freeSpecialSlots)
-	text = string.gsub(text, "%[totalslots%]", BG.totalBagSpace + BG.specialSlots)
-
-	-- [specialfree][specialslots][specialslots][basicslots]
-	text = string.gsub(text, "%[specialfree%]", BG.freeSpecialSlots)
-	text = string.gsub(text, "%[specialslots%]", BG.specialSlots)
-	text = string.gsub(text, "%[basicfree%]", BG.totalFreeSlots)
-	text = string.gsub(text, "%[basicslots%]", BG.totalBagSpace)
-	
-	-- [bagspacecolor][basicbagcolor][specialbagcolor][endcolor]
-	text = string.gsub(text, "%[bagspacecolor%]", 
-		BG:Colorize(BG.totalFreeSlots + BG.freeSpecialSlots, BG.totalBagSpace + BG.specialSlots))
-	text = string.gsub(text, "%[basicbagcolor%]", 
-			BG:Colorize(BG.totalFreeSlots, BG.totalBagSpace))
-	text = string.gsub(text, "%[specialbagcolor%]", 
-			BG:Colorize(BG.freeSpecialSlots, BG.specialSlots))
-	text = string.gsub(text, "%[endcolor%]", "|r")
-	
-	return text
-end
-
--- formats money int values, depending on settings
-function BG:FormatMoney(amount, displayMode)
-	if not amount then return "" end
-	displayMode = displayMode or BG_GlobalDB.showMoney
-	
-	local signum
-	if amount < 0 then 
-		signum = "-"
-		amount = -amount
-	else 
-		signum = "" 
-	end
-	
-	local gold   = floor(amount / (100 * 100))
-	local silver = math.fmod(floor(amount / 100), 100)
-	local copper = math.fmod(floor(amount), 100)
-	
-	if displayMode == 0 then
-		return format(signum.."%i.%i.%i", gold, silver,copper)
-
-	elseif displayMode == 1 then
-		return format(signum.."|cffffd700%i|r.|cffc7c7cf%.2i|r.|cffeda55f%.2i|r", gold, silver, copper)
-
-	-- copied from Ara Broker Money
-	elseif displayMode == 2 then
-		if amount>9999 then
-			return format(signum.."|cffeeeeee%i|r|cffffd700g|r |cffeeeeee%.2i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r", floor(amount*.0001), floor(amount*.01)%100, amount%100 )
-		
-		elseif amount > 99 then
-			return format(signum.."|cffeeeeee%i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r", floor(amount*.01), amount%100 )
-		
-		else
-			return format(signum.."|cffeeeeee%i|r|cffeda55fc|r", amount)
-		end
-	
-	-- copied from Haggler
-	elseif displayMode == 3 then
-		gold         = gold   > 0 and gold  .."|TInterface\\MoneyFrame\\UI-GoldIcon:0|t" or ""
-		silver       = silver > 0 and silver.."|TInterface\\MoneyFrame\\UI-SilverIcon:0|t" or ""
-		copper       = copper > 0 and copper.."|TInterface\\MoneyFrame\\UI-CopperIcon:0|t" or ""
-		-- add spaces if needed
-		copper       = (silver ~= "" and copper ~= "") and " "..copper or copper
-		silver       = (gold   ~= "" and silver ~= "") and " "..silver or silver
-	
-		return signum..gold..silver..copper
-		
-	elseif displayMode == 4 then		
-		gold         = gold   > 0 and "|cffeeeeee"..gold  .."|r|cffffd700g|r" or ""
-		silver       = silver > 0 and "|cffeeeeee"..silver.."|r|cffc7c7cfs|r" or ""
-		copper       = copper > 0 and "|cffeeeeee"..copper.."|r|cffeda55fc|r" or ""
-		-- add spaces if needed
-		copper       = (silver ~= "" and copper ~= "") and " "..copper or copper
-		silver       = (gold   ~= "" and silver ~= "") and " "..silver or silver
-	
-		return signum..gold..silver..copper
-	end
 end

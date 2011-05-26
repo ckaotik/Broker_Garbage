@@ -14,10 +14,11 @@ BG.defaultGlobalSettings = {
 	sellNotWearable = false,
 	sellOldGear = false,
 	showSellLog = false,
-	overrideLPT = false,			-- TODO add options dialog
+	overrideLPT = false,			-- [TODO] add options dialog
 	
 	disableKey = "SHIFT",
 	autoSellIncludeItems = false,	-- toggle include list being sell list as well
+	keepItemsForLaterDE = true,		-- [TODO] new!
 
 	-- tresholds
 	dropQuality = 0,
@@ -37,7 +38,7 @@ BG.defaultGlobalSettings = {
 	
 	-- display options
 	useRealValues = false,
-	hideZeroValue = true,		-- TODO: add options dialog; shows/hides any items with '0c' value (quest, event items etc.)
+	hideZeroValue = true,		-- [TODO]: add options dialog; shows/hides any items with '0c' value (quest, event items etc.)
 	showAutoSellIcon = true,
 	
 	-- LibDataBroker Display
@@ -72,29 +73,26 @@ BG.defaultLocalSettings = {
 }
 
 -- item classifications
--- list type
+-- static list types
 BG.EXCLUDE = 0
 BG.INCLUDE = 1
-BG.LIMITED = 2		-- include + limit
-BG.LIMITEDSELL = 3	-- sell list + limit
+BG.AUTOSELL = 2
+-- dynamic list types
 BG.UNUSABLE = 4		-- unusable gear, e.g. mail for a priest
 BG.OUTDATED = 5		-- item is gear but irrelevant (TopFit)
--- price type
+-- price types
 BG.AUCTION = 6
 BG.VENDOR = 7
-BG.SELL = 8
-BG.DISENCHANT = 9
+BG.DISENCHANT = 8
 
 -- corresponding tags to be used in the LDB tooltip; EXCLUDE never shows up there!
 BG.tag = {
 	[BG.INCLUDE] 	= "|cFFffffffI",	-- white
-	[BG.LIMITED] 	= "|cFFffffffL",	-- white
-	[BG.LIMITEDSELL]= "|cFFff592dLV",	-- dark orange
-	[BG.UNUSABLE] 	= "|cFF3c73abG",	-- blue
-	[BG.AUCTION] 	= "|cFF2bff58A",	-- green
 	[BG.VENDOR] 	= "|cFFff9c5aV",	-- orange
-	[BG.SELL] 		= "|cFFff592dV",	-- dark orange
+	[BG.AUTOSELL] 	= "|cFFff592dV",	-- dark orange
+	[BG.AUCTION] 	= "|cFF2bff58A",	-- green
 	[BG.DISENCHANT] = "|cFFe052ffD",	-- purple
+	[BG.UNUSABLE] 	= "|cFF3c73abG",	-- blue
 	[BG.OUTDATED]   = "|cFF3c73abO",	-- blue
 }
 

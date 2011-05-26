@@ -252,7 +252,7 @@ local function Options_LootManager(pluginID)
 	minFreeSlots:SetScript("OnValueChanged", function(minFreeSlots)
 		BGLM_GlobalDB.tooFewSlots = minFreeSlots:GetValue()
 		minFreeSlotsText:SetText(BGLM.locale.LMFreeSlotsTitle .. ": " .. BGLM_GlobalDB.tooFewSlots)
-		Broker_Garbage:ScanInventory()
+		Broker_Garbage.ScanInventory()
 	end)
 	low:Hide(); high:Hide()
 	

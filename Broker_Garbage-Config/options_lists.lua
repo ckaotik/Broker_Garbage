@@ -29,7 +29,7 @@ function BGC:ShowListOptions(frame)
 	autoSellIncludeItems:SetScript("OnClick", function(autoSellIncludeItems)
 		checksound(autoSellIncludeItems)
 		Broker_Garbage:ToggleOption("autoSellIncludeItems", true)
-		Broker_Garbage:ScanInventory(true)
+		Broker_Garbage.ScanInventory(true)
 	end)
 	
 	local includeMode = LibStub("tekKonfig-Checkbox").new(frame, nil, BGC.locale.LOUseRealValues, "TOPLEFT", autoSellIncludeItems, "BOTTOMLEFT", 0, 8)
@@ -39,7 +39,7 @@ function BGC:ShowListOptions(frame)
 	includeMode:SetScript("OnClick", function(includeMode)
 		checksound(includeMode)
 		Broker_Garbage:ToggleOption("useRealValues", true)
-		Broker_Garbage:ScanInventory(true)
+		Broker_Garbage.ScanInventory(true)
 		-- maybe: Update LDB
 	end)
 	
@@ -207,14 +207,14 @@ function BGC:ShowListOptions(frame)
 		local change = IsShiftKeyDown() and 10 or 1
 		local item = self.itemID or self.tiptext
 		if dir == 1 then	-- up
-			if list[item] == true then	-- trouble ahead :/
+			if list[item] == 0 then
 				list[item] = change
 			else
 				list[item] = list[item] + change
 			end
 			text = list[item]
 		else				-- down
-			if list[item] == true then	-- no change
+			if list[item] == 0 then	-- no change
 				text = ""
 			else
 				list[item] = list[item] - change
@@ -222,15 +222,15 @@ function BGC:ShowListOptions(frame)
 			end
 			
 			if type(list[item]) == "number" and list[item] <= 0 then
-				list[item] = true
+				list[item] = 0
 				text = ""
 			end
 		end
 		self.limit:SetText(text)
 		if self.itemID then 
-			Broker_Garbage:UpdateCache(self.itemID)
+			Broker_Garbage.UpdateCache(self.itemID)
 		else
-			Broker_Garbage:ScanInventory(true)
+			Broker_Garbage.ScanInventory(true)
 		end
 	end
 	
@@ -375,9 +375,9 @@ function BGC:ShowListOptions(frame)
 					button.isGlobal = false
 				end
 				if button.isGlobal and globalList[itemID] ~= true then
-					button.limit:SetText(globalList[itemID])
+					button.limit:SetText(globalList[itemID] > 0 and globalList[itemID] or "")
 				elseif localList and localList[itemID] ~= true then
-					button.limit:SetText(localList[itemID])
+					button.limit:SetText(localList[itemID] > 0 and localList[itemID] or "")
 				else
 					button.limit:SetText("")
 				end
@@ -391,7 +391,7 @@ function BGC:ShowListOptions(frame)
 			end
 			button:SetNormalTexture(texture or "Interface\\Icons\\Inv_misc_questionmark")
 			
-			if BGC.listOptions.current == "include" or BGC.listOptions.current == "autoSellList" then
+			if BGC.listOptions.current ~= "forceVendorPrice" then
 				button:EnableMouseWheel(true)
 				button:SetScript("OnMouseWheel", OnMouseWheel)
 			else
@@ -449,49 +449,47 @@ function BGC:ShowListOptions(frame)
 	end
 	
 	local function AddItem(item)
-		local cursorType, itemID, link = GetCursorInfo()
-		if not item and not (cursorType and itemID and link) then
-			return
+		local link
+		if not item then
+			_, item, link = GetCursorInfo()
+			if not item or not link then
+				return
+			end
 		end
-		
-		local reset		
+
+		local reset	= nil	
 		-- create "link" for output
-		if itemID and type(itemID) == "number" then
+		if item and type(item) == "number" then
 			-- item on cursor
-			link = select(2, GetItemInfo(itemID))
+			link = select(2, GetItemInfo(item))
 
 		elseif item and type(item) == "string" then
-			if string.find(item, "^AC_") then
+			local specialType, identifier = string.match(item, "^(%S+)_(%d+)")
+			identifier = tonumber(identifier)
+			if specialType == "BEQ" then
+				-- equipment set
+				reset = nil
+				link = setID and GetEquipmentSetInfo(identifier) or "Invalid Set"
+			elseif specialType == "AC" then
 				-- armor class
 				reset = true
-				itemID = item
-				local armorType = string.match(item, "^AC_(%d+)")
-				local index = tonumber(armorType) 
-				armorType = select(index, GetAuctionItemSubClasses(2))
+				armorType = select(identifier, GetAuctionItemSubClasses(2))
 				link = BGC.locale.armorClass .. ": " .. (armorType or "Invalid Armor Class")
-			elseif string.find(item, "^BEQ_") then
-				-- equipment set
-				reset = true
-				itemID = item
-				local setID = string.match(item, "^BEQ_(%d+)")
-				setID = tonumber(setID)
-				link = setID and GetEquipmentSetInfo(setID) or "Invalid Set"
 		    else
 				-- LPT category
 				reset = true
-				itemID = item
 				link = item
 			end
 		end
 		
 		local localList, globalList = Broker_Garbage:GetOption(frame.current)
-		if localList and localList[itemID] == nil then
-			localList[itemID] = true
+		if localList and localList[item] == nil then
+			localList[item] = 0
 			BGC:Print(format(BGC.locale["addedTo_" .. frame.current], link))
 			BGC:ListOptionsUpdate()
 			ClearCursor()
-		elseif localList == nil and globalList and globalList[itemID] == nil then
-			globalList[itemID] = true
+		elseif localList == nil and globalList and globalList[item] == nil then
+			globalList[item] = 0
 			BGC:Print(format(BGC.locale["addedTo_" .. frame.current], link))
 			BGC:ListOptionsUpdate()
 			ClearCursor()
@@ -504,9 +502,10 @@ function BGC:ShowListOptions(frame)
 		Broker_Garbage:SetOption(frame.current, true, globalList)
 		
 		if not reset then
-			Broker_Garbage:UpdateCache(itemID)
+			Broker_Garbage.UpdateCache(item)
+		else
+			Broker_Garbage.ScanInventory(reset)
 		end
-		Broker_Garbage:ScanInventory(reset)
 		Broker_Garbage:UpdateRepairButton()
 	end
 	
@@ -588,7 +587,7 @@ function BGC:ShowListOptions(frame)
 			return
 		end
 		
-		local reset	-- used to clean the items cache once we're done here
+		local reset = nil	-- used to clean the items cache once we're done here
 		local localList, globalList = Broker_Garbage:GetOption(frame.current)
 		-- add action
 		if self == plus then			
@@ -600,6 +599,7 @@ function BGC:ShowListOptions(frame)
 				local button = _G["BG_ListOptions_ScrollFrame_Item"..index]
 				if button:IsVisible() and button:GetChecked() then
 					local item = button.itemID or button.tiptext
+
 					if localList then
 						localList[item] = nil
 					end
@@ -608,7 +608,7 @@ function BGC:ShowListOptions(frame)
 					end
 					
 					if type(item) == "number" then	-- regular item
-						Broker_Garbage:UpdateCache(item)
+						Broker_Garbage.UpdateCache(item)
 					else							-- category string
 						reset = true
 					end
@@ -658,7 +658,9 @@ function BGC:ShowListOptions(frame)
 		Broker_Garbage:SetOption(frame.current, true, globalList)
 		
 		BGC:ListOptionsUpdate()
-		Broker_Garbage:ScanInventory(reset)
+		if reset then
+			Broker_Garbage.ScanInventory(true)
+		end
 		Broker_Garbage:UpdateRepairButton()
 	end
 	

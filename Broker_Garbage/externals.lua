@@ -3,7 +3,7 @@ local _, BG = ...
 -- register as a plugin to gain acced to BG's options panel
 function BG:RegisterPlugin(name, init)
 	if not name or not init then
-		BG:Print("Error! Cannot register a plugin without a name and initialize function.")
+		BG.Print("Error! Cannot register a plugin without a name and initialize function.")
 		return
 	end
 	
@@ -91,7 +91,8 @@ Broker_Garbage = {
 	ScanInventory = BG.ScanInventory,
 	GetItemValue = BG.GetItemValue,
 	Delete = BG.Delete,
-	FindSlotsToDelete = BG.FindSlotToDelete,
+	UpdateSortedItemsList = BG.UpdateSortedItemsList,	-- GetCheapest
+	FindSlotsToDelete = BG.GetItemLocations, -- BG.FindSlotToDelete,
 	
 	UpdateRepairButton = BG.UpdateRepairButton,
 	CreateDefaultLists = BG.CreateDefaultLists,
