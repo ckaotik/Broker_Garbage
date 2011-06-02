@@ -15,26 +15,24 @@ end
 -- == Saved Variables ==
 -- checks for and sets default settings
 function BG.CheckSettings()
-	local first
-	if not BG_GlobalDB then BG_GlobalDB = {}; first = true end
+	local newGlobals, newLocals
+	if not BG_GlobalDB then BG_GlobalDB = {}; newGlobals = true end
 	for key, value in pairs(BG.defaultGlobalSettings) do
 		if BG_GlobalDB[key] == nil then
 			BG_GlobalDB[key] = value
 		end
 	end
 	
-	if not BG_LocalDB then 
-		BG_LocalDB = {}
-		if not first then first = false end
-	end
+	if not BG_LocalDB then BG_LocalDB = {}; newLocals = true end
 	for key, value in pairs(BG.defaultLocalSettings) do
 		if BG_LocalDB[key] == nil then
 			BG_LocalDB[key] = value
 		end
 	end
 	
-	if first ~= nil then
-		BG.CreateDefaultLists(first) -- [TODO] needs to be updated
+	if newGlobals or newLocals then
+		-- this is the first load (either this or all character)
+		BG.CreateDefaultLists(newGlobals)
 	end
 end
 
@@ -62,17 +60,17 @@ function BG.AdjustLists_4_1()
 
 	for key, value in pairs(BG_LocalDB.exclude) do
 		if value == true then
-			BG_GlobalDB.exclude[key] = 0
+			BG_LocalDB.exclude[key] = 0
 		end
 	end
 	for key, value in pairs(BG_LocalDB.include) do
 		if value == true then
-			BG_GlobalDB.include[key] = 0
+			BG_LocalDB.include[key] = 0
 		end
 	end
 	for key, value in pairs(BG_LocalDB.autoSellList) do
 		if value == true then
-			BG_GlobalDB.autoSellList[key] = 0
+			BG_LocalDB.autoSellList[key] = 0
 		end
 	end
 end
@@ -114,7 +112,7 @@ function BG.CreateDefaultLists(global)
 		if not BG_LocalDB.include[17058] then BG_LocalDB.include[17058] = 20 end	-- fish oil
 		if not BG_LocalDB.include[17057] then BG_LocalDB.include[17057] = 20 end	-- scales
 	end
-	BG_LocalDB.exclude["Misc.Reagent.Class."..string.gsub(string.lower(BG.playerClass), "^.", string.upper)] = true
+	BG_LocalDB.exclude["Misc.Reagent.Class."..string.gsub(string.lower(BG.playerClass), "^.", string.upper)] = 0
 	
 	BG.Print(BG.locale.listsUpdatedPleaseCheck)
 
@@ -122,6 +120,42 @@ function BG.CreateDefaultLists(global)
 	if BG.ListOptionsUpdate then
 		BG:ListOptionsUpdate()
 	end
+end
+
+
+-- == Profession Infos ==
+-- takes a tradeskill id (as returned in GetProfessions()) and returns its English name 
+function BG.GetTradeSkill(id)
+	if not id then return end
+	local spellName
+	local compareName = GetProfessionInfo(id) 
+	for spellID, skillName in pairs(BG.tradeSkills) do
+		spellName = GetSpellInfo(spellID)
+		if spellName == compareName then
+			return skillName
+		end
+	end
+	return "Herbalism"
+end
+
+-- returns the current and maximum rank of a given skill
+function BG.GetProfessionSkill(skill)
+	if not skill or (type(skill) ~= "number" and type(skill) ~= "string") then return end
+	if type(skill) == "number" then
+		skill = GetSpellInfo(skill)
+	end
+	
+	local rank, maxRank
+	local professions = { GetProfessions() }
+	for _, profession in ipairs(professions) do
+		local pName, _, pRank, pMaxRank = GetProfessionInfo(profession)
+		if pName and pName == skill then
+			rank = pRank
+			maxRank = pMaxRank
+			break
+		end
+	end
+	return rank, maxRank
 end
 
 -- == Table Functions ==
@@ -175,39 +209,4 @@ function BG.JoinSimpleTables(...)
 	end
 	
 	return result
-end
-
--- == Profession Infos ==
--- returns the current and maximum rank of a given skill
-function BG.GetProfessionSkill(skill)
-	if not skill or (type(skill) ~= "number" and type(skill) ~= "string") then return end
-	if type(skill) == "number" then
-		skill = GetSpellInfo(skill)
-	end
-	
-	local rank, maxRank
-	local professions = { GetProfessions() }
-	for _, profession in ipairs(professions) do
-		local pName, _, pRank, pMaxRank = GetProfessionInfo(profession)
-		if pName and pName == skill then
-			rank = pRank
-			maxRank = pMaxRank
-			break
-		end
-	end
-	return rank, maxRank
-end
-
--- takes a tradeskill id (as returned in GetProfessions()) and returns its English name 
-function BG.GetTradeSkill(id)
-	if not id then return end
-	local spellName
-	local compareName = GetProfessionInfo(id) 
-	for spellID, skillName in pairs(BG.tradeSkills) do
-		spellName = GetSpellInfo(spellID)
-		if spellName == compareName then
-			return skillName
-		end
-	end
-	return "Herbalism"
 end

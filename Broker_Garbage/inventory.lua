@@ -106,7 +106,7 @@ end
 -- only check a specific item in a specific location
 function BG.RecheckItemInCheapestList(container, slot, itemLink, itemCount)
 	local slotFound = nil
-	for index, item in ipairs(BG.cheapestItems) do
+	for index, item in ipairs(BG.cheapestItems or {}) do
 		if itemLink ~= nil and item.itemLink ~= nil then
 			BG.Debug("Want: "..(container or "nil")..", "..(slot or "nil")..". Have: "..(item.bag or "nil")..", "..(item.slot or "nil"))
 		end
