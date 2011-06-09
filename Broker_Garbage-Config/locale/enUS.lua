@@ -83,8 +83,8 @@ BGC.locale = {
 	autoRepairTitle = "Auto Repair",
 	autoRepairText = "Check to automatically repair when at a vendor.",
 	
-	autoRepairGuildTitle = "No Guild Repair", 
-	autoRepairGuildText = "Check to never repair using guild funds.",
+	autoRepairGuildTitle = "Use Guild Funds", 
+	autoRepairGuildText = "Check to allow Broker_Garbage to repair using guild funds.",
 	
 	showSourceTitle = "Source",
 	showSourceText = "Check to show the last column in the tooltip, displaying the item value source.",

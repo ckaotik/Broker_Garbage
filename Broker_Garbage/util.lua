@@ -1,8 +1,8 @@
-local addonName, BG = ...
+ _, BG = ...
 
 -- == Debugging Functions ==
 function BG.Print(text)
-	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622"..addonName.."|r "..text)
+	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622Broker_Garbage|r "..text)
 end
 
 -- prints debug messages only when debug mode is active
@@ -73,6 +73,12 @@ function BG.AdjustLists_4_1()
 			BG_LocalDB.autoSellList[key] = 0
 		end
 	end
+
+	if BG_GlobalDB.neverRepairGuildBank ~= nil and 
+		(BG_GlobalDB.neverRepairGuildBank ~= BG_GlobalDB.repairGuildBank or BG_GlobalDB.repairGuildBank == nil) then
+		BG_GlobalDB.repairGuildBank = BG_GlobalDB.neverRepairGuildBank
+		BG_GlobalDB.neverRepairGuildBank = nil
+	end
 end
 
 -- inserts some basic list settings
@@ -116,7 +122,8 @@ function BG.CreateDefaultLists(global)
 	
 	BG.Print(BG.locale.listsUpdatedPleaseCheck)
 
-	BG.ScanInventory(true)
+	BG.ClearCache()
+	BG.ScanInventory()
 	if BG.ListOptionsUpdate then
 		BG:ListOptionsUpdate()
 	end

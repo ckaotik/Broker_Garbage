@@ -29,7 +29,6 @@ BG.locale = {
 	noItems = "No items to delete.",
 	increaseTreshold = "Increase quality treshold",
 	openPlease = "Unopened containers in your bags",
-	openClams = "There are clams in your bags.",
 	
 	-- Sell button tooltip
 	autoSellTooltip = "Sell Items for %s",

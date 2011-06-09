@@ -34,15 +34,22 @@ local function eventHandler(self, event, arg1, ...)
 		BG.totalFreeSlots = 0
 		
 		-- inventory database
-		BG.clamInInventory = false
 		BG.containerInInventory = false
-
-		-- full inventory scan to start with
-		BG.itemsCache = {}
-		BG.cheapestItems = {}
+		BG.itemsCache = {}		-- contains static item data, e.g. price, stack size
+		BG.itemLocations = {}	-- itemID = { cheapestList-index }
+		BG.cheapestItems = {}	-- contains up-to-date labeled data
+		
 		BG.ScanInventory()	-- initializes and fills cache
 
+		frame:RegisterEvent("BAG_UPDATE")
+		frame:RegisterEvent("MERCHANT_SHOW")
+		frame:RegisterEvent("MERCHANT_CLOSED")
+		frame:RegisterEvent("AUCTION_HOUSE_CLOSED")
+		frame:RegisterEvent("PLAYER_MONEY")
+		frame:RegisterEvent("UI_ERROR_MESSAGE")
+
 		frame:UnregisterEvent("ADDON_LOADED")
+
 	elseif event == "BAG_UPDATE" then
 		if not arg1 or arg1 < 0 or arg1 > 4 then return end
 		
@@ -55,8 +62,8 @@ local function eventHandler(self, event, arg1, ...)
 		BG:UpdateRepairButton()
 		local disable = BG.disableKey[BG_GlobalDB.disableKey]
 		if not (disable and disable()) then
-			BG:AutoRepair()
-			BG:AutoSell()
+			BG.AutoRepair()
+			BG.AutoSell()
 		end
 		
 	elseif event == "MERCHANT_CLOSED" then
@@ -64,14 +71,14 @@ local function eventHandler(self, event, arg1, ...)
 		
 		-- fallback unlock
 		if locked then
-			BG.isAtVendor = false
 			locked = false
 			BG.Debug("Fallback Unlock: Merchant window closed, scan lock released.")
 		end
 	
 	elseif event == "AUCTION_HOUSE_CLOSED" then
 		-- Update cached auction values in case anything changed
-		BG.ScanInventory(true)	-- [TODO] this is actually incorrect now. what we want: clearcache and then re-order cheapest items table
+		BG.ClearCache()	-- auction prices may change associated labels!
+		BG.ScanInventory()
 	
 	elseif (locked or repairCost ~=0) and event == "PLAYER_MONEY" then -- regular unlock
 		if sellValue ~= 0 and repairCost ~= 0 and ((-1)*sellValue <= repairCost+2 and (-1)*sellValue >= repairCost-2) then
@@ -83,12 +90,12 @@ local function eventHandler(self, event, arg1, ...)
 		-- print transaction information
 		if BG.didSell and BG.didRepair then
 			BG.Print(format(BG.locale.sellAndRepair, 
-					BG:FormatMoney(sellValue), 
-					BG:FormatMoney(repairCost), 
-					BG:FormatMoney(sellValue - repairCost)
+					BG.FormatMoney(BG.junkValue), 
+					BG.FormatMoney(repairCost), 
+					BG.FormatMoney(BG.junkValue - repairCost)
 			))
 		elseif BG.didRepair then
-			BG.Print(format(BG.locale.repair, BG:FormatMoney(repairCost)))
+			BG.Print(format(BG.locale.repair, BG.FormatMoney(repairCost)))
 		elseif BG.didSell then
 			BG.FinishSelling()
 		end
@@ -110,188 +117,8 @@ local function eventHandler(self, event, arg1, ...)
 		BG.Print(BG.locale.reportCannotSell)
 	end	
 end
-
--- register events
 frame:RegisterEvent("ADDON_LOADED")
-frame:RegisterEvent("BAG_UPDATE")
-frame:RegisterEvent("MERCHANT_SHOW")
-frame:RegisterEvent("MERCHANT_CLOSED")
-frame:RegisterEvent("AUCTION_HOUSE_CLOSED")
-frame:RegisterEvent("PLAYER_MONEY")
-frame:RegisterEvent("UI_ERROR_MESSAGE")
-
 frame:SetScript("OnEvent", eventHandler)
 
 -- [TODO] maybe add "restack now" button to bag frames
-
-
-
--- deletes the item in a given location of your bags
-function BG:Delete(item, position)
-	local itemID, itemCount, cursorType
-	
-	if type(item) == "string" and item == "cursor" then
-		-- item on the cursor
-		cursorType, itemID = GetCursorInfo()
-		if cursorType ~= "item" then
-			BG.Print("Error! Trying to delete an item from the cursor, but there is none.")
-			return
-		end
-		itemCount = position	-- second argument is the item count
-
-	elseif type(item) == "table" then
-		-- item given as an itemTable
-		itemID = item.itemID
-		position = {item.bag, item.slot}
-	
-	elseif type(item) == "number" then
-		-- item given via its itemID
-		itemID = item
-	
-	elseif item then
-		-- item given via its itemLink
-		itemID = BG.GetItemID(item)
-	else
-		BG.Print("Error! BG:Delete() no argument supplied.")
-		return
-	end
-
-	-- security check
-	local bag = position[1] or item.bag
-	local slot = position[2] or item.slot
-	if not cursorType and (not (bag and slot) or GetContainerItemID(bag, slot) ~= itemID) then
-		BG.Print("Error! Item to be deleted is not the expected item.")
-		BG.Debug("I got these parameters:", item, bag, slot)
-		return
-	end
-	
-	-- make sure there is nothing unwanted on the cursor
-	if not cursorType then
-		ClearCursor()
-	end
-	
-	_, itemCount = GetContainerItemInfo(bag, slot)
-	
-	-- actual deleting happening after this
-	securecall(PickupContainerItem, bag, slot)
-	securecall(DeleteCursorItem)					-- comment this line to prevent item deletion
-	
-	local itemValue = (BG.GetCached(itemID).value or 0) * itemCount	-- if an item is unknown to the cache, statistics will not change
-	-- statistics
-	BG_GlobalDB.itemsDropped 		= BG_GlobalDB.itemsDropped + itemCount
-	BG_GlobalDB.moneyLostByDeleting	= BG_GlobalDB.moneyLostByDeleting + itemValue
-	BG_LocalDB.moneyLostByDeleting 	= BG_LocalDB.moneyLostByDeleting + itemValue
-	
-	local _, itemLink = GetItemInfo(itemID)
-	BG.Print(format(BG.locale.itemDeleted, itemLink, itemCount))
-end
-
--- special functionality
--- ---------------------------------------------------------
--- when at a merchant this will clear your bags of junk (gray quality) and items on your autoSellList
-function BG:AutoSell()
-	if not BG.isAtVendor then
-		return
-	end
-	
-	if self == _G["BG_SellIcon"] then
-		BG.Debug("AutoSell was triggered by a click on Sell Icon.")
-	
-	elseif not BG_GlobalDB.autoSellToVendor then
-		-- we're not supposed to sell. jump out
-		return
-	end
-	
-	BG.PrepareAutoSell()
-	BG.GatherSellStatistics()
-	BG.FinishSelling(self == _G["BG_SellIcon"])
-end
-
-function BG.PrepareAutoSell()
-	wipe(BG.sellLog)    -- reset data for refilling
-	
-	sellValue = 0
-	local cachedItem
-	for _, item in ipairs(BG.cheapestItems) do
-		cachedItem = BG.GetCached(item.itemID)
-		if item.isValid and (item.source == BG.AUTOSELL
-			or (item.source ~= BG.EXCLUDE and cachedItem.quality == 0)
-			or (item.source == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems)
-			or (item.source == BG.OUTDATED and BG_GlobalDB.sellOldGear)
-			or (item.source == BG.UNUSABLE and BG_GlobalDB.sellNotWearable) ) then
-			BG.Debug("AutoSell", item.isValid,
-				item.source == BG.AUTOSELL, 
-				item.source ~= BG.EXCLUDE and cachedItem.quality == 0, 
-				item.source == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems,
-				item.source == BG.OUTDATED and BG_GlobalDB.sellOldGear,
-				item.source == BG.UNUSABLE and BG_GlobalDB.sellNotWearable)
-			if item.value ~= nil then
-				if not locked then					
-					BG.Debug("Inventory scans locked")
-					locked = true
-				end
-				BG.Debug("Selling", item.itemID, item.bag, item.slot)
-
-				ClearCursor()
-				UseContainerItem(item.bag, item.slot)
-				table.insert(BG.sellLog, item)
-			end
-		end
-	end
-	if locked then BG.didSell = true end    -- otherwise we didn't sell anything
-end
-
-function BG.GatherSellStatistics()
-	if not BG.didSell then return end       -- in case something went wrong, e.g. merchant doesn't buy
-	sellValue, itemCount = 0, 0
-	for _, data in ipairs(BG.sellLog) do
-		if BG_GlobalDB.showSellLog then
-			BG.Print(BG.locale.sellItem, data.item, data.count, BG:FormatMoney(data.count * data.value))
-		end
-		
-		sellValue = sellValue + (data.count * data.value)
-		itemCount = itemCount + data.count
-	end
-
-	-- update statistics
-	BG_LocalDB.moneyEarned  = BG_LocalDB.moneyEarned    + sellValue
-	BG_GlobalDB.moneyEarned = BG_GlobalDB.moneyEarned   + sellValue
-	BG_GlobalDB.itemsSold   = BG_GlobalDB.itemsSold     + itemCount
-end
-
-function BG.FinishSelling(isUserStarted)
-	-- create output if needed
-	if isUserStarted then
-		if sellValue == 0 and BG_GlobalDB.reportNothingToSell then
-			BG.Print(BG.locale.reportNothingToSell)
-		elseif sellValue ~= 0 and not BG_GlobalDB.autoSellToVendor then
-			BG.Print(format(BG.locale.sell, BG:FormatMoney(sellValue)))
-		end
-		_G["BG_SellIcon"]:GetNormalTexture():SetDesaturated(true)
-	end
-	
-	BG:UpdateRepairButton()
-end
-
--- automatically repair at a vendor
-function BG:AutoRepair()
-	if BG_GlobalDB.autoRepairAtVendor and CanMerchantRepair() then
-		repairCost = GetRepairAllCost()
-		
-		if repairCost > 0 and not BG_LocalDB.neverRepairGuildBank and CanGuildBankRepair()
-			and (GetGuildBankWithdrawMoney() == -1 or GetGuildBankWithdrawMoney() >= repairCost) then
-			-- guild repair if we're allowed to and the user wants it
-			RepairAllItems(1)
-			BG.didRepair = true
-		elseif repairCost > 0 and GetMoney() >= repairCost then
-			-- not enough allowance to guild bank repair, pay ourselves
-			RepairAllItems(0)
-			BG.didRepair = true
-		elseif repairCost > 0 then
-			-- oops. give us your moneys!
-			BG.Print(format(BG.locale.couldNotRepair, BG:FormatMoney(repairCost)))
-		end
-	else
-		repairCost = 0
-	end
-end
+-- [TODO] fix memory load on logon!

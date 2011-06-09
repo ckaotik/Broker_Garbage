@@ -1,4 +1,3 @@
--- to enable debug mode, run: /run BG_GlobalDB.debug = true
 local _, BG = ...
 
 -- == LDB Display ==
@@ -16,10 +15,13 @@ BG.LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
 function BG:UpdateLDB()
 	BG.totalBagSpace, BG.totalFreeSlots, BG.specialSlots, BG.freeSpecialSlots = BG:GetBagSlots()
 	
-	if BG.cheapestItems[1] and BG.cheapestItems[1].isValid then
+	local cheapestItem = BG.cheapestItems[1]
+	if cheapestItem and cheapestItem.source ~= BG.IGNORE then
 		BG.LDB.text = BG:FormatString(BG_GlobalDB.LDBformat)
+		BG.LDB.icon = select(10, GetItemInfo(cheapestItem.itemID))
 	else
 		BG.LDB.text = BG:FormatString(BG_GlobalDB.LDBNoJunk)
+		BG.LDB.icon = "Interface\\Icons\\achievement_bg_returnxflags_def_wsg"
 	end
 end
 
@@ -57,10 +59,6 @@ function BG:Tooltip(self)
 			lineNum = BG.tt:AddLine()
 			BG.tt:SetCell(lineNum, 1, BG.locale.openPlease, tooltipFont, "CENTER", colNum)
 		end
-		if BG_GlobalDB.openClams and BG.clamInInventory then
-			lineNum = BG.tt:AddLine()
-			BG.tt:SetCell(lineNum, 1, BG.locale.openClams, tooltipFont, "CENTER", colNum)
-		end
 	end
 	if BG.tt:GetLineCount() > lineNum then
 		BG.tt:AddSeperator(2)
@@ -69,18 +67,19 @@ function BG:Tooltip(self)
 	-- shows up to n lines of deletable items
 	local itemEntry, numLinesShown
 	for i = 1, BG_GlobalDB.tooltipNumItems do
-		if not (BG.cheapestItems and BG.cheapestItems[i] and BG.cheapestItems[i].isValid) then
+		itemEntry = BG.cheapestItems[i]
+		if not itemEntry or itemEntry.source == BG.IGNORE or itemEntry.invalid then
+			-- not enough items to display
 			numLinesShown = i - 1
 			break;
 		end
-		itemEntry = BG.cheapestItems[i]
 
 		-- adds lines: itemLink, count, itemPrice, source
 		local _, link, _, _, _, _, _, _, _, icon, _ = GetItemInfo(itemEntry.itemID)
 		lineNum = BG.tt:AddLine(
 			(BG_GlobalDB.showIcon and "|T"..icon..":0|t " or "")..link, 
 			itemEntry.count,
-			BG:FormatMoney(itemEntry.value))
+			BG.FormatMoney(itemEntry.value))
 
 		if colNum > 3 then
 			BG.tt:SetCell(lineNum, 4, BG.tag[itemEntry.source], "RIGHT", 1, 5, 0, 50, 10)
@@ -101,14 +100,14 @@ function BG:Tooltip(self)
 		lineNum = BG.tt:AddSeparator(2)
 		
 		if BG_LocalDB.moneyLostByDeleting ~= 0 then
-			lineNum = BG.tt:AddLine(BG.locale.moneyLost, "", BG:FormatMoney(BG_LocalDB.moneyLostByDeleting), colNum == 4 and "" or nil)
+			lineNum = BG.tt:AddLine(BG.locale.moneyLost, "", BG.FormatMoney(BG_LocalDB.moneyLostByDeleting), colNum == 4 and "" or nil)
 			BG.tt:SetCell(lineNum, 1, BG.locale.moneyLost, tooltipFont, "LEFT", 2)
-			BG.tt:SetCell(lineNum, 3, BG:FormatMoney(BG_LocalDB.moneyLostByDeleting), tooltipFont, "RIGHT", colNum - 2)
+			BG.tt:SetCell(lineNum, 3, BG.FormatMoney(BG_LocalDB.moneyLostByDeleting), tooltipFont, "RIGHT", colNum - 2)
 		end
 		if BG_LocalDB.moneyEarned ~= 0 then
-			lineNum = BG.tt:AddLine(BG.locale.moneyEarned, "", BG:FormatMoney(BG_LocalDB.moneyEarned), colNum == 4 and "" or nil)
+			lineNum = BG.tt:AddLine(BG.locale.moneyEarned, "", BG.FormatMoney(BG_LocalDB.moneyEarned), colNum == 4 and "" or nil)
 			BG.tt:SetCell(lineNum, 1, BG.locale.moneyEarned, tooltipFont, "LEFT", 2)
-			BG.tt:SetCell(lineNum, 3, BG:FormatMoney(BG_LocalDB.moneyEarned), tooltipFont, "RIGHT", colNum - 2)
+			BG.tt:SetCell(lineNum, 3, BG.FormatMoney(BG_LocalDB.moneyEarned), tooltipFont, "RIGHT", colNum - 2)
 		end
 	end
 	
@@ -127,7 +126,7 @@ function BG:OnClick(itemTable, button)
 	local LDBclick = false
 	if not itemTable or not itemTable.itemID or type(itemTable.itemID) ~= "number" then
 		BG.Debug("Click on LDB")
-		if (BG.cheapestItems and BG.cheapestItems[1] and BG.cheapestItems[1].isValid) then
+		if (BG.cheapestItems and BG.cheapestItems[1] and not BG.cheapestItems[1].invalid) then
 			itemTable = BG.cheapestItems[1]
 		end
 		LDBclick = true
@@ -159,7 +158,7 @@ function BG:OnClick(itemTable, button)
 		if BG.optionsLoaded then
 			BG:ListOptionsUpdate("exclude")
 		end
-		BG.ScanInventory(true)
+		BG.ClearCache()
 		
 	elseif itemTable and IsAltKeyDown() then
 		-- add to force vendor price list
@@ -169,8 +168,9 @@ function BG:OnClick(itemTable, button)
 		if BG.optionsLoaded then
 			BG:ListOptionsUpdate("forceprice")
 		end
-		BG.ScanInventory(true)
+		BG.ClearCache()
 		
+	-- [TODO] interface options opened -> also load config, if not yet done
 	elseif button == "RightButton" then
 		if not IsAddOnLoaded("Broker_Garbage-Config") then
 			LoadAddOn("Broker_Garbage-Config")
@@ -180,9 +180,12 @@ function BG:OnClick(itemTable, button)
 		
 	elseif LDBclick then
 		-- click on the LDB to rescan
-		BG.ScanInventory()
+	else
+		-- no scanning in any other case
+		return
 	end
 	
+	BG.ScanInventory()
 	BG:UpdateLDB()
 end
 
@@ -238,17 +241,13 @@ function BG:FormatString(text)
 	end
 	
 	-- [junkvalue]
-	local junkValue = 0
-	for i = 0, 4 do
-		junkValue = junkValue + (BG.toSellValue[i] or 0)
-	end
-	text = string.gsub(text, "%[junkvalue%]", BG:FormatMoney(junkValue))
+	text = string.gsub(text, "%[junkvalue%]", BG.FormatMoney(BG.junkValue))
 	
 	-- [itemname][itemcount][itemvalue]
 	text = string.gsub(text, "%[itemname%]", (select(2,GetItemInfo(item.itemID)) or ""))
 	text = string.gsub(text, "%[itemicon%]", "|T"..(select(10,GetItemInfo(item.itemID)) or "")..":0|t")
 	text = string.gsub(text, "%[itemcount%]", item.count)
-	text = string.gsub(text, "%[itemvalue%]", BG:FormatMoney(item.value))
+	text = string.gsub(text, "%[itemvalue%]", BG.FormatMoney(item.value))
 	
 	-- [freeslots][totalslots]
 	text = string.gsub(text, "%[freeslots%]", BG.totalFreeSlots + BG.freeSpecialSlots)
@@ -273,7 +272,7 @@ function BG:FormatString(text)
 end
 
 -- formats money int values, depending on settings
-function BG:FormatMoney(amount, displayMode)
+function BG.FormatMoney(amount, displayMode)
 	if not amount then return "" end
 	displayMode = displayMode or BG_GlobalDB.showMoney
 	
@@ -350,25 +349,17 @@ function BG.UpdateRepairButton(forceUpdate)
 			SetItemButtonTexture(sellIcon, "Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
 			
 			sellIcon:SetFrameStrata("HIGH")
-			sellIcon:SetScript("OnClick", BG.AutoSell)
+			sellIcon:SetScript("OnClick", BG.ManualAutoSell)
 			sellIcon:SetScript("OnEnter", function(self) 
 				GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-				local junkValue = 0
-				for i = 0, 4 do
-					junkValue = junkValue + (BG.toSellValue[i] or 0)
-				end
-				GameTooltip:SetText(junkValue ~= 0 and format(BG.locale.autoSellTooltip, BG:FormatMoney(junkValue)) 
+				GameTooltip:SetText(BG.junkValue ~= 0 and format(BG.locale.autoSellTooltip, BG.FormatMoney(BG.junkValue)) 
 						or BG.locale.reportNothingToSell, nil, nil, nil, nil, true)
 			end)
 			sellIcon:SetScript("OnLeave", function() GameTooltip:Hide() end)
 		end
 		
 		-- update tooltip value
-		local junkValue = 0
-		for i = 0, 4 do
-			junkValue = junkValue + (BG.toSellValue[i] or 0)
-		end
-		SetItemButtonDesaturated(sellIcon, junkValue == 0)
+		SetItemButtonDesaturated(sellIcon, BG.junkValue == 0)
 
 		local iconSize = MerchantRepairAllButton:GetHeight()
 		sellIcon:SetHeight(iconSize)

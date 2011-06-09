@@ -71,7 +71,7 @@ function SlashCmdList.Broker_Garbage(msg, editbox)
 		end
 		
 		Broker_Garbage_LootManager:SetMinValue(rest)
-		Broker_Garbage:Print(format(BGC.locale.minValueSet, Broker_Garbage:FormatMoney(Broker_Garbage:GetOption("itemMinValue", false))))
+		Broker_Garbage:Print(format(BGC.locale.minValueSet, Broker_Garbage.FormatMoney(Broker_Garbage:GetOption("itemMinValue", false))))
 		
 	elseif LootManager and (command == "freeslots" or command == "slots" or command == "free" or command == "minfree") then
 		rest = tonumber(rest)

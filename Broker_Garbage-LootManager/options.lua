@@ -206,7 +206,7 @@ local function Options_LootManager(pluginID)
 	editbox:SetWidth(160); editbox:SetHeight(32)
 	editbox:SetFontObject("GameFontHighlightSmall")
 	editbox:SetJustifyH("CENTER")
-	editbox:SetText(Broker_Garbage:FormatMoney(BGLM_LocalDB.itemMinValue))
+	editbox:SetText(Broker_Garbage.FormatMoney(BGLM_LocalDB.itemMinValue))
 	local left = editbox:CreateTexture(nil, "BACKGROUND")
 	left:SetWidth(8) left:SetHeight(20)
 	left:SetPoint("LEFT", -5, 0)
@@ -229,7 +229,7 @@ local function Options_LootManager(pluginID)
 	minValueLabel:SetText(BGLM.locale.LMItemMinValue)
 	
 	local function ResetEditBox(self)
-		self:SetText(Broker_Garbage:FormatMoney(BGLM_LocalDB.itemMinValue))
+		self:SetText(Broker_Garbage.FormatMoney(BGLM_LocalDB.itemMinValue))
 		self:ClearFocus()
 	end
 	local function UnFormatEditBox(self)
@@ -237,7 +237,7 @@ local function Options_LootManager(pluginID)
 	end
 	local function SubmitEditBox()
 		BGLM_LocalDB.itemMinValue = tonumber(editbox:GetText())
-		editbox:SetText(Broker_Garbage:FormatMoney(BGLM_LocalDB.itemMinValue))
+		editbox:SetText(Broker_Garbage.FormatMoney(BGLM_LocalDB.itemMinValue))
 		editbox:ClearFocus()
 	end
 	editbox:SetScript("OnEscapePressed", ResetEditBox)
@@ -257,7 +257,7 @@ local function Options_LootManager(pluginID)
 	low:Hide(); high:Hide()
 	
 	function panel:Update()
-		editbox:SetText(Broker_Garbage:FormatMoney(BGLM_LocalDB.itemMinValue))
+		editbox:SetText(Broker_Garbage.FormatMoney(BGLM_LocalDB.itemMinValue))
 		
 		local min, max = minFreeSlots:GetMinMaxValues()
 		if BGLM_GlobalDB.tooFewSlots > min and BGLM_GlobalDB.tooFewSlots < max then

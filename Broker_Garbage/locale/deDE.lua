@@ -28,7 +28,6 @@ if GetLocale() == "deDE" then
 	BG.locale.noItems = "Keine Items zum Löschen."
 	BG.locale.increaseTreshold = "Erhöhe die Item Qualität"
 	BG.locale.openPlease = "Ungeöffnete Behälter im Inventar"
-	BG.locale.openClams = "Du hast Muscheln im Inventar."
 	
 	-- Sell button tooltip
 	BG.locale.autoSellTooltip = "Müll für %s verkaufen"

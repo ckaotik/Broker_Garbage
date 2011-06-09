@@ -1,5 +1,7 @@
 local _, BG = ...
 
+local Unfit = LibStub("Unfit-1.0")	-- library to determine unusable items
+
 function BG.GetItemID(itemLink)
 	if not itemLink then return end
 	local itemID = string.gsub(itemLink, ".-Hitem:([0-9]*):.*", "%1")
@@ -22,14 +24,14 @@ function BG.IsItemInCategory(item, category)	-- itemID/itemLink/itemTable, categ
 	local searchResult
 	local isNotLPT = type(category) ~= "string"
 	if isNotLPT then
-		local type, index = string.match(category, "^(%S+)_(%d+)")
+		local categoryType, index = string.match(category, "^(%S+)_(%d+)")
 		index = tonumber(index) 
-		if type == "BEQ" and index then	-- equipment set
+		if categoryType == "BEQ" and index then	-- equipment set
 			if index <= GetNumEquipmentSets() then
 				category = GetEquipmentSetInfo(index)
 				searchResult = BG.Find(GetEquipmentSetItemIDs(category), itemID)
 			end
-		elseif type == "AC" and index then	-- armor class
+		elseif categoryType == "AC" and index then	-- armor class
 			local armorClass = select(index, GetAuctionItemSubClasses(2))
 			searchResult = select(7, GetItemInfo(itemID)) == armorClass
 		end
@@ -62,6 +64,39 @@ function BG.IsItemInBGList(item, itemList, onlyLocal)	-- itemID/itemLink/itemTab
 	return onLocalList or onGlobalList
 end
 
+function BG.IsItemOverLimit(item, bag, slot)
+	local saveStacks = ceil(item.limit/item.stackSize)
+	local locations = BG.GetItemLocations(item.itemID)
+	
+	if #locations > saveStacks then
+		local itemCount = 0
+		
+		for i = #locations, 1, -1 do
+			if itemCount < item.limit then
+				-- keep this amount
+				itemCount = itemCount + locations[i].count
+				if locations[i].bag == bag and locations[i].slot == slot then
+					return nil
+				end
+			else
+				return true
+			end
+		end
+	else
+		return nil
+	end
+end
+
+-- returns true if the item is equippable. **Trinkets don't count!**
+function BG.IsItemEquipment(invType)	-- itemLink/itemID/invType
+	if not invType or invType == "" then
+		return nil
+	elseif type(invType) == "string" and not string.find(invType, "INVTYPE") then
+		invType = select(9, GetItemInfo(invType))
+	end
+	return not string.find(invType, "BAG") and not string.find(invType, "TRINKET")
+end
+
 -- == Item Values ==
 -- calculates the value of a stack/partial stack of an item
 function BG.GetItemValue(item, count)	-- itemID/itemLink/itemTable
@@ -86,7 +121,7 @@ function BG.GetItemValue(item, count)	-- itemID/itemLink/itemTable
 	end
 end
 
--- returns which of the items values is the highest (value, type)
+-- returns which of the items' values is the highest (value, type)
 function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 	local itemID
 	if not item then
@@ -109,7 +144,7 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 
 	-- handle special cases
 	-- ignore AH prices for gray or BOP items
-	if itemQuality == 0 or BG.IsItemSoulbound(itemLink) or label == BG.UNUSABLE then
+	if itemQuality == 0 or label == BG.UNUSABLE or (BG.IsItemSoulbound(itemLink) and not IsUsableSpell(BG.enchanting)) then
 		return vendorPrice, vendorPrice and BG.VENDOR
 	end
 
@@ -192,39 +227,6 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 	end
 end
 
-function BG.IsItemOverLimit(item, bag, slot)
-	local saveStacks = ceil(item.limit/item.stackSize)
-	local locations = BG.GetItemLocations(item.itemID)
-	
-	if #locations > saveStacks then
-		local itemCount = 0
-		
-		for i = #locations, 1, -1 do
-			if itemCount < item.limit then
-				-- keep this amount
-				itemCount = itemCount + locations[i].count
-				if locations[i].bag == bag and locations[i].slot == slot then
-					return nil
-				end
-			else
-				return true
-			end
-		end
-	else
-		return nil
-	end
-end
-
--- returns true if the item is equippable. **Trinkets don't count!**
-function BG.ItemIsEquipment(invType)	-- itemLink/itemID/invType
-	if not invType or invType == "" then
-		return nil
-	elseif type(invType) == "string" and not string.find(invType, "INVTYPE") then
-		invType = select(9, GetItemInfo(invType))
-	end
-	return not string.find(invType, "BAG") and not string.find(invType, "TRINKET")
-end
-
 -- == Misc Item Information ==
 local scanTooltip = CreateFrame("GameTooltip", "BrokerGarbage_ItemScanTooltip", UIParent, "GameTooltipTemplate")
 function BG.ScanTooltipFor(searchString, itemLink, inBag, slot)
@@ -255,10 +257,7 @@ function BG.ScanTooltipFor(searchString, itemLink, inBag, slot)
 end
 
 -- returns whether an item is BoP/Soulbound
-function BG.IsItemSoulbound(itemLink, bag, slot)
-	-- itemLink/itemID, bag, slot
-	-- itemLink/itemID, checkMine
-	-- itemTable
+function BG.IsItemSoulbound(itemLink, bag, slot)	-- itemLink/itemID, bag, slot -OR- itemLink/itemID, checkMine -OR- itemTable
 	if not itemLink then
 		return nil
 	elseif type(itemLink) == "number" or type(itemLink) == "table" then
@@ -266,9 +265,8 @@ function BG.IsItemSoulbound(itemLink, bag, slot)
 	end
 	
 	local searchString
-	-- check here is needed to distinguish between BoP/Soulbound
+	-- check needed to distinguish between BoP/Soulbound
 	if bag and type(bag) == "boolean" then
-		-- checkMine := true
 		bag, slot = BG.FindItemInBags(itemLink)
 	end
 	
@@ -353,7 +351,7 @@ function BG.CanDisenchant(itemLink, onlyMe)
 			return false
 		else
 			-- check whether we can mail this item
-			return not BG:IsItemSoulbound(itemLink, true)
+			return not BG.IsItemSoulbound(itemLink, true)
 		end
 	else
 		return false
@@ -380,7 +378,7 @@ function BG.IsOutdatedItem(item)	-- itemID/itemLink/itemTable
 	end
 end
 
--- returns true if, by TopFit's standard, the given item is "outdated"
+-- returns true if, by TopFit's standards, the given item is "outdated"
 function BG.IsTopFitOutdatedItem(item)
 	local invType
 	if not item then
@@ -393,12 +391,72 @@ function BG.IsTopFitOutdatedItem(item)
 	end
 
 	if IsAddOnLoaded("TopFit") and TopFit.IsInterestingItem then
-		if not TopFit:IsInterestingItem(item) and BG.ItemIsEquipment(invType) then
+		if not TopFit:IsInterestingItem(item) and BG.IsItemEquipment(invType) then
 			return true
 		end
 	else
-		BG:Debug("TopFit is not loaded or too old.")
+		BG.Debug("TopFit is not loaded or too old.")
 	end
+end
+
+-- deletes the item in a given location of your bags
+function BG:Delete(item, position)
+	local itemID, itemCount, cursorType
+	
+	if type(item) == "string" and item == "cursor" then
+		-- item on the cursor
+		cursorType, itemID = GetCursorInfo()
+		if cursorType ~= "item" then
+			BG.Print("Error! Trying to delete an item from the cursor, but there is none.")
+			return
+		end
+		itemCount = position	-- second argument is the item count
+
+	elseif type(item) == "table" then
+		-- item given as an itemTable
+		itemID = item.itemID
+		position = {item.bag, item.slot}
+	
+	elseif type(item) == "number" then
+		-- item given via its itemID
+		itemID = item
+	
+	elseif item then
+		-- item given via its itemLink
+		itemID = BG.GetItemID(item)
+	else
+		BG.Print("Error! BG:Delete() no argument supplied.")
+		return
+	end
+
+	-- security check
+	local bag = position[1] or item.bag
+	local slot = position[2] or item.slot
+	if not cursorType and (not (bag and slot) or GetContainerItemID(bag, slot) ~= itemID) then
+		BG.Print("Error! Item to be deleted is not the expected item.")
+		BG.Debug("I got these parameters:", item, bag, slot)
+		return
+	end
+	
+	-- make sure there is nothing unwanted on the cursor
+	if not cursorType then
+		ClearCursor()
+	end
+	
+	_, itemCount = GetContainerItemInfo(bag, slot)
+	
+	-- actual deleting happening after this
+	securecall(PickupContainerItem, bag, slot)
+	securecall(DeleteCursorItem)					-- comment this line to prevent item deletion
+	
+	local itemValue = (BG.GetCached(itemID).value or 0) * itemCount	-- if an item is unknown to the cache, statistics will not change
+	-- statistics
+	BG_GlobalDB.itemsDropped 		= BG_GlobalDB.itemsDropped + itemCount
+	BG_GlobalDB.moneyLostByDeleting	= BG_GlobalDB.moneyLostByDeleting + itemValue
+	BG_LocalDB.moneyLostByDeleting 	= BG_LocalDB.moneyLostByDeleting + itemValue
+	
+	local _, itemLink = GetItemInfo(itemID)
+	BG.Print(format(BG.locale.itemDeleted, itemLink, itemCount))
 end
 
 -- == Items Cache Management ==
@@ -415,12 +473,12 @@ function BG.GetCached(item)	-- itemID/itemLink
 	end
 	
 	if not BG.itemsCache[item] then
-		BG.UpdateCache(item)
+		return BG.UpdateCache(item)
 	end
 	return BG.itemsCache[item]
 end
 
--- gets an item's static classification and saves it to the item cache
+-- gets an item's static information and saves it to the BG.itemsCache
 function BG.UpdateCache(item) -- itemID/itemLink
 	local itemID
 	if item and type(item) == "number" then
@@ -439,12 +497,11 @@ function BG.UpdateCache(item) -- itemID/itemLink
 		return nil
 	end
 	
-	local itemLimit, label
+	local itemLimit, label = 0, nil
 	-- check if item is classified by its itemID
 	if BG.ScanTooltipFor(ITEM_STARTS_QUEST, itemLink) or BG.ScanTooltipFor(ITEM_BIND_QUEST, itemLink) then
 		BG.Debug("Item is a quest starter/quest item.", itemID, itemLink)
 		label = BG.EXCLUDE
-		itemLimit = 0
 	end
 
 	if not label and BG.IsItemInBGList(itemID, "exclude") then
@@ -460,7 +517,7 @@ function BG.UpdateCache(item) -- itemID/itemLink
 	if not label and BG.IsItemInBGList(itemID, "include") then
 		BG.Debug("Item's ITEMID is on the JUNK LIST.", itemID, itemLink)
 		label = BG.INCLUDE
-		itemLimit = BG_LocalDB.include[itemID] or BG_GlobalDB.include[itemID]
+		itemLimit = BG_LocalDB.include[itemID] or BG_GlobalDB.include[itemID] or 0
 	end
 	
 	-- check if item is classified by its category
@@ -473,7 +530,7 @@ function BG.UpdateCache(item) -- itemID/itemLink
 				else
 					BG.Debug("Item' CATEGORY is on the KEEP LIST.", itemID, itemLink)
 					label = BG.EXCLUDE
-					itemLimit = BG_LocalDB.exclude[category] or BG_GlobalDB.exclude[category]
+					itemLimit = BG_LocalDB.exclude[category] or BG_GlobalDB.exclude[category] or 0
 					break
 				end
 			end
@@ -485,7 +542,7 @@ function BG.UpdateCache(item) -- itemID/itemLink
 			if type(category) == "string" and BG.IsItemInCategory(itemID, category) then
 				BG.Debug("Item' CATEGORY is on the AUTO SELL LIST.", itemID, itemLink)
 				label = BG.AUTOSELL
-				itemLimit = BG_LocalDB.autoSellList[category] or BG_GlobalDB.autoSellList[category]
+				itemLimit = BG_LocalDB.autoSellList[category] or BG_GlobalDB.autoSellList[category] or 0
 				break
 			end
 		end
@@ -496,16 +553,17 @@ function BG.UpdateCache(item) -- itemID/itemLink
 			if type(category) == "string" and BG.IsItemInCategory(itemID, category) then
 				BG.Debug("Item's CATEGORY is on the JUNK LIST.", itemID, itemLink)
 				label = BG.INCLUDE
-				itemLimit = BG_LocalDB.include[category] or BG_GlobalDB.include[category]
+				itemLimit = BG_LocalDB.include[category] or BG_GlobalDB.include[category] or 0
 				break
 			end
 		end
 	end
 
 	-- unusable gear
-	if not label and BG_GlobalDB.sellNotWearable and quality >= 2 and quality <= BG_GlobalDB.sellNWQualityTreshold
-		and BG.ItemIsEquipment(invType) and not IsUsableSpell(BG.enchanting) and BG.IsItemSoulbound(itemLink)
-		and not BG.usableByAll[invType] and not BG.Find(BG.usableGear[subClass], BG.playerClass) then
+	if not label
+		and Unfit:IsItemUnusable(itemLink) and BG_GlobalDB.sellNotWearable
+		and quality >= 2 and quality <= BG_GlobalDB.sellNWQualityTreshold
+		and not IsUsableSpell(BG.enchanting) and BG.IsItemSoulbound(itemLink) then
 		BG.Debug("Item is UNUSABLE; We can't ever wear it.", itemID, itemLink)
 		label = BG.UNUSABLE
 	end
@@ -532,15 +590,11 @@ function BG.UpdateCache(item) -- itemID/itemLink
 
 	itemCache.level = itemLevel
 	itemCache.value = value or 0
-	if not itemLimit or type(itemLimit) ~= "number" then
-		itemLimit = 0
-	end
 	itemCache.limit = itemLimit
-
 	itemCache.quality = quality
 	itemCache.family = family
 	itemCache.itemType = invType
 	itemCache.stackSize = stackSize or 1
-	
-	itemCache.isClam = BG.Find(BG.clams, itemID)
+
+	return itemCache
 end

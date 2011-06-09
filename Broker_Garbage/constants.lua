@@ -51,7 +51,6 @@ BG.defaultGlobalSettings = {
 	showEarned = true,
 	showSource = false,
 	showContainers = true,
-	showClams = true,
 	
 	-- output options
 	reportNothingToSell = true,
@@ -65,7 +64,7 @@ BG.defaultLocalSettings = {
 	autoSellList = {},
 
 	-- behavior
-	neverRepairGuildBank = false,
+	repairGuildBank = true,
 
 	-- default values
 	moneyLostByDeleting = 0,
@@ -73,6 +72,7 @@ BG.defaultLocalSettings = {
 }
 
 -- item classifications
+BG.IGNORE = -1
 -- static list types
 BG.EXCLUDE = 0
 BG.INCLUDE = 1
@@ -97,8 +97,7 @@ BG.tag = {
 }
 
 BG.modules = {}		-- plugins get saved in here
-BG.toSellValue = {}	-- value to show on sell icon
-BG.clams = {15874, 5523, 5524, 7973, 24476, 36781, 45909, 32724, 52340}
+BG.junkValue = 0	-- value to show on sell icon
 BG.playerClass = select(2,UnitClass("player"))
 
 BG.disableKey = {
@@ -126,41 +125,4 @@ BG.tradeSkills = {
 	[2550] = "Cooking",
 	[3273] = "First Aid",
 	[7620] = "Fishing",
-}
-
-local armorTypes = { GetAuctionItemSubClasses(2) }
-local weaponTypes = { GetAuctionItemSubClasses(1) }
-BG.usableGear = {
-	[armorTypes[1]] = {"DEATHKNIGHT", "DRUID", "HUNTER", "MAGE", "PALADIN", "PRIEST", "ROGUE", "SHAMAN", "WARLOCK", "WARRIOR"},		-- misc, e.g. tabards
-	[armorTypes[2]] = {"DEATHKNIGHT", "DRUID", "HUNTER", "MAGE", "PALADIN", "PRIEST", "ROGUE", "SHAMAN", "WARLOCK", "WARRIOR"},		-- cloth
-	[armorTypes[3]] = {"DEATHKNIGHT", "DRUID", "HUNTER", "PALADIN", "ROGUE", "SHAMAN", "WARRIOR"},		-- leather
-	[armorTypes[4]] = {"DEATHKNIGHT", "HUNTER", "PALADIN", "SHAMAN", "WARRIOR"},		-- mail
-	[armorTypes[5]] = {"DEATHKNIGHT", "PALADIN", "WARRIOR"},		-- plate
-	[armorTypes[6]] = {"PALADIN", "SHAMAN", "WARRIOR"},		-- shields
-	[armorTypes[7]] = {"DEATHKNIGHT", "DRUID", "PALADIN", "SHAMAN"},	-- relic
-	
-	[weaponTypes[1]] = {"DEATHKNIGHT", "HUNTER", "PALADIN", "ROGUE", "SHAMAN", "WARRIOR"},	-- 1H axes
-	[weaponTypes[2]] = {"DEATHKNIGHT", "HUNTER", "PALADIN", "SHAMAN", "WARRIOR"},	-- 2H axes
-	[weaponTypes[3]] = {"HUNTER", "ROGUE", "WARRIOR"},	-- bows
-	[weaponTypes[4]] = {"HUNTER", "ROGUE", "WARRIOR"},	-- guns
-	[weaponTypes[5]] = {"DEATHKNIGHT", "DRUID", "PALADIN", "PRIEST", "ROGUE", "SHAMAN", "WARRIOR"},	-- 1H maces
-	[weaponTypes[6]] = {"DEATHKNIGHT", "DRUID", "PALADIN", "SHAMAN", "WARRIOR"},	-- 2H maces
-	[weaponTypes[7]] = {"DEATHKNIGHT", "DRUID", "HUNTER", "PALADIN", "WARRIOR"},	-- polearms
-	[weaponTypes[8]] = {"DEATHKNIGHT", "HUNTER", "MAGE", "PALADIN", "ROGUE", "WARLOCK", "WARRIOR"},	-- 1H swords
-	[weaponTypes[9]] = {"DEATHKNIGHT", "HUNTER", "PALADIN", "WARRIOR"},	-- 2H swords
-	[weaponTypes[10]] = {"DRUID", "HUNTER", "MAGE", "PRIEST", "SHAMAN", "WARLOCK", "WARRIOR"},	-- staves
-	[weaponTypes[11]] = {"DRUID", "HUNTER", "ROGUE", "SHAMAN", "WARRIOR"},	-- fist weapons
-	--[weaponTypes[12]] = true,	-- misc
-	[weaponTypes[13]] = {"DRUID", "HUNTER", "MAGE", "PRIEST", "ROGUE", "SHAMAN", "WARLOCK", "WARRIOR"},	-- daggers
-	[weaponTypes[14]] = {"HUNTER", "ROGUE", "WARRIOR"},	-- thrown weapons
-	[weaponTypes[15]] = {"HUNTER", "ROGUE", "WARRIOR"},	-- crossbows
-	[weaponTypes[16]] = {"MAGE", "PRIEST", "WARLOCK"},	-- wands
-	[weaponTypes[17]] = {"DEATHKNIGHT", "DRUID", "HUNTER", "MAGE", "PALADIN", "PRIEST", "ROGUE", "SHAMAN", "WARLOCK", "WARRIOR"},	-- fishing rod
-}
-
-BG.usableByAll = {
-	["INVTYPE_NECK"] = true,
-	["INVTYPE_FINGER"] = true,
-	["INVTYPE_TRINKET"] = true,
-	["INVTYPE_HOLDABLE"] = true,
 }

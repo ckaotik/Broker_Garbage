@@ -83,8 +83,8 @@ if GetLocale() == "deDE" then
 	BGC.locale.autoRepairTitle = "Autom. Reparieren"
 	BGC.locale.autoRepairText = "Auswählen um deine Ausrüstung automatisch bei Händlern zu reparieren"
 	
-	BGC.locale.autoRepairGuildTitle = "selbst zahlen"
-	BGC.locale.autoRepairGuildText = "Auswählen um niemals auf Gildenkosten zu reparieren"
+	BGC.locale.autoRepairGuildTitle = "Gildengold nutzen"
+	BGC.locale.autoRepairGuildText = "Auswählen um wenn möglich auf Gildenkosten zu reparieren"
 	
 	BGC.locale.showSourceTitle = "Quelle"
 	BGC.locale.showSourceText = "Auswählen um im Tooltip als letzte Spalte die Preisquelle anzuzeigen"

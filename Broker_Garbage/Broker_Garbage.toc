@@ -25,6 +25,7 @@ libs\LibStub.lua
 libs\CallbackHandler-1.0.lua
 libs\LibDataBroker-1.1.lua
 libs\LibQTip-1.0.lua
+libs\Unfit-1.0\Unfit-1.0.lua
 libs\LibPeriodicTable-3.1\LibPeriodicTable-3.1\LibPeriodicTable-3.1.lua
 libs\LibPeriodicTable-3.1\modules.xml
 
@@ -38,5 +39,6 @@ util.lua
 display.lua
 item.lua
 inventory.lua
+vendor.lua
 core.lua
 externals.lua

@@ -1,5 +1,5 @@
 local _, BG = ...
--- [TODO] fix memory load on logon!
+
 -- == Finding things in your inventory ==
 function BG.FindItemInBags(item)
 	for container = 0, 4 do
@@ -77,72 +77,74 @@ function BG.GetItemLocations(item, ignoreFullStacks)	-- itemID/CategoryString[, 
 end
 
 -- == Inventory Scanning ==
+-- [TODO] also update whenever the number/size/?? of bags change!
 function BG.ScanInventory(resetCache)
 	if resetCache then BG.ClearCache() end
+	BG.containerInInventory = false
+
+	local totalSlots, numSlots = 0, 0
 	for container = 0, 4 do
-		BG.ScanInventoryContainer(container, true)
+		numSlots = BG.ScanInventoryContainer(container, true)
+		totalSlots = totalSlots + (numSlots or 0)
 	end
 	BG.SortItemList()
 end
 
 function BG.ScanInventoryContainer(container, waitForFullScan)
 	local numSlots = GetContainerNumSlots(container)
-	-- container doesn't exist or cannot be scanned -or- is special bag
-	if not numSlots or select(2, GetContainerNumFreeSlots(container)) ~= 0 then return end
-	
-	local itemCount, itemLink, itemID
+	if not numSlots or select(2, GetContainerNumFreeSlots(container)) ~= 0 then return end -- no (scannable) bag -or- special bag
+
+	local newItemCount, newItemLink, itemID
 	for slot = 1, numSlots do
-		_, itemCount, _, _, _, _, itemLink = GetContainerItemInfo(container, slot)
-		itemID = itemLink and BG.GetItemID(itemLink)
+		_, newItemCount, _, _, _, _, newItemLink = GetContainerItemInfo(container, slot)
+		itemID = GetContainerItemID(container, slot)
 		_ = BG.GetCached(itemID)	-- if we don't have it cached yet, do so now
 
-		BG.RecheckItemInCheapestList(container, slot, itemLink, itemCount)
+		BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 	end
 	if not waitForFullScan then
 		BG.SortItemList()
 	end
+
+	return numSlots
 end
 
 -- only check a specific item in a specific location
-function BG.RecheckItemInCheapestList(container, slot, itemLink, itemCount)
+function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 	local slotFound = nil
 	for index, item in ipairs(BG.cheapestItems or {}) do
-		if itemLink ~= nil and item.itemLink ~= nil then
-			BG.Debug("Want: "..(container or "nil")..", "..(slot or "nil")..". Have: "..(item.bag or "nil")..", "..(item.slot or "nil"))
-		end
 		if item.bag == container and item.slot == slot then
 			slotFound = true
-			if item.itemLink ~= itemLink then
-				-- update the whole item slot
-				BG.Debug("Recheck, classify "..(itemLink or "nil"))
-				BG.ClassifyItemOnTheFly(container, slot, index)
-			elseif item.count ~= itemCount then
-				-- update the item count
-				BG.Debug("Recheck, update count "..(itemLink or "nil"))
-				BG.cheapestItems[index].count = itemCount
+			if not newItemLink or item.itemLink ~= newItemLink then	-- update the whole item slot
+				BG.Debug("Update whole slot", newItemLink)
+				BG.ClearItemLocations(item.itemID)
+				BG.SetDynamicLabelBySlot(container, slot, index)
+			elseif item.count ~= newItemCount then	-- update the item count
+				BG.Debug("Update item count", newItemLink)
+				BG.cheapestItems[index].count = newItemCount
+			elseif item.invalid then
+				BG.Debug("New item in formerly invalid slot", newItemLink)
+				slotFound = false
+			else
+				BG.Debug("Item is still the same", newItemLink)
 			end
 			break
 		end
 	end
 
-	if not slotFound then
+	if not slotFound and newItemLink then
 		-- was previously empty/non-existant
-		BG.Debug("Recheck, fully update "..(itemLink or "nil"))
-		BG.ClassifyItemOnTheFly(container, slot)
+		BG.Debug("Add new item "..(newItemLink or "nil"))
+		BG.SetDynamicLabelBySlot(container, slot)
 	end
 end
 
 -- == Pure Logic Ahead ==
 function BG.SortCheapestItemsList(a, b)
-	-- put JUNK items even prior to forced vendor price items
-	if a.isValid and b.isValid then
+	if not (a.source == BG.IGNORE or b.source == BG.IGNORE or a.invalid or b.invalid) then
 		if (a.source == b.source) or (a.source ~= BG.INCLUDE and b.source ~= BG.INCLUDE) or BG_GlobalDB.useRealValues then
 			if a.value == b.value then
-				if a.itemID == b.itemID then
-					return a.count < b.count
-				else
-					return a.itemID < b.itemID
-				end
+				return a.count < b.count
 			else
 				return a.value < b.value
 			end
@@ -150,7 +152,7 @@ function BG.SortCheapestItemsList(a, b)
 			return a.source == BG.INCLUDE
 		end
 	else
-		if not a.isValid then
+		if a.source == BG.IGNORE or a.invalid then
 			return false
 		else
 			return true
@@ -158,52 +160,54 @@ function BG.SortCheapestItemsList(a, b)
 	end
 end
 
+function BG.UpdateItemLocations()
+	local itemID, location
+	local numEntries = #BG.cheapestItems
+
+	BG.junkValue = 0
+	for tableIndex, item in ipairs(BG.cheapestItems) do
+		itemID = item.itemID
+		locations = BG.itemLocations[itemID]
+
+		if not locations then	-- new item
+			BG.itemLocations[itemID] = { tableIndex }
+		elseif not BG.Find(locations, tableIndex) then	-- item is known, slot is not
+			tinsert(locations, tableIndex)
+		end
+
+		if item.sell and item.value and item.count then
+			BG.junkValue = BG.junkValue + (item.value * item.count)
+		end
+	end
+end
+
+-- fully remove location data for one item
+function BG.ClearItemLocations(itemID)
+	wipe(BG.itemLocations[itemID])
+end
+
+-- sort item list and updates LDB accordingly
 function BG.SortItemList()
 	table.sort(BG.cheapestItems, BG.SortCheapestItemsList)
+	BG.UpdateItemLocations()
 	BG.UpdateLDB()
 end
 
--- global rescan of the player's inventory
-function BG.UpdateSortedItemsList()
-	BG.clamInInventory = false	-- [TODO] check if they get reset properly
-	BG.containerInInventory = false
-	
-	local totalSlots = 0
-	for container = 0, 4 do
-		numSlots = GetContainerNumSlots(container)
-		if numSlots then
-			totalSlots = totalSlots + numSlots
-			for slot = 1, numSlots do
-				BG.ClassifyItemOnTheFly(container, slot)	-- [TODO]
-			end
-		end
-	end
-	-- [TODO] also update whenever the number/size/?? of bags change!
-	for index = totalSlots + 1, #BG.cheapestItems do
-		BG.cheapestItems[index].isValid = nil
-	end
-
-	table.sort(BG.cheapestItems, BG.SortCheapestItemsList)
-
-	BG:UpdateLDB()
-end
-
 -- [TODO] update all slots of the same item!! otherwise limits will be incorrect
-function BG.ClassifyItemOnTheFly(container, slot, itemIndex)
+function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 	if not container and not slot then return end
 	local item, maxValue, insert
 	local _, count, _, _, _, canOpen, itemLink = GetContainerItemInfo(container, slot)
 	local itemID = itemLink and BG.GetItemID(itemLink)
 	local item = itemID and BG.GetCached(itemID)
-	
+
 	if item then
-		local value = count * item.value
+		local value = item.value
 		local vendorValue = select(11, GetItemInfo(itemID)) * count
 		local classification = item.classification
 		
 		-- remember lootable items
 		BG.containerInInventory = BG.containerInInventory or canOpen
-		BG.clamInInventory = BG.clamInInventory or item.isClam
 
 		local insert, sellItem = true, nil
 		if item.limit == 0 then
@@ -277,35 +281,33 @@ function BG.ClassifyItemOnTheFly(container, slot, itemIndex)
 		end
 
 		-- insert data
-		if insert then
-			BG.Debug("Adding item to table "..itemLink)
-			if not itemIndex then
-				-- create new item entry
-				itemIndex = #BG.cheapestItems + 1
-			end
-			if not BG.cheapestItems[itemIndex] then
-				BG.cheapestItems[itemIndex] = {}
-			end
-			BG.cheapestItems[itemIndex].itemID = itemID
-			BG.cheapestItems[itemIndex].itemLink = itemLink
-			BG.cheapestItems[itemIndex].bag = container
-			BG.cheapestItems[itemIndex].slot = slot
-			BG.cheapestItems[itemIndex].count = count
-			BG.cheapestItems[itemIndex].value = value
-			BG.cheapestItems[itemIndex].source = classification
-
-			BG.cheapestItems[itemIndex].sell = sellItem
-			BG.cheapestItems[itemIndex].isValid = true
-		else
-			BG.Debug("skipping item "..itemLink)
-			if itemIndex and BG.cheapestItems[itemIndex] then
-				BG.cheapestItems[itemIndex].isValid = nil
-			end
+		if not insert then
+			classification = BG.IGNORE
 		end
+
+		BG.Debug("Adding item to table "..itemLink)
+		if not itemIndex then
+			-- create new item entry
+			itemIndex = #BG.cheapestItems + 1
+		end
+		if not BG.cheapestItems[itemIndex] then
+			BG.cheapestItems[itemIndex] = {}
+		end
+		local updateItem = BG.cheapestItems[itemIndex]
+
+		updateItem.itemID = itemID
+		updateItem.itemLink = itemLink
+		updateItem.bag = container
+		updateItem.slot = slot
+		updateItem.count = count
+		updateItem.value = value
+		updateItem.source = classification
+		updateItem.sell = sellItem
+		updateItem.invalid = nil
 	else
 		-- there is no item in this slot (any more)!
 		if itemIndex and BG.cheapestItems[itemIndex] then
-			BG.cheapestItems[itemIndex].isValid = nil
+			BG.cheapestItems[itemIndex].invalid = true
 		end
 	end
 	return itemIndex

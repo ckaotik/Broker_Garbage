@@ -36,11 +36,11 @@ local function Options_BasicOptions(pluginID)
 
 	local guildrepair = BGC.CreateCheckBox(behavior, nil, BGC.locale.autoRepairGuildTitle, "TOPLEFT", repair, "BOTTOMLEFT", 14, 4)
 	guildrepair.tiptext = BGC.locale.autoRepairGuildText
-	guildrepair:SetChecked( Broker_Garbage:GetOption("neverRepairGuildBank", true) )
+	guildrepair:SetChecked( Broker_Garbage:GetOption("repairGuildBank", true) )
 	local checksound = guildrepair:GetScript("OnClick")
 	guildrepair:SetScript("OnClick", function(guildrepair)
 		checksound(guildrepair)
-		Broker_Garbage:ToggleOption("neverRepairGuildBank", true)
+		Broker_Garbage:ToggleOption("repairGuildBank", true)
 	end)
 	
 	local sellGear = BGC.CreateCheckBox(behavior, nil, BGC.locale.sellNotUsableTitle, "TOPLEFT", guildrepair, "BOTTOMLEFT", -14, 4)
@@ -293,7 +293,7 @@ local function Options_BasicOptions(pluginID)
 	moneyFormatLabel:SetPoint("BOTTOMLEFT", moneyFormat, "TOPLEFT", 20, 2)
 	moneyFormatLabel:SetText(BGC.locale.moneyFormatTitle)
 	UIDropDownMenu_SetSelectedValue(moneyFormat, Broker_Garbage:GetOption("showMoney", true))
-	UIDropDownMenu_SetText(moneyFormat, Broker_Garbage:FormatMoney(testValue))
+	UIDropDownMenu_SetText(moneyFormat, Broker_Garbage.FormatMoney(testValue))
 	local function MoneyFormatOnSelect(self)
 		UIDropDownMenu_SetSelectedValue(moneyFormat, self.value)
 		Broker_Garbage:SetOption("showMoney", true, self.value)
@@ -302,7 +302,7 @@ local function Options_BasicOptions(pluginID)
 	UIDropDownMenu_Initialize(moneyFormat, function(self)
 		local selected, info = UIDropDownMenu_GetSelectedValue(self), UIDropDownMenu_CreateInfo()
 		for i = 0, 4 do	-- currently 4 formats are supported
-			info.text = Broker_Garbage:FormatMoney(testValue, i)
+			info.text = Broker_Garbage.FormatMoney(testValue, i)
 			info.value = i
 			info.func = MoneyFormatOnSelect
 			info.checked = i == selected
@@ -359,14 +359,14 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("showContainers", true)
 	end)
 	
-	local showClams = BGC.CreateCheckBox(tooltip, nil, BGC.locale.warnClamsTitle, "LEFT", showContainers, "RIGHT", 70, 0)
+	--[[ local showClams = BGC.CreateCheckBox(tooltip, nil, BGC.locale.warnClamsTitle, "LEFT", showContainers, "RIGHT", 70, 0)
 	showClams.tiptext = BGC.locale.warnClamsText .. BGC.locale.GlobalSetting
 	showClams:SetChecked( Broker_Garbage:GetOption("showLost", true) )
 	local checksound = showClams:GetScript("OnClick")
 	showClams:SetScript("OnClick", function(showClams)
 		checksound(showClams)
 		Broker_Garbage:ToggleOption("showClams", true)
-	end)
+	end) ]]--
 
 	-- -----------------------------------------------------------------
 	local lineTooltip = BGC.CreateHorizontalRule(tooltip)

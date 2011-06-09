@@ -48,7 +48,7 @@ function BG:ToggleOption(optionName, global)
 end
 
 -- resets an option entry to its default value
-function BG:ResetOption(name, isGlobal)
+function BG.ResetOption(name, isGlobal)
 	local optionsTable = isGlobal and BG_GlobalDB or BG_LocalDB
 	local defaultOptions = isGlobal and BG.defaultGlobalSettings or BG.defaultLocalSettings
 
@@ -58,21 +58,12 @@ function BG:ResetOption(name, isGlobal)
 end
 
 -- resets statistics. global = true -> global, otherwise local
-function BG:ResetStatistics(isGlobal)
+function BG.ResetStatistics(isGlobal)
 	BG:ResetOption("moneyEarned", isGlobal)
 	BG:ResetOption("moneyLostByDeleting", isGlobal)
 	BG:ResetOption("itemsDropped", isGlobal)
 	BG:ResetOption("itemsSold", isGlobal)
 end
-
--- gets an item's classification and saves it to the item cache
--- function BG:UpdateCache(itemID)
-
--- fetch an item from the item cache, or insert if it doesn't exist yet
--- function BG:GetCached(itemID)
-
--- returns total bag slots and free bag slots of your whole inventory
--- function BG:GetBagSlots()
 
 Broker_Garbage = {
 	RegisterPlugin = BG.RegisterPlugin,
@@ -81,8 +72,6 @@ Broker_Garbage = {
 	GetOption = BG.GetOption,
 	SetOption = BG.SetOption,
 	ToggleOption = BG.ToggleOption,
-	ResetOption = BG.ResetOption,
-	ResetStatistics = BG.ResetStatistics,
 	
 	ClearCache = BG.ClearCache,
 	GetCached = BG.GetCached,
@@ -91,8 +80,7 @@ Broker_Garbage = {
 	ScanInventory = BG.ScanInventory,
 	GetItemValue = BG.GetItemValue,
 	Delete = BG.Delete,
-	UpdateSortedItemsList = BG.UpdateSortedItemsList,	-- GetCheapest
-	FindSlotsToDelete = BG.GetItemLocations, -- BG.FindSlotToDelete,
+	FindSlotsToDelete = BG.GetItemLocations,
 	
 	UpdateRepairButton = BG.UpdateRepairButton,
 	CreateDefaultLists = BG.CreateDefaultLists,
