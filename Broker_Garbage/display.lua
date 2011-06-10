@@ -158,7 +158,7 @@ function BG:OnClick(itemTable, button)
 		if BG.optionsLoaded then
 			BG:ListOptionsUpdate("exclude")
 		end
-		BG.ClearCache()
+		BG.UpdateAllCaches()
 		
 	elseif itemTable and IsAltKeyDown() then
 		-- add to force vendor price list
@@ -168,7 +168,7 @@ function BG:OnClick(itemTable, button)
 		if BG.optionsLoaded then
 			BG:ListOptionsUpdate("forceprice")
 		end
-		BG.ClearCache()
+		BG.UpdateAllCaches()
 		
 	-- [TODO] interface options opened -> also load config, if not yet done
 	elseif button == "RightButton" then

@@ -51,19 +51,19 @@ function BGC.ChangeView(pluginID)
 	BGC.UpdateOptionsPanel()
 end
 
-function BGC.CreateOptionsPanel(frame)
-	local title, subtitle = LibStub("tekKonfig-Heading").new(frame, "Broker_Garbage", BGC.locale.BasicOptionsText)
+function BGC:CreateOptionsPanel()
+	local title, subtitle = LibStub("tekKonfig-Heading").new(self, "Broker_Garbage", BGC.locale.BasicOptionsText)
 
-	local group = LibStub("tekKonfig-Group").new(frame, nil, "TOP", subtitle, "BOTTOM", 0, -24)
+	local group = LibStub("tekKonfig-Group").new(self, nil, "TOP", subtitle, "BOTTOM", 0, -24)
 	group:SetPoint("LEFT")
 	group:SetPoint("BOTTOMRIGHT")
 	group:SetBackdropColor(0.1, 0.1, 0.1, 0.3)
-	frame.group = group
+	self.group = group
 	
 	BGC.ChangeView(1)
 	BGC:ShowListOptions(BGC.listOptions)
 	collectgarbage()
-	frame:SetScript("OnShow", BGC.UpdateOptionsPanel)
+	self:SetScript("OnShow", BGC.UpdateOptionsPanel)
 end
 
 BGC.options:SetScript("OnShow", BGC.CreateOptionsPanel)

@@ -43,11 +43,11 @@ local function eventHandler(self, event, arg1, ...)
 	elseif event == "ITEM_UNLOCKED" then
 		if BGLM:RestackStep() then
 			-- wait for next update
-			BGLM:Debug("Still restacking...", BGLM.currentRestackItems)
+			-- BGLM:Debug("Still restacking...", BGLM.currentRestackItems)
 		else	-- we're done
 			frame:UnregisterEvent("ITEM_UNLOCKED")
 			BGLM.currentRestackItems = nil
-			BGLM:Debug("Unregistered ITEM_UNLOCKED")
+			-- BGLM:Debug("Unregistered ITEM_UNLOCKED")
 			
 			if BGLM.afterRestack ~= nil then
 				BGLM:afterRestack()
@@ -90,10 +90,10 @@ end
 function BGLM.Restack(itemID)
 	-- BGLM:Debug("Restacking item "..(itemID or "nil"))
 	if BGLM.currentRestackItems ~= nil then
-		BGLM:Debug("Adding item to list", itemID)
+		-- BGLM:Debug("Adding item to list", itemID)
 		tinsert(BGLM.currentRestackItems, itemID)
 	else
-		BGLM:Debug("Creating new restack list.", itemID)
+		-- BGLM:Debug("Creating new restack list.", itemID)
 		BGLM.currentRestackItems = { itemID }
 		if BGLM.RestackStep() then
 			-- wait for moved items
@@ -111,7 +111,7 @@ end
 local function NextRestackStep()
 	-- go to next item if there is one
 	tremove(BGLM.currentRestackItems, 1)
-	BGLM:Debug("Removed first item from list.")
+	-- BGLM:Debug("Removed first item from list.")
 	if #(BGLM.currentRestackItems) <= 0 then
 		BGLM.currentRestackItems = nil
 		return false
@@ -129,9 +129,9 @@ function BGLM.RestackStep()
 	local count = GetItemCount(itemID)
 	if not count or count <= 1 then return NextRestackStep() end
 	
-	local locations = Broker_Garbage.FindSlotsToDelete(itemID, true)
+	local locations = Broker_Garbage.GetItemLocations(itemID, true)
 	local maxLoc = #locations
-	BGLM:Debug("RestackStep ...", itemID, count, maxLoc)
+	-- BGLM:Debug("RestackStep ...", itemID, count, maxLoc)
 	if maxLoc <= 1 then
 		return NextRestackStep()
 	end -- we're done, nothing to restack
@@ -141,7 +141,7 @@ function BGLM.RestackStep()
 		securecall(PickupContainerItem, locations[1].bag, locations[1].slot)
 		securecall(PickupContainerItem, locations[maxLoc].bag, locations[maxLoc].slot)
 		
-		BGLM:Debug("Restack from/to", locations[1].count, locations[maxLoc].count)
+		-- BGLM:Debug("Restack from/to", locations[1].count, locations[maxLoc].count)
 	end
 	return true
 end
@@ -310,7 +310,7 @@ function BGLM.SelectiveLooting(autoloot)	-- jwehgH"G$(&/&§$/!!" stupid . vs. : 
 			local lootAction
 			local _, _, quantity,  quality, locked = GetLootSlotInfo(slot)
 			local itemLink = GetLootSlotLink(slot)
-			local itemID = BGLM:GetItemID(itemLink)
+			local itemID = itemLink and BGLM:GetItemID(itemLink)
 			local compareTo = Broker_Garbage:GetVariable("cheapestItems")
 			compareTo = compareTo and compareTo[1] or nil
 			

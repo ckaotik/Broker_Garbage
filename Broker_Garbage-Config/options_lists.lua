@@ -40,7 +40,7 @@ function BGC:ShowListOptions(frame)
 		checksound(includeMode)
 		Broker_Garbage:ToggleOption("useRealValues", true)
 		Broker_Garbage.ScanInventory(true)
-		-- maybe: Update LDB
+		-- [TODO] maybe: Update LDB
 	end)
 	
 	local panel = LibStub("tekKonfig-Group").new(frame, nil, "TOP", default, "BOTTOM", 0, -28)
@@ -107,12 +107,17 @@ function BGC:ShowListOptions(frame)
 	searchbox:SetHeight(32)
 	searchbox:SetFontObject("GameFontHighlightSmall")
 	BGC.CreateFrameBorders(searchbox)
-
 	searchbox:SetTextColor(0.75, 0.75, 0.75, 1)
 	searchbox:SetText(BGC.locale.search)
 	
 	searchbox:SetScript("OnEscapePressed", searchbox.ClearFocus)
 	searchbox:SetScript("OnEnterPressed", searchbox.ClearFocus)
+
+	searchbox:SetScript("OnTextChanged", function(self)
+		local t = self:GetText()
+		self.searchString = t ~= "" and t ~= BGC.locale.search and t:lower() or nil
+		BGC:UpdateSearch(self.searchString)
+	end)
 	searchbox:SetScript("OnEditFocusGained", function(self)
 		if not self.searchString then
 			self:SetText("")
@@ -124,11 +129,6 @@ function BGC:ShowListOptions(frame)
 			self:SetText(BGC.locale.search)
 			self:SetTextColor(0.75, 0.75, 0.75, 1)
 		end
-	end)
-	searchbox:SetScript("OnTextChanged", function(self)
-		local t = self:GetText()
-		self.searchString = t ~= "" and t ~= BGC.locale.search and t:lower() or nil
-		BGC:UpdateSearch(self.searchString)
 	end)
 	
 	-- tab changing actions
@@ -457,7 +457,7 @@ function BGC:ShowListOptions(frame)
 			end
 		end
 
-		local reset	= nil	
+		local resetRequired	= nil	
 		-- create "link" for output
 		if item and type(item) == "number" then
 			-- item on cursor
@@ -468,16 +468,16 @@ function BGC:ShowListOptions(frame)
 			identifier = tonumber(identifier)
 			if specialType == "BEQ" then
 				-- equipment set
-				reset = nil
+				resetRequired = nil
 				link = setID and GetEquipmentSetInfo(identifier) or "Invalid Set"
 			elseif specialType == "AC" then
 				-- armor class
-				reset = true
+				resetRequired = true
 				armorType = select(identifier, GetAuctionItemSubClasses(2))
 				link = BGC.locale.armorClass .. ": " .. (armorType or "Invalid Armor Class")
 		    else
 				-- LPT category
-				reset = true
+				resetRequired = true
 				link = item
 			end
 		end
@@ -501,12 +501,10 @@ function BGC:ShowListOptions(frame)
 		Broker_Garbage:SetOption(frame.current, false, localList)
 		Broker_Garbage:SetOption(frame.current, true, globalList)
 		
-		if not reset then
-			Broker_Garbage.UpdateCache(item)
-		else
-			Broker_Garbage.ScanInventory(reset)
+		if not resetRequired then
+			Broker_Garbage.UpdateAllCaches(item)
 		end
-		Broker_Garbage:UpdateRepairButton()
+		return resetRequired
 	end
 	
 	if not _G["BG_LPTMenuFrame"] then
@@ -591,7 +589,7 @@ function BGC:ShowListOptions(frame)
 		local localList, globalList = Broker_Garbage:GetOption(frame.current)
 		-- add action
 		if self == plus then			
-			AddItem()
+			reset = AddItem()
 		-- remove action
 		elseif self == minus then
 			local index = 1
@@ -608,7 +606,7 @@ function BGC:ShowListOptions(frame)
 					end
 					
 					if type(item) == "number" then	-- regular item
-						Broker_Garbage.UpdateCache(item)
+						Broker_Garbage.UpdateAllCaches(item)
 					else							-- category string
 						reset = true
 					end
@@ -645,23 +643,27 @@ function BGC:ShowListOptions(frame)
 			end
 		-- empty action
 		elseif self == emptyList then
-			BGC.itemsCache = {}
+			Broker_Garbage.ClearCache()
 			if IsShiftKeyDown() then
 				globalList = {}
 			elseif localList then
 				localList = {}
 			end
+			reset = true
 		end
 		
 		-- post changed data
 		Broker_Garbage:SetOption(frame.current, false, localList)
 		Broker_Garbage:SetOption(frame.current, true, globalList)
 		
-		BGC:ListOptionsUpdate()
 		if reset then
-			Broker_Garbage.ScanInventory(true)
+			Broker_Garbage.ClearCache()
+			wipe(Broker_Garbage.cheapestItems)
+			Broker_Garbage.ScanInventory()
 		end
+		Broker_Garbage:UpdateLDB()
 		Broker_Garbage:UpdateRepairButton()
+		BGC:ListOptionsUpdate()
 	end
 	
 	plus:SetScript("OnClick", OnClick)

@@ -76,6 +76,18 @@ function BG.GetItemLocations(item, ignoreFullStacks)	-- itemID/CategoryString[, 
 	return locations
 end
 
+function BG.UpdateAllCaches(itemID)
+	local cheapestItem
+
+	BG.UpdateCache(itemID)
+	for _, itemIndex in pairs(BG.itemLocations[itemID]) do
+		cheapestItem = BG.cheapestItems[itemIndex]
+		BG.SetDynamicLabelBySlot(cheapestItem.bag, cheapestItem.slot, itemIndex)
+	end
+	BG.ScanInventory()
+	BG.UpdateLDB()
+end
+
 -- == Inventory Scanning ==
 -- [TODO] also update whenever the number/size/?? of bags change!
 function BG.ScanInventory(resetCache)
@@ -117,7 +129,6 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 			slotFound = true
 			if not newItemLink or item.itemLink ~= newItemLink then	-- update the whole item slot
 				BG.Debug("Update whole slot", newItemLink)
-				BG.ClearItemLocations(item.itemID)
 				BG.SetDynamicLabelBySlot(container, slot, index)
 			elseif item.count ~= newItemCount then	-- update the item count
 				BG.Debug("Update item count", newItemLink)
@@ -161,6 +172,10 @@ function BG.SortCheapestItemsList(a, b)
 end
 
 function BG.UpdateItemLocations()
+	for k, v in pairs(BG.itemLocations) do
+		wipe(v)
+	end
+
 	local itemID, location
 	local numEntries = #BG.cheapestItems
 
@@ -169,21 +184,18 @@ function BG.UpdateItemLocations()
 		itemID = item.itemID
 		locations = BG.itemLocations[itemID]
 
-		if not locations then	-- new item
-			BG.itemLocations[itemID] = { tableIndex }
-		elseif not BG.Find(locations, tableIndex) then	-- item is known, slot is not
-			tinsert(locations, tableIndex)
-		end
+		if not item.invalid then
+			if not locations then	-- new item
+				BG.itemLocations[itemID] = { tableIndex }
+			else -- if not BG.Find(locations, tableIndex) then	-- item is known, slot is not
+				tinsert(locations, tableIndex)
+			end
 
-		if item.sell and item.value and item.count then
-			BG.junkValue = BG.junkValue + (item.value * item.count)
+			if item.sell and item.value and item.count then
+				BG.junkValue = BG.junkValue + (item.value * item.count)
+			end
 		end
 	end
-end
-
--- fully remove location data for one item
-function BG.ClearItemLocations(itemID)
-	wipe(BG.itemLocations[itemID])
 end
 
 -- sort item list and updates LDB accordingly
