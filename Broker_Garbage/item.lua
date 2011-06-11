@@ -58,7 +58,7 @@ function BG.IsItemInBGList(item, itemList, onlyLocal)	-- itemID/itemLink/itemTab
 	if BG_LocalDB[itemList] and BG_LocalDB[itemList][item] then
 		onLocalList = true
 	end
-	if not onlyLocal and BG_LocalDB[itemList] and BG_LocalDB[itemList][item] then
+	if not onlyLocal and BG_GlobalDB[itemList] and BG_GlobalDB[itemList][item] then
 		onGlobalList = true
 	end
 	return onLocalList or onGlobalList
@@ -144,21 +144,9 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 
 	-- handle special cases
 	-- ignore AH prices for gray or BOP items
-	if itemQuality == 0 or label == BG.UNUSABLE or (BG.IsItemSoulbound(itemLink) and not IsUsableSpell(BG.enchanting)) then
+	if itemQuality == 0 or label == BG.VENDOR or label == BG.UNUSABLE 
+		or (BG.IsItemSoulbound(itemLink) and not IsUsableSpell(BG.enchanting)) then
 		return vendorPrice, vendorPrice and BG.VENDOR
-	end
-
-	-- check if the vendor price is enforced
-	local hasForcedVendorPrice
-	for category,_ in pairs(BG_GlobalDB.forceVendorPrice) do
-		if type(category) == "string" and BG.IsItemInCategory(itemID, category) then
-			hasForcedVendorPrice = true
-			break
-		end
-	end
-	if hasForcedVendorPrice or BG.IsItemInBGList(itemID, "forceVendorPrice") then
-		BG.Debug("Item has a forced vendor price.", itemID, itemLink)
-		return vendorPrice, BG.VENDOR
 	end
 
 	-- check auction data
@@ -496,7 +484,7 @@ function BG.UpdateCache(item) -- itemID/itemLink
 		BG.Debug("UpdateCache("..(itemID or "<none>")..") failed - no GetItemInfo() data available!")
 		return nil
 	end
-	
+
 	local itemLimit, label = 0, nil
 	-- check if item is classified by its itemID
 	if BG.ScanTooltipFor(ITEM_STARTS_QUEST, itemLink) or BG.ScanTooltipFor(ITEM_BIND_QUEST, itemLink) then
@@ -518,6 +506,10 @@ function BG.UpdateCache(item) -- itemID/itemLink
 		BG.Debug("Item's ITEMID is on the JUNK LIST.", itemID, itemLink)
 		label = BG.INCLUDE
 		itemLimit = BG_LocalDB.include[itemID] or BG_GlobalDB.include[itemID] or 0
+	end
+	if not label and BG.IsItemInBGList(itemID, "forceVendorPrice") then
+		BG.Debug("Item's ITEMID is on the VENDOR PRICE LIST.", itemID, itemLink)
+		label = BG.VENDOR
 	end
 	
 	-- check if item is classified by its category
@@ -554,6 +546,16 @@ function BG.UpdateCache(item) -- itemID/itemLink
 				BG.Debug("Item's CATEGORY is on the JUNK LIST.", itemID, itemLink)
 				label = BG.INCLUDE
 				itemLimit = BG_LocalDB.include[category] or BG_GlobalDB.include[category] or 0
+				break
+			end
+		end
+	end
+	if not label then
+		-- Vendor Price List
+		for category,_ in pairs(BG_GlobalDB.forceVendorPrice) do
+			if type(category) == "string" and BG.IsItemInCategory(itemID, category) then
+				BG.Debug("Item's CATEGORY is on the VENDOR PRICE LIST.", itemID, itemLink)
+				label = BG.VENDOR
 				break
 			end
 		end

@@ -80,7 +80,7 @@ function BG.UpdateAllCaches(itemID)
 	local cheapestItem
 
 	BG.UpdateCache(itemID)
-	for _, itemIndex in pairs(BG.itemLocations[itemID]) do
+	for _, itemIndex in pairs(BG.itemLocations[itemID] or {}) do
 		cheapestItem = BG.cheapestItems[itemIndex]
 		BG.SetDynamicLabelBySlot(cheapestItem.bag, cheapestItem.slot, itemIndex)
 	end
@@ -312,7 +312,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 		updateItem.bag = container
 		updateItem.slot = slot
 		updateItem.count = count
-		updateItem.value = value
+		updateItem.value = value * count -- meh.
 		updateItem.source = classification
 		updateItem.sell = sellItem
 		updateItem.invalid = nil
