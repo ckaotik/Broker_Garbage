@@ -38,7 +38,7 @@ function BG.PrepareAutoSell()
 					locked = true
 				end
 
-				if not item.sell and GetUnitName("player") == "Thany" and GetRealmName() == "Die Aldor" then
+				if not item.sell then
 					BG.Print("WRONG SELL TAG! "..item.itemLink.." (Source: "..item.source..")")	-- [TODO] remove prior to release
 				end
 				BG.Debug("Selling", item.itemID, item.bag, item.slot)

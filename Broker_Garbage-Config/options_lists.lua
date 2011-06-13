@@ -195,8 +195,6 @@ function BGC:ShowListOptions(frame)
 	
 	-- function to set the drop treshold (limit) via the mousewheel
 	local function OnMouseWheel(self, dir)
-		-- if type(self.itemID) ~= "number" then return end -- only allow on actual items
-		
 		local text, limit = self.limit:GetText()
 		if self.isGlobal then
 			list = Broker_Garbage:GetOption(frame.current, true)
@@ -230,7 +228,9 @@ function BGC:ShowListOptions(frame)
 		if self.itemID then 
 			Broker_Garbage.UpdateCache(self.itemID)
 		else
-			Broker_Garbage.ScanInventory(true)
+			Broker_Garbage.UpdateAllCaches()
+			Broker_Garbage.UpdateAllDynamicItems()
+			Broker_Garbage:UpdateLDB()
 		end
 	end
 	
@@ -464,20 +464,18 @@ function BGC:ShowListOptions(frame)
 			link = select(2, GetItemInfo(item))
 
 		elseif item and type(item) == "string" then
+			resetRequired = true
 			local specialType, identifier = string.match(item, "^(%S+)_(%d+)")
 			identifier = tonumber(identifier)
 			if specialType == "BEQ" then
 				-- equipment set
-				resetRequired = nil
 				link = setID and GetEquipmentSetInfo(identifier) or "Invalid Set"
 			elseif specialType == "AC" then
 				-- armor class
-				resetRequired = true
 				armorType = select(identifier, GetAuctionItemSubClasses(2))
 				link = BGC.locale.armorClass .. ": " .. (armorType or "Invalid Armor Class")
 		    else
 				-- LPT category
-				resetRequired = true
 				link = item
 			end
 		end
@@ -501,7 +499,7 @@ function BGC:ShowListOptions(frame)
 		Broker_Garbage:SetOption(frame.current, false, localList)
 		Broker_Garbage:SetOption(frame.current, true, globalList)
 		
-		if not resetRequired then
+		if not resetRequired and type(item) == "number" then
 			Broker_Garbage.UpdateAllCaches(item)
 		end
 		return resetRequired
@@ -511,9 +509,7 @@ function BGC:ShowListOptions(frame)
 		local RightClickMenuOnClick = function(self)
 			local reset = AddItem(self.value)
 			if reset then
-				Broker_Garbage.ClearCache()
-				wipe(Broker_Garbage.cheapestItems)
-				Broker_Garbage.ScanInventory()
+				Broker_Garbage.UpdateAllDynamicItems()
 			end
 			Broker_Garbage:UpdateLDB()
 			Broker_Garbage:UpdateRepairButton()
@@ -664,9 +660,7 @@ function BGC:ShowListOptions(frame)
 		Broker_Garbage:SetOption(frame.current, true, globalList)
 		
 		if reset then
-			Broker_Garbage.ClearCache()
-			wipe(Broker_Garbage.cheapestItems)
-			Broker_Garbage.ScanInventory()
+			Broker_Garbage.UpdateAllDynamicItems()
 		end
 		Broker_Garbage:UpdateLDB()
 		Broker_Garbage:UpdateRepairButton()

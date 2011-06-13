@@ -154,6 +154,12 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 	end
 end
 
+function BG.UpdateAllDynamicItems()
+	BG.ClearCache()
+	wipe(BG.cheapestItems)
+	BG.ScanInventory()
+end
+
 -- == Pure Logic Ahead ==
 function BG.SortCheapestItemsList(a, b)
 	if not (a.source == BG.IGNORE or b.source == BG.IGNORE or a.invalid or b.invalid) then
@@ -219,7 +225,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 
 	if item then
 		local value = item.value
-		local vendorValue = select(11, GetItemInfo(itemID)) * count
+		local vendorValue = select(11, GetItemInfo(itemID))
 		local classification = item.classification
 		
 		-- remember lootable items
@@ -256,7 +262,9 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 		end
 
 		-- [TODO] Alternative: Listen for EQUIPMENT_SETS_CHANGED / PLAYER_EQUIPMENT_CHANGED and re-check all equipment items in the inventory; Also check when new equipment is looted ... iergs
-		if item.classification ~= BG.EXCLUDE and BG_GlobalDB.sellOldGear and item.quality <= BG_GlobalDB.sellNWQualityTreshold and BG.IsOutdatedItem(itemLink) then
+		if item.classification ~= BG.EXCLUDE and BG_GlobalDB.sellOldGear 
+			and item.quality <= BG_GlobalDB.sellNWQualityTreshold and BG.IsOutdatedItem(itemLink) then
+
 			insert = true
 			if item.classification == BG.DISENCHANT and BG_GlobalDB.reportDisenchantOutdated then
 				BG.Print(string.format(BG.locale.disenchantOutdated, itemLink))
@@ -268,16 +276,22 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 		end
 
 		-- allowed tresholds
-		if item.quality <= BG_GlobalDB.sellNWQualityTreshold and BG_GlobalDB.sellNotWearable and 
-			(item.classification == BG.UNUSABLE or classification == BG.OUTDATED) then	-- don't add "item." here!
+		if item.quality <= BG_GlobalDB.sellNWQualityTreshold and 
+			((item.classification == BG.AUTOSELL and insert) or 
+			(item.classification == BG.UNUSABLE and BG_GlobalDB.sellNotWearable) or
+			(classification == BG.OUTDATED and BG_GlobalDB.sellNotWearable)) then
+			
 			insert = true
 			sellItem = true
-		elseif item.quality > BG_GlobalDB.dropQuality and (item.classification == BG.INCLUDE) then
-			insert = true
 		elseif item.quality > BG_GlobalDB.dropQuality then
-			-- not allowed, treshold surpassed
-			BG.Debug("quality too high and not junk "..itemLink)
-			insert = false
+			-- JUNK LIST items may always show up
+			if item.classification == BG.INCLUDE then
+				insert = true
+			else
+				-- not allowed, treshold surpassed
+				BG.Debug("quality too high and not junk "..itemLink)
+				insert = false
+			end
 		else
 			-- all is well, but keep existing preference
 		end
@@ -311,7 +325,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 		updateItem.bag = container
 		updateItem.slot = slot
 		updateItem.count = count
-		updateItem.value = value * count -- meh.
+		updateItem.value = value * count
 		updateItem.source = classification
 		updateItem.sell = sellItem
 		updateItem.invalid = nil

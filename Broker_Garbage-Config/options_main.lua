@@ -50,7 +50,8 @@ local function Options_BasicOptions(pluginID)
 	sellGear:SetScript("OnClick", function(sellGear)
 		checksound(sellGear)
 		Broker_Garbage:ToggleOption("sellNotWearable", true)
-		Broker_Garbage.ScanInventory(true)
+		Broker_Garbage.ClearCache()
+		Broker_Garbage.ScanInventory()
 	end)
 	
 	local sellOutdatedGear = BGC.CreateCheckBox(behavior, nil, BGC.locale.TopFitOldItem, "TOPLEFT", sellGear, "BOTTOMLEFT", 0, 4)
@@ -60,7 +61,8 @@ local function Options_BasicOptions(pluginID)
 	sellOutdatedGear:SetScript("OnClick", function(sellOutdatedGear)
 		checksound(sellOutdatedGear)
 		Broker_Garbage:ToggleOption("sellOldGear", true)
-		Broker_Garbage.ScanInventory()
+		Broker_Garbage.UpdateAllDynamicItems()
+		Broker_Garbage:UpdateLDB()
 	end)
 	
 	local enchanter = BGC.CreateCheckBox(behavior, nil, BGC.locale.enchanterTitle, "TOPLEFT", sellOutdatedGear, "BOTTOMLEFT", 0, 4)
@@ -106,10 +108,6 @@ local function Options_BasicOptions(pluginID)
 			UIDropDownMenu_AddButton(info)
 		end
 	end)
-	
-	-- local treshold = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupTresholds, "TOPLEFT", behavior, "BOTTOMLEFT", 0, -14)
-	-- treshold:SetHeight(100); treshold:SetWidth(180)
-	-- treshold:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
 	local qualityTreshold = CreateFrame("Frame", "BG_DropQualityDropDown", behavior, "UIDropDownMenuTemplate")
 	qualityTreshold.displayMode = "MENU"
