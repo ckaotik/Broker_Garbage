@@ -252,7 +252,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 		end
 
 		-- [TODO] Alternative: Listen for EQUIPMENT_SETS_CHANGED / PLAYER_EQUIPMENT_CHANGED and re-check all equipment items in the inventory; Also check when new equipment is looted ... iergs
-		if BG_GlobalDB.sellOldGear and item.quality <= BG_GlobalDB.sellNWQualityTreshold and BG.IsOutdatedItem(itemLink) then
+		if item.classification ~= BG.EXCLUDE and BG_GlobalDB.sellOldGear and item.quality <= BG_GlobalDB.sellNWQualityTreshold and BG.IsOutdatedItem(itemLink) then
 			insert = true
 			if item.classification == BG.DISENCHANT and BG_GlobalDB.reportDisenchantOutdated then
 				BG.Print(string.format(BG.locale.disenchantOutdated, itemLink))
@@ -268,8 +268,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 			(item.classification == BG.UNUSABLE or classification == BG.OUTDATED) then	-- don't add "item." here!
 			insert = true
 			sellItem = true
-		elseif item.quality > BG_GlobalDB.dropQuality and 
-			(item.classification == BG.INCLUDE) then
+		elseif item.quality > BG_GlobalDB.dropQuality and (item.classification == BG.INCLUDE) then
 			insert = true
 		elseif item.quality > BG_GlobalDB.dropQuality then
 			-- not allowed, treshold surpassed
