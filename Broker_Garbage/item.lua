@@ -65,6 +65,7 @@ function BG.IsItemInBGList(item, itemList, onlyLocal)	-- itemID/itemLink/itemTab
 end
 
 function BG.IsItemOverLimit(item, bag, slot)
+	-- [TODO] Update sizes and stuff for list items!
 	local saveStacks = ceil(item.limit/item.stackSize)
 	local locations = BG.GetItemLocations(item.itemID)
 	
