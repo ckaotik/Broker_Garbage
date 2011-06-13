@@ -18,7 +18,7 @@ BG.defaultGlobalSettings = {
 	
 	disableKey = "SHIFT",
 	autoSellIncludeItems = false,	-- toggle include list being sell list as well
-	keepItemsForLaterDE = true,		-- [TODO] new!
+	keepItemsForLaterDE = 0,		-- [TODO] new!
 
 	-- tresholds
 	dropQuality = 0,

@@ -156,7 +156,7 @@ function BG:OnClick(itemTable, button)
 		BG.Print(format(BG.locale.addedTo_exclude, select(2,GetItemInfo(itemTable.itemID))))
 		
 		if BG.optionsLoaded then
-			BG:ListOptionsUpdate("exclude")
+			Broker_Garbage_Config:ListOptionsUpdate("exclude")
 		end
 		BG.UpdateAllCaches()
 		
@@ -166,7 +166,7 @@ function BG:OnClick(itemTable, button)
 		BG.Print(format(BG.locale.addedTo_forceVendorPrice, select(2,GetItemInfo(itemTable.itemID))))
 		
 		if BG.optionsLoaded then
-			BG:ListOptionsUpdate("forceprice")
+			Broker_Garbage_Config:ListOptionsUpdate("forceprice")
 		end
 		BG.UpdateAllCaches()
 		

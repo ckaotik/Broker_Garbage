@@ -38,8 +38,8 @@ function BG.PrepareAutoSell()
 					locked = true
 				end
 
-				if not item.sell then
-					-- BG.Print("WRONG SELL TAG! "..item.itemLink.." (Source: "..item.source..")")	-- [TODO] remove prior to release
+				if not item.sell and GetUnitName("player") == "Thany" and GetRealmName() == "Die Aldor" then
+					BG.Print("WRONG SELL TAG! "..item.itemLink.." (Source: "..item.source..")")	-- [TODO] remove prior to release
 				end
 				BG.Debug("Selling", item.itemID, item.bag, item.slot)
 
@@ -95,7 +95,9 @@ function BG.AutoRepair()
 		if repairCost > 0 then
 			if BG_LocalDB.repairGuildBank and guildRepairFunds and (guildRepairFunds == -1 or guildRepairFunds >= repairCost) then
 				-- guild repair if we're allowed to and the user wants it
-				-- BG.Print("Repair using guild funds "..guildRepairFunds) -- [TODO] remove prior to release!
+				if GetUnitName("player") == "Thany" and GetRealmName() == "Die Aldor" then
+					BG.Print("Repair using guild funds "..guildRepairFunds) -- [TODO] remove prior to release!
+				end
 				RepairAllItems(1)
 				BG.didRepair = true
 			elseif GetMoney() >= repairCost then

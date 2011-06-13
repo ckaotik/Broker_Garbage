@@ -222,19 +222,15 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 		BG.containerInInventory = BG.containerInInventory or canOpen
 
 		local insert, sellItem = true, nil
-		if item.limit == 0 then
-			-- items without limits are regular items
-			insert = item.classification ~= BG.EXCLUDE
-		
-		elseif BG.IsItemOverLimit(item, container, slot) then
+		if BG.IsItemOverLimit(item, container, slot) and (item.classification ~= BG.EXCLUDE or item.limit ~= 0) then
 			-- over limit items are handled according to their lists
-			if item.classification == BG.EXCLUDE then	-- Caution! Inverse logic!
+			if item.classification == BG.EXCLUDE then	
+				-- Inverse logic! KEEP items over limit are handled like regular items
 				value, label = BG.GetSingleItemValue(item)
-				value = value * count
 				insert = true
 
 			elseif item.classification == BG.INCLUDE then
-				value = BG_GlobalDB.useRealValues and (value * count) or 0
+				value = BG_GlobalDB.useRealValues and value or 0
 				insert = true
 				sellItem = BG_GlobalDB.autoSellIncludeItems
 				
@@ -244,7 +240,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 				sellItem = true
 			end
 		else
-			-- items under limit are kept, no matter what
+			-- items on KEEP LIST w/o a limit or on other lists, under limit, are kept
 			BG.Debug("limit not yet reached "..itemLink)
 			insert = false
 		end

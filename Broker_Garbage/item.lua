@@ -152,8 +152,8 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 	-- check auction data
 	BG.auctionAddon = nil	-- forcefully reset this!
 	local disenchantPrice, auctionPrice, source = 0, 0, nil
-	local canDE, canDESoon = BG.CanDisenchant(itemLink)
-	canDE = canDE or (canDESoon and BG_GlobalDB.keepItemsForLaterDE)
+	local canDE, missingSkillPoints = BG.CanDisenchant(itemLink)
+	canDE = canDE or (missingSkillPoints and missingSkillPoints <= BG_GlobalDB.keepItemsForLaterDE)
 
 	-- calculate auction value: choose the highest auction/disenchant value
 	if IsAddOnLoaded("Auctionator") then
@@ -268,6 +268,7 @@ function BG.IsItemSoulbound(itemLink, bag, slot)	-- itemLink/itemID, bag, slot -
 end
 
 -- [TODO] update for cataclysm
+-- player can disenchant this item: [true/false]; skill difference until DE is possible [nil/number]
 function BG.CanDisenchant(itemLink, onlyMe)
 	if not itemLink then return end
 	
@@ -332,7 +333,7 @@ function BG.CanDisenchant(itemLink, onlyMe)
 		-- this character can disenchant the item. Perfect!
 		return true
 	elseif skillRank < required then
-		return false, true
+		return false, (required - skillRank)
 	elseif BG_GlobalDB.hasEnchanter then
 		if onlyMe then
 			-- we can't disenchant this ourselves
