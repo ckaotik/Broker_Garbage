@@ -151,24 +151,24 @@ function BG:OnClick(itemTable, button)
 	elseif itemTable and IsControlKeyDown() then
 		-- add to exclude list
 		if not BG_LocalDB.exclude[itemTable.itemID] then
-			BG_LocalDB.exclude[itemTable.itemID] = true
+			BG_LocalDB.exclude[itemTable.itemID] = 0
 		end
 		BG.Print(format(BG.locale.addedTo_exclude, select(2,GetItemInfo(itemTable.itemID))))
 		
 		if BG.optionsLoaded then
 			Broker_Garbage_Config:ListOptionsUpdate("exclude")
 		end
-		BG.UpdateAllCaches()
+		BG.UpdateAllCaches(itemTable.itemID)
 		
 	elseif itemTable and IsAltKeyDown() then
 		-- add to force vendor price list
-		BG_GlobalDB.forceVendorPrice[itemTable.itemID] = true
+		BG_GlobalDB.forceVendorPrice[itemTable.itemID] = 0
 		BG.Print(format(BG.locale.addedTo_forceVendorPrice, select(2,GetItemInfo(itemTable.itemID))))
 		
 		if BG.optionsLoaded then
 			Broker_Garbage_Config:ListOptionsUpdate("forceprice")
 		end
-		BG.UpdateAllCaches()
+		BG.UpdateAllCaches(itemTable.itemID)
 		
 	-- [TODO] interface options opened -> also load config, if not yet done
 	elseif button == "RightButton" then

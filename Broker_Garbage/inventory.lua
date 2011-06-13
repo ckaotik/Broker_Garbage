@@ -77,6 +77,10 @@ function BG.GetItemLocations(item, ignoreFullStacks)	-- itemID/CategoryString[, 
 end
 
 function BG.UpdateAllCaches(itemID)
+	if not itemID or type(itemID) ~= "number" then
+		BG.Debug("UpdateAllCaches - no or invalid argument!")
+		return
+	end
 	local cheapestItem
 
 	BG.UpdateCache(itemID)
