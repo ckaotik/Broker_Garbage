@@ -509,7 +509,14 @@ function BGC:ShowListOptions(frame)
 	
 	if not _G["BG_LPTMenuFrame"] then
 		local RightClickMenuOnClick = function(self)
-			AddItem(self.value)
+			local reset = AddItem(self.value)
+			if reset then
+				Broker_Garbage.ClearCache()
+				wipe(Broker_Garbage.cheapestItems)
+				Broker_Garbage.ScanInventory()
+			end
+			Broker_Garbage:UpdateLDB()
+			Broker_Garbage:UpdateRepairButton()
 			BGC:ListOptionsUpdate()
 		end
 		
