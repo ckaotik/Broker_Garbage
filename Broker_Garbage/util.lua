@@ -79,6 +79,10 @@ function BG.AdjustLists_4_1()
 		BG_GlobalDB.repairGuildBank = BG_GlobalDB.neverRepairGuildBank
 		BG_GlobalDB.neverRepairGuildBank = nil
 	end
+
+	if BG_GlobalDB.keepItemsForLaterDE and type(BG_GlobalDB.keepItemsForLaterDE) ~= "number" then
+		BG_GlobalDB.keepItemsForLaterDE = 0
+	end
 end
 
 -- inserts some basic list settings
