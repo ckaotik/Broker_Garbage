@@ -120,12 +120,5 @@ end
 frame:RegisterEvent("ADDON_LOADED")
 frame:SetScript("OnEvent", eventHandler)
 
--- load options for those non-LDB-right-clickers and not-AddonLoader-users
-hooksecurefunc("InterfaceOptionsFrame_OnShow", function() 
-	if not IsAddOnLoaded("Broker_Garbage-Config") then
-		LoadAddOn("Broker_Garbage-Config")
-	end
-end)
-
 -- [TODO] maybe add "restack now" button to bag frames
 -- [TODO] fix memory load on logon!
