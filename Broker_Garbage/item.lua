@@ -147,6 +147,7 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 	-- ignore AH prices for gray or BOP items
 	if itemQuality == 0 or label == BG.VENDOR or label == BG.UNUSABLE 
 		or (BG.IsItemSoulbound(itemLink) and not IsUsableSpell(BG.enchanting)) then
+		BR.Print("Quit early")
 		return vendorPrice, vendorPrice and BG.VENDOR
 	end
 
@@ -564,10 +565,9 @@ function BG.UpdateCache(item) -- itemID/itemLink
 	end
 
 	-- unusable gear
-	if not label
-		and Unfit:IsItemUnusable(itemLink) and BG_GlobalDB.sellNotWearable
-		and quality >= 2 and quality <= BG_GlobalDB.sellNWQualityTreshold
-		and not IsUsableSpell(BG.enchanting) and BG.IsItemSoulbound(itemLink) then
+	if not label and Unfit:IsItemUnusable(itemLink) and BG_GlobalDB.sellNotWearable
+		and quality <= BG_GlobalDB.sellNWQualityTreshold and BG.IsItemSoulbound(itemLink)
+		and (quality < 2 or not IsUsableSpell(BG.enchanting)) then
 		BG.Debug("Item is UNUSABLE; We can't ever wear it.", itemID, itemLink)
 		label = BG.UNUSABLE
 	end

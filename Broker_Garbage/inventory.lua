@@ -311,6 +311,9 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 		end
 
 		BG.Debug("Adding item to table "..itemLink)
+		if not BG.cheapestItems then
+			BG.cheapestItems = {}
+		end
 		if not itemIndex then
 			-- create new item entry
 			itemIndex = #BG.cheapestItems + 1

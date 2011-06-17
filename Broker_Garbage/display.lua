@@ -67,7 +67,7 @@ function BG:Tooltip(self)
 	-- shows up to n lines of deletable items
 	local itemEntry, numLinesShown
 	for i = 1, BG_GlobalDB.tooltipNumItems do
-		itemEntry = BG.cheapestItems[i]
+		itemEntry = BG.cheapestItems and BG.cheapestItems[i]
 		if not itemEntry or itemEntry.source == BG.IGNORE or itemEntry.invalid then
 			-- not enough items to display
 			numLinesShown = i - 1
