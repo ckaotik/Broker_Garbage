@@ -147,7 +147,6 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 	-- ignore AH prices for gray or BOP items
 	if itemQuality == 0 or label == BG.VENDOR or label == BG.UNUSABLE 
 		or (BG.IsItemSoulbound(itemLink) and not IsUsableSpell(BG.enchanting)) then
-		BR.Print("Quit early")
 		return vendorPrice, vendorPrice and BG.VENDOR
 	end
 
