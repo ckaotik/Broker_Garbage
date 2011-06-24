@@ -218,31 +218,37 @@ end
 
 -- == Misc Item Information ==
 local scanTooltip = CreateFrame("GameTooltip", "BrokerGarbage_ItemScanTooltip", UIParent, "GameTooltipTemplate")
-function BG.ScanTooltipFor(searchString, itemLink, inBag, slot)
-	-- call only with searchString, itemLink -or- inBag := true -or- inBag := bagID, slot := slotID
-	if not itemLink then return end
+function BG.ScanTooltipFor(searchString, item, inBag, scanRightText, filterFunc)
+	-- (String) searchString, (String|Int) item:ItemLink|BagSlotID, [(Boolean|Int) inBag:true|ContainerID], [(Function) filterFunc]
+	if not item then return end
 	scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
 
 	local slot
-	if inBag and slot then
-		scanTooltip:SetBagItem(inBag, slot)
+	if inBag and type(item) == "number" then
+		scanTooltip:SetBagItem(inBag, item)
 	elseif inBag then
-		bag, slot = BG.FindItemInBags(itemLink)
-		scanTooltip:SetBagItem(bag, slot)
+		inBag, slot = BG.FindItemInBags(item)
+		scanTooltip:SetBagItem(inBag, slot)
 	else
-		scanTooltip:SetHyperlink(itemLink)
+		scanTooltip:SetHyperlink(item)
 	end
-	
+	return BG.FindInTooltip(searchString, scanRightText, filterFunc)
+end
+
+function BG.FindInTooltip(searchString, scanRightText, filterFunc)
 	local numLines = scanTooltip:NumLines()
+	local leftLine, leftLineText, rightLine, rightLineText
 	for i = 1, numLines do
-		local leftLine = getglobal("BrokerGarbage_ItemScanTooltipTextLeft"..i)
-		local leftLineText = leftLine:GetText()
+		leftLine = getglobal("BrokerGarbage_ItemScanTooltipTextLeft"..i)
+		leftLineText = leftLine and leftLine:GetText()
+		rightLine = getglobal("Broker_Garbage_ItemScanTooltipTextRight"..i)
+		rightLineText = rightLine and rightLine:GetText()
 		
-		if string.find(leftLineText, searchString) then
-			return true
+		if (string.find(leftLineText, searchString) or (scanRightText and string.find(rightLineText, searchString)))
+			and (not filterFunc or filterFunc(leftLineText, rightLineText)) then
+			return leftLineText, rightLineText
 		end
 	end
-	return nil
 end
 
 -- returns whether an item is BoP/Soulbound
@@ -265,7 +271,7 @@ function BG.IsItemSoulbound(itemLink, bag, slot)	-- itemLink/itemID, bag, slot -
 		searchString = ITEM_SOULBOUND
 	end
 
-	return BG.ScanTooltipFor(searchString, itemLink, bag, slot)
+	return BG.ScanTooltipFor(searchString, itemLink or slot, bag)
 end
 
 -- [TODO] update for cataclysm

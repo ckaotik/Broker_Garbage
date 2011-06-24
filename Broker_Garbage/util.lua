@@ -12,6 +12,20 @@ function BG.Debug(...)
 	end
 end
 
+local waitFrame = CreateFrame("Frame")
+function BG.CallWithDelay(callFunc, delay)
+	if waitFrame:GetScript("OnUpdate") ~= nil then
+		BG.Debug("Ooopsie, already running a timer!")
+	end
+	waitFrame:SetScript("OnUpdate", function(self, elapsed)
+		delay = delay - elapsed
+		if delay <= 0 then
+			waitFrame:SetScript("OnUpdate", nil)
+			callFunc()
+		end
+	end)
+end
+
 -- == Saved Variables ==
 -- checks for and sets default settings
 function BG.CheckSettings()
@@ -83,6 +97,11 @@ function BG.AdjustLists_4_1()
 	if BG_GlobalDB.keepItemsForLaterDE and type(BG_GlobalDB.keepItemsForLaterDE) ~= "number" then
 		BG_GlobalDB.keepItemsForLaterDE = 0
 	end
+
+	if BGLM_GlobalDB.restackInventory then
+		BG_GlobalDB.restackInventory = BGLM_GlobalDB.restackInventory
+		BGLM_GlobalDB.restackInventory = nil
+	end
 end
 
 -- inserts some basic list settings
@@ -126,10 +145,12 @@ function BG.CreateDefaultLists(global)
 	
 	BG.Print(BG.locale.listsUpdatedPleaseCheck)
 
-	BG.ClearCache()
-	BG.ScanInventory()
-	if BG.ListOptionsUpdate then
-		BG:ListOptionsUpdate()
+	Broker_Garbage.UpdateAllCaches()
+	Broker_Garbage.UpdateAllDynamicItems()
+	Broker_Garbage:UpdateLDB()
+
+	if Broker_Garbage_Config and Broker_Garbage_Config.ListOptionsUpdate then
+		Broker_Garbage_Config:ListOptionsUpdate()
 	end
 end
 

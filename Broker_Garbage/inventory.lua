@@ -2,7 +2,7 @@ local _, BG = ...
 
 -- == Finding things in your inventory ==
 function BG.FindItemInBags(item)
-	for container = 0, 4 do
+	for container = 0, NUM_BAG_SLOTS do
 		local numSlots = GetContainerNumSlots(container)
 		if numSlots then
 			for slot = 0, numSlots do
@@ -17,19 +17,18 @@ function BG.FindItemInBags(item)
 end
 
 -- finds all occurences of the given item; returns table sorted by relevance (lowest first)
-function BG.GetItemLocations(item, ignoreFullStacks)	-- itemID/CategoryString[, bool/nil]
+function BG.GetItemLocations(item, ignoreFullStacks, includeLocked)	-- itemID/CategoryString[, bool/nil]
 	local isCategory = type(item) == "string"
 	local locations = {}
 	
-	local numSlots, freeSlots, ratio, bagType
+	local numSlots, freeSlots, ratio, bagType, locked
 	local itemID, itemCount, itemLevel, itemLink, itemIsRelevant, isLocked
 	local maxStack = select(8, GetItemInfo(item))
 	if not maxStack then maxStack = 20 end
 	
-	for container = 0,4 do
+	for container = 0, NUM_BAG_SLOTS do
 		numSlots = GetContainerNumSlots(container)
-		freeSlots, bagType = GetContainerFreeSlots(container)
-		freeSlots = freeSlots and #freeSlots or 0
+		freeSlots, bagType = GetContainerNumFreeSlots(container)
 		
 		if item and numSlots then
 			ratio = freeSlots/numSlots
@@ -41,7 +40,7 @@ function BG.GetItemLocations(item, ignoreFullStacks)	-- itemID/CategoryString[, 
 					itemLevel = select(4, GetItemInfo(item))
 					itemIsRelevant = ((isCategory and BG.IsItemInCategory(itemID, item)) or itemID == item)
 					
-					if itemIsRelevant and not isLocked and (not ignoreFullStacks or itemCount < maxStack) then
+					if itemIsRelevant and (not isLocked or includeLocked) and (not ignoreFullStacks or itemCount < maxStack) then
 						-- found a slot with relevant items
 						table.insert(locations, {
 							slot = slot, 
@@ -51,6 +50,9 @@ function BG.GetItemLocations(item, ignoreFullStacks)	-- itemID/CategoryString[, 
 							level = itemLevel,
 							bagType = (bagType or 0)
 						})
+					end
+					if itemIsRelevant and isLocked then
+						locked = true
 					end
 				end
 			end
@@ -73,7 +75,132 @@ function BG.GetItemLocations(item, ignoreFullStacks)	-- itemID/CategoryString[, 
 			end
 		end
 	end)
-	return locations
+	return locations, locked
+end
+
+-- moves an item from A to B
+-- CAUTION: Call ClearCursor() straight after this!
+function BG.MoveItem(itemID, fromBag, fromSlot, toBag, toSlot)
+	if GetContainerItemID(fromBag, fromSlot) ~= itemID then
+		BG.Print("Error! Item to move does not match requested item.")
+		return
+	end
+	local targetLocked = select(3, GetContainerItemInfo(toBag, toSlot))
+	if targetLocked then
+		BG.Print("Error! Can't move item: Target location is locked.")
+		BG.Debug("From", fromBag, fromSlot, "to", toBag, toSlot)
+	end
+	ClearCursor()
+	securecall(PickupContainerItem, fromBag, fromSlot)
+	securecall(PickupContainerItem, toBag, toSlot)
+end
+
+function BG.PutIntoBestContainer(curBag, curSlot)
+	local itemID = GetContainerItemID(curBag, curSlot)
+	local itemFamily = itemID and GetItemFamily(itemID)
+	if not itemID or itemFamily == 0 then return end 	-- empty slots / general items
+
+	local bestContainer, freeSlots, bagType
+	for container = 0, NUM_BAG_SLOTS do
+		freeSlots, bagType = GetContainerNumFreeSlots(container)
+
+		if freeSlots > 0 and container ~= curBag and bit.band(itemFamily, bagType) > 0 and bagType ~= 0 then
+			bestContainer = container
+		end
+	end
+	if bestContainer then
+		local targetSlots = GetContainerFreeSlots(bestContainer)
+		BG.MoveItem(itemID, curBag, curSlot, bestContainer, targetSlots[1])
+	end
+end
+
+-- initialize full inventory restacking
+-- [TODO] maybe also check bank?
+function BG.DoFullRestack()
+	local numSlots = 0
+	local justStacked = {}
+	BG.locked = true
+	
+	local recursive = nil
+	for container = 0, NUM_BAG_SLOTS do
+		numSlots = GetContainerNumSlots(container)
+		if numSlots then
+			for slot = 1, numSlots do
+				local itemID = GetContainerItemID(container, slot)
+				local _, _, isLocked = GetContainerItemInfo(container, slot)
+
+				if itemID and not BG.Find(justStacked, itemID) then
+					recursive = recursive or BG.Restack(itemID)
+					table.insert(justStacked, itemID)
+				end
+			end
+		end
+	end
+	if recursive then
+		BG.Debug("Restack: More work to do.")
+		BG.CallWithDelay(BG.DoFullRestack, 1)
+	else
+		-- no extra scanning because ITEM_UNLOCKED fires rather late and causes scanning
+		wipe(BG.currentRestackItems)
+		BG.locked = nil
+	end
+
+	for container = 0, NUM_BAG_SLOTS do
+		for slot = 1, GetContainerNumSlots(container) do
+			BG.PutIntoBestContainer(container, slot)
+		end
+	end
+end
+
+-- register an item for restacking and manage each step
+-- CAUTION: When called manually, make sure to wipe(BG.currentRestackItems) afterwards
+function BG.Restack(itemID)
+	if itemID then tinsert(BG.currentRestackItems, itemID) end
+
+	-- run one restack step and handle results
+	local stillRestacking, hasItemLock = BG.RestackStep()
+	if stillRestacking then
+		BG.frame:RegisterEvent("ITEM_UNLOCKED")
+	else
+		-- BG.Debug("Nothing left to restack", "Unregistered ITEM_UNLOCKED")
+		BG.frame:UnregisterEvent("ITEM_UNLOCKED")
+
+		ClearCursor()	-- sometimes items get stuck, eww
+		if BG.afterRestack ~= nil then
+			BG.afterRestack()
+			BG.afterRestack = nil
+		end
+	end
+	return hasItemLock
+end
+
+-- single restack step, moves one item from A to B
+function BG.RestackStep()
+	local itemID = BG.currentRestackItems[1]
+	local count = itemID and GetItemCount(itemID)
+
+	if #(BG.currentRestackItems) <= 0 then
+		return false
+	elseif not itemID or not count or count <= 1 then
+		-- BG.Debug("No need to restack", itemID)
+		tremove(BG.currentRestackItems, 1)
+		return BG.RestackStep()
+	else
+		local locations, hasItemLock = BG.GetItemLocations(itemID, true)
+		local maxLoc = #locations
+		if maxLoc <= 1 then
+			BG.Debug("Restacking", itemID, "complete.")
+			tremove(BG.currentRestackItems, 1)
+			return BG.RestackStep()
+		end
+
+		BG.Debug("RestackStep", itemID, count, maxLoc)
+		if GetContainerItemInfo(locations[1].bag, locations[1].slot) then
+			BG.MoveItem(itemID, locations[1].bag, locations[1].slot, locations[maxLoc].bag, locations[maxLoc].slot)
+			BG.Debug("Restack from/to", locations[1].count, locations[maxLoc].count)
+		end
+		return true, hasItemLock
+	end
 end
 
 function BG.UpdateAllCaches(itemID)
@@ -141,7 +268,7 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 				BG.Debug("New item in formerly invalid slot", newItemLink)
 				slotFound = false
 			else
-				BG.Debug("Item is still the same", newItemLink)
+				-- BG.Debug("Item is still the same", newItemLink)
 			end
 			break
 		end
@@ -201,7 +328,7 @@ function BG.UpdateItemLocations()
 				tinsert(locations, tableIndex)
 			end
 
-			if item.sell and item.value and item.count then
+			if item.sell and item.value and item.value ~= 0 and item.count then
 				BG.junkValue = BG.junkValue + (item.value * item.count)
 			end
 		end
@@ -290,17 +417,18 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 			else
 				-- not allowed, treshold surpassed
 				BG.Debug("quality too high and not junk "..itemLink)
-				insert = false
+				insert = nil
 			end
 		else
 			-- all is well, but keep existing preference
 		end
 		
 		if value == 0 and BG_GlobalDB.hideZeroValue and item.classification == BG.VENDOR then
-			insert = false
+			insert = nil
 			BG.Debug("zero value, hidden "..itemLink)
 		end	
 
+		-- sell irrelevant gray items
 		if item.classification ~= BG.EXCLUDE and item.quality == 0 then
 			sellItem = true
 		end
@@ -322,15 +450,16 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 			BG.cheapestItems[itemIndex] = {}
 		end
 		local updateItem = BG.cheapestItems[itemIndex]
+		local slotValue = value * count
 
 		updateItem.itemID = itemID
 		updateItem.itemLink = itemLink
 		updateItem.bag = container
 		updateItem.slot = slot
 		updateItem.count = count
-		updateItem.value = value * count
+		updateItem.value = slotValue
 		updateItem.source = classification
-		updateItem.sell = sellItem
+		updateItem.sell = (slotValue and slotValue>0 and sellItem or nil)
 		updateItem.invalid = nil
 	else
 		-- there is no item in this slot (any more)!

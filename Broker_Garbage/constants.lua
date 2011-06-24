@@ -15,6 +15,7 @@ BG.defaultGlobalSettings = {
 	sellOldGear = false,
 	showSellLog = false,
 	overrideLPT = false,			-- [TODO] add options dialog
+	restackInventory = false,
 	
 	disableKey = "SHIFT",
 	autoSellIncludeItems = false,	-- toggle include list being sell list as well

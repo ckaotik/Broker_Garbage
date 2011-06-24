@@ -1,6 +1,7 @@
 local addonName, BGLM = ...
 
 -- used to distinguish between raid loot and inventory loot
+-- [TODO] also add SpellCasts (Mining, Disenchanting ...)
 hooksecurefunc("UseContainerItem", function(...)
 	BGLM.privateLoot = GetTime()
 end)
@@ -23,36 +24,11 @@ local function eventHandler(self, event, arg1, ...)
 		end
 
 	elseif event == "LOOT_OPENED" then
-		-- restack inventory
-		BGLM.DoFullRestack()
-		
 		-- looting
 		local disable = Broker_Garbage:GetVariable("disableKey")
 		disable = disable[Broker_Garbage:GetOption("disableKey", true)]
 		if not (disable and disable()) and (not InCombatLockdown() or BGLM_GlobalDB.useInCombat) then
-			if BGLM.currentRestackItems ~= nil then
-				BGLM.afterRestack = function()
-					securecall(BGLM.SelectiveLooting, arg1)
-				end
-			else
-				securecall(BGLM.SelectiveLooting, arg1)
-			end
-		end
-
-	-- this only gets called for restacking
-	elseif event == "ITEM_UNLOCKED" then
-		if BGLM:RestackStep() then
-			-- wait for next update
-			-- BGLM:Debug("Still restacking...", BGLM.currentRestackItems)
-		else	-- we're done
-			frame:UnregisterEvent("ITEM_UNLOCKED")
-			BGLM.currentRestackItems = nil
-			-- BGLM:Debug("Unregistered ITEM_UNLOCKED")
-			
-			if BGLM.afterRestack ~= nil then
-				BGLM:afterRestack()
-				BGLM.afterRestack = nil
-			end
+			securecall(BGLM.SelectiveLooting, arg1)
 		end
 	end
 end
@@ -65,87 +41,6 @@ frame:RegisterEvent("LOOT_OPENED")
 frame:SetScript("OnEvent", eventHandler)
 
 -- ---------------------------------------------------------
--- initialize full inventory restacking, if the settings allow for it
-function BGLM.DoFullRestack()
-	if BGLM_GlobalDB.restackInventory then
-		local numSlots = 0
-		local justStacked = {}
-		
-		for container = 0, 4 do
-			numSlots = GetContainerNumSlots(container)
-			if numSlots then
-				for slot = 1, numSlots do
-					local itemID = GetContainerItemID(container,slot)
-					if itemID and not BGLM:Find(justStacked, itemID) then
-						BGLM.Restack(itemID)
-						table.insert(justStacked, itemID)
-					end
-				end
-			end
-		end
-	end
-end
-
--- restacks items so when deleting you lose as few items as possible
-function BGLM.Restack(itemID)
-	-- BGLM:Debug("Restacking item "..(itemID or "nil"))
-	if BGLM.currentRestackItems ~= nil then
-		-- BGLM:Debug("Adding item to list", itemID)
-		tinsert(BGLM.currentRestackItems, itemID)
-	else
-		-- BGLM:Debug("Creating new restack list.", itemID)
-		BGLM.currentRestackItems = { itemID }
-		if BGLM.RestackStep() then
-			-- wait for moved items
-			frame:RegisterEvent("ITEM_UNLOCKED")
-		else
-			-- nothing to restack
-			if BGLM.afterRestack ~= nil then
-				BGLM.afterRestack()
-				BGLM.afterRestack = nil
-			end
-		end
-	end
-end
-
-local function NextRestackStep()
-	-- go to next item if there is one
-	tremove(BGLM.currentRestackItems, 1)
-	-- BGLM:Debug("Removed first item from list.")
-	if #(BGLM.currentRestackItems) <= 0 then
-		BGLM.currentRestackItems = nil
-		return false
-	else
-		return BGLM:RestackStep()
-	end
-end
-
--- move 1 item for restacking
-function BGLM.RestackStep()
-	if not BGLM.currentRestackItems then return false end
-	local itemID = BGLM.currentRestackItems[1]
-	if not itemID then return NextRestackStep() end
-
-	local count = GetItemCount(itemID)
-	if not count or count <= 1 then return NextRestackStep() end
-	
-	local locations = Broker_Garbage.GetItemLocations(itemID, true)
-	local maxLoc = #locations
-	-- BGLM:Debug("RestackStep ...", itemID, count, maxLoc)
-	if maxLoc <= 1 then
-		return NextRestackStep()
-	end -- we're done, nothing to restack
-	
-	if GetContainerItemInfo(locations[1].bag, locations[1].slot) then
-		ClearCursor()
-		securecall(PickupContainerItem, locations[1].bag, locations[1].slot)
-		securecall(PickupContainerItem, locations[maxLoc].bag, locations[maxLoc].slot)
-		
-		-- BGLM:Debug("Restack from/to", locations[1].count, locations[maxLoc].count)
-	end
-	return true
-end
-
 -- calls restack and deletes as many items as needed
 function BGLM.DeletePartialStack(itemID, num)
 	local locations = Broker_Garbage:FindSlotToDelete(itemID)

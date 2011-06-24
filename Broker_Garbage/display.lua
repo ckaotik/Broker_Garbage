@@ -189,6 +189,18 @@ function BG:OnClick(itemTable, button)
 	BG:UpdateLDB()
 end
 
+-- == Misc. stuff ==
+-- tiny launcher for manual restacking! yay!
+local rescanButton = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Broker_Garbage-Restack", {
+	type = "launcher",
+	icon = "Interface\\Icons\\achievement_bg_returnxflags_def_wsg",
+	OnClick = function(self, button)
+		BG.DoFullRestack()
+	end,
+	text = "Restack Inventory",
+	label = "Restack Inventory",
+})
+
 -- == LDB formating ==
 -- returns total bag slots and free bag slots of your whole inventory
 function BG:GetBagSlots()

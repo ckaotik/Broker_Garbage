@@ -33,9 +33,9 @@ function BG.PrepareAutoSell()
 				item.source == BG.OUTDATED and BG_GlobalDB.sellOldGear,
 				item.source == BG.UNUSABLE and BG_GlobalDB.sellNotWearable)
 			if item.value ~= nil then
-				if not locked then					
+				if not BG.locked then					
 					BG.Debug("Inventory scans locked")
-					locked = true
+					BG.locked = true
 				end
 
 				if not item.sell then
@@ -49,7 +49,7 @@ function BG.PrepareAutoSell()
 			end
 		end
 	end
-	if locked then BG.didSell = true end    -- otherwise we didn't sell anything
+	if BG.locked then BG.didSell = true end    -- otherwise we didn't sell anything
 	BG.ScanInventory()
 end
 
@@ -95,9 +95,6 @@ function BG.AutoRepair()
 		if repairCost > 0 then
 			if BG_LocalDB.repairGuildBank and guildRepairFunds and (guildRepairFunds == -1 or guildRepairFunds >= repairCost) then
 				-- guild repair if we're allowed to and the user wants it
-				if GetUnitName("player") == "Thany" and GetRealmName() == "Die Aldor" then
-					BG.Print("Repair using guild funds "..guildRepairFunds) -- [TODO] remove prior to release!
-				end
 				RepairAllItems(1)
 				BG.didRepair = true
 			elseif GetMoney() >= repairCost then
@@ -112,4 +109,6 @@ function BG.AutoRepair()
 	else
 		repairCost = 0
 	end
+
+	return repairCost
 end

@@ -39,8 +39,8 @@ function BGC:ShowListOptions(frame)
 	includeMode:SetScript("OnClick", function(includeMode)
 		checksound(includeMode)
 		Broker_Garbage:ToggleOption("useRealValues", true)
-		Broker_Garbage.ScanInventory(true)
-		-- [TODO] maybe: Update LDB
+		Broker_Garbage.UpdateAllCaches()
+		Broker_Garbage:UpdateLDB()
 	end)
 	
 	local panel = LibStub("tekKonfig-Group").new(frame, nil, "TOP", default, "BOTTOM", 0, -28)

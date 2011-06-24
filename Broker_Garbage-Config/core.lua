@@ -1,7 +1,6 @@
 local _, BGC = ...
 
 Broker_Garbage_Config = BGC	-- allow external access
-
 -- In case the addon is loaded from another condition, always call the remove interface options
 if AddonLoader and AddonLoader.RemoveInterfaceOptions then
 	AddonLoader:RemoveInterfaceOptions("Broker_Garbage")
