@@ -77,6 +77,13 @@ function BGLM.CheckSettings()
 	end
 end
 
+function BGLM.UpdateSettings_4_1()
+	if BGLM_GlobalDB.restackInventory ~= nil then
+		BG_GlobalDB.restackInventory = BGLM_GlobalDB.restackInventory
+		BGLM_GlobalDB.restackInventory = nil
+	end
+end
+
 function BGLM:GetItemID(itemLink)
 	if not itemLink then return end
 	local itemID = string.gsub(itemLink, ".-Hitem:([0-9]*):.*", "%1")

@@ -97,11 +97,6 @@ function BG.AdjustLists_4_1()
 	if BG_GlobalDB.keepItemsForLaterDE and type(BG_GlobalDB.keepItemsForLaterDE) ~= "number" then
 		BG_GlobalDB.keepItemsForLaterDE = 0
 	end
-
-	if BGLM_GlobalDB.restackInventory then
-		BG_GlobalDB.restackInventory = BGLM_GlobalDB.restackInventory
-		BGLM_GlobalDB.restackInventory = nil
-	end
 end
 
 -- inserts some basic list settings

@@ -10,6 +10,7 @@ local frame = CreateFrame("Frame")
 local function eventHandler(self, event, arg1, ...)
 	if event == "ADDON_LOADED" and arg1 == addonName then
 		BGLM.CheckSettings()
+		BGLM.UpdateSettings_4_1()
 		frame:UnregisterEvent("ADDON_LOADED")
 
 	elseif event == "ITEM_PUSH" and BGLM_LocalDB.autoDestroy and BGLM_LocalDB.autoDestroyInstant then
