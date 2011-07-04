@@ -54,11 +54,9 @@ function BG:Tooltip(self)
 	lineNum = BG.tt:AddSeparator(2)
 	
 	-- add clam information
-	if IsAddOnLoaded("Broker_Garbage-LootManager") then
-		if BG_GlobalDB.openContainers and BG.containerInInventory then
-			lineNum = BG.tt:AddLine()
-			BG.tt:SetCell(lineNum, 1, BG.locale.openPlease, tooltipFont, "CENTER", colNum)
-		end
+	if BG_GlobalDB.openContainers and BG.containerInInventory then
+		lineNum = BG.tt:AddLine()
+		BG.tt:SetCell(lineNum, 1, BG.locale.openPlease, tooltipFont, "CENTER", colNum)
 	end
 	if BG.tt:GetLineCount() > lineNum then
 		BG.tt:AddSeperator(2)
@@ -340,53 +338,3 @@ function BG.FormatMoney(amount, displayMode)
 		return signum..gold..silver..copper
 	end
 end
-
--- == Merchant Sell Icon ==
-function BG.UpdateRepairButton(forceUpdate)
-	local sellIcon = _G["BG_SellIcon"]
-
-	if MerchantFrame.selectedTab ~= 1 or not BG_GlobalDB.showAutoSellIcon then
-		if sellIcon then
-			sellIcon:Hide()
-		end
-
-		if not BG_GlobalDB.showAutoSellIcon then
-			if forceUpdate then
-				MerchantFrame_UpdateRepairButtons()
-			end
-		end
-	else
-		if not sellIcon then
-			sellIcon = CreateFrame("Button", "BG_SellIcon", MerchantFrame, "ItemButtonTemplate")
-			SetItemButtonTexture(sellIcon, "Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
-			
-			sellIcon:SetFrameStrata("HIGH")
-			sellIcon:SetScript("OnClick", BG.ManualAutoSell)
-			sellIcon:SetScript("OnEnter", function(self) 
-				GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-				GameTooltip:SetText(BG.junkValue ~= 0 and format(BG.locale.autoSellTooltip, BG.FormatMoney(BG.junkValue)) 
-						or BG.locale.reportNothingToSell, nil, nil, nil, nil, true)
-			end)
-			sellIcon:SetScript("OnLeave", function() GameTooltip:Hide() end)
-		end
-		
-		-- update tooltip value
-		SetItemButtonDesaturated(sellIcon, BG.junkValue == 0)
-
-		local iconSize = MerchantRepairAllButton:GetHeight()
-		sellIcon:SetHeight(iconSize)
-		sellIcon:SetWidth(iconSize)
-		_G[sellIcon:GetName().."NormalTexture"]:SetHeight(64/37 * iconSize)
-		_G[sellIcon:GetName().."NormalTexture"]:SetWidth(64/37 * iconSize)
-		
-		if CanGuildBankRepair() then
-			MerchantRepairAllButton:SetPoint("BOTTOMRIGHT", MerchantFrame, "BOTTOMLEFT", 115 + 18, 89 + 4);
-		else
-			MerchantRepairAllButton:SetPoint("BOTTOMRIGHT", MerchantFrame, "BOTTOMLEFT", 172 - 18, 91);
-		end
-		sellIcon:SetPoint("RIGHT", MerchantRepairAllButton, "LEFT", -4 - 36, 0)
-		MerchantRepairText:Hide()
-		sellIcon:Show()
-	end
-end
-hooksecurefunc("MerchantFrame_Update", BG.UpdateRepairButton)

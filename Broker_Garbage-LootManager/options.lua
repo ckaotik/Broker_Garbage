@@ -177,14 +177,7 @@ local function Options_LootManager(pluginID)
 	inventory:SetHeight(75); inventory:SetWidth(180)
 	inventory:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
-	local restack = LibStub("tekKonfig-Checkbox").new(inventory, nil, BGLM.locale.LMRestackTitle, "TOPLEFT", 4, -2)
-	restack.tiptext = BGLM.locale.LMRestackTooltip .. BGLM.locale.GlobalSetting
-	restack.stat = "restackInventory"
-	restack.global = true
-	restack:SetChecked(BGLM_GlobalDB.restackInventory)
-	restack:SetScript("OnClick", Toggle)
-
-	local autoDestroy = LibStub("tekKonfig-Checkbox").new(inventory, nil, BGLM.locale.LMAutoDestroyTitle, "TOPLEFT", restack, "BOTTOMLEFT", 0, 4)
+	local autoDestroy = LibStub("tekKonfig-Checkbox").new(inventory, nil, BGLM.locale.LMAutoDestroyTitle, "TOPLEFT", 4, -2)
 	autoDestroy.tiptext = BGLM.locale.LMAutoDestroyTooltip
 	autoDestroy.stat = "autoDestroy"
 	autoDestroy:SetChecked(BGLM_LocalDB.autoDestroy)

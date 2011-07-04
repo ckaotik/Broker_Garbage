@@ -128,6 +128,9 @@ if GetLocale() == "deDE" then
 	BGC.locale.enchanterTitle = "Verzauberer"
 	BGC.locale.enchanterTooltip = "Auswählen wenn du einen Verzauberer hast/kennst. Wenn aktiviert, wird Broker_Garbage Entzauberpreise verwenden, welche in der Regel höher sind als Händlerpreise."
 	
+	BGC.locale.restackTitle = "Automatisch stapeln"
+	BGC.locale.restackTooltip = "Wenn ausgewählt wird Broker_Garbage automatisch die von dir beobachteten Gegenstände nach dem Plündern stapeln, um Platz zu schaffen."
+
 	BGC.locale.DKTitle = "Temp. deaktivieren mit"
 	BGC.locale.DKTooltip = "Wähle die Taste, die Aktionen von Broker_Garbage temporär deaktiviert."
 	BGC.locale.disableKeys = {

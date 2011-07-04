@@ -4,7 +4,7 @@ local function Options_BasicOptions(pluginID)
 	local panel, tab = BGC:CreateOptionsTab(pluginID)
 	
 	local behavior = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupBehavior, "TOPLEFT", 21, -16)
-	behavior:SetHeight(304); behavior:SetWidth(180)	-- former height: 190
+	behavior:SetHeight(420); behavior:SetWidth(180)
 	behavior:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 	
 	local sell = BGC.CreateCheckBox(behavior, nil, BGC.locale.autoSellTitle, "TOPLEFT", behavior, "TOPLEFT", 4, -2)
@@ -79,13 +79,63 @@ local function Options_BasicOptions(pluginID)
 	line:SetPoint("TOPLEFT", enchanter, "BOTTOMLEFT", 2, 2)
 	line:SetPoint("RIGHT", -6, 2)
 	-- -----------------------------------------------------------------
+
+	local restack = BGC.CreateCheckBox(behavior, nil, BGC.locale.restackTitle, "TOPLEFT", enchanter, "BOTTOMLEFT", 0, -6)
+	restack.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
+	restack:SetChecked( Broker_Garbage:GetOption("restackInventory", true) )
+	local checksound = restack:GetScript("OnClick")
+	restack:SetScript("OnClick", function(restack)
+		checksound(restack)
+		Broker_Garbage:ToggleOption("restackInventory", true)
+	end)
+
+	local overrideLPT = BGC.CreateCheckBox(behavior, nil, "[TODO] override LPT", "TOPLEFT", restack, "BOTTOMLEFT", 0, 4)
+	overrideLPT.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
+	overrideLPT:SetChecked( Broker_Garbage:GetOption("overrideLPT", true) )
+	local checksound = overrideLPT:GetScript("OnClick")
+	overrideLPT:SetScript("OnClick", function(overrideLPT)
+		checksound(overrideLPT)
+		Broker_Garbage:ToggleOption("overrideLPT", true)
+		Broker_Garbage.ClearCache()
+		Broker_Garbage.ScanInventory()
+		Broker_Garbage:UpdateLDB()
+	end)
+
+	local hideZero = BGC.CreateCheckBox(behavior, nil, "[TODO] hide zero value", "TOPLEFT", overrideLPT, "BOTTOMLEFT", 0, 4)
+	hideZero.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
+	hideZero:SetChecked( Broker_Garbage:GetOption("hideZeroValue", true) )
+	local checksound = hideZero:GetScript("OnClick")
+	hideZero:SetScript("OnClick", function(hideZero)
+		checksound(hideZero)
+		Broker_Garbage:ToggleOption("hideZeroValue", true)
+		Broker_Garbage.ScanInventory()
+		Broker_Garbage:UpdateLDB()
+	end)
+
+	local debugMode = BGC.CreateCheckBox(behavior, nil, "[TODO] debug mode", "TOPLEFT", hideZero, "BOTTOMLEFT", 0, 4)
+	debugMode.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
+	debugMode:SetChecked( Broker_Garbage:GetOption("debug", true) )
+	local checksound = debugMode:GetScript("OnClick")
+	debugMode:SetScript("OnClick", function(debugMode)
+		checksound(debugMode)
+		Broker_Garbage:ToggleOption("debug", true)
+	end)
+
+	-- [TODO] keep items for later DE
+	-- [TODO] reportDisenchantOutdated
 	
-	local disableKey = CreateFrame("Frame", "BG_DisableKeyDropDown", behavior, "UIDropDownMenuTemplate")
+	-- -----------------------------------------------------------------
+	local line2 = BGC.CreateHorizontalRule(behavior)
+	line2:SetPoint("TOPLEFT", debugMode, "BOTTOMLEFT", 2, 2)
+	line2:SetPoint("RIGHT", -6, 2)
+	-- -----------------------------------------------------------------
+	
+	local disableKey = CreateFrame("Frame", "BG_DisableKeyDropDown", debugMode, "UIDropDownMenuTemplate")
 	disableKey.tiptext = BGC.locale.DKTooltip .. BGC.locale.GlobalSetting
 	disableKey.displayMode = "MENU"
 	disableKey:SetScript("OnEnter", BGC.ShowTooltip)
 	disableKey:SetScript("OnLeave", BGC.HideTooltip)
-       disableKey:SetPoint("TOPLEFT", enchanter, "BOTTOMLEFT", -8, -20)
+	disableKey:SetPoint("TOPLEFT", debugMode, "BOTTOMLEFT", -8, -20)
 	local disableKeyLabel = disableKey:CreateFontString(nil, "BACKGROUND", "GameFontNormalSmall")
 	disableKeyLabel:SetPoint("BOTTOMLEFT", disableKey, "TOPLEFT", 20, 2)
 	disableKeyLabel:SetText(BGC.locale.DKTitle)
@@ -179,7 +229,7 @@ local function Options_BasicOptions(pluginID)
 	sellIcon:SetScript("OnClick", function(sellIcon)
 		checksound(sellIcon)
 		Broker_Garbage:ToggleOption("showAutoSellIcon", true)
-		Broker_Garbage:UpdateRepairButton(true)
+		Broker_Garbage.UpdateMerchantButton(true)
 	end)
 	
 	-- -----------------------------------------------------------------

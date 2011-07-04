@@ -14,12 +14,12 @@ BG.defaultGlobalSettings = {
 	sellNotWearable = false,
 	sellOldGear = false,
 	showSellLog = false,
-	overrideLPT = false,			-- [TODO] add options dialog
+	overrideLPT = false,
 	restackInventory = false,
 	
 	disableKey = "SHIFT",
 	autoSellIncludeItems = false,	-- toggle include list being sell list as well
-	keepItemsForLaterDE = 0,		-- [TODO] new!
+	keepItemsForLaterDE = 0,
 
 	-- tresholds
 	dropQuality = 0,
@@ -39,7 +39,7 @@ BG.defaultGlobalSettings = {
 	
 	-- display options
 	useRealValues = false,
-	hideZeroValue = true,		-- [TODO]: add options dialog; shows/hides any items with '0c' value (quest, event items etc.)
+	hideZeroValue = true,
 	showAutoSellIcon = true,
 	
 	-- LibDataBroker Display
@@ -55,7 +55,7 @@ BG.defaultGlobalSettings = {
 	
 	-- output options
 	reportNothingToSell = true,
-	reportDisenchantOutdated = false,	-- TODO: add options dialog
+	reportDisenchantOutdated = false,
 }
 
 BG.defaultLocalSettings = {
@@ -95,6 +95,13 @@ BG.tag = {
 	[BG.DISENCHANT] = "|cFFe052ffD",	-- purple
 	[BG.UNUSABLE] 	= "|cFF3c73abG",	-- blue
 	[BG.OUTDATED]   = "|cFF3c73abO",	-- blue
+}
+
+BG.lists = {
+	[BG.EXCLUDE] = "exclude",
+	[BG.INCLUDE] = "include",
+	[BG.AUTOSELL] = "autoSellList",
+	[BG.VENDOR] = "forceVendorPrice",
 }
 
 BG.modules = {}		-- plugins get saved in here

@@ -18,7 +18,6 @@ end
 -- default saved variables
 BGLM.defaultGlobalSettings = {
 	-- behavior
-	restackInventory = true,
 	autoLoot = false,
 	autoLootSkinning = true,
 	autoLootFishing = true,

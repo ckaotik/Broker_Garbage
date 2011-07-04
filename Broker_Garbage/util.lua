@@ -13,15 +13,16 @@ function BG.Debug(...)
 end
 
 local waitFrame = CreateFrame("Frame")
-function BG.CallWithDelay(callFunc, delay)
+function BG.CallWithDelay(callFunc, delay, ...)
 	if waitFrame:GetScript("OnUpdate") ~= nil then
 		BG.Debug("Ooopsie, already running a timer!")
 	end
+	local args = {...}
 	waitFrame:SetScript("OnUpdate", function(self, elapsed)
 		delay = delay - elapsed
 		if delay <= 0 then
 			waitFrame:SetScript("OnUpdate", nil)
-			callFunc()
+			callFunc( unpack(args) )
 		end
 	end)
 end

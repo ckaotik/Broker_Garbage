@@ -1,4 +1,4 @@
-## Interface: 40100
+## Interface: 40200
 ## Dependencies: 
 ## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auc-Advanced, Enchantrix, WOWEcon_PriceMod
 ## SavedVariables: BG_GlobalDB
@@ -6,7 +6,7 @@
 
 ## Title: Broker_Garbage
 ## Author: ckaotik
-## Version: 4.1v1
+## Version: 4.2v1
 ## Notes: Full bags no more! Distinguish between junk and treasure, find items to drop quickly. 
 ## Notes-deDE: Unterscheide Trödel von Schätzen und finde billigen Müll zum Platzschaffen.
 
@@ -39,6 +39,7 @@ util.lua
 display.lua
 item.lua
 inventory.lua
+restack.lua
 vendor.lua
 core.lua
 externals.lua

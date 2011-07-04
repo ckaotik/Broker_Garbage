@@ -83,7 +83,7 @@ Broker_Garbage = BG -- [TODO] limit accedd again?
 	Delete = BG.Delete,
 	FindSlotsToDelete = BG.GetItemLocations,
 	
-	UpdateRepairButton = BG.UpdateRepairButton,
+	UpdateRepairButton = BG.UpdateMerchantButton,
 	CreateDefaultLists = BG.CreateDefaultLists,
 	GetProfessionSkill = BG.GetProfessionSkill,
 	FormatMoney = BG.FormatMoney,

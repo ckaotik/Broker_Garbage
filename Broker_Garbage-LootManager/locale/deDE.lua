@@ -57,9 +57,6 @@ if GetLocale() == "deDE" then
 	BGLM.locale.LMFreeSlotsTitle = "Min. freier Inventarplatz"
 	BGLM.locale.LMFreeSlotsTooltip = "Setze das Minimum an freien Taschenplätzen, bei dem Broker_Garbage automatisch Platz schaffen soll."
 	
-	BGLM.locale.LMRestackTitle = "Automatisch stapeln"
-	BGLM.locale.LMRestackTooltip = "Wenn ausgewählt wird Broker_Garbage automatisch die von dir beobachteten Gegenstände nach dem Plündern stapeln, um Platz zu schaffen."
-	
 	BGLM.locale.LMWarnLMTitle = "Plündermeister"
 	BGLM.locale.LMWarnLMTooltip = "Wenn ausgewählt wird Broker_Garbage eine Meldung zeigen, die dich auffordert, die Beute zu verteilen."
 	

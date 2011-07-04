@@ -3,14 +3,14 @@ local _, BGC = ...
 BGC.modules = Broker_Garbage:GetVariable("modules")
 
 BGC.quality = {
-	[0] = select(4,GetItemQualityColor(0))..ITEM_QUALITY0_DESC.."|r",	-- gray (junk)
-	[1] = select(4,GetItemQualityColor(1))..ITEM_QUALITY1_DESC.."|r",	-- white
-	[2] = select(4,GetItemQualityColor(2))..ITEM_QUALITY2_DESC.."|r",	-- green
-	[3] = select(4,GetItemQualityColor(3))..ITEM_QUALITY3_DESC.."|r",	-- blue
-	[4] = select(4,GetItemQualityColor(4))..ITEM_QUALITY4_DESC.."|r",	-- purple
-	[5] = select(4,GetItemQualityColor(5))..ITEM_QUALITY5_DESC.."|r",	-- legendary
-	[6] = select(4,GetItemQualityColor(6))..ITEM_QUALITY6_DESC.."|r",	-- heirloom
-	[7] = select(4,GetItemQualityColor(7))..ITEM_QUALITY7_DESC.."|r",	-- artifact
+	[0] = "|c"..select(4,GetItemQualityColor(0))..ITEM_QUALITY0_DESC.."|r",	-- gray (junk)
+	[1] = "|c"..select(4,GetItemQualityColor(1))..ITEM_QUALITY1_DESC.."|r",	-- white
+	[2] = "|c"..select(4,GetItemQualityColor(2))..ITEM_QUALITY2_DESC.."|r",	-- green
+	[3] = "|c"..select(4,GetItemQualityColor(3))..ITEM_QUALITY3_DESC.."|r",	-- blue
+	[4] = "|c"..select(4,GetItemQualityColor(4))..ITEM_QUALITY4_DESC.."|r",	-- purple
+	[5] = "|c"..select(4,GetItemQualityColor(5))..ITEM_QUALITY5_DESC.."|r",	-- legendary
+	[6] = "|c"..select(4,GetItemQualityColor(6))..ITEM_QUALITY6_DESC.."|r",	-- heirloom
+	[7] = "|c"..select(4,GetItemQualityColor(7))..ITEM_QUALITY7_DESC.."|r",	-- artifact
 }
 
 -- Basic Functions
@@ -222,7 +222,7 @@ function BGC:LPTDropDown(self, level, functionHandler, notChecked)
 		
 		info.text = key
 		info.value = prefix .. key
-		info.notCheckable = notChecked
+		info.notCheckable = true -- notChecked
 		info.hasArrow = type(value) == "table" and true or false
 		info.func = functionHandler
 		

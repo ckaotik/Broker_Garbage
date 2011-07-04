@@ -8,6 +8,48 @@ function BG.GetItemID(itemLink)
 	return tonumber(itemID)
 end
 
+-- /dump Broker_Garbage.GetItemListCategories(Broker_Garbage.GetCached(8766))
+-- returns a list of (LPT) categories from the user's lists that an item belongs to
+function BG.GetItemListCategories(item)
+	if not item or type(item) ~= "table" then return end
+	local itemList, itemCategories = BG.lists[item.classification], {}
+	if itemList then
+		local currentList = BG_GlobalDB[itemList]
+		if currentList then
+			for listItem, limit in pairs(currentList) do
+				if type(listItem) == "string" and BG.IsItemInCategory(item.itemID, listItem) then
+					table.insert(itemCategories, listItem)
+					if not maxLimit or limit > maxLimit then
+						maxLimit = limit
+					end
+				end
+			end
+		end
+		currentList = BG_LocalDB[itemList]
+		if currentList then
+			for listItem, limit in pairs(currentList) do
+				if type(listItem) == "string" and not BG.Find(itemCategories, listItem) and BG.IsItemInCategory(item.itemID, listItem) then
+					table.insert(itemCategories, listItem)
+					if not maxLimit or limit > maxLimit then
+						maxLimit = limit
+					end
+				end
+			end
+		end
+	end
+	return itemCategories, maxLimit
+end
+
+-- checks multiple category strings at once
+function BG.IsItemInCategories(item, categoryList)
+	if not categoryList or type(categoryList) ~= "table" then return end
+	for _, category in pairs(categoryList) do
+		if BG.IsItemInCategory(item, category) then
+			return true
+		end
+	end
+end
+
 -- return true if item is found in LPT/Equipment category, nil otherwise
 function BG.IsItemInCategory(item, category)	-- itemID/itemLink/itemTable, categoryString
 	local itemID
@@ -65,26 +107,22 @@ function BG.IsItemInBGList(item, itemList, onlyLocal)	-- itemID/itemLink/itemTab
 end
 
 function BG.IsItemOverLimit(item, bag, slot)
-	-- [TODO] Update sizes and stuff for list items!
-	local saveStacks = ceil(item.limit/item.stackSize)
-	local locations = BG.GetItemLocations(item.itemID)
-	
-	if #locations > saveStacks then
-		local itemCount = 0
-		
-		for i = #locations, 1, -1 do
-			if itemCount < item.limit then
-				-- keep this amount
-				itemCount = itemCount + locations[i].count
-				if locations[i].bag == bag and locations[i].slot == slot then
-					return nil
-				end
-			else
-				return true
+	local locations, limit = BG.GetItemLocations(item, nil, nil, true)
+	if not locations then return end
+
+	limit = limit or item.limit
+	local itemCount, currentItem = 0
+	for i = #locations, 1, -1 do
+		currentItem = BG.cheapestItems[ locations[i] ]
+		if itemCount < limit then
+			-- keep this amount
+			itemCount = itemCount + currentItem.count
+			if currentItem.bag == bag and currentItem.slot == slot then
+				return nil
 			end
+		else
+			return true
 		end
-	else
-		return nil
 	end
 end
 
@@ -144,9 +182,8 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 	end
 
 	-- handle special cases
-	-- ignore AH prices for gray or BOP items
-	if itemQuality == 0 or label == BG.VENDOR or label == BG.UNUSABLE 
-		or (BG.IsItemSoulbound(itemLink) and not IsUsableSpell(BG.enchanting)) then
+	-- ignore AH prices for gray or BoP items
+	if itemQuality == 0 or label == BG.VENDOR or ( BG.IsItemSoulbound(itemLink) and not IsUsableSpell(BG.enchanting) ) then
 		return vendorPrice, vendorPrice and BG.VENDOR
 	end
 
@@ -201,6 +238,12 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 	end
 	if GetDisenchantValue then
 		disenchantPrice = canDE and math.max(disenchantPrice or 0, GetDisenchantValue(itemLink) or 0)
+	end
+
+	if label == BG.AUCTION then
+		return auctionPrice, BG.AUCTION
+	elseif label == BG.DISENCHANT or (label == BG.UNUSABLE and IsUsableSpell(BG.enchanting)) then
+		return disenchantPrice, BG.DISENCHANT
 	end
 
 	-- simply return the highest value price
@@ -486,7 +529,7 @@ function BG.UpdateCache(item) -- itemID/itemLink
 	end
 	
 	BG.Debug("Updating cache for "..itemID)
-	local _, itemLink, quality, itemLevel, _, _, subClass, stackSize, invType, _, value = GetItemInfo(itemID)
+	local _, itemLink, quality, itemLevel, _, _, subClass, stackSize, invType, _, vendorValue = GetItemInfo(itemID)
 	local family = GetItemFamily(itemID)
 	if not quality then
 		BG.Debug("UpdateCache("..(itemID or "<none>")..") failed - no GetItemInfo() data available!")
@@ -598,6 +641,7 @@ function BG.UpdateCache(item) -- itemID/itemLink
 	itemCache.classification = label
 
 	itemCache.level = itemLevel
+	itemCache.vendorValue = vendorValue
 	itemCache.value = value or 0
 	itemCache.limit = itemLimit
 	itemCache.quality = quality

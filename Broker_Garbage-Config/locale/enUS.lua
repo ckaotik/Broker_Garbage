@@ -127,6 +127,9 @@ BGC.locale = {
 	
 	enchanterTitle = "Enchanter",
 	enchanterTooltip = "Check this if you have/know an enchanter.\nWhen checked disenchant values are considered, which are higher than vendor prices.",
+
+	restackTitle = "Automatic restack",
+	restackTooltip = "Check to automatically compress your inventory items after looting.",
 	
 	DKTitle = "Temporary disable key",
 	DKTooltip = "Set a key to temporarily disable BrokerGarbage.",

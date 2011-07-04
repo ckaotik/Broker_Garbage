@@ -57,9 +57,6 @@ BGLM.locale = {
 	LMFreeSlotsTitle = "Minimum free slots",
 	LMFreeSlotsTooltip = "Set the minimum numer of free slots for autodestroy to take action.",
 	
-	LMRestackTitle = "Automatic restack",
-	LMRestackTooltip = "Check to automatically compress your inventory items after looting.",
-	
 	LMWarnLMTitle = "Loot Master",
 	LMWarnLMTooltip = "When checked, Broker_Garbage will print a notice reminding you to assign loot.",
 	
