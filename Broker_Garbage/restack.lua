@@ -80,6 +80,7 @@ end
 
 -- register an item for restacking and manage each step
 -- CAUTION: When called manually, make sure to wipe(BG.currentRestackItems) afterwards
+-- [TODO] also restack when crafting (e.g. gems) and collecting mail items
 function BG.Restack(itemID)
 	if itemID then tinsert(BG.currentRestackItems, itemID) end
 

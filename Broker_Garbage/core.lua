@@ -15,9 +15,8 @@ BG.PT = LibStub("LibPeriodicTable-3.1", true)	-- don't scream if LPT isn't prese
 
 -- internal variables
 BG.locked = nil						-- set to true while selling stuff
-local sellValue = 0					-- represents the actual value that we sold stuff for
-local repairCost = 0				-- the amount of money that we repaired for
-local itemCount = 0                 -- number of items we sold
+BG.sellValue = 0					-- represents the actual value that we sold stuff for
+BG.repairCost = 0					-- the amount of money that we repaired for
 
 -- Event Handler
 -- ---------------------------------------------------------
@@ -39,7 +38,7 @@ local function eventHandler(self, event, arg1, ...)
 		BG.cheapestItems = {}	-- contains up-to-date labeled data
 		BG.sellLog = {}
 		BG.currentRestackItems = {}	-- contains itemIDs when restacking
-		
+
 		BG.ScanInventory()	-- initializes and fills caches
 
 		frame:RegisterEvent("BAG_UPDATE")
@@ -109,6 +108,3 @@ end
 frame:RegisterEvent("ADDON_LOADED")
 frame:SetScript("OnEvent", eventHandler)
 BG.frame = frame
-
--- [TODO] maybe add "restack now" button to bag frames
--- [TODO] fix memory load on logon!

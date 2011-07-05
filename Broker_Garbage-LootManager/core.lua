@@ -178,6 +178,7 @@ function BGLM.TrimInventory(emptySlotNum)
 end
 
 -- for use in LOOT_OPENED event
+-- [TODO] check item/bagtypes to use those specialty bags wisely!
 function BGLM.SelectiveLooting(autoloot)	-- jwehgH"G$(&/&§$/!!" stupid . vs. : notation
 	if InCombatLockdown() and not BGLM_GlobalDB.useInCombat then return end
 	
