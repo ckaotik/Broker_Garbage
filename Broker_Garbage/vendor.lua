@@ -110,7 +110,7 @@ function BG.CheckSoldItems()
 			numItemsSold = numItemsSold + item.count
 
 			if BG_GlobalDB.showSellLog then
-				BG.Print(BG.locale.sellItem, item.itemLink, item.count, BG.FormatMoney(item.value))
+				BG.Print(string.format(BG.locale.sellItem, item.itemLink, item.count, BG.FormatMoney(item.value)))
 			end
 		end
 	end
