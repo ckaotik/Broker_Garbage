@@ -121,6 +121,11 @@ end
 
 function BGC.CreateCheckBox(parent, size, text, ...)
 	local check, label = LibStub("tekKonfig-Checkbox").new(parent, size, text, ...)
+	label:SetPoint("TOPLEFT", check, "TOPRIGHT", 0, -6)
+	label:SetPoint("RIGHT", parent)
+	label:SetWordWrap(true)
+	label:SetJustifyH("LEFT")
+	label:SetJustifyV("TOP")
 	check:SetHitRectInsets(0, -1 * label:GetStringWidth(), 0, 0)
 	
 	return check, label

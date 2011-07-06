@@ -663,7 +663,7 @@ function BGC:ShowListOptions(frame)
 			Broker_Garbage.UpdateAllDynamicItems()
 		end
 		Broker_Garbage:UpdateLDB()
-		Broker_Garbage:UpdateRepairButton()
+		Broker_Garbage:UpdateMerchantButton()
 		BGC:ListOptionsUpdate()
 	end
 	

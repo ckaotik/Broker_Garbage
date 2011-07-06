@@ -31,14 +31,16 @@ function BG.DoFullRestack()
 		BG.locked = nil
 	end
 
+	local usedSlots = {}
 	for container = 0, NUM_BAG_SLOTS do
 		for slot = 1, GetContainerNumSlots(container) do
-			BG.PutIntoBestContainer(container, slot)
+			BG.PutIntoBestContainer(container, slot, usedSlots)
 		end
 	end
+	wipe(usedSlots); usedSlots = nil
 end
 
-function BG.PutIntoBestContainer(curBag, curSlot)
+function BG.PutIntoBestContainer(curBag, curSlot, usedSlots)
 	local itemID = GetContainerItemID(curBag, curSlot)
 	local itemFamily = itemID and GetItemFamily(itemID)
 	if not itemID or itemFamily == 0 then return end 	-- empty slots / general items
@@ -53,7 +55,17 @@ function BG.PutIntoBestContainer(curBag, curSlot)
 	end
 	if bestContainer then
 		local targetSlots = GetContainerFreeSlots(bestContainer)
-		BG.MoveItem(itemID, curBag, curSlot, bestContainer, targetSlots[1])
+		for i, slot in pairs(targetSlots) do
+			if BG.Find(usedSlots, bestContainer..slot) then
+				table.remove(targetSlots, i)
+			end
+		end
+		if #targetSlots ~= 0 then
+			BG.MoveItem(itemID, curBag, curSlot, bestContainer, targetSlots[1])
+			table.insert(usedSlots, bestContainer..targetSlots[1])
+		else
+			BG.Debug("No more room in target bag!")
+		end
 	end
 	return bestContainer, bestSlot
 end
@@ -124,8 +136,8 @@ function BG.RestackStep()
 
 		BG.Debug("RestackStep", itemID, count, maxLoc)
 		local moveFrom, moveTo = BG.cheapestItems[ locations[1] ], BG.cheapestItems[ locations[maxLoc] ]
-		if not moveFrom.invalid then
-			BG.MoveItem(itemID, moveFrom.bag, moveFrom.slot, moveTo.bag, moveTo.slot)
+		if not moveFrom.invalid and not BG.MoveItem(itemID, moveFrom.bag, moveFrom.slot, moveTo.bag, moveTo.slot) then
+			tremove(BG.currentRestackItems, 1)	-- couldn't move the item, so don't try this one again
 		end
 		return true, hasItemLock
 	end

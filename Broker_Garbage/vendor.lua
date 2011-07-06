@@ -79,9 +79,6 @@ function BG.ReportSelling(repairCost, iteration)
 				BG.FormatMoney(repairCost), 
 				BG.FormatMoney(sellValue - repairCost)
 			))
-		--elseif repairCost > 0 then
-			-- no selling happening
-			-- BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost)))
 		elseif sellValue > 0 then
 			BG.Print(format(BG.locale.sell, BG.FormatMoney(sellValue)))
 		end

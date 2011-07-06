@@ -4,7 +4,7 @@ local function Options_BasicOptions(pluginID)
 	local panel, tab = BGC:CreateOptionsTab(pluginID)
 	
 	local behavior = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupBehavior, "TOPLEFT", 21, -16)
-	behavior:SetHeight(420); behavior:SetWidth(180)
+	behavior:SetHeight(310); behavior:SetWidth(180)
 	behavior:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 	
 	local sell = BGC.CreateCheckBox(behavior, nil, BGC.locale.autoSellTitle, "TOPLEFT", behavior, "TOPLEFT", 4, -2)
@@ -79,63 +79,13 @@ local function Options_BasicOptions(pluginID)
 	line:SetPoint("TOPLEFT", enchanter, "BOTTOMLEFT", 2, 2)
 	line:SetPoint("RIGHT", -6, 2)
 	-- -----------------------------------------------------------------
-
-	local restack = BGC.CreateCheckBox(behavior, nil, BGC.locale.restackTitle, "TOPLEFT", enchanter, "BOTTOMLEFT", 0, -6)
-	restack.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
-	restack:SetChecked( Broker_Garbage:GetOption("restackInventory", true) )
-	local checksound = restack:GetScript("OnClick")
-	restack:SetScript("OnClick", function(restack)
-		checksound(restack)
-		Broker_Garbage:ToggleOption("restackInventory", true)
-	end)
-
-	local overrideLPT = BGC.CreateCheckBox(behavior, nil, "[TODO] override LPT", "TOPLEFT", restack, "BOTTOMLEFT", 0, 4)
-	overrideLPT.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
-	overrideLPT:SetChecked( Broker_Garbage:GetOption("overrideLPT", true) )
-	local checksound = overrideLPT:GetScript("OnClick")
-	overrideLPT:SetScript("OnClick", function(overrideLPT)
-		checksound(overrideLPT)
-		Broker_Garbage:ToggleOption("overrideLPT", true)
-		Broker_Garbage.ClearCache()
-		Broker_Garbage.ScanInventory()
-		Broker_Garbage:UpdateLDB()
-	end)
-
-	local hideZero = BGC.CreateCheckBox(behavior, nil, "[TODO] hide zero value", "TOPLEFT", overrideLPT, "BOTTOMLEFT", 0, 4)
-	hideZero.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
-	hideZero:SetChecked( Broker_Garbage:GetOption("hideZeroValue", true) )
-	local checksound = hideZero:GetScript("OnClick")
-	hideZero:SetScript("OnClick", function(hideZero)
-		checksound(hideZero)
-		Broker_Garbage:ToggleOption("hideZeroValue", true)
-		Broker_Garbage.ScanInventory()
-		Broker_Garbage:UpdateLDB()
-	end)
-
-	local debugMode = BGC.CreateCheckBox(behavior, nil, "[TODO] debug mode", "TOPLEFT", hideZero, "BOTTOMLEFT", 0, 4)
-	debugMode.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
-	debugMode:SetChecked( Broker_Garbage:GetOption("debug", true) )
-	local checksound = debugMode:GetScript("OnClick")
-	debugMode:SetScript("OnClick", function(debugMode)
-		checksound(debugMode)
-		Broker_Garbage:ToggleOption("debug", true)
-	end)
-
-	-- [TODO] keep items for later DE
-	-- [TODO] reportDisenchantOutdated
-	
-	-- -----------------------------------------------------------------
-	local line2 = BGC.CreateHorizontalRule(behavior)
-	line2:SetPoint("TOPLEFT", debugMode, "BOTTOMLEFT", 2, 2)
-	line2:SetPoint("RIGHT", -6, 2)
-	-- -----------------------------------------------------------------
-	
-	local disableKey = CreateFrame("Frame", "BG_DisableKeyDropDown", debugMode, "UIDropDownMenuTemplate")
+		
+	local disableKey = CreateFrame("Frame", "BG_DisableKeyDropDown", enchanter, "UIDropDownMenuTemplate")
 	disableKey.tiptext = BGC.locale.DKTooltip .. BGC.locale.GlobalSetting
 	disableKey.displayMode = "MENU"
 	disableKey:SetScript("OnEnter", BGC.ShowTooltip)
 	disableKey:SetScript("OnLeave", BGC.HideTooltip)
-	disableKey:SetPoint("TOPLEFT", debugMode, "BOTTOMLEFT", -8, -20)
+	disableKey:SetPoint("TOPLEFT", enchanter, "BOTTOMLEFT", -8, -20)
 	local disableKeyLabel = disableKey:CreateFontString(nil, "BACKGROUND", "GameFontNormalSmall")
 	disableKeyLabel:SetPoint("BOTTOMLEFT", disableKey, "TOPLEFT", 20, 2)
 	disableKeyLabel:SetText(BGC.locale.DKTitle)
@@ -219,7 +169,7 @@ local function Options_BasicOptions(pluginID)
 	end)
 	
 	local display = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupDisplay, "TOPLEFT", behavior, "TOPRIGHT", 10, 0)
-	display:SetHeight(150); display:SetWidth(180)
+	display:SetHeight(156); display:SetWidth(180)
 	display:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
 	local sellIcon = BGC.CreateCheckBox(display, nil, BGC.locale.showAutoSellIconTitle, "TOPLEFT", display, "TOPLEFT", 4, -2)
@@ -447,6 +397,82 @@ local function Options_BasicOptions(pluginID)
 		tooltipHeightText:SetText(BGC.locale.maxHeightTitle .. ": " .. tooltipHeight:GetValue())
 	end)
 	low:Hide(); high:Hide()
+
+	-- ----------------------------------------------------------------------------------------------------
+
+	local dev = LibStub("tekKonfig-Group").new(panel, "Under Development", "TOPLEFT", display, "TOPRIGHT", 10, 0)
+	dev:SetHeight(310); dev:SetWidth(180)
+	dev:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
+
+	local restack = BGC.CreateCheckBox(dev, nil, BGC.locale.restackTitle, "TOPLEFT", dev, "TOPLEFT", 4, -2)
+	restack.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
+	restack:SetChecked( Broker_Garbage:GetOption("restackInventory", true) )
+	local checksound = restack:GetScript("OnClick")
+	restack:SetScript("OnClick", function(restack)
+		checksound(restack)
+		Broker_Garbage:ToggleOption("restackInventory", true)
+	end)
+
+	local sellLog = BGC.CreateCheckBox(dev, nil, "[TODO] show sell log", "TOPLEFT", restack, "BOTTOMLEFT", 0, 4)
+	sellLog.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
+	sellLog:SetChecked( Broker_Garbage:GetOption("showSellLog", true) )
+	local checksound = sellLog:GetScript("OnClick")
+	sellLog:SetScript("OnClick", function(sellLog)
+		checksound(sellLog)
+		Broker_Garbage:ToggleOption("showSellLog", true)
+	end)
+	
+	local overrideLPT = BGC.CreateCheckBox(dev, nil, "[TODO] override LPT", "TOPLEFT", sellLog, "BOTTOMLEFT", 0, 4)
+	overrideLPT.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
+	overrideLPT:SetChecked( Broker_Garbage:GetOption("overrideLPT", true) )
+	local checksound = overrideLPT:GetScript("OnClick")
+	overrideLPT:SetScript("OnClick", function(overrideLPT)
+		checksound(overrideLPT)
+		Broker_Garbage:ToggleOption("overrideLPT", true)
+		Broker_Garbage.ClearCache()
+		Broker_Garbage.ScanInventory()
+		Broker_Garbage:UpdateLDB()
+	end)
+
+	local hideZero = BGC.CreateCheckBox(dev, nil, "[TODO] hide zero value", "TOPLEFT", overrideLPT, "BOTTOMLEFT", 0, 4)
+	hideZero.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
+	hideZero:SetChecked( Broker_Garbage:GetOption("hideZeroValue", true) )
+	local checksound = hideZero:GetScript("OnClick")
+	hideZero:SetScript("OnClick", function(hideZero)
+		checksound(hideZero)
+		Broker_Garbage:ToggleOption("hideZeroValue", true)
+		Broker_Garbage.ScanInventory()
+		Broker_Garbage:UpdateLDB()
+	end)
+
+	local debugMode = BGC.CreateCheckBox(dev, nil, "[TODO] debug mode", "TOPLEFT", hideZero, "BOTTOMLEFT", 0, 4)
+	debugMode.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
+	debugMode:SetChecked( Broker_Garbage:GetOption("debug", true) )
+	local checksound = debugMode:GetScript("OnClick")
+	debugMode:SetScript("OnClick", function(debugMode)
+		checksound(debugMode)
+		Broker_Garbage:ToggleOption("debug", true)
+	end)
+
+	local reportDE, label = BGC.CreateCheckBox(dev, nil, "[TODO] report DE outdated gear", "TOPLEFT", debugMode, "BOTTOMLEFT", 0, 4)
+	label:SetHeight(50)
+	reportDE.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
+	reportDE:SetChecked( Broker_Garbage:GetOption("reportDisenchantOutdated", true) )
+	local checksound = reportDE:GetScript("OnClick")
+	reportDE:SetScript("OnClick", function(reportDE)
+		checksound(reportDE)
+		Broker_Garbage:ToggleOption("reportDisenchantOutdated", true)
+	end)
+
+	local laterDE, laterDEText, _, low, high = LibStub("tekKonfig-Slider").new(dev, "[TODO] Keep for later DE: " .. Broker_Garbage:GetOption("keepItemsForLaterDE", true), 0, 525, "TOPLEFT", reportDE, "BOTTOMLEFT", 15, -10)
+	laterDE.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
+	laterDE:SetValueStep(5)
+	laterDE:SetValue(Broker_Garbage:GetOption("keepItemsForLaterDE", true))
+	laterDE:SetScript("OnValueChanged", function(laterDE)
+		Broker_Garbage:SetOption("keepItemsForLaterDE", true, laterDE:GetValue())
+		laterDEText:SetText("[TODO] Keep for later DE: " .. Broker_Garbage:GetOption("keepItemsForLaterDE", true))
+		Broker_Garbage.ScanInventory()
+	end)
 	
 	function panel:Update()
 		junkText:SetText( Broker_Garbage:GetOption("LDBformat", true) )

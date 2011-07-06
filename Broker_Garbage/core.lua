@@ -96,7 +96,9 @@ local function eventHandler(self, event, arg1, ...)
 		BG.ScanInventory()
 
 	elseif event == "UI_ERROR_MESSAGE" and arg1 and arg1 == ERR_VENDOR_DOESNT_BUY then
-		BG.Print(BG.locale.reportCannotSell)
+		if BG.repairCost > 0 then
+			BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost)))
+		end
 
 		BG.locked = nil
 		BG.sellValue, BG.repairCost = 0, 0
