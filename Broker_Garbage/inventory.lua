@@ -208,7 +208,7 @@ function BG.UpdateItemLocations()
 			end
 
 			if item.sell and item.value and item.value ~= 0 and item.count then
-				BG.junkValue = BG.junkValue + (item.value * item.count)
+				BG.junkValue = BG.junkValue + item.value
 			end
 		end
 	end

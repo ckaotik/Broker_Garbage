@@ -3,21 +3,9 @@ local _, BG = ...
 function BG.ManualAutoSell()
 	local sellValue = BG.AutoSell()
 	
-	-- create output if needed
-	if not sellValue then
-		-- nothing, we weren't at a merchant!
-	elseif sellValue == 0 and BG_GlobalDB.reportNothingToSell then
-		BG.Print(BG.locale.reportNothingToSell)
-	elseif sellValue ~= 0 and not BG_GlobalDB.autoSellToVendor then
-		BG.Print(format(BG.locale.sell, BG.FormatMoney(sellValue)))
+	if sellValue ~= 0 then
+		BG.CallWithDelay(BG.ReportSelling, 0.3, 0, 0)
 	end
-
-	-- [TODO] Check what actions are needed
-	-- _G["BG_SellIcon"]:GetNormalTexture():SetDesaturated(true)
-	-- BG.junkValue = 0
-
-	BG.UpdateMerchantButton()
-	BG.ScanInventory()
 end
 
 function BG.AutoSell()
@@ -31,19 +19,12 @@ function BG.AutoSell()
 	for tableIndex, item in ipairs(BG.cheapestItems) do
 		-- [TODO] to be replaced by: if item.sell then ... end
 
-
 		cachedItem = BG.GetCached(item.itemID)
 		if not item.invalid and (item.source == BG.AUTOSELL
 			or (item.source ~= BG.EXCLUDE and cachedItem.quality == 0)
 			or (item.source == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems)
 			or (item.source == BG.OUTDATED and BG_GlobalDB.sellOldGear)
 			or (item.source == BG.UNUSABLE and BG_GlobalDB.sellNotWearable) ) then
-			BG.Debug("AutoSell", item.invalid,
-				item.source == BG.AUTOSELL, 
-				item.source ~= BG.EXCLUDE and cachedItem.quality == 0, 
-				item.source == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems,
-				item.source == BG.OUTDATED and BG_GlobalDB.sellOldGear,
-				item.source == BG.UNUSABLE and BG_GlobalDB.sellNotWearable)
 			if item.value ~= nil then
 				if not BG.locked then					
 					BG.Debug("Inventory scans locked")
@@ -59,9 +40,16 @@ function BG.AutoSell()
 				ClearCursor()
 				UseContainerItem(item.bag, item.slot)
 				table.insert(BG.sellLog, tableIndex)
+			elseif item.sell then
+				BG.Print("WRONG SELL TAG! "..item.itemLink.." is to sell but has no value!")
 			end
 		end
 	end
+
+	if #(BG.sellLog) == 0 and BG_GlobalDB.reportNothingToSell then
+		BG.Print(BG.locale.reportNothingToSell)
+	end
+
 	return sellValue
 end
 
@@ -89,6 +77,8 @@ function BG.ReportSelling(repairCost, iteration)
 		BG.locked = nil
 		BG.sellValue, BG.repairCost = 0, 0
 		BG.ScanInventory()
+
+		BG.UpdateMerchantButton()
 	end
 end
 

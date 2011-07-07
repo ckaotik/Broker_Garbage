@@ -317,7 +317,7 @@ function BG.IsItemSoulbound(itemLink, bag, slot)	-- itemLink/itemID, bag, slot -
 	return BG.ScanTooltipFor(searchString, itemLink or slot, bag)
 end
 
--- [TODO] update for cataclysm
+-- updated data taken from tekkub's Panda
 -- player can disenchant this item: [true/false]; skill difference until DE is possible [nil/number]
 function BG.CanDisenchant(itemLink, onlyMe)
 	if not itemLink then return end
@@ -330,46 +330,29 @@ function BG.CanDisenchant(itemLink, onlyMe)
 		local _, _, quality, level, _, _, _, stackSize, invType = GetItemInfo(itemLink)
 
 		-- stackables are not DE-able, legendary/heirlooms are not DE-able
-		if quality >= 2 and quality < 5 and stackSize == 1 
-			and string.find(invType, "INVTYPE") and not string.find(invType, "BAG") then
+		if quality > 1 and quality < 5 and stackSize == 1 and BG.IsItemEquipment(invType) then
 
 			skillRank = BG.GetProfessionSkill(BG.enchanting) or 0
 			if skillRank > 0 then
-				if level <=  20 then
-					required = 1
-				elseif level <=  60 then
-					required = 5*5*math.ceil(level/5)-100
-				elseif level <=  99 then
-					required = 225
-				elseif level <= 120 then
-					required = 275
+				if level <= 20 then required = 1
+				elseif level <= 60 then required = 5*5*math.ceil(level/5)-100
+				elseif level <= 89 or (level <=  99 and quality <= 3) then required = 225
+				elseif level <= 120 then required = 275
 				else
 					if quality == 2 then		-- green
-						if level <= 150 then
-							required = 325
-						elseif level <= 200 then
-							required = 350
-						elseif level <= 305 then
-							required = 425
-						else
-							required = 475
-						end
+						if     level <= 150 then required = 325
+						elseif level <= 182 then required = 350
+						elseif level <= 333 then required = 425
+						else required = nil	end
 					elseif quality == 3 then	-- blue
-						if level <= 200 then
-							required = 325
-						elseif level <= 325 then
-							required = 450
-						else
-							required = 500
-						end
+						if     level <= 200 then required = 325
+						elseif level <= 346 then required = 450
+						else required = 450 end
 					elseif quality == 4 then	-- purple
-						if level <= 199 then
-							required = 300
-						elseif level <= 277 then
-							required = 375
-						else
-							required = 500
-						end
+						if     level <= 199 then required = 300
+						elseif level <= 277 then required = 375
+						elseif level <= 379 then required = 525
+						else required = 525	end
 					end
 				end
 			end
@@ -377,16 +360,13 @@ function BG.CanDisenchant(itemLink, onlyMe)
 	end
 	
 	if not skillRank or not required then
-		-- this item is not disenchantable
 		return false
 	elseif skillRank >= required then
-		-- this character can disenchant the item. Perfect!
 		return true
 	elseif skillRank < required then
 		return false, (required - skillRank)
 	elseif BG_GlobalDB.hasEnchanter then
 		if onlyMe then
-			-- we can't disenchant this ourselves
 			return false
 		else
 			-- check whether we can mail this item
