@@ -60,7 +60,7 @@ function BGC.ShowTooltip(self)
 		end
 
 	elseif self.itemID and type(self.itemID) == "string" then
-		local specialType, identifier = string.match(self.itemID, "^(%S+)_(%S+)")
+		local specialType, identifier = string.match(self.itemID, "^(.-)_(.+)")
 		if specialType == "AC" then
 			-- armor class
 			GameTooltip:ClearLines()

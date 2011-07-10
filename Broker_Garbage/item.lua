@@ -64,7 +64,7 @@ function BG.IsItemInCategory(item, category)	-- itemID/itemLink/itemTable, categ
 	end
 	
 	local searchResult, itemName
-	local categoryType, index = string.match(category, "^(%S+)_(%S+)")
+	local categoryType, index = string.match(category, "^(.-)_(.+)")
 	if categoryType and index then -- not a LPT category
 		if categoryType == "BEQ" then	-- equipment set
 			index = tonumber(index)

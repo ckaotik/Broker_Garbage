@@ -366,7 +366,7 @@ function BGC:ShowListOptions(frame)
 			-- update this button with data
 			local itemLink, texture
 			if type(itemID) == "string" then
-				local specialType, identifier = string.match(itemID, "^(%S+)_(%S+)")
+				local specialType, identifier = string.match(itemID, "^(.-)_(.+)")
 				if specialType == "AC" then
 					-- this is an armor class
 					local identifier = tonumber(identifier)
@@ -506,7 +506,7 @@ function BGC:ShowListOptions(frame)
 
 		elseif item and type(item) == "string" then
 			resetRequired = true
-			local specialType, identifier = string.match(item, "^(%S+)_(%S+)")
+			local specialType, identifier = string.match(item, "^(.-)_(.+)")
 			if specialType == "BEQ" then
 				-- equipment set
 				identifier = tonumber(identifier)
