@@ -286,55 +286,66 @@ function BG.FormatMoney(amount, displayMode)
 	if not amount then return "" end
 	displayMode = displayMode or BG_GlobalDB.showMoney
 	
-	local signum
-	if amount < 0 then 
-		signum = "-"
-		amount = -amount
-	else 
-		signum = "" 
-	end
+	local signum = amount < 0 and "-" or ""
+		  amount = math.abs(amount)
 	
 	local gold   = floor(amount / (100 * 100))
 	local silver = math.fmod(floor(amount / 100), 100)
 	local copper = math.fmod(floor(amount), 100)
 	
+	local formatGold, formatSilver, formatCopper
+	-- plain, dot-seperated
 	if displayMode == 0 then
-		return format(signum.."%i.%i.%i", gold, silver,copper)
-
+		formatGold = "%i.%.2i.%.2i"
+		formatSilver = "%i.%.2i"
+		formatCopper = "%i"
+	
 	elseif displayMode == 1 then
-		return format(signum.."|cffffd700%i|r.|cffc7c7cf%.2i|r.|cffeda55f%.2i|r", gold, silver, copper)
+		formatGold = "%i.%i.%i"
+		formatSilver = "%i.%i"
+		formatCopper = "%i"
 
-	-- copied from Ara Broker Money
+	-- colored, dot-seperated
 	elseif displayMode == 2 then
-		if amount>9999 then
-			return format(signum.."|cffeeeeee%i|r|cffffd700g|r |cffeeeeee%.2i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r", floor(amount*.0001), floor(amount*.01)%100, amount%100 )
-		
-		elseif amount > 99 then
-			return format(signum.."|cffeeeeee%i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r", floor(amount*.01), amount%100 )
-		
-		else
-			return format(signum.."|cffeeeeee%i|r|cffeda55fc|r", amount)
-		end
+		formatGold = "|cffffd700%i|r.|cffc7c7cf%.2i|r.|cffeda55f%.2i|r"
+		formatSilver = "|cffc7c7cf%i|r.|cffeda55f%.2i|r"
+		formatCopper = "|cffeda55f%i|r"
 	
-	-- copied from Haggler
 	elseif displayMode == 3 then
-		gold         = gold   > 0 and gold  .."|TInterface\\MoneyFrame\\UI-GoldIcon:0|t" or ""
-		silver       = silver > 0 and silver.."|TInterface\\MoneyFrame\\UI-SilverIcon:0|t" or ""
-		copper       = copper > 0 and copper.."|TInterface\\MoneyFrame\\UI-CopperIcon:0|t" or ""
-		-- add spaces if needed
-		copper       = (silver ~= "" and copper ~= "") and " "..copper or copper
-		silver       = (gold   ~= "" and silver ~= "") and " "..silver or silver
+		formatGold = "|cffffd700%i|r.|cffc7c7cf%i|r.|cffeda55f%i|r"
+		formatSilver = "|cffc7c7cf%i|r.|cffeda55f%i|r"
+		formatCopper = "|cffeda55f%i|r"
+
+	-- Ara Broker Money
+	elseif displayMode == 4 then
+		formatGold = "|cffeeeeee%i|r|cffffd700g|r |cffeeeeee%.2i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r"
+		formatSilver = "|cffeeeeee%i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r"
+		formatCopper = "|cffeeeeee%i|r|cffeda55fc|r"
 	
-		return signum..gold..silver..copper
-		
-	elseif displayMode == 4 then		
-		gold         = gold   > 0 and "|cffeeeeee"..gold  .."|r|cffffd700g|r" or ""
-		silver       = silver > 0 and "|cffeeeeee"..silver.."|r|cffc7c7cfs|r" or ""
-		copper       = copper > 0 and "|cffeeeeee"..copper.."|r|cffeda55fc|r" or ""
-		-- add spaces if needed
-		copper       = (silver ~= "" and copper ~= "") and " "..copper or copper
-		silver       = (gold   ~= "" and silver ~= "") and " "..silver or silver
+	elseif displayMode == 5 then
+		formatGold = "|cffeeeeee%i|r|cffffd700g|r |cffeeeeee%i|r|cffc7c7cfs|r |cffeeeeee%i|r|cffeda55fc|r"
+		formatSilver = "|cffeeeeee%i|r|cffc7c7cfs|r |cffeeeeee%i|r|cffeda55fc|r"
+		formatCopper = "|cffeeeeee%i|r|cffeda55fc|r"
 	
-		return signum..gold..silver..copper
+	-- Haggler
+	elseif displayMode == 6 then
+		formatGold = "%i|TInterface\\MoneyFrame\\UI-GoldIcon:0|t %.2i|TInterface\\MoneyFrame\\UI-SilverIcon:0|t %.2i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
+		formatSilver = "%i|TInterface\\MoneyFrame\\UI-SilverIcon:0|t %.2i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
+		formatCopper = "%i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
+	
+	elseif displayMode == 7 then
+		formatGold = "%i|TInterface\\MoneyFrame\\UI-GoldIcon:0|t %i|TInterface\\MoneyFrame\\UI-SilverIcon:0|t %i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
+		formatSilver = "%i|TInterface\\MoneyFrame\\UI-SilverIcon:0|t %i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
+		formatCopper = "%i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
+	else
+		return nil
+	end
+
+	if gold > 0 then
+		return string.format(signum .. formatGold, gold, silver, copper)
+	elseif silver > 0 then
+		return string.format(signum .. formatSilver, silver, copper)
+	else
+		return string.format(signum .. formatCopper, copper)
 	end
 end

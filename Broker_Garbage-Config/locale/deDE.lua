@@ -32,6 +32,7 @@ if GetLocale() == "deDE" then
 	BGC.locale.tooltipHeadingOther = "Anderes"
 	BGC.locale.equipmentManager = "Equipment Manager"
 	BGC.locale.armorClass = "Rüstungsklasse"
+	BGC.locale.anythingCalled = "Items mit Namen"
 	
 	-- Statistics Frame
 	BGC.locale.StatisticsHeading = "Statistiken"
@@ -167,14 +168,19 @@ if GetLocale() == "deDE" then
 	BGC.locale.LOTitle = "Listen"
 	BGC.locale.LOSubTitle = [[Wenn du Hilfe brauchst, klicke das "?"-Tab an.
 
-|cffffd200Müll|r: Diese Liste beinhaltet Items, die weggeworfen werden können.
-|cffffd200Behalten|r: Items auf dieser Liste werden nie weggeworfen.
-|cffffd200Händlerpreis|r: Items nutzen keine Auktionspreise. (immer global!)
-|cffffd200Verkaufen|r: Diese Items werden bei Händlern automatisch verkauft.]]
+|cffffd200Müll|r: Diese Liste beinhaltet Items, die weggeworfen werden können, solltest du keinen Inventarplatz mehr haben.
+|cffffd200Behalten|r: Items auf dieser Liste werden nie weggeworfen oder verkauft.
+|cffffd200Händlerpreis|r: Items auf dieser Liste nutzen nur den Händlerpreis. (Diese Liste ist für alle Charaktere gleich)
+|cffffd200Verkaufen|r: Diese Items werden bei Händlern automatisch verkauft, ihr Wert ist der Händlerpreis.
+
+!! Wenn du Änderungen machst, musst du dein 'Inventar aktualisieren' !!]]
 
 	BGC.locale.defaultListsText = "Standardlisten"
 	BGC.locale.defaultListsTooltip = "|cffffffffKlicke|r, um manuell die lokalen Standardeinträge für Listen einzufügen.\n|cffffffffRechtsklick|r um auch die globalen Einträge zu erstellen."
 	
+	BGC.locale.rescanInventoryText = "Inventar aktualisieren"
+	BGC.locale.rescanInventoryTooltip = "|cffffffffKlicke|r um Broker_Garbage dein Inventar neu scannen zu lassen. Wichtig nach jeder Änderung der Listen!"
+
 	BGC.locale.LOTabTitleInclude = "Müll"
 	BGC.locale.LOTabTitleExclude = "Behalten"
 	BGC.locale.LOTabTitleVendorPrice = "Händlerpreis"
@@ -221,6 +227,8 @@ Unterhalb dieses Fensters siehst du 5 Buttons und eine Suchleiste.
 	BGC.locale.LOPromote = "|cffffffffKlicke|r um alle markierten Items als globale Regel zu nutzen."
 	BGC.locale.LOEmptyList = "|cffff0000Achtung!|r\n|cffffffffKlicke|r, um die lokalen Einträge dieser Liste zu löschen.\n"..
 		"|cffffffffShift-Klicke|r, um die globalen Einträge zu löschen."
+	
+	BGC.locale.namedItems = "|TInterface\\Icons\\Spell_chargepositive:15:15|t Item mit Namen ..."
 	BGC.locale.search = "Suchen..."
 	
 	-- LibPeriodicTable category testing

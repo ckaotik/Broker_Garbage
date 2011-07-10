@@ -5,24 +5,15 @@ function BGC:ShowListOptions(frame)
 	local title = LibStub("tekKonfig-Heading").new(frame, "Broker_Garbage - " .. BGC.locale.LOTitle)
 	
 	local explanation = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	explanation:SetHeight(70)
+	explanation:SetHeight(80)
 	explanation:SetPoint("TOPLEFT", title, "TOPLEFT", 0, -20)
 	explanation:SetPoint("RIGHT", frame, -4, 0)
 	explanation:SetNonSpaceWrap(true)
 	explanation:SetJustifyH("LEFT")
 	explanation:SetJustifyV("TOP")
 	explanation:SetText(BGC.locale.LOSubTitle)
-
-	local default = LibStub("tekKonfig-Button").new(frame, "TOPLEFT", explanation, "BOTTOMLEFT", 0, -4)
-	default:SetText(BGC.locale.defaultListsText)
-	default.tiptext = BGC.locale.defaultListsTooltip
-	default:SetWidth(150)
-	default:RegisterForClicks("RightButtonUp", "LeftButtonUp")
-	default:SetScript("OnClick", function(self, button)
-		Broker_Garbage:CreateDefaultLists(IsShiftKeyDown())
-	end)
 	
-	local autoSellIncludeItems = LibStub("tekKonfig-Checkbox").new(frame, nil, BGC.locale.LOIncludeAutoSellText, "LEFT", default, "RIGHT", 10, 8)
+	local autoSellIncludeItems = LibStub("tekKonfig-Checkbox").new(frame, nil, BGC.locale.LOIncludeAutoSellText, "TOPLEFT", explanation, "BOTTOMLEFT", 10, -8)
 	autoSellIncludeItems.tiptext = BGC.locale.LOIncludeAutoSellTooltip .. BGC.locale.GlobalSetting
 	autoSellIncludeItems:SetChecked( Broker_Garbage:GetOption("autoSellIncludeItems", true) )
 	local checksound = autoSellIncludeItems:GetScript("OnClick")
@@ -43,7 +34,7 @@ function BGC:ShowListOptions(frame)
 		Broker_Garbage:UpdateLDB()
 	end)
 	
-	local panel = LibStub("tekKonfig-Group").new(frame, nil, "TOP", default, "BOTTOM", 0, -28)
+	local panel = LibStub("tekKonfig-Group").new(frame, nil, "TOPLEFT", includeMode, "BOTTOMLEFT", -10, -20)
 	panel:SetPoint("LEFT", 8 + 3, 0)
 	panel:SetPoint("BOTTOMRIGHT", -8 -4, 34)
 	
@@ -58,7 +49,7 @@ function BGC:ShowListOptions(frame)
 	autoSell:Deactivate()
 	local help = topTab.new(frame, "?", "LEFT", autoSell, "RIGHT", -15, 0)
 	help:Deactivate()
-	
+
 	local scrollFrame = CreateFrame("ScrollFrame", frame:GetName().."_Scroll", panel, "UIPanelScrollFrameTemplate")
 	scrollFrame:SetPoint("TOPLEFT", panel, "TOPLEFT", 0, -4)
 	scrollFrame:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -26, 3)
@@ -66,6 +57,26 @@ function BGC:ShowListOptions(frame)
 	scrollFrame:SetScrollChild(scrollContent)
 	scrollContent:SetHeight(300); scrollContent:SetWidth(400)	-- will be replaced when used
 	scrollContent:SetAllPoints()
+
+	local default = LibStub("tekKonfig-Button").new(frame, "BOTTOMRIGHT", panel, "TOPRIGHT", 0, 30)
+	default:SetText(BGC.locale.defaultListsText)
+	default.tiptext = BGC.locale.defaultListsTooltip
+	default:SetWidth(150)
+	default:RegisterForClicks("RightButtonUp", "LeftButtonUp")
+	default:SetScript("OnClick", function(self, button)
+		Broker_Garbage:CreateDefaultLists(IsShiftKeyDown())
+	end)
+
+	local rescan = LibStub("tekKonfig-Button").new(frame, "BOTTOMRIGHT", panel, "TOPRIGHT", 0, 4)
+	rescan:SetText(BGC.locale.rescanInventoryText)
+	rescan.tiptext = BGC.locale.rescanInventoryTooltip
+	rescan:SetWidth(150)
+	rescan:RegisterForClicks("LeftButtonUp")
+	rescan:SetScript("OnClick", function(self, button)
+		Broker_Garbage.UpdateAllCaches()
+		Broker_Garbage.UpdateAllDynamicItems()
+		Broker_Garbage:UpdateLDB()
+	end)
 	
 	-- action buttons
 	local plus = CreateFrame("Button", "Broker_Garbage_AddButton", frame)
@@ -99,7 +110,35 @@ function BGC:ShowListOptions(frame)
 	emptyList:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-UP")
 	emptyList.tiptext = BGC.locale.LOEmptyList
 	
-	-- editbox curtesy of Tekkub
+	-- editboxes curtesy of Tekkub
+	local itemNameBox = CreateFrame("EditBox", frame:GetName().."SearchBox", frame)
+	itemNameBox:SetAutoFocus(false)
+	itemNameBox:SetPoint("TOPRIGHT", panel, "BOTTOMRIGHT", -170, 2)
+	itemNameBox:SetWidth(160)
+	itemNameBox:SetHeight(32)
+	itemNameBox:SetFontObject("GameFontHighlightSmall")
+	BGC.CreateFrameBorders(itemNameBox)
+	itemNameBox:SetTextColor(0.75, 0.75, 0.75, 1)
+	itemNameBox:SetText(BGC.locale.namedItems)
+	itemNameBox:SetCursorPosition(0)
+	
+	itemNameBox:SetScript("OnEditFocusGained", itemNameBox.HighlightText)
+	itemNameBox:SetScript("OnEscapePressed", itemNameBox.ClearFocus)
+	itemNameBox:SetScript("OnEnterPressed", function(self)
+		local input = self:GetText()
+		local name = GetItemInfo(input) or input
+		if name and name ~= "" then
+			name = "NAME_"..name
+			local localList, globalList = Broker_Garbage:GetOption(frame.current)
+			if localList and localList[name] == nil then localList[name] = 0
+			elseif globalList and globalList[name] == nil then globalList[name] = 0
+			end
+			BGC:ListOptionsUpdate()
+			self:SetText(BGC.locale.namedItems)
+		end
+		self:ClearFocus()
+	end)
+
 	local searchbox = CreateFrame("EditBox", frame:GetName().."SearchBox", frame)
 	searchbox:SetAutoFocus(false)
 	searchbox:SetPoint("TOPRIGHT", panel, "BOTTOMRIGHT", -4, 2)
@@ -109,6 +148,7 @@ function BGC:ShowListOptions(frame)
 	BGC.CreateFrameBorders(searchbox)
 	searchbox:SetTextColor(0.75, 0.75, 0.75, 1)
 	searchbox:SetText(BGC.locale.search)
+	searchbox:SetCursorPosition(0)
 	
 	searchbox:SetScript("OnEscapePressed", searchbox.ClearFocus)
 	searchbox:SetScript("OnEnterPressed", searchbox.ClearFocus)
@@ -227,10 +267,10 @@ function BGC:ShowListOptions(frame)
 		self.limit:SetText(text)
 		if self.itemID then 
 			Broker_Garbage.UpdateCache(self.itemID)
-		else
-			Broker_Garbage.UpdateAllCaches()
-			Broker_Garbage.UpdateAllDynamicItems()
-			Broker_Garbage:UpdateLDB()
+		else -- commented because of huuuuge memory/CPU requirements
+			-- Broker_Garbage.UpdateAllCaches()
+			-- Broker_Garbage.UpdateAllDynamicItems()
+			-- Broker_Garbage:UpdateLDB()
 		end
 	end
 	
@@ -326,30 +366,31 @@ function BGC:ShowListOptions(frame)
 			-- update this button with data
 			local itemLink, texture
 			if type(itemID) == "string" then
-				if string.find(itemID, "^AC_") then
+				local specialType, identifier = string.match(itemID, "^(%S+)_(%S+)")
+				if specialType == "AC" then
 					-- this is an armor class
-					local armorType = string.match(itemID, "^AC_(%d+)")
-					local index = tonumber(armorType) 
-					armorType = select(index, GetAuctionItemSubClasses(2))
-					
+					local identifier = tonumber(identifier)
+					identifier = select(index, GetAuctionItemSubClasses(2))
 					texture = "Interface\\Icons\\INV_Misc_Toy_07"
 					
 					button.itemLink = nil
 					button.itemID = itemID
 					button.tiptext = armorType or "Invalid Armor Type"
-				elseif string.find(itemID, "^BEQ_") then
+				elseif specialType == "BEQ" then
 					-- blizzard gear set
-					local setID, name, icon = string.match(itemID, "^BEQ_(%d+)")
-					setID = tonumber(setID)
-					if setID then
-						name, icon = GetEquipmentSetInfo(setID)
-					end
-					
-					texture = icon
+					identifier = tonumber(identifier)
+					identifier, texture = identifier and GetEquipmentSetInfo(identifier)
 					
 					button.itemLink = nil
 					button.itemID = itemID
-					button.tiptext = name
+					button.tiptext = identifier
+				elseif specialType == "NAME" then
+					-- item name filter
+					texture = "Interface\\Icons\\Ability_Hunter_Pathfinding"
+
+					button.itemLink = nil
+					button.itemID = itemID
+					button.tiptext = identifier
 				else
 					-- this is an item category
 					texture = "Interface\\Icons\\Trade_engineering"
@@ -465,15 +506,18 @@ function BGC:ShowListOptions(frame)
 
 		elseif item and type(item) == "string" then
 			resetRequired = true
-			local specialType, identifier = string.match(item, "^(%S+)_(%d+)")
-			identifier = tonumber(identifier)
+			local specialType, identifier = string.match(item, "^(%S+)_(%S+)")
 			if specialType == "BEQ" then
 				-- equipment set
+				identifier = tonumber(identifier)
 				link = setID and GetEquipmentSetInfo(identifier) or "Invalid Set"
 			elseif specialType == "AC" then
 				-- armor class
+				identifier = tonumber(identifier)
 				armorType = select(identifier, GetAuctionItemSubClasses(2))
 				link = BGC.locale.armorClass .. ": " .. (armorType or "Invalid Armor Class")
+			elseif specialType == "NAME" then
+				link = BGC.locale.anythingCalled .. " \"" .. identifier .. "\""
 		    else
 				-- LPT category
 				link = item

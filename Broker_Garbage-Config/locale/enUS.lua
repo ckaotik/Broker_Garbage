@@ -32,6 +32,7 @@ BGC.locale = {
 	tooltipHeadingOther = "Other",
 	equipmentManager = "Equipment Manager",
 	armorClass = "Armor Class",
+	anythingCalled = "Items named",
 	
 	-- Statistics Frame
 	StatisticsHeading = "Statistics",
@@ -167,14 +168,19 @@ BGC.locale = {
 	LOTitle = "Lists",
 	LOSubTitle = [[If you need help click the "?"-tab.
 
-|cffffd200Junk|r: Items on this list can be thrown away if needed.
-|cffffd200Keep|r: Items on this list will never be deleted.
-|cffffd200Vendor Price|r: Items only use vendor values. (always global)
-|cffffd200Sell|r: Items on this list will be sold when at a merchant.]],
+|cffffd200Junk|r: Items on this list can be thrown away if inventory space is needed.
+|cffffd200Keep|r: Items on this list will never be deleted or sold.
+|cffffd200Vendor Price|r: Items on this list only use vendor values. (This list is always global)
+|cffffd200Sell|r: Items on this list will be sold when at a merchant. They also only use vendor prices.
+
+!! Always use the 'Rescan Inventory' button after you make changes !!]],
 	
 	defaultListsText = "Default Lists",
 	defaultListsTooltip = "|cffffffffClick|r to manually create default local list entries.\n |cffffffffShift-Click|r to also create default global lists.", -- changed
 	
+	rescanInventoryText = "Update Inventory",
+	rescanInventoryTooltip = "|cffffffffClick|r to have Broker_Garbage rescan your inventory. Do this whenever you change list entries!",
+
 	LOTabTitleInclude = "Junk",
 	LOTabTitleExclude = "Keep",
 	LOTabTitleVendorPrice = "Vendor Price",
@@ -221,6 +227,8 @@ Below this window you'll see five buttons and a search bar.
 	LOPromote = "|cffffffffClick|r to use any marked item as account wide rule.",
 	LOEmptyList = "|cffff0000Caution!|r\n|cffffffffClick|r to empty any local entries on this list.\n"..
 		"|cffffffffShift-Click|r to empty any global entries.",
+	
+	namedItems = "|TInterface\\Icons\\Spell_chargepositive:15:15|t item with name ...",
 	search = "Search...",
 	
 	-- LibPeriodicTable category testing

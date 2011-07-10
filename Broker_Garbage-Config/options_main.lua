@@ -299,12 +299,17 @@ local function Options_BasicOptions(pluginID)
 	end
 	UIDropDownMenu_Initialize(moneyFormat, function(self)
 		local selected, info = UIDropDownMenu_GetSelectedValue(self), UIDropDownMenu_CreateInfo()
-		for i = 0, 4 do	-- currently 4 formats are supported
-			info.text = Broker_Garbage.FormatMoney(testValue, i)
-			info.value = i
+		local index = 0
+		local formatString = Broker_Garbage.FormatMoney(testValue, 0)
+		while formatString do
+			info.text = formatString
+			info.value = index
 			info.func = MoneyFormatOnSelect
 			info.checked = i == selected
 			UIDropDownMenu_AddButton(info)
+
+			index = index + 1
+			formatString = Broker_Garbage.FormatMoney(testValue, index)
 		end
 	end)
 	

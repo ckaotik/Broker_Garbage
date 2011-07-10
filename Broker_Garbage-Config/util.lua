@@ -60,15 +60,21 @@ function BGC.ShowTooltip(self)
 		end
 
 	elseif self.itemID and type(self.itemID) == "string" then
-		if string.find(self.itemID, "^AC_") then
+		local specialType, identifier = string.match(self.itemID, "^(%S+)_(%S+)")
+		if specialType == "AC" then
 			-- armor class
 			GameTooltip:ClearLines()
 			GameTooltip:AddLine(BGC.locale.armorClass)
 			GameTooltip:AddLine(self.tiptext or BGC.locale.unknown, 1, 1, 1, true)
-		elseif string.find(self.itemID, "^BEQ_") then
+		elseif specialType == "BEQ" then
 			-- Blizzard Equipment Manager item set
 			GameTooltip:ClearLines()
 			GameTooltip:AddLine(BGC.locale.equipmentManager)
+			GameTooltip:AddLine(self.tiptext or BGC.locale.unknown, 1, 1, 1, true)
+		elseif specialType == "NAME" then
+			-- Item Name Filter
+			GameTooltip:ClearLines()
+			GameTooltip:AddLine(BGC.locale.anythingCalled)
 			GameTooltip:AddLine(self.tiptext or BGC.locale.unknown, 1, 1, 1, true)
 		end
 		

@@ -63,19 +63,22 @@ function BG.IsItemInCategory(item, category)	-- itemID/itemLink/itemTable, categ
 		itemID = item.itemID
 	end
 	
-	local searchResult
-	local isNotLPT = type(category) ~= "string"
-	if isNotLPT then
-		local categoryType, index = string.match(category, "^(%S+)_(%d+)")
-		index = tonumber(index) 
-		if categoryType == "BEQ" and index then	-- equipment set
+	local searchResult, itemName
+	local categoryType, index = string.match(category, "^(%S+)_(%S+)")
+	if categoryType and index then -- not a LPT category
+		if categoryType == "BEQ" then	-- equipment set
+			index = tonumber(index)
 			if index <= GetNumEquipmentSets() then
 				category = GetEquipmentSetInfo(index)
 				searchResult = BG.Find(GetEquipmentSetItemIDs(category), itemID)
 			end
-		elseif categoryType == "AC" and index then	-- armor class
+		elseif categoryType == "AC" then	-- armor class
+			index = tonumber(index) 
 			local armorClass = select(index, GetAuctionItemSubClasses(2))
 			searchResult = select(7, GetItemInfo(itemID)) == armorClass
+		elseif categoryType == "NAME" then 	-- item name
+			itemName = GetItemInfo(itemID)
+			searchResult = itemName == index
 		end
 	elseif BG.PT then	-- LPT category
 		_, searchResult = BG.PT:ItemInSet(itemID, category)
