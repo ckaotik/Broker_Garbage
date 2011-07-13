@@ -88,7 +88,7 @@ end
 
 -- check if a given item is on a given Broker_Garbage lists
 function BG.IsItemInBGList(item, itemList, onlyLocal)	-- itemID/itemLink/itemTable, BG list name
-	if not item then 
+	if not item then
 		return
 	elseif type(item) == "table" then
 		item = item.itemID

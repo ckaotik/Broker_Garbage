@@ -354,7 +354,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 		updateItem.count = count
 		updateItem.value = slotValue
 		updateItem.source = classification
-		updateItem.sell = (slotValue and slotValue>0 and sellItem or nil)
+		updateItem.sell = (slotValue and slotValue > 0) and sellItem or nil
 		updateItem.invalid = nil
 	else
 		-- there is no item in this slot (any more)!

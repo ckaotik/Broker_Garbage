@@ -23,9 +23,6 @@ BG.repairCost = 0					-- the amount of money that we repaired for
 local frame = CreateFrame("frame")
 local function eventHandler(self, event, arg1, ...)
 	if event == "ADDON_LOADED" and arg1 == addonName then
-		BG.CheckSettings()
-		BG.AdjustLists_4_1()
-
 		-- some default values initialization
 		BG.isAtVendor = nil
 		BG.totalBagSpace = 0
@@ -39,6 +36,9 @@ local function eventHandler(self, event, arg1, ...)
 		BG.sellLog = {}
 		BG.currentRestackItems = {}	-- contains itemIDs when restacking
 
+		BG.CheckSettings()
+		BG.AdjustLists_4_1()
+		
 		BG.ScanInventory()	-- initializes and fills caches
 
 		frame:RegisterEvent("BAG_UPDATE")

@@ -25,8 +25,8 @@ function BG.AutoSell()
 			or (item.source == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems)
 			or (item.source == BG.OUTDATED and BG_GlobalDB.sellOldGear)
 			or (item.source == BG.UNUSABLE and BG_GlobalDB.sellNotWearable) ) then
-			if item.value ~= nil then
-				if not BG.locked then					
+			if item.value and item.value > 0 then
+				if not BG.locked then
 					BG.Debug("Inventory scans locked")
 					BG.locked = true
 				end
