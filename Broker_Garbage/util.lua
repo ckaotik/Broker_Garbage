@@ -27,6 +27,18 @@ function BG.CallWithDelay(callFunc, delay, ...)
 	end)
 end
 
+function BG.ReformatGlobalString(globalString)
+	if not globalString then return "" end
+	local returnString = globalString
+	returnString = string.gsub(returnString, "%(", "%%(")
+	returnString = string.gsub(returnString, "%)", "%%)")
+	returnString = string.gsub(returnString, "%.", "%%.")
+	returnString = string.gsub(returnString, "%%[1-9]?$?s", "(.+)")
+	returnString = string.gsub(returnString, "%%[1-9]?$?c", "([+-]?)")
+	returnString = string.gsub(returnString, "%%[1-9]?$?d", "(%%d+)")
+	return returnString
+end
+
 -- == Saved Variables ==
 -- checks for and sets default settings
 function BG.CheckSettings()
@@ -114,18 +126,10 @@ function BG.CreateDefaultLists(global)
 	
 	-- tradeskills
 	local tradeSkills =  { GetProfessions() }
-	for i = 1, 6 do	-- we get at most 6 professions (2x primary, cooking, fishing, first aid, archeology)
+	for i = 1, 6 do	-- we get at most 6 professions (2x primary, cooking, fishing, first aid, archaeology)
 		local englishSkill = BG.GetTradeSkill(tradeSkills[i])
 		if englishSkill then
-			if englishSkill == "Herbalism" or englishSkill == "Skinning" or englishSkill == "Mining" or englishSkill == "Fishing" then
-				BG_LocalDB.exclude["Tradeskill.Gather." .. englishSkill] = 0
-			else
-				BG_LocalDB.exclude["Tradeskill.Mat.ByProfession." .. englishSkill] = 0
-			end
-			
-			if englishSkill ~= "Herbalism" and englishSkill ~= "Archaeology" then
-				BG_LocalDB.exclude["Tradeskill.Tool." .. englishSkill] = 0
-			end
+			BG.ModifyList_ExcludeSkill(englishSkill)
 		end
 	end
 	
@@ -152,14 +156,26 @@ end
 
 
 -- == Profession Infos ==
--- takes a tradeskill id (as returned in GetProfessions()) and returns its English name 
-function BG.GetTradeSkill(id)
-	if not id then return end
-	local spellName
-	local compareName = GetProfessionInfo(id) 
+function BG.ModifyList_ExcludeSkill(englishSkill)
+	if englishSkill == "Herbalism" or englishSkill == "Skinning" or englishSkill == "Mining" or englishSkill == "Fishing" then
+		BG_LocalDB.exclude["Tradeskill.Gather." .. englishSkill] = 0
+	else
+		BG_LocalDB.exclude["Tradeskill.Mat.ByProfession." .. englishSkill] = 0
+	end
+	
+	if englishSkill ~= "Herbalism" and englishSkill ~= "Archaeology" then
+		BG_LocalDB.exclude["Tradeskill.Tool." .. englishSkill] = 0
+	end
+end
+
+-- takes a tradeskill id (as returned in GetProfessions()) or localized name and returns its English name 
+function BG.GetTradeSkill(skill)
+	if not skill then return end
+	if type(skill) == "number" then
+		skill = GetProfessionInfo(skill)
+	end
 	for spellID, skillName in pairs(BG.tradeSkills) do
-		spellName = GetSpellInfo(spellID)
-		if spellName == compareName then
+		if ( GetSpellInfo(spellID) ) == skill then
 			return skillName
 		end
 	end

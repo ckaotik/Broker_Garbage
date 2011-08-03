@@ -1,16 +1,26 @@
 local addonName, BGLM = ...
 
--- used to distinguish between raid loot and inventory loot
--- [TODO] also add SpellCasts (Mining, Disenchanting ...)
-hooksecurefunc("UseContainerItem", function(...)
+local function InitializePrivateLoot()
 	BGLM.privateLoot = GetTime()
-end)
+end
+
+-- [TODO] also add SpellCasts (Mining, Disenchanting ...)
+
 -- register events
 local frame = CreateFrame("Frame")
 local function eventHandler(self, event, arg1, ...)
 	if event == "ADDON_LOADED" and arg1 == addonName then
 		BGLM.CheckSettings()
 		BGLM.UpdateSettings_4_1()
+
+		-- used to distinguish between raid loot and inventory loot
+		hooksecurefunc("UseContainerItem", InitializePrivateLoot)
+
+		frame:RegisterEvent("ITEM_PUSH")
+		frame:RegisterEvent("UI_ERROR_MESSAGE")
+		frame:RegisterEvent("LOOT_OPENED")
+		frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+		-- frame:RegisterEvent("LOOT_CLOSED")
 		frame:UnregisterEvent("ADDON_LOADED")
 
 	elseif event == "ITEM_PUSH" and BGLM_LocalDB.autoDestroy and BGLM_LocalDB.autoDestroyInstant then
@@ -31,14 +41,14 @@ local function eventHandler(self, event, arg1, ...)
 		if not (disable and disable()) and (not InCombatLockdown() or BGLM_GlobalDB.useInCombat) then
 			securecall(BGLM.SelectiveLooting, arg1)
 		end
+	elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+		if arg1 == "player" and BGLM:Find(BGLM.privateLootSpells, ( select(4, ...) )) then
+			InitializePrivateLoot()
+		end
 	end
 end
 
 frame:RegisterEvent("ADDON_LOADED")
-frame:RegisterEvent("ITEM_PUSH")
-frame:RegisterEvent("UI_ERROR_MESSAGE")
-frame:RegisterEvent("LOOT_OPENED")
--- frame:RegisterEvent("LOOT_CLOSED")
 frame:SetScript("OnEvent", eventHandler)
 
 -- ---------------------------------------------------------

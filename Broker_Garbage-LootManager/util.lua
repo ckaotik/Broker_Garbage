@@ -2,6 +2,7 @@ local _, BGLM = ...
 
 
 BGLM.PT = LibStub("LibPeriodicTable-3.1", true)
+BGLM.privateLootSpells = { 51005, 13262, 2576, 2366, 8613, 31252 } -- milling, disenchanting, mining, herbalism, skinning, prospecting, engineering [TODO]
 
 function BGLM:Print(text, trigger)
 	if trigger == nil or trigger == true then
@@ -37,7 +38,7 @@ BGLM.defaultGlobalSettings = {
 	printLocked = true,
 	
 	-- semi-internals
-	privateLootTimer = 4,
+	privateLootTimer = 4,	-- [TODO] needs options
 }
 BGLM.defaultLocalSettings = {
 	-- behavior
@@ -45,8 +46,6 @@ BGLM.defaultLocalSettings = {
 	autoDestroy = false,
 	autoDestroyInstant = false,
 }
-
-BGLM.PT = LibStub("LibPeriodicTable-3.1", true)
 
 -- Helper functions
 -- ---------------------------------------------------------

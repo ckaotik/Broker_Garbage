@@ -65,7 +65,7 @@ function BG.ResetStatistics(isGlobal)
 	BG:ResetOption("itemsSold", isGlobal)
 end
 
-Broker_Garbage = BG -- [TODO] limit accedd again?
+Broker_Garbage = BG -- [TODO] limit access again?
 --[[{
 	RegisterPlugin = BG.RegisterPlugin,
 	

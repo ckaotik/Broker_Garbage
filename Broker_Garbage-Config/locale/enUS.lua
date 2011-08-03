@@ -131,6 +131,26 @@ BGC.locale = {
 
 	restackTitle = "Automatic restack",
 	restackTooltip = "Check to automatically compress your inventory items after looting.",
+
+	inDev = "Under Development",
+
+	sellLogTitle = "Print Sell Log",
+	sellLogTooltip = "Check to print any item that gets sold by Broker_Garbage into your chat.",
+
+	overrideLPTTitle = "Override LPT junk",
+	overrideLPTTooltip = "Check to ignore any LibPeriodicTable category data for grey items.\nSome items are no longer needed (grey) but still listed as e.g. reagents in LPT.",
+
+	hideZeroTitle = "Hide items worth 0c",
+	hideZeroTooltip = "Check to hide items that are not worth anything. Enabled by default.",
+
+	debugTitle = "Print debug output",
+	debugTooltip = "Check to display Broker_Garbage's debug information. Tends to spam your chat frame, you have been warned.",
+
+	reportDEGearTitle = "Report outdated gear for disenchanting",
+	reportDEGearTooltip = "Check to print a message when an item becomes outdated (by means of TopFit) so you may disenchant it.",
+
+	keepForLaterDETitle = "DE skill difference",
+	keepForLaterDETooltip = "Keep items that require at most <x> more skill points to be disenchanted by your character.",
 	
 	DKTitle = "Temporary disable key",
 	DKTooltip = "Set a key to temporarily disable BrokerGarbage.",

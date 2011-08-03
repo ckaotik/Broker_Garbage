@@ -98,7 +98,6 @@ function BG.UpdateAllCaches(itemID)
 end
 
 -- == Inventory Scanning ==
--- [TODO] also update whenever the number/size/?? of bags change!
 function BG.ScanInventory(resetCache)
 	if resetCache then BG.ClearCache() end
 	BG.containerInInventory = false

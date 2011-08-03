@@ -132,6 +132,26 @@ if GetLocale() == "deDE" then
 	BGC.locale.restackTitle = "Automatisch stapeln"
 	BGC.locale.restackTooltip = "Wenn ausgewählt wird Broker_Garbage automatisch die von dir beobachteten Gegenstände nach dem Plündern stapeln, um Platz zu schaffen."
 
+	BGC.locale.inDev = "In Entwicklung"
+
+	BGC.locale.sellLogTitle = "Verkäufe ausgeben"
+	BGC.locale.sellLogTooltip = "Auswählen, um beim automatischen Verkaufen jedes einzelne Item im Chat auszugeben."
+
+	BGC.locale.overrideLPTTitle = "LPT Müll verkaufen"
+	BGC.locale.overrideLPTTooltip = "Auswählen, um LibPeriodicTable Daten für graue Items zu ignorieren.\nEinige Gegenstände sind nicht mehr benötigt (graue Qualität), aber noch fehlerhaft als nützlich gelistet."
+
+	BGC.locale.hideZeroTitle = "Verstecke 0c Items"
+	BGC.locale.hideZeroTooltip = "Auswählen, um Gegenstände ohne Wert aus der Anzeige auszublenden. Standardmäßig aktiviert."
+
+	BGC.locale.debugTitle = "Debugausgabe zeigen"
+	BGC.locale.debugTooltip = "Auswählen, um Broker_Garbage's Debug-Informationen im Chat auszugeben. Tendiert dazu, den Chatframe vollzuspammen."
+
+	BGC.locale.reportDEGearTitle = "Hinweis zum Ent- zaubern alter Items"
+	BGC.locale.reportDEGearTooltip = "Auswählen, um eine Nachricht im Chat zu zeigen, wenn ein Item überholt ist (von TopFit), und du es entzaubern solltest."
+
+	BGC.locale.keepForLaterDETitle = "Später entzaubern"
+	BGC.locale.keepForLaterDETooltip = "Behalte Items, die höchstens <x> weitere Skillpunkte brauchen, um von deinem Charakter entzaubert werden zu können."
+
 	BGC.locale.DKTitle = "Temp. deaktivieren mit"
 	BGC.locale.DKTooltip = "Wähle die Taste, die Aktionen von Broker_Garbage temporär deaktiviert."
 	BGC.locale.disableKeys = {

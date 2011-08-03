@@ -59,7 +59,7 @@ function BG.ReportSelling(repairCost, iteration)
 	if isLocked and iteration < 10 then
 		BG.CallWithDelay(BG.ReportSelling, 0.3, repairCost, iteration+1)
 	elseif isLocked then
-		BG.Print("Error! Was waiting for items to unlock after selling, but they are still locked.")
+		BG.Print("Error! Was waiting too long for items to unlock after selling, but they are still locked.")
 	else
 		if sellValue > 0 and repairCost > 0 then
 			BG.Print(format(BG.locale.sellAndRepair, 

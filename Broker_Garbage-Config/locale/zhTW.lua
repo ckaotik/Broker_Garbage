@@ -132,6 +132,26 @@ if GetLocale() == "zhTW" then
 	BGC.locale.restackTitle = "滿的背包"
 	BGC.locale.restackTooltip = "勾選將會捨取在你全部的背包為了可堆疊物品，不只是已看過物品。"
 	
+	--[[ BGC.locale.inDev = "Under Development",
+
+	BGC.locale.sellLogTitle = "Print Sell Log",
+	BGC.locale.sellLogTooltip = "Check to print any item that gets sold by Broker_Garbage into your chat.",
+
+	BGC.locale.overrideLPTTitle = "Override LPT junk",
+	BGC.locale.overrideLPTTooltip = "Check to ignore any LibPeriodicTable category data for grey items.\nSome items are no longer needed (grey) but still listed as e.g. reagents in LPT.",
+
+	BGC.locale.hideZeroTitle = "Hide items worth 0c",
+	BGC.locale.hideZeroTooltip = "Check to hide items that are not worth anything. Enabled by default.",
+
+	BGC.locale.debugTitle = "Print debug output",
+	BGC.locale.debugTooltip = "Check to display Broker_Garbage's debug information. Tends to spam your chat frame, you have been warned.",
+
+	BGC.locale.reportDEGearTitle = "Report outdated gear for disenchanting",
+	BGC.locale.reportDEGearTooltip = "Check to print a message when an item becomes outdated (by means of TopFit) so you may disenchant it.",
+
+	BGC.locale.keepForLaterDETitle = "DE skill difference",
+	BGC.locale.keepForLaterDETooltip = "Keep items that require at most <x> more skill points to be disenchanted by your character." ]]--
+	
 	BGC.locale.DKTitle = "暫存。停用按鍵"
 	BGC.locale.DKTooltip = "設定一個按鍵來暫時性的停用BrokerGarbage。"
 	BGC.locale.disableKeys = {

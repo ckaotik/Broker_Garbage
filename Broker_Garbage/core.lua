@@ -14,7 +14,7 @@ local addonName, BG = ...
 BG.PT = LibStub("LibPeriodicTable-3.1", true)	-- don't scream if LPT isn't present
 
 -- internal variables
-BG.locked = nil						-- set to true while selling stuff
+BG.locked = nil						-- is set to true while selling stuff
 BG.sellValue = 0					-- represents the actual value that we sold stuff for
 BG.repairCost = 0					-- the amount of money that we repaired for
 
@@ -48,6 +48,8 @@ local function eventHandler(self, event, arg1, ...)
 		frame:RegisterEvent("UI_ERROR_MESSAGE")
 		frame:RegisterEvent("LOOT_OPENED")
 		frame:RegisterEvent("EQUIPMENT_SETS_CHANGED")
+		frame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
+		frame:RegisterEvent("CHAT_MSG_SKILL")
 
 		frame:UnregisterEvent("ADDON_LOADED")
 	
@@ -105,6 +107,25 @@ local function eventHandler(self, event, arg1, ...)
 
 	elseif event == "EQUIPMENT_SETS_CHANGED" then
 		BG.RescanEquipmentInBags()
+	elseif event == "PLAYER_EQUIPMENT_CHANGED" then
+		for i = 1, NUM_BAG_SLOTS do
+			if ContainerIDToInventoryID(i) and arg1 == ContainerIDToInventoryID(i) then
+				BG.Print("One of the players bags changed! "..arg1)
+				BG.ScanInventory()
+				return
+			end
+		end
+	elseif event == "CHAT_MSG_SKILL" then
+		local skillName = string.match(arg1, BG.ReformatGlobalString(ERR_SKILL_GAINED_S))
+		if skillName then
+			skillName = BG.GetTradeSkill(skillName)
+			if skillName then
+				BG.ModifyList_ExcludeSkill(skillName)
+				BG.Print(BG.locale.listsUpdatedPleaseCheck)
+			end
+		end
+	elseif event == "" then
+		-- [TODO] items left inventory without bag_update event
 	end	
 end
 frame:RegisterEvent("ADDON_LOADED")
