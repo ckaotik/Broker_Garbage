@@ -4,8 +4,6 @@ local function InitializePrivateLoot()
 	BGLM.privateLoot = GetTime()
 end
 
--- [TODO] also add SpellCasts (Mining, Disenchanting ...)
-
 -- register events
 local frame = CreateFrame("Frame")
 local function eventHandler(self, event, arg1, ...)
@@ -35,7 +33,6 @@ local function eventHandler(self, event, arg1, ...)
 		end
 
 	elseif event == "LOOT_OPENED" then
-		-- looting
 		local disable = Broker_Garbage:GetVariable("disableKey")
 		disable = disable[Broker_Garbage:GetOption("disableKey", true)]
 		if not (disable and disable()) and (not InCombatLockdown() or BGLM_GlobalDB.useInCombat) then
@@ -53,7 +50,7 @@ frame:SetScript("OnEvent", eventHandler)
 
 -- ---------------------------------------------------------
 -- calls restack and deletes as many items as needed
-function BGLM.DeletePartialStack(itemID, num)
+function BGLM:DeletePartialStack(itemID, num)
 	local locations = Broker_Garbage:FindSlotToDelete(itemID)
 	local maxStack = select(8, GetItemInfo(itemID))
 	
@@ -85,66 +82,44 @@ function BGLM:CanSkin(mobLevel)
 end
 
 -- determines if an item should be looted
-function BGLM:IsInteresting(itemLink)
-	local itemID = BGLM:GetItemID(itemLink)
-	local alwaysLoot = BGLM_GlobalDB.forceClear or false
-	
-	-- items we don't want
-	local negativeList = BGLM:JoinTables(Broker_Garbage:GetOption("include"))
-	if not itemID or negativeList[itemID] then
-		return false, false
-	elseif BGLM.PT then
-		-- check if the item belongs to a category
-		local inCategory
-		for setName,_ in pairs(negativeList) do
-			if type(setName) == "string" then
-				_, inCategory = BGLM.PT:ItemInSet(itemID, setName)
-			end
-			if inCategory then 
-				return false, alwaysLoot
-			end
-		end
-	end
-	
-	-- items we always want
-	local positiveList = BGLM:JoinTables(Broker_Garbage:GetOption("exclude"))
-	if positiveList[itemID] then
+function BGLM:IsInteresting(itemTable)
+	local isInteresting, alwaysLoot
+	if itemTable.classification == Broker_Garbage.EXCLUDE then
+		isInteresting = true
 		alwaysLoot = true
-	elseif BGLM.PT then
-		-- check if the item belongs to a category
-		local inCategory
-		for setName,_ in pairs(positiveList) do
-			if type(setName) == "string" then
-				_, inCategory = BGLM.PT:ItemInSet(itemID, setName)
-			end
-			if inCategory then 
-				alwaysLoot = true
-			end
-		end
+	elseif itemTable.classification == Broker_Garbage.INCLUDE then
+		isInteresting = false
+	else
+		isInteresting = true
 	end
-	
-	if select(6,GetItemInfo(itemLink)) == select(12, GetAuctionItemClasses()) then	-- Quest Item
-		alwaysLoot = true
+
+	local isQuestItem = select(6, GetItemInfo(itemTable.itemID)) == select(12, GetAuctionItemClasses())
+	local isTopFitInteresting = IsAddOnLoaded("TopFit") and TopFit:IsInterestingItem( (GetItemInfo(itemTable.itemID)) )
+
+	if isQuestItem or isTopFitInteresting or BGLM_GlobalDB.forceClear or alwaysLoot then
+		return isInteresting, true
+	else
+		return isInteresting, false
 	end
-	
-	-- items we don't care about
-	return true, alwaysLoot
 end
 
 -- hook UpdateButton function for non-autoloot
 function BGLM.UpdateLootFrame(index)
 	if not index then return end
 	local slot = (LOOTFRAME_NUMBUTTONS * (LootFrame.page - 1)) + index
-	itemLink = GetLootSlotLink(slot)
-	if not itemLink then return end
+	local item = GetLootSlotLink(slot)
+		  item = item and BGLM:GetItemID(item)
+		  item = Broker_Garbage.GetCached(item)
 	
-	local isInteresting, alwaysLoot = BGLM:IsInteresting(itemLink)
-	if isInteresting or alwaysLoot then
-		_G["LootButton"..index.."IconTexture"]:SetDesaturated(false)
-		_G["LootButton"..index.."IconTexture"]:SetAlpha(1)
-	else
-		_G["LootButton"..index.."IconTexture"]:SetDesaturated(true)
-		_G["LootButton"..index.."IconTexture"]:SetAlpha(0.5)
+	if item then
+		local isInteresting, alwaysLoot = BGLM:IsInteresting(item)
+		if isInteresting or alwaysLoot then
+			_G["LootButton"..index.."IconTexture"]:SetDesaturated(false)
+			_G["LootButton"..index.."IconTexture"]:SetAlpha(1)
+		else
+			_G["LootButton"..index.."IconTexture"]:SetDesaturated(true)
+			_G["LootButton"..index.."IconTexture"]:SetAlpha(0.5)
+		end
 	end
 end
 hooksecurefunc("LootFrame_UpdateButton", BGLM.UpdateLootFrame)
@@ -199,38 +174,48 @@ function BGLM.SelectiveLooting(autoloot)	-- jwehgH"G$(&/&§$/!!" stupid . vs. : 
 			BGLM.privateLoot = nil	-- reset, data is too old
 		end
 	end
+	if IsFishingLoot() then BGLM.privateLoot = true end
 	
-	local autoLoot = autoloot ~= 0 or BGLM_GlobalDB.autoLoot
-	local prepareSkinning = BGLM_GlobalDB.autoLootSkinning and UnitExists("target") and UnitIsDead("target")
-		and UnitCreatureType("target") == BGLM.locale.CreatureTypeBeast
-		and BGLM:CanSkin(UnitLevel("target"))
+	local lootAll = autoloot ~= 0 or BGLM_GlobalDB.autoLoot
+	local lootPickpocket = BGLM_GlobalDB.autoLootPickpocket and Broker_Garbage:GetVariable("playerClass") == "ROGUE" and IsStealthed()
+	local lootFishing = BGLM_GlobalDB.autoLootFishing and IsFishingLoot()
+	local lootSkinning = BGLM_GlobalDB.autoLootSkinning and UnitExists("target") and UnitIsDead("target") and UnitCreatureType("target") == BGLM.locale.CreatureTypeBeast and BGLM:CanSkin(UnitLevel("target"))
 	
-	if autoLoot
-		or (BGLM_GlobalDB.autoLootPickpocket and Broker_Garbage:GetVariable("playerClass") == "ROGUE" and IsStealthed()) 
-		or (BGLM_GlobalDB.autoLootFishing and IsFishingLoot())
-		or prepareSkinning then
+	if lootAll or lootPickpocket or lootFishing or lootSkinning then
 		BGLM:Debug("SelectiveLooting: Check passed, figure out what to do. Autoloot:", autoloot)
 		
 		local close = true
 		BGLM:Debug("close initialized: true")
+
+		local lootSlotItem, itemLink, itemID, lootAction
+		local compareTo
+		
+		local lootMethod, groupLM, raidLM = GetLootMethod()
+
+		local slotQuantity, slotQuality, isLocked
+		local isInteresting, alwaysLoot
+		local maxStack, inBags, stackOverflow
+
 		for slot = 1, GetNumLootItems() do
-			local lootAction
-			local _, _, quantity,  quality, locked = GetLootSlotInfo(slot)
-			local itemLink = GetLootSlotLink(slot)
-			local itemID = itemLink and BGLM:GetItemID(itemLink)
-			local compareTo = Broker_Garbage:GetVariable("cheapestItems")
-			compareTo = compareTo and compareTo[1] or nil
-			
-			if itemLink then	-- needed because faulty loot slots or slots that contain money break things
-				local value = Broker_Garbage:GetItemValue(itemLink, quantity) or 0
-				local isInteresting, alwaysLoot = BGLM:IsInteresting(itemLink)
-				local maxStack = select(8, GetItemInfo(itemID))
-				local inBags = mod(GetItemCount(itemID), maxStack)
-				local stackOverflow = quantity + mod(inBags, maxStack) - maxStack
-				local lootMethod, groupLM, raidLM = GetLootMethod()
+			lootAction = nil
+
+			_, _, quantity, quality, locked = GetLootSlotInfo(slot)
+			itemLink = GetLootSlotLink(slot)
+
+			if itemLink then	-- some slots have money, i.e. not an item
+				itemID = itemLink and BGLM:GetItemID(itemLink)
+				lootSlotItem = itemID and Broker_Garbage.GetCached(itemID)
+				
+				isInteresting, alwaysLoot = BGLM:IsInteresting(lootSlotItem)
+				maxStack = select(8, GetItemInfo(itemID))
+				inBags = mod(GetItemCount(itemID), maxStack)
+				stackOverflow = quantity + mod(inBags, maxStack) - maxStack
+
+				compareTo = Broker_Garbage:GetVariable("cheapestItems")
+				compareTo = compareTo and compareTo[1] or nil
 				
 				if isInteresting or alwaysLoot then
-					if not alwaysLoot and value < BGLM_LocalDB.itemMinValue then
+					if not alwaysLoot and lootSlotItem.value < BGLM_LocalDB.itemMinValue then
 						BGLM:Print(format(BGLM.locale.couldNotLootValue, itemLink), BGLM_GlobalDB.printValue)
 						lootAction = "none"
 					
@@ -244,18 +229,18 @@ function BGLM.SelectiveLooting(autoloot)	-- jwehgH"G$(&/&§$/!!" stupid . vs. : 
 							lootAction = "take"
 						
 						elseif not alwaysLoot and BGLM_LocalDB.autoDestroy and stackOverflow > 0 and 
-							(prepareSkinning or (compareTo and (Broker_Garbage:GetItemValue(itemLink, stackOverflow) or 0) < compareTo.value)) then
+							(prepareSkinning or (compareTo and (Broker_Garbage.GetItemValue(itemLink, stackOverflow) or 0) < compareTo.value)) then
 							-- delete partial stack. throw away partial stacks to squeeze in a little more
 							BGLM:Debug("Item can be made to fit.", itemLink)
 							lootAction = "deletePartial"
 						
 						elseif BGLM_LocalDB.autoDestroy and compareTo and compareTo.value and 
-							(alwaysLoot or prepareSkinning or value > compareTo.value) then
+							(alwaysLoot or prepareSkinning or lootSlotItem.value > compareTo.value) then
 							-- delete only if it's worth more, if it's an item we really need or if we want to skin the mob
 							BGLM:Debug("Deleting item", compareTo.itemLink, "to make room for", itemLink)
 							lootAction = "delete"
 						
-						elseif not alwaysLoot and compareTo and compareTo.value and value and value <= compareTo.value then
+						elseif not alwaysLoot and compareTo and compareTo.value and lootSlotItem.value <= compareTo.value then
 							BGLM:Debug("Taking this item by throwing away stuff would make us loose money.", itemLink)
 							BGLM:Print(format(BGLM.locale.couldNotLootCompareValue, itemLink), BGLM_GlobalDB.printCompareValue)
 							lootAction = "none"
@@ -275,7 +260,7 @@ function BGLM.SelectiveLooting(autoloot)	-- jwehgH"G$(&/&§$/!!" stupid . vs. : 
 				else
 					-- item is on junk list
 					BGLM:Print(format(BGLM.locale.couldNotLootBlacklist, itemLink), BGLM_GlobalDB.printJunk)
-                    lootAction = "none"
+                    lootAction = "none" -- [TODO] add option o change this behavior
 				end
 				
 				-- last update & starting delete actions if needed
@@ -303,7 +288,7 @@ function BGLM.SelectiveLooting(autoloot)	-- jwehgH"G$(&/&§$/!!" stupid . vs. : 
 					close = false
 
                 elseif lootAction == "deletePartial" then
-                    Broker_Garbage:DeletePartialStack(itemID, stackOverflow)
+                    BGLM:DeletePartialStack(itemID, stackOverflow)
                     lootAction = "take"
                 elseif lootAction == "delete" then
                     Broker_Garbage:Delete(compareTo)
@@ -311,7 +296,7 @@ function BGLM.SelectiveLooting(autoloot)	-- jwehgH"G$(&/&§$/!!" stupid . vs. : 
 				end
 			end
 			
-			if lootAction == "take" or not LootSlotIsItem(slot) then	-- finally, take it!; not itemLink or
+			if lootAction == "take" or not LootSlotIsItem(slot) then	-- finally, take it!
 				BGLM:Debug("Taking item", itemLink or "???")
 				LootSlot(slot)
 				if BGLM.privateLoot or BGLM_GlobalDB.autoConfirmBoP then

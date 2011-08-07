@@ -2,7 +2,7 @@ local _, BGLM = ...
 
 
 BGLM.PT = LibStub("LibPeriodicTable-3.1", true)
-BGLM.privateLootSpells = { 51005, 13262, 2576, 2366, 8613, 31252 } -- milling, disenchanting, mining, herbalism, skinning, prospecting, engineering [TODO]
+BGLM.privateLootSpells = { 51005, 13262, 2576, 2366, 8613, 31252, 49383, 73979 } -- milling, disenchanting, mining, herbalism, skinning, prospecting, engineering, archaeology
 
 function BGLM:Print(text, trigger)
 	if trigger == nil or trigger == true then

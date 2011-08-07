@@ -135,7 +135,7 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 	for index, item in ipairs(BG.cheapestItems or {}) do
 		if item.bag == container and item.slot == slot then
 			slotFound = true
-			if not newItemLink or item.itemLink ~= newItemLink then	-- update the whole item slot
+			if (item.itemLink and not newItemLink) or item.itemLink ~= newItemLink then	-- update the whole item slot
 				BG.Debug("Update whole slot", newItemLink)
 				BG.SetDynamicLabelBySlot(container, slot, index)
 			elseif item.count ~= newItemCount then	-- update the item count

@@ -179,7 +179,7 @@ function BG.GetTradeSkill(skill)
 			return skillName
 		end
 	end
-	return "Herbalism"
+	return nil
 end
 
 -- returns the current and maximum rank of a given skill

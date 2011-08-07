@@ -188,6 +188,14 @@ local function Options_LootManager(pluginID)
 	autoDestroyInstant.stat = "autoDestroyInstant"
 	autoDestroyInstant:SetChecked(BGLM_LocalDB.autoDestroyInstant)
 	autoDestroyInstant:SetScript("OnClick", Toggle)
+
+	-- [TODO] make pretty ...
+	local debug = LibStub("tekKonfig-Checkbox").new(inventory, nil, "Debug Messages", "TOPLEFT", autoDestroyInstant, "BOTTOMLEFT", -14, 4)
+	debug.tiptext = Broker_Garbage.locale.debugTooltip
+	debug.stat = "debug"
+	debug.global = true
+	debug:SetChecked(BGLM_GlobalDB.debug)
+	debug:SetScript("OnClick", Toggle)
 	
 	local treshold = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupTreshold, "TOPLEFT", notices, "BOTTOMLEFT", 0, -14)
 	treshold:SetHeight(90); treshold:SetWidth(180)
