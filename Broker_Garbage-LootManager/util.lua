@@ -41,7 +41,7 @@ BGLM.defaultGlobalSettings = {
 	printLocked = true,
 	
 	-- semi-internals
-	privateLootTimer = 4,	-- [TODO] needs options
+	privateLootTimer = 4,		-- [TODO] needs options
 }
 BGLM.defaultLocalSettings = {
 	-- behavior

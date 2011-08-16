@@ -24,6 +24,7 @@ libs\tekKonfig\tekKonfig.xml
 # locale
 locale\enUS.lua
 locale\deDE.lua
+locale\zhTW.lua
 
 # main files
 util.lua

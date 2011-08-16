@@ -18,6 +18,7 @@
 # localization files
 locale\enUS.lua
 locale\deDE.lua
+locale\zhTW.lua
 
 # code files
 util.lua

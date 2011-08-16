@@ -222,7 +222,7 @@ function BGLM.SelectiveLooting(autoloot)	-- jwehgH"G$(&/&§$/!!" stupid . vs. : 
 					elseif Broker_Garbage:GetVariable("totalFreeSlots") <= BGLM_GlobalDB.tooFewSlots then
 						-- dropping low on bag space
 						BGLM:Debug("Free bag space below minimum treshold! Thinking ...", itemLink)
-						-- new item: 13c.
+						
 						if inBags > 0 and stackOverflow <= 0 then
 							-- delete nothing. this item fits without us doing anything
 							BGLM:Debug("Item stacks, do nothing special", itemLink)
