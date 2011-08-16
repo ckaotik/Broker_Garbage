@@ -128,7 +128,7 @@ BG.tradeSkills = {
 	[2575] = "Mining",
 	[8613] = "Skinning",
 	[3908] = "Tailoring",
-		
+	
 	[78670] = "Archaeology",
 	[2550] = "Cooking",
 	[3273] = "First Aid",

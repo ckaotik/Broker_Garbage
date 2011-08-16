@@ -163,7 +163,7 @@ function BG.ModifyList_ExcludeSkill(englishSkill)
 		BG_LocalDB.exclude["Tradeskill.Mat.ByProfession." .. englishSkill] = 0
 	end
 	
-	if englishSkill ~= "Herbalism" and englishSkill ~= "Archaeology" then
+	if englishSkill ~= "Herbalism" and englishSkill ~= "Archaeology" and englishSkill ~= "Cooking" then
 		BG_LocalDB.exclude["Tradeskill.Tool." .. englishSkill] = 0
 	end
 end

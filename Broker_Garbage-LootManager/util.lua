@@ -23,12 +23,15 @@ BGLM.defaultGlobalSettings = {
 	autoLootSkinning = true,
 	autoLootFishing = true,
 	autoLootPickpocket = true,
-	closeLootWindow = true,
-	forceClear = false,
-	autoConfirmBoP = false,
-	useInCombat = false,
-	tooFewSlots = 0,
 	
+	useInCombat = false,
+	closeLootWindow = true,
+	autoConfirmBoP = false,
+	forceClear = false,
+	lootExcludeItems = true,	-- [TODO] needs options
+	lootIncludeItems = false,	-- [TODO] add options
+
+	tooFewSlots = 0,
 	warnLM = true,
 	warnInvFull = false,
 	printValue = true,

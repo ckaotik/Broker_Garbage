@@ -86,15 +86,15 @@ function BGLM:IsInteresting(itemTable)
 	local isInteresting, alwaysLoot
 	if itemTable.classification == Broker_Garbage.EXCLUDE then
 		isInteresting = true
-		alwaysLoot = true
-	elseif itemTable.classification == Broker_Garbage.INCLUDE then
+		alwaysLoot = BGLM_GlobalDB.lootExcludeItems
+	elseif itemTable.classification == Broker_Garbage.INCLUDE and not BGLM_GlobalDB.lootIncludeItems then
 		isInteresting = false
 	else
 		isInteresting = true
 	end
 
 	local isQuestItem = select(6, GetItemInfo(itemTable.itemID)) == select(12, GetAuctionItemClasses())
-	local isTopFitInteresting = IsAddOnLoaded("TopFit") and TopFit:IsInterestingItem( (GetItemInfo(itemTable.itemID)) )
+	local isTopFitInteresting = IsAddOnLoaded("TopFit") and Broker_Garbage.IsItemEquipment(itemTable.itemID) and TopFit:IsInterestingItem( (GetItemInfo(itemTable.itemID)) )
 
 	if isQuestItem or isTopFitInteresting or BGLM_GlobalDB.forceClear or alwaysLoot then
 		return isInteresting, true
@@ -222,20 +222,20 @@ function BGLM.SelectiveLooting(autoloot)	-- jwehgH"G$(&/&§$/!!" stupid . vs. : 
 					elseif Broker_Garbage:GetVariable("totalFreeSlots") <= BGLM_GlobalDB.tooFewSlots then
 						-- dropping low on bag space
 						BGLM:Debug("Free bag space below minimum treshold! Thinking ...", itemLink)
-						
+						-- new item: 13c.
 						if inBags > 0 and stackOverflow <= 0 then
 							-- delete nothing. this item fits without us doing anything
 							BGLM:Debug("Item stacks, do nothing special", itemLink)
 							lootAction = "take"
 						
 						elseif not alwaysLoot and BGLM_LocalDB.autoDestroy and stackOverflow > 0 and 
-							(prepareSkinning or (compareTo and (Broker_Garbage.GetItemValue(itemLink, stackOverflow) or 0) < compareTo.value)) then
+							(lootSkinning or (compareTo and (Broker_Garbage.GetItemValue(itemLink, stackOverflow) or 0) < compareTo.value)) then
 							-- delete partial stack. throw away partial stacks to squeeze in a little more
 							BGLM:Debug("Item can be made to fit.", itemLink)
 							lootAction = "deletePartial"
 						
 						elseif BGLM_LocalDB.autoDestroy and compareTo and compareTo.value and 
-							(alwaysLoot or prepareSkinning or lootSlotItem.value > compareTo.value) then
+							(alwaysLoot or lootSkinning or lootSlotItem.value > compareTo.value) then
 							-- delete only if it's worth more, if it's an item we really need or if we want to skin the mob
 							BGLM:Debug("Deleting item", compareTo.itemLink, "to make room for", itemLink)
 							lootAction = "delete"
@@ -260,7 +260,7 @@ function BGLM.SelectiveLooting(autoloot)	-- jwehgH"G$(&/&§$/!!" stupid . vs. : 
 				else
 					-- item is on junk list
 					BGLM:Print(format(BGLM.locale.couldNotLootBlacklist, itemLink), BGLM_GlobalDB.printJunk)
-                    lootAction = "none" -- [TODO] add option o change this behavior
+                    lootAction = "none"
 				end
 				
 				-- last update & starting delete actions if needed

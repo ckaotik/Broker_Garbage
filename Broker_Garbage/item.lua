@@ -133,10 +133,10 @@ end
 function BG.IsItemEquipment(invType)	-- itemLink/itemID/invType
 	if not invType or invType == "" then
 		return nil
-	elseif type(invType) == "string" and not string.find(invType, "INVTYPE") then
+	elseif (type(invType) == "string" and not string.find(invType, "INVTYPE")) or type(invType) == "number" then
 		invType = select(9, GetItemInfo(invType))
 	end
-	return not string.find(invType, "BAG") and not string.find(invType, "TRINKET")
+	return invType ~= "" and not string.find(invType, "BAG") and not string.find(invType, "TRINKET")
 end
 
 -- == Item Values ==

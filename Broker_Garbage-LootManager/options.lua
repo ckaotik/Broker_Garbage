@@ -4,17 +4,10 @@ local function Options_LootManager(pluginID)
 	local function Toggle(self)
 		if not (self and self.stat) then return end
 
-		local variable
 		if self.global then
-			if BGLM_GlobalDB[self.stat] ~= nil then
-				BGLM_GlobalDB[self.stat] = not BGLM_GlobalDB[self.stat]
-			end
+			BGLM_GlobalDB[self.stat] = not BGLM_GlobalDB[self.stat]
 		else
-			variable = BGLM_LocalDB[self.stat]
-			
-			if BGLM_LocalDB[self.stat] ~= nil then
-				BGLM_LocalDB[self.stat] = not BGLM_LocalDB[self.stat]
-			end
+			BGLM_LocalDB[self.stat] = not BGLM_LocalDB[self.stat]
 		end
 	end
 	
@@ -192,8 +185,8 @@ local function Options_LootManager(pluginID)
 	-- [TODO] make pretty ...
 	local debug = LibStub("tekKonfig-Checkbox").new(inventory, nil, "Debug Messages", "TOPLEFT", autoDestroyInstant, "BOTTOMLEFT", -14, 4)
 	debug.tiptext = Broker_Garbage.locale.debugTooltip
-	debug.stat = "debug"
 	debug.global = true
+	debug.stat = "debug"
 	debug:SetChecked(BGLM_GlobalDB.debug)
 	debug:SetScript("OnClick", Toggle)
 	
