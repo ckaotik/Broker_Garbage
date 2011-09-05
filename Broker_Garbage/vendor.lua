@@ -1,15 +1,15 @@
 local _, BG = ...
 
 function BG.ManualAutoSell()
-	local sellValue = BG.AutoSell()
+	local sellValue, numItems = BG.AutoSell(true)
 	
 	if sellValue ~= 0 then
-		BG.CallWithDelay(BG.ReportSelling, 0.3, 0, 0)
+		BG.CallWithDelay(BG.ReportSelling, 0.3, 0, 0, numItems)
 	end
 end
 
-function BG.AutoSell()
-	if not BG.isAtVendor then return end
+function BG.AutoSell(manualSell)
+	if not BG.isAtVendor or (not manualSell and not BG_GlobalDB.autoSellToVendor) then return end
 	BG.frame:RegisterEvent("PLAYER_MONEY")
 
 	wipe(BG.sellLog)    -- reset data for refilling
@@ -50,14 +50,14 @@ function BG.AutoSell()
 		BG.Print(BG.locale.reportNothingToSell)
 	end
 
-	return sellValue
+	return sellValue, #(BG.sellLog)
 end
 
-function BG.ReportSelling(repairCost, iteration)
+function BG.ReportSelling(repairCost, iteration, maxIteration)
 	BG.Debug("ReportSelling", repairCost, iteration)
 	local sellValue, numItems, isLocked = BG.CheckSoldItems()
-	if isLocked and iteration < 10 then
-		BG.CallWithDelay(BG.ReportSelling, 0.3, repairCost, iteration+1)
+	if isLocked and iteration < (maxIteration or 10)+5 then
+		BG.CallWithDelay(BG.ReportSelling, 0.3, repairCost, iteration+1, maxIteration)
 	elseif isLocked then
 		BG.Print("Error! Was waiting too long for items to unlock after selling, but they are still locked.")
 	else

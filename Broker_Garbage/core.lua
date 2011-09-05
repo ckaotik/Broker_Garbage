@@ -59,11 +59,12 @@ local function eventHandler(self, event, arg1, ...)
 
 		local disable = BG.disableKey[BG_GlobalDB.disableKey]
 		if not (disable and disable()) then
+			local numSellItems
+			BG.sellValue, numSellItems = BG.AutoSell()
 			BG.repairCost = BG.AutoRepair()
-			BG.sellValue = BG.AutoSell()
 
 			if BG.sellValue > 0 then
-				BG.CallWithDelay(BG.ReportSelling, 0.3, BG.repairCost, 0)
+				BG.CallWithDelay(BG.ReportSelling, 0.3, BG.repairCost, 0, numSellItems)
 			elseif BG.repairCost > 0 then
 				BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost)))
 			end
@@ -75,7 +76,7 @@ local function eventHandler(self, event, arg1, ...)
 		if BG.locked then
 			BG.locked = nil
 			BG.sellValue, BG.repairCost = 0, 0
-			BG.Print("Fallback Unlock: Merchant window closed, scan lock released.")
+			BG.Debug("Fallback Unlock: Merchant window closed, scan lock released.")
 		end
 	
 	elseif event == "LOOT_OPENED" then	-- [TODO] choose proper events
@@ -124,7 +125,7 @@ local function eventHandler(self, event, arg1, ...)
 				BG.Print(BG.locale.listsUpdatedPleaseCheck)
 			end
 		end
-	elseif event == "" then
+	-- elseif event == "" then
 		-- [TODO] items left inventory without bag_update event
 	end	
 end
