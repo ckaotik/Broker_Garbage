@@ -9,7 +9,7 @@ function BG.ManualAutoSell()
 end
 
 function BG.AutoSell(manualSell)
-	if not BG.isAtVendor or (not manualSell and not BG_GlobalDB.autoSellToVendor) then return end
+	if not BG.isAtVendor or (not manualSell and not BG_GlobalDB.autoSellToVendor) then return 0 end
 	BG.frame:RegisterEvent("PLAYER_MONEY")
 
 	wipe(BG.sellLog)    -- reset data for refilling
@@ -116,6 +116,7 @@ end
 
 -- automatically repair at a vendor
 function BG.AutoRepair()
+	local repairCost = 0
 	if BG_GlobalDB.autoRepairAtVendor and CanMerchantRepair() then
 		repairCost = GetRepairAllCost()
 		local guildRepairFunds = CanGuildBankRepair() and GetGuildBankWithdrawMoney()
@@ -133,8 +134,6 @@ function BG.AutoRepair()
 				repairCost = 0
 			end
 		end
-	else
-		repairCost = 0
 	end
 	return repairCost
 end
