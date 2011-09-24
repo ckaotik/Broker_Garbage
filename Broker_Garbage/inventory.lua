@@ -362,14 +362,21 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 		end
 	end
 
+	--[[ [TODO] fixme :(
 	if not noCheckOtherSlots and itemIndex then
+		BG.Print("Container/Slot: " .. container.."/"..slot..", Itemindex: "..itemIndex)
+		debug = BG.cheapestItems[itemIndex]
 		local otherLocations, maxLimit, hasLock = BG.GetItemLocations(BG.cheapestItems[itemIndex], nil, true, true, nil)
-		local otherItem
-		for _, otherIndex in ipairs(otherLocations) do
-			otherItem = BG.cheapestItems[otherIndex]
-			BG.SetDynamicLabelBySlot(otherItem.bag, otherItem.slot, otherIndex, true)
+		debug2 = otherLocations
+		if otherLocations and #otherLocations > 0 then
+			local otherItem
+			for _, otherIndex in pairs(otherLocations) do
+				BG.Print("OtherIndex: "..otherIndex)
+				otherItem = BG.cheapestItems[otherIndex]
+				BG.SetDynamicLabelBySlot(otherItem.bag, otherItem.slot, otherIndex, true)
+			end
 		end
-	end
+	end ]]--
 
 	return itemIndex
 end
