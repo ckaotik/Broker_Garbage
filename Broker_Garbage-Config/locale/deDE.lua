@@ -256,4 +256,8 @@ Unterhalb dieses Fensters siehst du 5 Buttons und eine Suchleiste.
 	BGC.locale.PTCategoryTestExplanation = "Wähle unten eine Kategorie aus um dir alle Gegenstände aus deinem Inventar anzeigen zu lassen, die dazuzählen.\nKategoriedaten kommen von LibPeriodicTable."
 	BGC.locale.PTCategoryTestDropdownTitle = "Kategorie, die getestet werden soll"
 	BGC.locale.PTCategoryTestDropdownText = "Wähle eine Kategorie"
+
+	BGC.locale.categoryTestItemSlot = "Lege ein Item hier ab um alle genutzten Kategorien zu suchen, die es enthalten."
+	BGC.locale.categoryTestItemTitle = "%s ist bereits in diesen Kategorien...\n"
+	BGC.locale.categoryTestItemEntry = "%s ist bisher in keiner Kategorie."
 end

@@ -17,32 +17,13 @@ function BG.AutoSell(manualSell)
 	sellValue = 0
 	local cachedItem
 	for tableIndex, item in ipairs(BG.cheapestItems) do
-		-- [TODO] to be replaced by: if item.sell then ... end
+		if item.sell then
+			BG.Debug("Selling", item.itemID, item.bag, item.slot)
+			sellValue = sellValue + item.value
 
-		cachedItem = BG.GetCached(item.itemID)
-		if not item.invalid and (item.source == BG.AUTOSELL
-			or (item.source ~= BG.EXCLUDE and cachedItem.quality == 0)
-			or (item.source == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems)
-			or (item.source == BG.OUTDATED and BG_GlobalDB.sellOldGear)
-			or (item.source == BG.UNUSABLE and BG_GlobalDB.sellNotWearable) ) then
-			if item.value and item.value > 0 then
-				if not BG.locked then
-					BG.Debug("Inventory scans locked")
-					BG.locked = true
-				end
-
-				if not item.sell then
-					BG.Print("WRONG SELL TAG! "..item.itemLink.." (Source: "..item.source..")")	-- [TODO] remove prior to release
-				end
-				BG.Debug("Selling", item.itemID, item.bag, item.slot)
-				sellValue = sellValue + item.value
-
-				ClearCursor()
-				UseContainerItem(item.bag, item.slot)
-				table.insert(BG.sellLog, tableIndex)
-			elseif item.sell then
-				BG.Print("WRONG SELL TAG! "..item.itemLink.." is to sell but has no value!")
-			end
+			ClearCursor()
+			UseContainerItem(item.bag, item.slot)
+			table.insert(BG.sellLog, tableIndex)
 		end
 	end
 

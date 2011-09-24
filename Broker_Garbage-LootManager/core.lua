@@ -93,7 +93,7 @@ function BGLM:IsInteresting(itemTable)
 		isInteresting = true
 	end
 
-	local isQuestItem = select(6, GetItemInfo(itemTable.itemID)) == select(12, GetAuctionItemClasses())
+	local isQuestItem = ( select(6, GetItemInfo(itemTable.itemID)) ) == ( select(12, GetAuctionItemClasses()) )
 	local isTopFitInteresting = IsAddOnLoaded("TopFit") and Broker_Garbage.IsItemEquipment(itemTable.itemID) and TopFit:IsInterestingItem( (GetItemInfo(itemTable.itemID)) )
 
 	if isQuestItem or isTopFitInteresting or BGLM_GlobalDB.forceClear or alwaysLoot then

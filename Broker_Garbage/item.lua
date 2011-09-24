@@ -603,9 +603,9 @@ function BG.UpdateCache(item) -- itemID/itemLink
 		label = BG.UNUSABLE
 	end
 
-	local value, itemLabel = BG.GetSingleItemValue(itemID, label)	-- [TODO] make sure it's correct!!! value might be wrong
+	local value, itemLabel = BG.GetSingleItemValue(itemID, label)
 	if not label then
-		BG.Debug("Assigning simple label.", itemID, itemLink, itemLabel)
+		BG.Debug("Assigning simple label.", itemID, itemLink, itemLabel, value)
 		label = itemLabel
 	end
 	

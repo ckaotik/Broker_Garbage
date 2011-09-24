@@ -1,6 +1,7 @@
 local _, BG = ...
 
 -- == Finding things in your inventory ==
+-- returns the first occurrence of a given item; item :: <itemID>|<itemLink>
 function BG.FindItemInBags(item)
 	for container = 0, NUM_BAG_SLOTS do
 		local numSlots = GetContainerNumSlots(container)
@@ -16,8 +17,7 @@ function BG.FindItemInBags(item)
 	end
 end
 
--- /dump Broker_Garbage.GetItemLocations(Broker_Garbage.GetCached(3928), true) -- nil, nil, true)
--- finds all occurences of the given item or its category; returns table sorted by relevance (lowest first)
+-- finds all occurences of the given item or its category; returns table sorted by relevance (lowest first); item :: <itemTable>
 function BG.GetItemLocations(item, ignoreFullStacks, includeLocked, scanCategory, useTable)
 	if not item or type(item) ~= "table" then return end
 	local locations
@@ -221,7 +221,7 @@ function BG.SortItemList()
 end
 
 -- forces a rescan on all items qualifying as equipment
--- [IDEA] do we need to scan freshly looted items so we can determine "outdated" state?
+-- [TODO] do we need to scan freshly looted items so we can determine "outdated" state?
 function BG.RescanEquipmentInBags()
 	local currentSlot
 	for itemIndex, item in pairs(BG.cheapestItems) do
@@ -231,8 +231,8 @@ function BG.RescanEquipmentInBags()
 	end
 end
 
--- [TODO] update all slots of the same item!! otherwise limits will be incorrect
-function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
+-- checks current inventory state and assigns labels depending on limits, binding etc.
+function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 	if not container and not slot then return end
 	local item, maxValue, insert
 	local _, count, _, _, _, canOpen, itemLink = GetContainerItemInfo(container, slot)
@@ -361,5 +361,15 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 			BG.cheapestItems[itemIndex].invalid = true
 		end
 	end
+
+	if not noCheckOtherSlots and itemIndex then
+		local otherLocations, maxLimit, hasLock = BG.GetItemLocations(BG.cheapestItems[itemIndex], nil, true, true, nil)
+		local otherItem
+		for _, otherIndex in ipairs(otherLocations) do
+			otherItem = BG.cheapestItems[otherIndex]
+			BG.SetDynamicLabelBySlot(otherItem.bag, otherItem.slot, otherIndex, true)
+		end
+	end
+
 	return itemIndex
 end

@@ -65,27 +65,5 @@ function BG.ResetStatistics(isGlobal)
 	BG:ResetOption("itemsSold", isGlobal)
 end
 
-Broker_Garbage = BG -- [TODO] limit access again?
---[[{
-	RegisterPlugin = BG.RegisterPlugin,
-	
-	GetVariable = BG.GetVariable,
-	GetOption = BG.GetOption,
-	SetOption = BG.SetOption,
-	ToggleOption = BG.ToggleOption,
-	
-	ClearCache = BG.ClearCache,
-	GetCached = BG.GetCached,
-	UpdateCache = BG.UpdateCache,
-	GetBagSlots = BG.GetBagSlots,
-	ScanInventory = BG.ScanInventory,
-	GetItemValue = BG.GetItemValue,
-	Delete = BG.Delete,
-	FindSlotsToDelete = BG.GetItemLocations,
-	
-	UpdateRepairButton = BG.UpdateMerchantButton,
-	CreateDefaultLists = BG.CreateDefaultLists,
-	GetProfessionSkill = BG.GetProfessionSkill,
-	FormatMoney = BG.FormatMoney,
-	Colorize = BG.Colorize,
-}]]
+-- external access, for modules etc.
+Broker_Garbage = BG

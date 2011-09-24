@@ -47,12 +47,21 @@ if GetLocale() == "deDE" then
 	
 	BGLM.locale.LMForceClearTitle = "Immer alles leeren"
 	BGLM.locale.LMForceClearTooltip = "Wenn ausgewählt wird Broker_Garbage immer alle Items plündern, auch wenn du kein Kürschner bist. Diese Einstellung kann zu Verlusten führen!"
+
+	BGLM.locale.lootJunkTitle = "'Müll' plündern"
+	BGLM.locale.lootJunkTooltip = "Wenn ausgewählt werden Items von der 'Müll'-Liste ganz regulär geplündert."
+
+	BGLM.locale.lootKeepTitle = "'Behalten' plündern"
+	BGLM.locale.lootKeepTooltip = "Wenn ausgewählt werden Items von der 'Behalten'-Liste immer geplündert."
 	
 	BGLM.locale.LMAutoDestroyTitle = "Auto-Zerstören"
 	BGLM.locale.LMAutoDestroyTooltip = "Wenn ausgewählt wird Broker_Garbage bei zu wenig Platz versuchen, welchen zu schaffen."
 	
 	BGLM.locale.LMAutoDestroyInstantTitle = "Platz Erzwingen"
 	BGLM.locale.LMAutoDestroyInstantTooltip = "Wenn ausgewählt können Items sofort gelöscht werden. Ansonsten erfolgt das Löschen erst, sobald du etwas besseres findest und keinen Platz hast."
+
+	BGLM.locale.printDebugTitle = "Debugausgabe zeigen"
+	BGLM.locale.printDebugTooltip = "Auswählen um LootManager Debug-Informationen im Chat auszugeben. Tendiert dazu, den Chat vollzuspammen."
 	
 	BGLM.locale.LMFreeSlotsTitle = "Min. freier Inventarplatz"
 	BGLM.locale.LMFreeSlotsTooltip = "Setze das Minimum an freien Taschenplätzen, bei dem Broker_Garbage automatisch Platz schaffen soll."

@@ -28,8 +28,8 @@ BGLM.defaultGlobalSettings = {
 	closeLootWindow = true,
 	autoConfirmBoP = false,
 	forceClear = false,
-	lootExcludeItems = true,	-- [TODO] needs options
-	lootIncludeItems = false,	-- [TODO] add options
+	lootExcludeItems = true,
+	lootIncludeItems = false,
 
 	tooFewSlots = 0,
 	warnLM = true,
@@ -40,8 +40,8 @@ BGLM.defaultGlobalSettings = {
 	printSpace = true,
 	printLocked = true,
 	
-	-- semi-internals
-	privateLootTimer = 4,		-- [TODO] needs options
+	-- internals
+	privateLootTimer = 4,
 }
 BGLM.defaultLocalSettings = {
 	-- behavior

@@ -256,4 +256,8 @@ Below this window you'll see five buttons and a search bar.
 	PTCategoryTestExplanation = "Simply select a category below and it will display all items in your inventory that match this category.\nCategory information is provided by LibPeriodicTable.",
 	PTCategoryTestDropdownTitle = "Category to check",
 	PTCategoryTestDropdownText = "Choose a category string",
+
+	categoryTestItemSlot = "Drop an item into this slot to search for any used category containing it.",
+	categoryTestItemTitle = "%s is already in these categories...\n",
+	categoryTestItemEntry = "%s is not in any used category.",
 }

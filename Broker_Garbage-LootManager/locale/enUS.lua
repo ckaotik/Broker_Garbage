@@ -48,12 +48,21 @@ BGLM.locale = {
 	LMForceClearTitle = "Force Clearing Mobs",
 	LMForceClearTooltip = "Check to clear mobs (even if you aren't a skinner). You may loose money with this setting!",
 	
+	lootJunkTitle = "Loot 'Junk'",
+	lootJunkTooltip = "Check to loot items on your 'Junk' list like regular items.",
+
+	lootKeepTitle = "Loot 'Keep'",
+	lootKeepTooltip = "Check to always loot items on your 'Keep' list",
+
 	LMAutoDestroyTitle = "Autodestroy",
 	LMAutoDestroyTooltip = "If checked, Broker_Garbage will take actions when your inventory space is (almost) full.",
 	
 	LMAutoDestroyInstantTitle = "enforce",
 	LMAutoDestroyInstantTooltip = "If checked, Broker_Garbage may delete items the moment it loots them, otherwise deletion will take place only when you find something better to loot and need space.",
 	
+	printDebugTitle = "Print debug output",
+	printDebugTooltip = "Check to display the LootManager's debug information. Tends to spam your chat frame, you have been warned.",
+
 	LMFreeSlotsTitle = "Minimum free slots",
 	LMFreeSlotsTooltip = "Set the minimum numer of free slots for autodestroy to take action.",
 	

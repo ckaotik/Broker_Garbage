@@ -256,4 +256,8 @@ if GetLocale() == "zhTW" then
 	BGC.locale.PTCategoryTestExplanation = "只需選擇以下的分類就會顯示在你背包相符的所有物品。\n分類資訊由LibPeriodicTable提供。"
 	BGC.locale.PTCategoryTestDropdownTitle = "分類檢查"
 	BGC.locale.PTCategoryTestDropdownText = "選擇分類字串"
+
+	-- BGC.locale.categoryTestItemSlot = "Drop an item into this slot to search for any used category containing it."
+	-- BGC.locale.categoryTestItemTitle = "%s is already in these categories...\n"
+	-- BGC.locale.categoryTestItemEntry = "%s is not in any used category."
 end

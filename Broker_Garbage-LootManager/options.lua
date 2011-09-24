@@ -22,8 +22,9 @@ local function Options_LootManager(pluginID)
 	subtitle:SetJustifyV("TOP")
 	subtitle:SetText(BGLM.locale.LMSubTitle)
 	
+	--[[ Looting Group ]]--
 	local looting = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupLooting, "TOPLEFT", subtitle, "BOTTOMLEFT", 0, 5)--panel, 21, -16)
-	looting:SetHeight(150); looting:SetWidth(180)
+	looting:SetHeight(210); looting:SetWidth(180)
 	looting:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
 	local autoLoot = LibStub("tekKonfig-Checkbox").new(looting, nil, BGLM.locale.LMAutoLootTitle, "TOPLEFT", 4, -2)
@@ -112,62 +113,30 @@ local function Options_LootManager(pluginID)
 	autoAcceptLoot.global = true
 	autoAcceptLoot:SetChecked(BGLM_GlobalDB.autoConfirmBoP)
 	autoAcceptLoot:SetScript("OnClick", Toggle)
-	
-	local notices = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupNotices, "TOPLEFT", looting, "TOPRIGHT", 10, 0)
-	notices:SetHeight(160); notices:SetWidth(180)
-	notices:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
-	local warnLM = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.LMWarnLMTitle, "TOPLEFT", 4, -2)
-	warnLM.tiptext = BGLM.locale.LMWarnLMTooltip .. BGLM.locale.GlobalSetting
-	warnLM.stat = "warnLM"
-	warnLM.global = true
-	warnLM:SetChecked(BGLM_GlobalDB.warnLM)
-	warnLM:SetScript("OnClick", Toggle)
+	-- -----------------------------------------------------------------
+	local line2 = Broker_Garbage_Config.CreateHorizontalRule(looting)
+	line2:SetPoint("TOPLEFT", autoAcceptLoot, "BOTTOMLEFT", 2, 0)
+	line2:SetPoint("RIGHT", -6, 2)
+	-- -----------------------------------------------------------------
+
+	local lootJunk = LibStub("tekKonfig-Checkbox").new(looting, nil, BGLM.locale.lootJunkTitle, "TOPLEFT", autoAcceptLoot, "BOTTOMLEFT", 0, -8)
+	lootJunk.tiptext = BGLM.locale.lootJunkTooltip .. BGLM.locale.GlobalSetting
+	lootJunk.stat = "lootExcludeItems"
+	lootJunk.global = true
+	lootJunk:SetChecked(BGLM_GlobalDB.lootExcludeItems)
+	lootJunk:SetScript("OnClick", Toggle)
+
+	local lootKeep = LibStub("tekKonfig-Checkbox").new(looting, nil, BGLM.locale.lootKeepTitle, "TOPLEFT", lootJunk, "BOTTOMLEFT", 0, 4)
+	lootKeep.tiptext = BGLM.locale.lootKeepTooltip .. BGLM.locale.GlobalSetting
+	lootKeep.stat = "lootIncludeItems"
+	lootKeep.global = true
+	lootKeep:SetChecked(BGLM_GlobalDB.lootIncludeItems)
+	lootKeep:SetScript("OnClick", Toggle)
 	
-	local inventoryFull = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.LMWarnInventoryFullTitle, "TOPLEFT", warnLM, "BOTTOMLEFT", 0, 4)
-	inventoryFull.tiptext = BGLM.locale.LMWarnInventoryFullTooltip .. BGLM.locale.GlobalSetting
-	inventoryFull.stat = "warnInvFull"
-	inventoryFull.global = true
-	inventoryFull:SetChecked(BGLM_GlobalDB.warnInvFull)
-	inventoryFull:SetScript("OnClick", Toggle)
-	
-	local printSpace = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.printSpaceTitle, "TOPLEFT", inventoryFull, "BOTTOMLEFT", 0, 4)
-	printSpace.tiptext = BGLM.locale.printSpaceText .. BGLM.locale.GlobalSetting
-	printSpace.stat = "printSpace"
-	printSpace.global = true
-	printSpace:SetChecked(BGLM_GlobalDB.printSpace)
-	printSpace:SetScript("OnClick", Toggle)
-	
-	local printValue = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.printValueTitle, "TOPLEFT", printSpace, "BOTTOMLEFT", 0, 4)
-	printValue.tiptext = BGLM.locale.printValueText .. BGLM.locale.GlobalSetting
-	printValue.stat = "printValue"
-	printValue.global = true
-	printValue:SetChecked(BGLM_GlobalDB.printValue)
-	printValue:SetScript("OnClick", Toggle)
-	
-	local printCompareValue = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.printCompareValueTitle, "TOPLEFT", printValue, "BOTTOMLEFT", 0, 4)
-	printCompareValue.tiptext = BGLM.locale.printCompareValueText .. BGLM.locale.GlobalSetting
-	printCompareValue.stat = "printCompareValue"
-	printCompareValue.global = true
-	printCompareValue:SetChecked(BGLM_GlobalDB.printCompareValue)
-	printCompareValue:SetScript("OnClick", Toggle)
-	
-	local printLocked = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.printLockedTitle, "TOPLEFT", printCompareValue, "BOTTOMLEFT", 0, 4)
-	printLocked.tiptext = BGLM.locale.printLockedText .. BGLM.locale.GlobalSetting
-	printLocked.stat = "printLocked"
-	printLocked.global = true
-	printLocked:SetChecked(BGLM_GlobalDB.printLocked)
-	printLocked:SetScript("OnClick", Toggle)
-	
-	local printJunk = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.printJunkTitle, "TOPLEFT", printLocked, "BOTTOMLEFT", 0, 4)
-	printJunk.tiptext = BGLM.locale.printJunkText .. BGLM.locale.GlobalSetting
-	printJunk.stat = "printJunk"
-	printJunk.global = true
-	printJunk:SetChecked(BGLM_GlobalDB.printValue)
-	printJunk:SetScript("OnClick", Toggle)
-	
-	local inventory = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupInventory, "TOPLEFT", looting, "BOTTOMLEFT", 0, -14)
-	inventory:SetHeight(75); inventory:SetWidth(180)
+	--[[ Inventory Group ]]--
+	local inventory = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupInventory, "TOPLEFT", looting, "TOPRIGHT", 10, 0)
+	inventory:SetHeight(55); inventory:SetWidth(180)
 	inventory:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
 	local autoDestroy = LibStub("tekKonfig-Checkbox").new(inventory, nil, BGLM.locale.LMAutoDestroyTitle, "TOPLEFT", 4, -2)
@@ -181,16 +150,9 @@ local function Options_LootManager(pluginID)
 	autoDestroyInstant.stat = "autoDestroyInstant"
 	autoDestroyInstant:SetChecked(BGLM_LocalDB.autoDestroyInstant)
 	autoDestroyInstant:SetScript("OnClick", Toggle)
-
-	-- [TODO] make pretty ...
-	local debug = LibStub("tekKonfig-Checkbox").new(inventory, nil, "Debug Messages", "TOPLEFT", autoDestroyInstant, "BOTTOMLEFT", -14, 4)
-	debug.tiptext = Broker_Garbage.locale.debugTooltip
-	debug.global = true
-	debug.stat = "debug"
-	debug:SetChecked(BGLM_GlobalDB.debug)
-	debug:SetScript("OnClick", Toggle)
 	
-	local treshold = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupTreshold, "TOPLEFT", notices, "BOTTOMLEFT", 0, -14)
+	--[[ Thresholds Group ]]--
+	local treshold = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupTreshold, "TOPLEFT", inventory, "BOTTOMLEFT", 0, -14)
 	treshold:SetHeight(90); treshold:SetWidth(180)
 	treshold:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
@@ -249,7 +211,69 @@ local function Options_LootManager(pluginID)
 		Broker_Garbage.ScanInventory()
 	end)
 	low:Hide(); high:Hide()
+
+	--[[ Notices Group ]]--
+	local notices = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupNotices, "TOPLEFT", inventory, "TOPRIGHT", 10, 0)
+	notices:SetHeight(185); notices:SetWidth(180)
+	notices:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
+
+	local warnLM = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.LMWarnLMTitle, "TOPLEFT", 4, -2)
+	warnLM.tiptext = BGLM.locale.LMWarnLMTooltip .. BGLM.locale.GlobalSetting
+	warnLM.stat = "warnLM"
+	warnLM.global = true
+	warnLM:SetChecked(BGLM_GlobalDB.warnLM)
+	warnLM:SetScript("OnClick", Toggle)
 	
+	local inventoryFull = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.LMWarnInventoryFullTitle, "TOPLEFT", warnLM, "BOTTOMLEFT", 0, 4)
+	inventoryFull.tiptext = BGLM.locale.LMWarnInventoryFullTooltip .. BGLM.locale.GlobalSetting
+	inventoryFull.stat = "warnInvFull"
+	inventoryFull.global = true
+	inventoryFull:SetChecked(BGLM_GlobalDB.warnInvFull)
+	inventoryFull:SetScript("OnClick", Toggle)
+	
+	local printSpace = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.printSpaceTitle, "TOPLEFT", inventoryFull, "BOTTOMLEFT", 0, 4)
+	printSpace.tiptext = BGLM.locale.printSpaceText .. BGLM.locale.GlobalSetting
+	printSpace.stat = "printSpace"
+	printSpace.global = true
+	printSpace:SetChecked(BGLM_GlobalDB.printSpace)
+	printSpace:SetScript("OnClick", Toggle)
+	
+	local printValue = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.printValueTitle, "TOPLEFT", printSpace, "BOTTOMLEFT", 0, 4)
+	printValue.tiptext = BGLM.locale.printValueText .. BGLM.locale.GlobalSetting
+	printValue.stat = "printValue"
+	printValue.global = true
+	printValue:SetChecked(BGLM_GlobalDB.printValue)
+	printValue:SetScript("OnClick", Toggle)
+	
+	local printCompareValue = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.printCompareValueTitle, "TOPLEFT", printValue, "BOTTOMLEFT", 0, 4)
+	printCompareValue.tiptext = BGLM.locale.printCompareValueText .. BGLM.locale.GlobalSetting
+	printCompareValue.stat = "printCompareValue"
+	printCompareValue.global = true
+	printCompareValue:SetChecked(BGLM_GlobalDB.printCompareValue)
+	printCompareValue:SetScript("OnClick", Toggle)
+	
+	local printLocked = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.printLockedTitle, "TOPLEFT", printCompareValue, "BOTTOMLEFT", 0, 4)
+	printLocked.tiptext = BGLM.locale.printLockedText .. BGLM.locale.GlobalSetting
+	printLocked.stat = "printLocked"
+	printLocked.global = true
+	printLocked:SetChecked(BGLM_GlobalDB.printLocked)
+	printLocked:SetScript("OnClick", Toggle)
+	
+	local printJunk = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.printJunkTitle, "TOPLEFT", printLocked, "BOTTOMLEFT", 0, 4)
+	printJunk.tiptext = BGLM.locale.printJunkText .. BGLM.locale.GlobalSetting
+	printJunk.stat = "printJunk"
+	printJunk.global = true
+	printJunk:SetChecked(BGLM_GlobalDB.printValue)
+	printJunk:SetScript("OnClick", Toggle)
+
+	local debug = LibStub("tekKonfig-Checkbox").new(notices, nil, BGLM.locale.printDebugTitle, "TOPLEFT", printJunk, "BOTTOMLEFT", 0, 4)
+	debug.tiptext = BGLM.locale.printDebugTooltip
+	debug.global = true
+	debug.stat = "debug"
+	debug:SetChecked(BGLM_GlobalDB.debug)
+	debug:SetScript("OnClick", Toggle)
+
+	--[[ Panel Management ]]--
 	function panel:Update()
 		editbox:SetText(Broker_Garbage.FormatMoney(BGLM_LocalDB.itemMinValue))
 		

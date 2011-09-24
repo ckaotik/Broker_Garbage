@@ -48,12 +48,21 @@ if GetLocale() == "zhTW" then
 	BGLM.locale.LMForceClearTitle = "強制清除Mobs"
 	BGLM.locale.LMForceClearTooltip = "勾選清除Mobs(即使你不是skinner)。用這設定你可能失去金錢!"
 	
+	-- BGLM.locale.lootJunkTitle = "Loot 'Junk'",
+	-- BGLM.locale.lootJunkTooltip = "Check to loot items on your 'Junk' list like regular items.",
+
+	-- BGLM.locale.lootKeepTitle = "Loot 'Keep'",
+	-- BGLM.locale.lootKeepTooltip = "Check to always loot items on your 'Keep' list",
+
 	BGLM.locale.LMAutoDestroyTitle = "自動摧毀"
 	BGLM.locale.LMAutoDestroyTooltip = "勾選時，Broker_Garbage將會採取行動當你背包空間(幾乎)滿。"
 	
 	BGLM.locale.LMAutoDestroyInstantTitle = "強制"
 	BGLM.locale.LMAutoDestroyInstantTooltip = "勾選時，Broker_Garbage可能在捨取那時刻刪除物品。換句話說，刪除僅發生在你有更好的捨取或是需要空間。"
 	
+	BGLM.locale.debugTitle = "列出除錯輸出"
+	BGLM.locale.debugTooltip = "勾選顯示LootManager的除錯資訊。往往對你而言是垃圾，你必須注意。"
+
 	BGLM.locale.LMFreeSlotsTitle = "最小空間槽"
 	BGLM.locale.LMFreeSlotsTooltip = "設定最小空間槽數量來讓自動摧毀行動。"
 	
