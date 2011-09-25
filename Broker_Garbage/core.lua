@@ -102,8 +102,6 @@ local function eventHandler(self, event, arg1, ...)
 		if BG.repairCost > 0 then
 			BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost)))
 		end
-
-		BG.locked = nil
 		BG.sellValue, BG.repairCost = 0, 0
 
 	elseif event == "EQUIPMENT_SETS_CHANGED" then

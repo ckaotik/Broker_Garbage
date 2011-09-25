@@ -10,14 +10,17 @@ end
 
 function BG.AutoSell(manualSell)
 	if not BG.isAtVendor or (not manualSell and not BG_GlobalDB.autoSellToVendor) then return 0 end
-	BG.frame:RegisterEvent("PLAYER_MONEY")
-
 	wipe(BG.sellLog)    -- reset data for refilling
 	
 	sellValue = 0
 	local cachedItem
 	for tableIndex, item in ipairs(BG.cheapestItems) do
-		if item.sell then
+		if item.sell and not item.invalid then
+			if sellValue == 0 then -- nothing sold yet
+				BG.locked = true
+				BG.Debug("Selling, Scans are now locked")
+			end
+
 			BG.Debug("Selling", item.itemID, item.bag, item.slot)
 			sellValue = sellValue + item.value
 
@@ -56,6 +59,7 @@ function BG.ReportSelling(repairCost, iteration, maxIteration)
 		BG.UpdateStatistics(sellValue, numItems)
 
 		BG.locked = nil
+		BG.Debug("Scanning unlocked")
 		BG.sellValue, BG.repairCost = 0, 0
 		BG.ScanInventory()
 
@@ -72,9 +76,10 @@ function BG.CheckSoldItems()
 
 		if curItem and isLocked then
 			itemLocked = true
-			BG.Debug("Item not sold: "..item.itemLink..", ("..item.bag..", "..item.slot)
-		elseif curItem and not isLocked then
+			BG.Debug("Item not sold: "..item.itemLink..", ("..item.bag..", "..item.slot..")")
+		elseif curItem then
 			-- can't sell this item (but tried to!)
+			BG.Debug("Can't sell item "..item.itemLink..", ("..item.bag..", "..item.slot..")")
 			tremove(BG.sellLog, sellIndex)
 		else
 			actualSellValue = actualSellValue + item.value
@@ -85,7 +90,7 @@ function BG.CheckSoldItems()
 			end
 		end
 	end
-	return actualSellValue, numItemsSold, isLocked
+	return actualSellValue, numItemsSold, itemLocked
 end
 
 function BG.UpdateStatistics(sellValue, numItems)

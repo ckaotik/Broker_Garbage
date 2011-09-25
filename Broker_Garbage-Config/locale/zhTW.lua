@@ -257,7 +257,7 @@ if GetLocale() == "zhTW" then
 	BGC.locale.PTCategoryTestDropdownTitle = "分類檢查"
 	BGC.locale.PTCategoryTestDropdownText = "選擇分類字串"
 
-	-- BGC.locale.categoryTestItemSlot = "Drop an item into this slot to search for any used category containing it."
-	-- BGC.locale.categoryTestItemTitle = "%s is already in these categories...\n"
-	-- BGC.locale.categoryTestItemEntry = "%s is not in any used category."
+	BGC.locale.categoryTestItemSlot = "拖物品到這個槽來搜尋任何有包含它的分類。"
+	BGC.locale.categoryTestItemTitle = "%s已經在這些分類...\n"
+	BGC.locale.categoryTestItemEntry = "%s不在任何已使用的分類。"
 end

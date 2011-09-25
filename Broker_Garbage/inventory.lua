@@ -25,7 +25,7 @@ function BG.GetItemLocations(item, ignoreFullStacks, includeLocked, scanCategory
 		wipe(useTable)
 		locations = useTable
 	end
-	
+
 	local itemCategories, maxLimit = BG.GetItemListCategories(item)
 	local isLocked, itemIsRelevant, cachedItem, containsLockedSlots
 	for tableIndex, tableItem in pairs(BG.cheapestItems) do
@@ -131,20 +131,24 @@ end
 
 -- only check a specific item in a specific location
 function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
-	local slotFound = nil
+	local slotFound, recheck = nil, nil
 	for index, item in ipairs(BG.cheapestItems or {}) do
 		if item.bag == container and item.slot == slot then
-			slotFound = true
-			if (item.itemLink and not newItemLink) or item.itemLink ~= newItemLink then	-- update the whole item slot
+			slotFound = index
+
+			if item.invalid and newItemLink then
+				BG.Debug("New item in formerly invalid slot", newItemLink, container, slot)
+				recheck = true
+			elseif item.itemLink and not newItemLink then 	-- tag data as invalid
+				BG.Debug("Item no longer present", item.itemLink, container, slot)
+				item.invalid = true
+			elseif item.itemLink ~= newItemLink then	-- update the whole item slot
 				BG.Debug("Update whole slot", newItemLink)
 				BG.SetDynamicLabelBySlot(container, slot, index)
 			elseif item.count ~= newItemCount then	-- update the item count
 				BG.Debug("Update item count", newItemLink)
 				BG.cheapestItems[index].value = (BG.cheapestItems[index].value / BG.cheapestItems[index].count) * newItemCount
 				BG.cheapestItems[index].count = newItemCount
-			elseif item.invalid then
-				BG.Debug("New item in formerly invalid slot", newItemLink)
-				slotFound = false
 			else
 				-- BG.Debug("Item is still the same", newItemLink)
 			end
@@ -152,10 +156,10 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 		end
 	end
 
-	if not slotFound and newItemLink then
+	if (not slotFound or recheck) and newItemLink then
 		-- was previously empty/non-existant
-		BG.Debug("Add new item "..(newItemLink or "nil"))
-		BG.SetDynamicLabelBySlot(container, slot)
+		BG.Debug("Add new item "..newItemLink.." - "..(recheck and slotFound or "nil"))
+		BG.SetDynamicLabelBySlot(container, slot, slotFound)
 	end
 end
 
@@ -240,6 +244,8 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 	local item = itemID and BG.GetCached(itemID)
 
 	if item then
+		if noCheckOtherSlots and item.invalid then return itemIndex end
+
 		local value = item.value
 		local classification = item.classification
 		
@@ -332,12 +338,12 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 			classification = BG.IGNORE
 		end
 
-		BG.Debug("Adding item to table "..itemLink)
 		if not BG.cheapestItems then
 			BG.cheapestItems = {}
 		end
 		if not itemIndex then
 			-- create new item entry
+			BG.Debug("Adding new item to table "..itemLink)
 			itemIndex = #BG.cheapestItems + 1
 		end
 		if not BG.cheapestItems[itemIndex] then
@@ -362,21 +368,23 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 		end
 	end
 
-	--[[ [TODO] fixme :(
+	-- also check other slots with this item, to update category limits etc
 	if not noCheckOtherSlots and itemIndex then
-		BG.Print("Container/Slot: " .. container.."/"..slot..", Itemindex: "..itemIndex)
+		BG.Debug("Container/Slot", container, slot, "itemIndex", itemIndex)
 		debug = BG.cheapestItems[itemIndex]
 		local otherLocations, maxLimit, hasLock = BG.GetItemLocations(BG.cheapestItems[itemIndex], nil, true, true, nil)
 		debug2 = otherLocations
 		if otherLocations and #otherLocations > 0 then
 			local otherItem
 			for _, otherIndex in pairs(otherLocations) do
-				BG.Print("OtherIndex: "..otherIndex)
-				otherItem = BG.cheapestItems[otherIndex]
-				BG.SetDynamicLabelBySlot(otherItem.bag, otherItem.slot, otherIndex, true)
+				if otherIndex ~= itemIndex then
+					BG.Debug("OtherIndex: "..otherIndex)
+					otherItem = BG.cheapestItems[otherIndex]
+					BG.SetDynamicLabelBySlot(otherItem.bag, otherItem.slot, otherIndex, true)
+				end
 			end
 		end
-	end ]]--
+	end
 
 	return itemIndex
 end
