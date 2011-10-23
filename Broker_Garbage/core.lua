@@ -74,9 +74,13 @@ local function eventHandler(self, event, arg1, ...)
 		BG.isAtVendor = nil
 		-- fallback unlock
 		if BG.locked then
-			BG.locked = nil
-			BG.sellValue, BG.repairCost = 0, 0
 			BG.Debug("Fallback Unlock: Merchant window closed, scan lock released.")
+			if BG.sellValue > 0 then
+				BG.ReportSelling(BG.repairCost, 0, 10)
+			else
+				BG.locked = nil
+				BG.sellValue, BG.repairCost = 0, 0
+			end
 		end
 	
 	elseif event == "LOOT_OPENED" then	-- [TODO] choose proper events

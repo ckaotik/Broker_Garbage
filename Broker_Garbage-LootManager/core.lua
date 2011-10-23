@@ -22,7 +22,7 @@ local function eventHandler(self, event, arg1, ...)
 		frame:UnregisterEvent("ADDON_LOADED")
 
 	elseif event == "ITEM_PUSH" and BGLM_LocalDB.autoDestroy and BGLM_LocalDB.autoDestroyInstant then
-		local freeSlots = Broker_Garbage:GetVariable("totalFreeSlots")
+		local freeSlots = Broker_Garbage.totalFreeSlots
 		if freeSlots < BGLM_GlobalDB.tooFewSlots then
 			BGLM.TrimInventory(BGLM_GlobalDB.tooFewSlots - freeSlots)
 		end
@@ -162,152 +162,249 @@ function BGLM.TrimInventory(emptySlotNum)
 	end
 end
 
--- for use in LOOT_OPENED event
--- [TODO] check item/bagtypes to use those specialty bags wisely!
-function BGLM.SelectiveLooting(autoloot)	-- jwehgH"G$(&/&§$/!!" stupid . vs. : notation
+-- [TODO] maybe consider LOOT_SLOT_CLEARED event?
+-- decides how to handle loot in a LOOT_OPENED event
+function BGLM.SelectiveLooting(autoloot)
 	if InCombatLockdown() and not BGLM_GlobalDB.useInCombat then return end
-	
+
 	if BGLM.privateLoot then
 		if GetTime() - BGLM.privateLoot <= BGLM_GlobalDB.privateLootTimer then
 			BGLM:Debug("Item is private loot")
-		else
-			BGLM.privateLoot = nil	-- reset, data is too old
+		else	-- reset, data is too old
+			BGLM.privateLoot = nil
 		end
 	end
 	if IsFishingLoot() then BGLM.privateLoot = true end
-	
+
 	local lootAll = autoloot ~= 0 or BGLM_GlobalDB.autoLoot
 	local lootPickpocket = BGLM_GlobalDB.autoLootPickpocket and Broker_Garbage:GetVariable("playerClass") == "ROGUE" and IsStealthed()
 	local lootFishing = BGLM_GlobalDB.autoLootFishing and IsFishingLoot()
 	local lootSkinning = BGLM_GlobalDB.autoLootSkinning and UnitExists("target") and UnitIsDead("target") and UnitCreatureType("target") == BGLM.locale.CreatureTypeBeast and BGLM:CanSkin(UnitLevel("target"))
-	
+
 	if lootAll or lootPickpocket or lootFishing or lootSkinning then
-		BGLM:Debug("SelectiveLooting: Check passed, figure out what to do. Autoloot:", autoloot)
-		
-		local close = true
-		BGLM:Debug("close initialized: true")
+		BGLM:Debug("SelectiveLooting initiated, autoloot:", autoloot)
 
 		local lootSlotItem, itemLink, itemID, lootAction
-		local compareTo
-		
-		local lootMethod, groupLM, raidLM = GetLootMethod()
-
-		local slotQuantity, slotQuality, isLocked
-		local isInteresting, alwaysLoot
+		local slotQuantity, slotQuality, slotIsLocked
 		local maxStack, inBags, stackOverflow
+		
+		local isInteresting, alwaysLoot
+		local compareTo
 
+		--[[-- trying to pre-process for optimizing loot order
+		local slotItem, slotItemLink, itemQuantity, slotItemValue
+		local slotItemIsItem, slotItemBagSpace, slotItemBagType
+		local itemMaxStack, itemInBags, itemStackOverflow
+		local itemPriorities = {}
+		for lootSlot = 1, GetNumLootItems() do
+			slotItemIsItem = LootSlotIsItem(lootSlot)
+			if slotItemIsItem then
+				slotQuantity = select(3, GetLootSlotInfo(lootSlot))
+				slotItemLink = GetLootSlotLink(lootSlot)
+				slotItem = Broker_Garbage.GetCached(BGLM:GetItemID(slotItemLink))
+
+				isInteresting, alwaysLoot = BGLM:IsInteresting(slotItem)
+				slotItemValue = (slotItem.value or 0) * slotQuantity
+
+				itemMaxStack = select(8, GetItemInfo(slotItemLink))
+				itemInBags = mod(GetItemCount(slotItemLink), itemMaxStack)
+				itemStackOverflow = slotQuantity + mod(itemInBags, itemMaxStack) - itemMaxStack
+
+				_, slotItemBagSpace, slotItemBagType = Broker_Garbage.FindBestContainerForItem(slotItemLink)
+				slotItemBagType = slotItemBagType ~= 0 and slotItemBagSpace > 0
+			else
+				isInteresting, alwaysLoot = true, true
+				slotItemValue = 0
+			end
+
+			table.insert(itemPriorities, {
+				lootSlot = lootSlot,
+				isItem = slotItemIsItem,
+				
+				interesting = isInteresting,
+				always = alwaysLoot,
+				value = slotItemValue,
+
+				stackOverflow = itemStackOverflow,
+				goesIntoSpecialBag = slotItemBagType,
+			})
+		end
+		table.sort(itemPriorities, function(a, b)
+			if a.isItem == b.isItem then
+				if a.always == b.always then
+					if a.interesting == b.interesting then
+						return a.value > b.value
+					else
+						return a.interesting
+					end
+				else
+					return a.always
+				end
+			else
+				return not a.isItem
+			end
+		end) ]]--
+		--[[ concept:
+			if have to clear mob then
+				fetch all non-item loot slots
+				and
+				fetch all items that stack in reverse table order:
+			else
+				fetch all items from priority list in order
+			end
+
+			when fetching, if not enough room then
+				do some thinking, if it involves deleting then
+				delay further execution and wait for LOOT_SLOT_CLEARED event
+				then continue
+			end
+		]]--
+
+		local close = true
 		for slot = 1, GetNumLootItems() do
 			lootAction = nil
 
-			_, _, quantity, quality, locked = GetLootSlotInfo(slot)
+			_, _, slotQuantity, slotQuality, slotIsLocked = GetLootSlotInfo(slot)
 			itemLink = GetLootSlotLink(slot)
 
-			if itemLink then	-- some slots have money, i.e. not an item
+			local lootConstraint, playerIsLootMaster = nil, nil
+			local lootThreshold, lootMethod, lootMasterGroup, lootMasterRaid = GetLootThreshold(), GetLootMethod()
+			if lootThreshold and slotQuality >= lootThreshold then
+				if lootMethod == "master" then
+					lootConstraint = true
+					if lootMasterRaid and GetNumRaidMembers() > 1 and UnitIsUnit("raid"..lootMasterRaid, "player") then
+						playerIsLootMaster = true
+					elseif lootMasterGroup and GetNumPartyMembers() > 0 and lootMasterGroup == 0 then
+						playerIsLootMaster = true
+					end
+				elseif lootMethod ~= "freeforall" then
+					lootConstraint = GetNumPartyMembers() > 0 or GetNumRaidMembers() > 1
+				end
+			end
+			if BGLM.privateLoot then
+				lootConstraint = nil -- private loot = god mode. you want it, you take it!
+			end
+
+			BGLM:Debug("Loot Slot", slot, "Has constraint?", lootConstraint)
+
+			-- preparations are done, now decide on actions
+			if not itemLink or not LootSlotIsItem(slot) then 		-- e.g. currency
+				lootAction = "take"
+
+			elseif lootConstraint then 	-- loot master / group loot
+				lootAction = "none"
+
+				if playerIsLootMaster then
+					close = false
+					BGLM:Print(format(BGLM.locale.couldNotLootLM, itemLink), BGLM_GlobalDB.warnLM)
+					break -- only print message once
+				else
+					close = not BGLM_GlobalDB.keepGroupLootOpen
+				end
+
+			else
 				itemID = itemLink and BGLM:GetItemID(itemLink)
 				lootSlotItem = itemID and Broker_Garbage.GetCached(itemID)
-				
+
 				isInteresting, alwaysLoot = BGLM:IsInteresting(lootSlotItem)
+
 				maxStack = select(8, GetItemInfo(itemID))
 				inBags = mod(GetItemCount(itemID), maxStack)
-				stackOverflow = quantity + mod(inBags, maxStack) - maxStack
+				stackOverflow = slotQuantity + mod(inBags, maxStack) - maxStack
 
-				compareTo = Broker_Garbage:GetVariable("cheapestItems")
-				compareTo = compareTo and compareTo[1] or nil
-				
+				compareTo = Broker_Garbage.cheapestItems and Broker_Garbage.cheapestItems[1] or nil
+				local targetContainer, targetFreeSlots, targetType = Broker_Garbage.FindBestContainerForItem(itemID)
+
 				if isInteresting or alwaysLoot then
-					if not alwaysLoot and lootSlotItem.value < BGLM_LocalDB.itemMinValue then
-						BGLM:Print(format(BGLM.locale.couldNotLootValue, itemLink), BGLM_GlobalDB.printValue)
+					if lootSlotItem.value < BGLM_LocalDB.itemMinValue and not alwaysLoot then
+						-- minimum loot value not reached; item is too cheap
 						lootAction = "none"
-					
-					elseif Broker_Garbage:GetVariable("totalFreeSlots") <= BGLM_GlobalDB.tooFewSlots then
+						BGLM:Print(format(BGLM.locale.couldNotLootValue, itemLink), BGLM_GlobalDB.printValue)
+
+					elseif Broker_Garbage.totalFreeSlots <= BGLM_GlobalDB.tooFewSlots then
 						-- dropping low on bag space
-						BGLM:Debug("Free bag space below minimum treshold! Thinking ...", itemLink)
-						
+						BGLM:Debug("Bag space below threshold")
+
 						if inBags > 0 and stackOverflow <= 0 then
-							-- delete nothing. this item fits without us doing anything
-							BGLM:Debug("Item stacks, do nothing special", itemLink)
+							-- item stacks, no actions nessessary
 							lootAction = "take"
-						
-						elseif not alwaysLoot and BGLM_LocalDB.autoDestroy and stackOverflow > 0 and 
+							BGLM:Debug("Item stacks, do nothing special", itemLink)
+
+						elseif targetContainer and targetFreeSlots > 0 and targetType ~= 0 then
+							-- item goes into specialty bag, no actions nessessary
+							lootAction = "take"
+							BGLM:Debug("Item goes into specialty bag", itemLink)
+
+						elseif not alwaysLoot and stackOverflow > 0 and BGLM_LocalDB.autoDestroy and 
 							(lootSkinning or (compareTo and (Broker_Garbage.GetItemValue(itemLink, stackOverflow) or 0) < compareTo.value)) then
 							-- delete partial stack. throw away partial stacks to squeeze in a little more
-							BGLM:Debug("Item can be made to fit.", itemLink)
 							lootAction = "deletePartial"
-						
+							BGLM:Debug("Item can be made to fit.", itemLink)
+
 						elseif BGLM_LocalDB.autoDestroy and compareTo and compareTo.value and 
 							(alwaysLoot or lootSkinning or lootSlotItem.value > compareTo.value) then
 							-- delete only if it's worth more, if it's an item we really need or if we want to skin the mob
-							BGLM:Debug("Deleting item", compareTo.itemLink, "to make room for", itemLink)
 							lootAction = "delete"
-						
+							BGLM:Debug("Deleting item", compareTo.itemLink, "to make room for", itemLink)
+
 						elseif not alwaysLoot and compareTo and compareTo.value and lootSlotItem.value <= compareTo.value then
-							BGLM:Debug("Taking this item by throwing away stuff would make us loose money.", itemLink)
-							BGLM:Print(format(BGLM.locale.couldNotLootCompareValue, itemLink), BGLM_GlobalDB.printCompareValue)
 							lootAction = "none"
+							BGLM:Debug("Making space for this item makes us loose money.", itemLink)
+							BGLM:Print(format(BGLM.locale.couldNotLootCompareValue, itemLink), BGLM_GlobalDB.printCompareValue)
+
 						else
 							-- we'd like to take the item but have no bag space (and can't make any)
-							close = false
-							if BGLM.privateLoot or lootMethod == "freeforall" or quality < GetLootThreshold() 
-								or (GetNumPartyMembers() == 0 and GetNumRaidMembers() == 0) then
-								-- we should be able to loot. if we can't it's because the inventory is full
-								BGLM:Print(format(BGLM.locale.couldNotLootSpace, itemLink), BGLM_GlobalDB.printSpace)
-							end
 							lootAction = "none"
+							close = false
+
+							BGLM:Print(format(BGLM.locale.couldNotLootSpace, itemLink), BGLM_GlobalDB.printSpace)
 						end
 					else
+						-- enough bag space available
 						lootAction = "take"
 					end
 				else
 					-- item is on junk list
+					lootAction = "none"
 					BGLM:Print(format(BGLM.locale.couldNotLootBlacklist, itemLink), BGLM_GlobalDB.printJunk)
-                    lootAction = "none"
 				end
 				
 				-- last update & starting delete actions if needed
-				if lootAction ~= "none" and locked and quality < GetLootThreshold() then
+				if lootAction ~= "none" and slotIsLocked then
 					-- we should probably be able to loot this, but something went wrong
+					lootAction = "none"
+					close = false
 					BGLM:Print(format(BGLM.locale.couldNotLootLocked, itemLink), BGLM_GlobalDB.printLocked)
-                    lootAction = "none"
-					close = false
-					
-				elseif lootMethod == "master" and quality >= GetLootThreshold() and
-                    ((GetNumRaidMembers() > 1 and UnitIsUnit("raid"..raidLM, "player")) or 
-                    (GetNumPartyMembers() > 0 and groupLM == 0)) then
-                    -- we have loot master messages enabled and are loot master
-					BGLM:Print(format(BGLM.locale.couldNotLootLM, itemLink), BGLM_GlobalDB.warnLM)
-                    lootAction = "none"
-					close = false
-					break	-- prevent multiple messages when you're the LM
-					
-                elseif not BGLM.privateLoot and lootAction ~= "none" and 
-					lootMethod ~= "freeforall" and quality >= GetLootThreshold() and 
-					(GetNumPartyMembers() > 0 or GetNumRaidMembers() > 1) then
-                    -- item is above the group's loot treshold and we're in a group
-                    BGLM:Debug("Item is above loot treshold. Leave it for the user to decide.")
-                    lootAction = "none"
-					close = false
 
-                elseif lootAction == "deletePartial" then
-                    BGLM:DeletePartialStack(itemID, stackOverflow)
-                    lootAction = "take"
-                elseif lootAction == "delete" then
-                    Broker_Garbage:Delete(compareTo)
-                    lootAction = "take"
+				elseif lootAction == "deletePartial" then
+					lootAction = "take"
+					BGLM:DeletePartialStack(itemID, stackOverflow)
+
+				elseif lootAction == "delete" then
+					Broker_Garbage:Delete(compareTo)
+					lootAction = "take"
+				end
+
+				-- if we have private loot that the user can't take, show it to him!
+				if BGLM_GlobalDB.keepPrivateLootOpen and BGLM.privateLoot and lootAction == "none" then
+					close = false
 				end
 			end
 			
-			if lootAction == "take" or not LootSlotIsItem(slot) then	-- finally, take it!
-				BGLM:Debug("Taking item", itemLink or "???")
+			-- finally, take what we can
+			if lootAction == "take" then
+				BGLM:Debug("Taking", itemLink or "<not an item>", (BGLM.privateLoot or BGLM_GlobalDB.autoConfirmBoP) and "confirm" or "no confirm")
 				LootSlot(slot)
+
 				if BGLM.privateLoot or BGLM_GlobalDB.autoConfirmBoP then
-					BGLM:Debug("Confirming loot")
 					ConfirmLootSlot(slot)
 				end
 			end
 		end
 		if close and BGLM_GlobalDB.closeLootWindow and (not IsFishingLoot() or not IsAddOnLoaded("FishingBuddy")) then
+			BGLM:Debug("Closing loot window")
 			CloseLoot()
 		end
-	end	-- TODO: maybe consider LOOT_SLOT_CLEARED event ... or not.
-	BGLM.privateLoot = nil		-- if we used this, reset; if we didn't we don't need its value anyway
+	end
+	BGLM.privateLoot = nil		-- if we used this, we need to reset; if we didn't use it then we don't need its value anyway
 end

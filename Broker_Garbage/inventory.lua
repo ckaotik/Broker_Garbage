@@ -17,6 +17,28 @@ function BG.FindItemInBags(item)
 	end
 end
 
+function BG.FindBestContainerForItem(item, itemFamily)
+	if type(item) == "table" then
+		item = item.itemID
+	elseif type(item) == "string" or type(item) == "number" then
+		-- everything is alright
+	else
+		return nil
+	end
+	itemFamily = itemFamily or GetItemFamily(item)
+
+	local bestContainer, bestFreeSlots, bestBagType, freeSlots, bagType
+	for container = 0, NUM_BAG_SLOTS do
+		freeSlots, bagType = GetContainerNumFreeSlots(container)
+
+		if freeSlots > 0 and bit.band(itemFamily, bagType) > 0 and bagType ~= 0 then
+			bestContainer = container
+			bestFreeSlots, bestBagType = freeSlots, bagType
+		end
+	end
+	return bestContainer, bestFreeSlots, bestBagType
+end
+
 -- finds all occurences of the given item or its category; returns table sorted by relevance (lowest first); item :: <itemTable>
 function BG.GetItemLocations(item, ignoreFullStacks, includeLocked, scanCategory, useTable)
 	if not item or type(item) ~= "table" then return end

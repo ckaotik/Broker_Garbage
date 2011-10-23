@@ -45,14 +45,7 @@ function BG.PutIntoBestContainer(curBag, curSlot, usedSlots)
 	local itemFamily = itemID and GetItemFamily(itemID)
 	if not itemID or itemFamily == 0 then return end 	-- empty slots / general items
 
-	local bestContainer, freeSlots, bagType, success
-	for container = 0, NUM_BAG_SLOTS do
-		freeSlots, bagType = GetContainerNumFreeSlots(container)
-
-		if freeSlots > 0 and container ~= curBag and bit.band(itemFamily, bagType) > 0 and bagType ~= 0 then
-			bestContainer = container
-		end
-	end
+	local bestContainer = BG.FindBestContainerForItem(itemID, itemFamily)
 	if bestContainer then
 		local targetSlots = GetContainerFreeSlots(bestContainer)
 		for i, slot in pairs(targetSlots) do
