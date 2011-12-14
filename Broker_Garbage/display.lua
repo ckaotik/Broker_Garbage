@@ -25,6 +25,11 @@ function BG:UpdateLDB()
 	end
 end
 
+--[[ Disenchanting button:
+	btn:SetAttribute("type", "spell");
+	btn:SetAttribute("spell", "Disenchant");
+	btn:SetAttribute("target-item", "1 1"); -- ("bag slot")
+]]
 function BG:Tooltip(self)
 	local colNum = BG_GlobalDB.showSource and 4 or 3
 	BG.tt = LibStub("LibQTip-1.0"):Acquire("BG_TT", colNum, "LEFT", "RIGHT", "RIGHT", colNum == 4 and "CENTER" or nil)

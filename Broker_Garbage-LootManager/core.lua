@@ -261,14 +261,16 @@ function BGLM.SelectiveLooting(autoloot)
 		]]--
 
 		local close = true
+
+		local lootConstraint, playerIsLootMaster = nil, nil
+		local lootThreshold, lootMethod, lootMasterGroup, lootMasterRaid = GetLootThreshold(), GetLootMethod()
+
 		for slot = 1, GetNumLootItems() do
 			lootAction = nil
 
 			_, _, slotQuantity, slotQuality, slotIsLocked = GetLootSlotInfo(slot)
 			itemLink = GetLootSlotLink(slot)
 
-			local lootConstraint, playerIsLootMaster = nil, nil
-			local lootThreshold, lootMethod, lootMasterGroup, lootMasterRaid = GetLootThreshold(), GetLootMethod()
 			if lootThreshold and slotQuality >= lootThreshold then
 				if lootMethod == "master" then
 					lootConstraint = true
@@ -280,6 +282,8 @@ function BGLM.SelectiveLooting(autoloot)
 				elseif lootMethod ~= "freeforall" then
 					lootConstraint = GetNumPartyMembers() > 0 or GetNumRaidMembers() > 1
 				end
+			else
+				lootConstraint = nil
 			end
 			if BGLM.privateLoot then
 				lootConstraint = nil -- private loot = god mode. you want it, you take it!

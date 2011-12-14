@@ -9,7 +9,7 @@ function BG.ManualAutoSell()
 end
 
 function BG.AutoSell(manualSell)
-	if not BG.isAtVendor or (not manualSell and not BG_GlobalDB.autoSellToVendor) then return 0 end
+	if not BG.isAtVendor or (not manualSell and not BG_GlobalDB.autoSellToVendor) then return 0, 0 end
 	wipe(BG.sellLog)    -- reset data for refilling
 	
 	sellValue = 0
