@@ -3,11 +3,11 @@ local _, BG = ...
 
 if GetLocale() == "deDE" then
 	BG.locale.label = "Kein Müll"
-	
+
 	-- Chat Messages
 	BG.locale.addedTo_exclude = "%s zur Behalten-Liste hinzugefügt."
 	BG.locale.addedTo_forceVendorPrice = "Für %s wird nun nur der Händlerpreis genutzt."
-	
+
 	BG.locale.reportNothingToSell = "Nichts zu verkaufen!"
 	BG.locale.reportCannotSell = "Dieser Händler kauft nichts."
 	BG.locale.sellItem = "%1$sx%2$d für %3$s verkauft."
@@ -18,9 +18,10 @@ if GetLocale() == "deDE" then
 	BG.locale.itemDeleted = "%1$sx%2$d wurde gelöscht."
 	BG.locale.listsUpdatedPleaseCheck = "Die Listeneinstellungen wurden geändert. Bitte sieh in den Einstellungen nach, ob sie für dich passend sind."
 	BG.locale.disenchantOutdated = "%1$s ist veraltet und sollte entzaubert werden."
-	
+
 	-- Tooltip
-	BG.locale.headerRightClick = "Rechts-Klick: Optionen"
+	BG.locale.headerAltClick = "Alt-Klick: Händlerpreis nutzen"
+	BG.locale.headerRightClick = "Rechts-Klick: Optionen" -- unused
 	BG.locale.headerShiftClick = "SHIFT-Klick: Zerstören"
 	BG.locale.headerCtrlClick = "STRG-Klick: Behalten"
 	BG.locale.moneyLost = "Gold verloren:"
@@ -28,7 +29,7 @@ if GetLocale() == "deDE" then
 	BG.locale.noItems = "Keine Items zum Löschen."
 	BG.locale.increaseTreshold = "Erhöhe die Item Qualität"
 	BG.locale.openPlease = "Ungeöffnete Behälter im Inventar"
-	
+
 	-- Sell button tooltip
 	BG.locale.autoSellTooltip = "Müll für %s verkaufen"
 end

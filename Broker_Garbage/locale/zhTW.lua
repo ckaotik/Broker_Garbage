@@ -3,7 +3,7 @@ local _, BG = ...
 
 if GetLocale() == "zhTW" then
 	BG.locale.label = "垃圾，沒有了！"
-	
+
 	-- Chat Messages
 	BG.locale.addedTo_exclude = "%s已經新增到保留列表。"
 	BG.locale.addedTo_forceVendorPrice = "%s只會考慮它自己的商店價錢。"
@@ -15,13 +15,14 @@ if GetLocale() == "zhTW" then
 	BG.locale.sellAndRepair = "賣出垃圾：%1$s，修理：%2$s。改變：%3$s。"
 	BG.locale.repair = "修理：%s。"
 	BG.locale.couldNotRepair = "無法修理，因為你沒有足夠的錢。你需要%s。"
-  
+
 	BG.locale.itemDeleted = "%1$sx%2$d 已經被刪除。"
 	BG.locale.listsUpdatedPleaseCheck = "你的列表已更新。請看看你的設定並且檢查是否符合你的需要。"
 	BG.locale.disenchantOutdated = "%1$s 已經淘汰並且應該分解。"
-	
+
 	-- Tooltip
-	BG.locale.headerRightClick = "右鍵-點擊：設定"
+	-- headerAltClick = "Alt-Click: Use Vendor Price"
+	BG.locale.headerRightClick = "右鍵-點擊：設定" -- unused
 	BG.locale.headerShiftClick = "SHIFT-點擊：摧毀"
 	BG.locale.headerCtrlClick = "CTRL-點擊：保留"
 	BG.locale.moneyLost = "金錢失去："
@@ -29,7 +30,7 @@ if GetLocale() == "zhTW" then
 	BG.locale.noItems = "沒有物品刪除。"
 	BG.locale.increaseTreshold = "提升品質門檻"
 	BG.locale.openPlease = "未開啟的箱子在你的背包"
-	
+
 	-- Sell button tooltip
 	BG.locale.autoSellTooltip = "賣出物品：%s"
 end
