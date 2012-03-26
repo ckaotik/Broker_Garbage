@@ -146,7 +146,7 @@ if GetLocale() == "deDE" then
 	BGC.locale.debugTitle = "Debugausgabe zeigen"
 	BGC.locale.debugTooltip = "Auswählen, um Broker_Garbage's Debug-Informationen im Chat auszugeben. Tendiert dazu, den Chatframe vollzuspammen."
 
-	BGC.locale.reportDEGearTitle = "Hinweis zum Ent- zaubern alter Items"
+	BGC.locale.reportDEGearTitle = "Hinweis zum Entzaubern alter Items"
 	BGC.locale.reportDEGearTooltip = "Auswählen, um eine Nachricht im Chat zu zeigen, wenn ein Item überholt ist (von TopFit), und du es entzaubern solltest."
 
 	BGC.locale.keepForLaterDETitle = "Später entzaubern"
