@@ -315,8 +315,13 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 			and item.quality <= BG_GlobalDB.sellNWQualityTreshold and BG.IsOutdatedItem(itemLink) then
 
 			insert = true
-			if item.classification == BG.DISENCHANT and BG_GlobalDB.reportDisenchantOutdated then
-				BG.Print(string.format(BG.locale.disenchantOutdated, itemLink))
+			-- outdated gear might be better disenchanted
+			if item.classification == BG.DISENCHANT or classification == BG.DISENCHANT then
+				if BG_GlobalDB.reportDisenchantOutdated then
+					BG.Print(string.format(BG.locale.disenchantOutdated, itemLink))
+				else
+					-- just keep it tagged as DISENCHANT, but don't notify the user
+				end
 			else
 				BG.Debug("Item is OUTDATED by TopFit.", itemID, itemLink)
 				classification = BG.OUTDATED
@@ -393,9 +398,8 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 	-- also check other slots with this item, to update category limits etc
 	if not noCheckOtherSlots and itemIndex then
 		BG.Debug("Container/Slot", container, slot, "itemIndex", itemIndex)
-		debug = BG.cheapestItems[itemIndex]
+		
 		local otherLocations, maxLimit, hasLock = BG.GetItemLocations(BG.cheapestItems[itemIndex], nil, true, true, nil)
-		debug2 = otherLocations
 		if otherLocations and #otherLocations > 0 then
 			local otherItem
 			for _, otherIndex in pairs(otherLocations) do
