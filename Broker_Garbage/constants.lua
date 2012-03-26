@@ -16,7 +16,7 @@ BG.defaultGlobalSettings = {
 	showSellLog = false,
 	overrideLPT = false,
 	restackInventory = false,
-	
+
 	disableKey = "SHIFT",
 	autoSellIncludeItems = false,	-- toggle include list being sell list as well
 	keepItemsForLaterDE = 0,
@@ -24,35 +24,35 @@ BG.defaultGlobalSettings = {
 	-- tresholds
 	dropQuality = 0,
 	sellNWQualityTreshold = 4,
-		
+
 	-- numeric values
 	tooltipMaxHeight = 220,
 	tooltipNumItems = 9,
 	showMoney = 2,
 	hasEnchanter = true,
-	
+
 	-- statistic values
 	moneyLostByDeleting = 0,
 	moneyEarned = 0,
 	itemsSold = 0,
 	itemsDropped = 0,
-	
+
 	-- display options
 	useRealValues = false,
 	hideZeroValue = true,
 	showAutoSellIcon = true,
-	
+
 	-- LibDataBroker Display
 	LDBformat = "[itemname]x[itemcount] ([itemvalue])",
 	LDBNoJunk = BG.locale.label,
-	
+
 	-- tooltip
 	showIcon = true,
 	showLost = true,
 	showEarned = true,
 	showSource = false,
 	showContainers = true,
-	
+
 	-- output options
 	reportNothingToSell = true,
 	reportDisenchantOutdated = false,
@@ -116,6 +116,7 @@ BG.disableKey = {
 }
 
 BG.enchanting = GetSpellInfo(7411)
+BG.disenchant = GetSpellInfo(87067)
 BG.tradeSkills = {
 	[2259] = "Alchemy",
 	[2018] = "Blacksmithing",
@@ -128,7 +129,7 @@ BG.tradeSkills = {
 	[2575] = "Mining",
 	[8613] = "Skinning",
 	[3908] = "Tailoring",
-	
+
 	[78670] = "Archaeology",
 	[2550] = "Cooking",
 	[3273] = "First Aid",

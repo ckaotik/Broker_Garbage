@@ -2,11 +2,11 @@ local _, BG = ...
 
 -- == LDB Display ==
 BG.LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
-	type	= "data source", 
+	type	= "data source",
 	icon	= "Interface\\Icons\\achievement_bg_returnxflags_def_wsg",
 	label	= "Garbage",
 	text 	= "",
-	
+
 	OnClick = function(...) BG:OnClick(...) end,
 	OnEnter = function(...) BG:Tooltip(...) end,
 	OnLeave = function() end,	-- needed for e.g. NinjaPanel
@@ -14,7 +14,7 @@ BG.LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
 
 function BG:UpdateLDB()
 	BG.totalBagSpace, BG.totalFreeSlots, BG.specialSlots, BG.freeSpecialSlots = BG:GetBagSlots()
-	
+
 	local cheapestItem = BG.cheapestItems[1]
 	if cheapestItem and cheapestItem.source ~= BG.IGNORE then
 		BG.LDB.text = BG:FormatString(BG_GlobalDB.LDBformat)
@@ -25,39 +25,66 @@ function BG:UpdateLDB()
 	end
 end
 
---[[ Disenchanting button:
-	btn:SetAttribute("type", "spell");
-	btn:SetAttribute("spell", "Disenchant");
-	btn:SetAttribute("target-item", "1 1"); -- ("bag slot")
-]]
+local disenchantButtonCell, disenchantCellPrototype = LibStub("LibQTip-1.0"):CreateCellProvider()
+function disenchantCellPrototype:InitializeCell()
+	-- nothing
+end
+function disenchantCellPrototype:ReleaseCell()
+	-- nothing
+end
+function disenchantCellPrototype:getContentHeight()
+	return 10
+end
+function disenchantCellPrototype:SetupCell(tooltip, value, justification, font, r, g, b)
+	local index, bag, slot = value[1], value[2], value[3]
+	local button = _G["BG_TT_DisenchantBtn"..index]
+
+	if not button then
+		button = CreateFrame("Button", "BG_TT_DisenchantBtn"..index, UIParent, "SecureActionButtonTemplate")
+		button:SetNormalTexture("Interface\\ICONS\\INV_Enchant_Disenchant")
+	end
+
+	button:SetAttribute("type", "spell")
+	button:SetAttribute("spell", BG.disenchant)
+	button:SetAttribute("target-bag", bag)
+	button:SetAttribute("target-slot", slot)
+
+	button:SetParent(self)
+	button:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0)
+	button:SetWidth(12)
+	button:SetHeight(12)
+	button:Show()
+	return 10, 10
+end
+
 function BG:Tooltip(self)
-	local colNum = BG_GlobalDB.showSource and 4 or 3
+	local colNum = 1 + (BG_GlobalDB.showSource and 4 or 3)
 	BG.tt = LibStub("LibQTip-1.0"):Acquire("BG_TT", colNum, "LEFT", "RIGHT", "RIGHT", colNum == 4 and "CENTER" or nil)
 	BG.tt:Clear()
-   
+
 	-- font settings
 	local tooltipHFont = CreateFont("TooltipHeaderFont")
 	tooltipHFont:SetFont(GameTooltipText:GetFont(), 14)
 	tooltipHFont:SetTextColor(1,1,1)
-	
+
 	local tooltipFont = CreateFont("TooltipFont")
 	tooltipFont:SetFont(GameTooltipText:GetFont(), 11)
 	tooltipFont:SetTextColor(255/255,176/255,25/255)
-	
+
 	local lineNum
 	-- add header lines
 	lineNum = BG.tt:AddLine("Broker_Garbage", "", BG.locale.headerRightClick, colNum == 4 and "" or nil)
 	BG.tt:SetCell(lineNum, 1, "Broker_Garbage", tooltipHFont, 2)
-	BG.tt:SetCell(lineNum, 3, BG.locale.headerRightClick, tooltipFont, colNum - 2)
-   
+	BG.tt:SetCell(lineNum, 3, BG.locale.headerAltClick, tooltipFont, colNum - 2)
+
 	-- add info lines
 	BG.tt:SetFont(tooltipFont)
 	lineNum = BG.tt:AddLine()
 	BG.tt:SetCell(lineNum, 1, BG.locale.headerShiftClick, tooltipFont, "LEFT", 2)
 	BG.tt:SetCell(lineNum, 3, BG.locale.headerCtrlClick, tooltipFont, "RIGHT", colNum - 2)
-	
+
 	lineNum = BG.tt:AddSeparator(2)
-	
+
 	-- add clam information
 	if BG_GlobalDB.openContainers and BG.containerInInventory then
 		lineNum = BG.tt:AddLine()
@@ -65,8 +92,8 @@ function BG:Tooltip(self)
 	end
 	if BG.tt:GetLineCount() > lineNum then
 		BG.tt:AddSeperator(2)
-	end 
-	
+	end
+
 	-- shows up to n lines of deletable items
 	local itemEntry, numLinesShown
 	for i = 1, BG_GlobalDB.tooltipNumItems do
@@ -80,28 +107,32 @@ function BG:Tooltip(self)
 		-- adds lines: itemLink, count, itemPrice, source
 		local _, link, _, _, _, _, _, _, _, icon, _ = GetItemInfo(itemEntry.itemID)
 		lineNum = BG.tt:AddLine(
-			(BG_GlobalDB.showIcon and "|T"..icon..":0|t " or "")..link, 
+			(BG_GlobalDB.showIcon and "|T"..icon..":0|t " or "")..link,
 			itemEntry.count,
 			BG.FormatMoney(itemEntry.value))
 
 		if colNum > 3 then
 			BG.tt:SetCell(lineNum, 4, BG.tag[itemEntry.source], "RIGHT", 1, 5, 0, 50, 10)
 		end
-		
+
+		if BG.CanDisenchant(link) then
+			BG.tt:SetCell(lineNum, colNum, {lineNum, itemEntry.bag, itemEntry.slot}, disenchantButtonCell)
+		end
+
 		BG.tt:SetLineScript(lineNum, "OnMouseDown", BG.OnClick, itemEntry)
 	end
-	if numLinesShown == 0 then 
+	if numLinesShown == 0 then
 		lineNum = BG.tt:AddLine(BG.locale.noItems, "", BG.locale.increaseTreshold, colNum == 4 and "" or nil)
 		BG.tt:SetCell(lineNum, 1, BG.locale.noItems, tooltipFont, "CENTER", colNum)
 		lineNum = BG.tt:AddLine("", "", "", colNum == 4 and "" or nil)
 		BG.tt:SetCell(lineNum, 1, BG.locale.increaseTreshold, tooltipFont, "CENTER", colNum)
 	end
-	
+
 	-- add statistics information
 	if (BG_GlobalDB.showLost and BG_LocalDB.moneyLostByDeleting ~= 0)
 		or (BG_GlobalDB.showEarned and BG_LocalDB.moneyEarned ~= 0) then
 		lineNum = BG.tt:AddSeparator(2)
-		
+
 		if BG_LocalDB.moneyLostByDeleting ~= 0 then
 			lineNum = BG.tt:AddLine(BG.locale.moneyLost, "", BG.FormatMoney(BG_LocalDB.moneyLostByDeleting), colNum == 4 and "" or nil)
 			BG.tt:SetCell(lineNum, 1, BG.locale.moneyLost, tooltipFont, "LEFT", 2)
@@ -113,7 +144,7 @@ function BG:Tooltip(self)
 			BG.tt:SetCell(lineNum, 3, BG.FormatMoney(BG_LocalDB.moneyEarned), tooltipFont, "RIGHT", colNum - 2)
 		end
 	end
-	
+
 	-- Use smart anchoring code to anchor the tooltip to our frame
 	BG.tt:SmartAnchorTo(self)
 	BG.tt:SetAutoHideDelay(0.25, self)
@@ -134,7 +165,7 @@ function BG:OnClick(itemTable, button)
 		end
 		LDBclick = true
 	end
-	
+
 	-- handle different clicks
 	if itemTable and IsShiftKeyDown() then
 		-- delete or sell item, depending on if we're at a vendor or not
@@ -143,36 +174,36 @@ function BG:OnClick(itemTable, button)
 			BG_GlobalDB.moneyEarned	= BG_GlobalDB.moneyEarned + itemTable.value
 			BG_LocalDB.moneyEarned 	= BG_LocalDB.moneyEarned + itemTable.value
 			BG_GlobalDB.itemsSold 	= BG_GlobalDB.itemsSold + itemTable.count
-			
+
 			ClearCursor()
 			UseContainerItem(itemTable.bag, itemTable.slot)
 		else
 			BG.Debug("Not at vendor", "Deleting")
 			BG:Delete(itemTable)
 		end
-	
+
 	elseif itemTable and IsControlKeyDown() then
 		-- add to exclude list
 		if not BG_LocalDB.exclude[itemTable.itemID] then
 			BG_LocalDB.exclude[itemTable.itemID] = 0
 		end
 		BG.Print(format(BG.locale.addedTo_exclude, select(2,GetItemInfo(itemTable.itemID))))
-		
+
 		if BG.optionsLoaded then
 			Broker_Garbage_Config:ListOptionsUpdate("exclude")
 		end
 		BG.UpdateAllCaches(itemTable.itemID)
-		
+
 	elseif itemTable and IsAltKeyDown() then
 		-- add to force vendor price list
 		BG_GlobalDB.forceVendorPrice[itemTable.itemID] = 0
 		BG.Print(format(BG.locale.addedTo_forceVendorPrice, select(2,GetItemInfo(itemTable.itemID))))
-		
+
 		if BG.optionsLoaded then
 			Broker_Garbage_Config:ListOptionsUpdate("forceprice")
 		end
 		BG.UpdateAllCaches(itemTable.itemID)
-		
+
 	-- [TODO] interface options opened -> also load config, if not yet done
 	elseif button == "RightButton" then
 		if not IsAddOnLoaded("Broker_Garbage-Config") then
@@ -180,14 +211,14 @@ function BG:OnClick(itemTable, button)
 		end
 		-- open config
 		InterfaceOptionsFrame_OpenToCategory("Broker_Garbage")
-		
+
 	elseif LDBclick then
 		-- click on the LDB to rescan
 	else
 		-- no scanning in any other case
 		return
 	end
-	
+
 	BG.ScanInventory()
 	BG:UpdateLDB()
 end
@@ -210,11 +241,11 @@ function BG:GetBagSlots()
 	local numSlots, freeSlots = 0, 0
 	local specialSlots, specialFree = 0, 0
 	local bagSlots, emptySlots, bagType
-	
+
 	for i = 0, 4 do
 		bagSlots = GetContainerNumSlots(i) or 0
 		emptySlots, bagType = GetContainerNumFreeSlots(i)
-		
+
 		if bagType and bagType == 0 then
 			numSlots = numSlots + bagSlots
 			freeSlots = freeSlots + emptySlots
@@ -241,7 +272,7 @@ function BG:Colorize(min, max)
 			color =  {510 - percentage*510, 255, 0}
 		end
 	end
-	
+
 	color = string.format("|cff%02x%02x%02x", color[1], color[2], color[3])
 	return color
 end
@@ -254,16 +285,16 @@ function BG:FormatString(text)
 	else
 		item = BG.cheapestItems[1]
 	end
-	
+
 	-- [junkvalue]
 	text = string.gsub(text, "%[junkvalue%]", BG.FormatMoney(BG.junkValue))
-	
+
 	-- [itemname][itemcount][itemvalue]
 	text = string.gsub(text, "%[itemname%]", (select(2,GetItemInfo(item.itemID)) or ""))
 	text = string.gsub(text, "%[itemicon%]", "|T"..(select(10,GetItemInfo(item.itemID)) or "")..":0|t")
 	text = string.gsub(text, "%[itemcount%]", item.count)
 	text = string.gsub(text, "%[itemvalue%]", BG.FormatMoney(item.value))
-	
+
 	-- [freeslots][totalslots]
 	text = string.gsub(text, "%[freeslots%]", BG.totalFreeSlots + BG.freeSpecialSlots)
 	text = string.gsub(text, "%[totalslots%]", BG.totalBagSpace + BG.specialSlots)
@@ -273,16 +304,16 @@ function BG:FormatString(text)
 	text = string.gsub(text, "%[specialslots%]", BG.specialSlots)
 	text = string.gsub(text, "%[basicfree%]", BG.totalFreeSlots)
 	text = string.gsub(text, "%[basicslots%]", BG.totalBagSpace)
-	
+
 	-- [bagspacecolor][basicbagcolor][specialbagcolor][endcolor]
-	text = string.gsub(text, "%[bagspacecolor%]", 
+	text = string.gsub(text, "%[bagspacecolor%]",
 		BG:Colorize(BG.totalFreeSlots + BG.freeSpecialSlots, BG.totalBagSpace + BG.specialSlots))
-	text = string.gsub(text, "%[basicbagcolor%]", 
+	text = string.gsub(text, "%[basicbagcolor%]",
 			BG:Colorize(BG.totalFreeSlots, BG.totalBagSpace))
-	text = string.gsub(text, "%[specialbagcolor%]", 
+	text = string.gsub(text, "%[specialbagcolor%]",
 			BG:Colorize(BG.freeSpecialSlots, BG.specialSlots))
 	text = string.gsub(text, "%[endcolor%]", "|r")
-	
+
 	return text
 end
 
@@ -290,21 +321,21 @@ end
 function BG.FormatMoney(amount, displayMode)
 	if not amount then return "" end
 	displayMode = displayMode or BG_GlobalDB.showMoney
-	
+
 	local signum = amount < 0 and "-" or ""
 		  amount = math.abs(amount)
-	
+
 	local gold   = floor(amount / (100 * 100))
 	local silver = math.fmod(floor(amount / 100), 100)
 	local copper = math.fmod(floor(amount), 100)
-	
+
 	local formatGold, formatSilver, formatCopper
 	-- plain, dot-seperated
 	if displayMode == 0 then
 		formatGold = "%i.%.2i.%.2i"
 		formatSilver = "%i.%.2i"
 		formatCopper = "%i"
-	
+
 	elseif displayMode == 1 then
 		formatGold = "%i.%i.%i"
 		formatSilver = "%i.%i"
@@ -315,7 +346,7 @@ function BG.FormatMoney(amount, displayMode)
 		formatGold = "|cffffd700%i|r.|cffc7c7cf%.2i|r.|cffeda55f%.2i|r"
 		formatSilver = "|cffc7c7cf%i|r.|cffeda55f%.2i|r"
 		formatCopper = "|cffeda55f%i|r"
-	
+
 	elseif displayMode == 3 then
 		formatGold = "|cffffd700%i|r.|cffc7c7cf%i|r.|cffeda55f%i|r"
 		formatSilver = "|cffc7c7cf%i|r.|cffeda55f%i|r"
@@ -326,18 +357,18 @@ function BG.FormatMoney(amount, displayMode)
 		formatGold = "|cffeeeeee%i|r|cffffd700g|r |cffeeeeee%.2i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r"
 		formatSilver = "|cffeeeeee%i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r"
 		formatCopper = "|cffeeeeee%i|r|cffeda55fc|r"
-	
+
 	elseif displayMode == 5 then
 		formatGold = "|cffeeeeee%i|r|cffffd700g|r |cffeeeeee%i|r|cffc7c7cfs|r |cffeeeeee%i|r|cffeda55fc|r"
 		formatSilver = "|cffeeeeee%i|r|cffc7c7cfs|r |cffeeeeee%i|r|cffeda55fc|r"
 		formatCopper = "|cffeeeeee%i|r|cffeda55fc|r"
-	
+
 	-- Haggler
 	elseif displayMode == 6 then
 		formatGold = "%i|TInterface\\MoneyFrame\\UI-GoldIcon:0|t %.2i|TInterface\\MoneyFrame\\UI-SilverIcon:0|t %.2i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
 		formatSilver = "%i|TInterface\\MoneyFrame\\UI-SilverIcon:0|t %.2i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
 		formatCopper = "%i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
-	
+
 	elseif displayMode == 7 then
 		formatGold = "%i|TInterface\\MoneyFrame\\UI-GoldIcon:0|t %i|TInterface\\MoneyFrame\\UI-SilverIcon:0|t %i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
 		formatSilver = "%i|TInterface\\MoneyFrame\\UI-SilverIcon:0|t %i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
