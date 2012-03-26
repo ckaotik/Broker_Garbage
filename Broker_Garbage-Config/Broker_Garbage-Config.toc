@@ -1,15 +1,15 @@
-## Interface: 40000
+## Interface: 40300
 ## Dependencies: Broker_Garbage
 ## OptionalDeps: Broker_Garbage-LootManager
 
 ## Title: Broker_Garbage-Config
 ## Author: ckaotik
-## Version: 4.0v11
+## Version: 4.3v1
 
 ## LoadOnDemand: 1
 ## LoadManagers: AddonLoader, Addon Control Panel
 ## X-LoadOn-InterfaceOptions: Broker_Garbage
-## X-LoadOn-Slash: /garbage, /garb
+## X-LoadOn-Slash: /garbage, /garb, /junk
 
 ## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 ## X-RelSite-WoWI: 15531
