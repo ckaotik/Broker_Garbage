@@ -1,8 +1,8 @@
 Broker_Garbage
 ==============
 Author: ckaotik
-Version: 4.0v8
-WoW Version: 4.0.6
+Version: 4.3v1
+WoW Version: 4.3.2
 
 WoWInterface: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 Curse:        http://wow.curse.com/downloads/wow-addons/details/broker_garbage.aspx
@@ -89,20 +89,20 @@ In 3.3v15 I added the possibility to adjust the LDB display text to your liking.
 	[itemicon]		the item's icon that you see e.g. in you bags
 	[itemcount]		item count
 	[itemvalue]		item value
-	
+
 	[freeslots]		number of free inventory slots
 	[totalslots]	total number of inventory slots
-	
+
 	[basicfree]		number of general type free bag slots (i.e. bags that can hold any item)
 	[basicslots]	total number of general type bag slots
 	[specialfree]	number of special type free bag slots (i.e. mining bags)
 	[specialslots]	total number of special type bag slots
-	
+
 	[bagspacecolor]	colors the following text corresponding to your bag situation
 	[basicbagcolor]	colors the following text corresponding to your basic bag situation
 	[specialbagcolor]	colors the following text corresponding to your specialty bag situation
 	[endcolor]		resets the coloring
-	
+
 	[junkvalue]		the amount a vendor would give you for your junk/auto sell items
 
 Some examples:
@@ -128,17 +128,17 @@ Items on your Junk List will never be looted, while the Loot Manager will always
 
 10. Slash Commands
 -----------------
-Broker_Garbage supports a hand full of slash commands. These are /garbage or short, /garb. Parameters supported:
-	
+Broker_Garbage supports a hand full of slash commands. These are /junk, /garbage or short, /garb. Parameters supported:
+
 	/garbage format <formatstring>
 See information on this one above, in part 8.
-	
+
 	/garbage option -or- /garbage options -or- /garbage menu -or- /garbage config
 All of these just open up the config window ;)
 
 	/garbage limit <itemLink or itemID> <amount>
 This will add the corresponding item to the character's include list and add a limit to it.
-	
+
 	/garbage glimit -or- /garbage globallimit
 Same as the above, just adds the item to the global include list.
 

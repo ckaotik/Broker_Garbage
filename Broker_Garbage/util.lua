@@ -5,6 +5,22 @@ function BG.Print(text)
 	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622Broker_Garbage|r "..text)
 end
 
+hooksecurefunc (GameTooltip, "SetBagItem",
+	function(tip, bag, slot)
+		if BG_GlobalDB and BG_GlobalDB.debug then
+			local index = "?"
+			for tableIndex, tableItem in pairs(BG.cheapestItems) do
+				if tableItem.bag == bag and tableItem.slot == slot and not tableItem.invalid then
+					index = tableIndex
+					break
+				end
+			end
+			tip:AddDoubleLine("|cffee6622Broker_Garbage|r", "Index "..index)
+			tip:Show()
+		end
+	end
+);
+
 -- prints debug messages only when debug mode is active
 function BG.Debug(...)
 	if BG_GlobalDB and BG_GlobalDB.debug then
@@ -49,14 +65,14 @@ function BG.CheckSettings()
 			BG_GlobalDB[key] = value
 		end
 	end
-	
+
 	if not BG_LocalDB then BG_LocalDB = {}; newLocals = true end
 	for key, value in pairs(BG.defaultLocalSettings) do
 		if BG_LocalDB[key] == nil then
 			BG_LocalDB[key] = value
 		end
 	end
-	
+
 	if newGlobals or newLocals then
 		-- this is the first load (either this or all character)
 		BG.CreateDefaultLists(newGlobals)
@@ -101,7 +117,7 @@ function BG.AdjustLists_4_1()
 		end
 	end
 
-	if BG_GlobalDB.neverRepairGuildBank ~= nil and 
+	if BG_GlobalDB.neverRepairGuildBank ~= nil and
 		(BG_GlobalDB.neverRepairGuildBank ~= BG_GlobalDB.repairGuildBank or BG_GlobalDB.repairGuildBank == nil) then
 		BG_GlobalDB.repairGuildBank = BG_GlobalDB.neverRepairGuildBank
 		BG_GlobalDB.neverRepairGuildBank = nil
@@ -123,7 +139,7 @@ function BG.CreateDefaultLists(global)
 		BG_GlobalDB.forceVendorPrice["Consumable.Water.Basic"] = 0
 		BG_GlobalDB.forceVendorPrice["Tradeskill.Mat.BySource.Vendor"] = 0
 	end
-	
+
 	-- tradeskills
 	local tradeSkills =  { GetProfessions() }
 	for i = 1, 6 do	-- we get at most 6 professions (2x primary, cooking, fishing, first aid, archaeology)
@@ -132,17 +148,17 @@ function BG.CreateDefaultLists(global)
 			BG.ModifyList_ExcludeSkill(englishSkill)
 		end
 	end
-	
+
 	-- class specific
 	if BG.playerClass == "WARRIOR" or BG.playerClass == "ROGUE" or BG.playerClass == "DEATHKNIGHT" or BG.playerClass == "HUNTER" then
 		BG_LocalDB.autoSellList["Consumable.Water"] = 0
-	
+
 	elseif BG.playerClass == "SHAMAN" then
 		if not BG_LocalDB.include[17058] then BG_LocalDB.include[17058] = 20 end	-- fish oil
 		if not BG_LocalDB.include[17057] then BG_LocalDB.include[17057] = 20 end	-- scales
 	end
 	BG_LocalDB.exclude["Misc.Reagent.Class."..string.gsub(string.lower(BG.playerClass), "^.", string.upper)] = 0
-	
+
 	BG.Print(BG.locale.listsUpdatedPleaseCheck)
 
 	Broker_Garbage.UpdateAllCaches()
@@ -162,13 +178,13 @@ function BG.ModifyList_ExcludeSkill(englishSkill)
 	else
 		BG_LocalDB.exclude["Tradeskill.Mat.ByProfession." .. englishSkill] = 0
 	end
-	
+
 	if englishSkill ~= "Herbalism" and englishSkill ~= "Archaeology" and englishSkill ~= "Cooking" then
 		BG_LocalDB.exclude["Tradeskill.Tool." .. englishSkill] = 0
 	end
 end
 
--- takes a tradeskill id (as returned in GetProfessions()) or localized name and returns its English name 
+-- takes a tradeskill id (as returned in GetProfessions()) or localized name and returns its English name
 function BG.GetTradeSkill(skill)
 	if not skill then return end
 	if type(skill) == "number" then
@@ -188,7 +204,7 @@ function BG.GetProfessionSkill(skill)
 	if type(skill) == "number" then
 		skill = GetSpellInfo(skill)
 	end
-	
+
 	local rank, maxRank
 	local professions = { GetProfessions() }
 	for _, profession in ipairs(professions) do
@@ -225,7 +241,7 @@ end
 function BG.JoinTables(...)
 	local result = {}
 	local tab
-	
+
 	for i=1,select("#", ...) do
 		tab = select(i, ...)
 		if tab then
@@ -234,7 +250,7 @@ function BG.JoinTables(...)
 			end
 		end
 	end
-	
+
 	return result
 end
 
@@ -242,7 +258,7 @@ end
 function BG.JoinSimpleTables(...)
 	local result = {}
 	local tab, i, j
-	
+
 	for i=1,select("#", ...) do
 		tab = select(i, ...)
 		if tab then
@@ -251,6 +267,12 @@ function BG.JoinSimpleTables(...)
 			end
 		end
 	end
-	
+
 	return result
+end
+
+function BG.GetTableCopy(t)
+	local u = { }
+	for k, v in pairs(t) do u[k] = v end
+	return setmetatable(u, getmetatable(t))
 end

@@ -1,11 +1,11 @@
-## Interface: 40000
+## Interface: 40300
 ## Dependencies: Broker_Garbage
 ## SavedVariables: BGLM_GlobalDB
 ## SavedVariablesPerCharacter: BGLM_LocalDB
 
 ## Title: Broker_Garbage-LootManager
 ## Author: ckaotik
-## Version: 4.0v11
+## Version: 4.3v1
 ## Notes: Plugin for Broker_Garbage. Selective looting and more!
 ## Notes-deDE: Plugin für Broker_Garbage. Selektives Plündern und mehr!
 

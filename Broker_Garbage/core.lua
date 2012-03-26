@@ -1,4 +1,4 @@
---[[ Copyright (c) 2010-2011, ckaotik
+--[[ Copyright (c) 2010-2012, ckaotik
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -27,7 +27,7 @@ local function eventHandler(self, event, arg1, ...)
 		BG.isAtVendor = nil
 		BG.totalBagSpace = 0
 		BG.totalFreeSlots = 0
-		
+
 		-- inventory database
 		BG.containerInInventory = nil
 		BG.itemsCache = {}		-- contains static item data, e.g. price, stack size
@@ -38,7 +38,7 @@ local function eventHandler(self, event, arg1, ...)
 
 		BG.CheckSettings()
 		BG.AdjustLists_4_1()
-		
+
 		BG.ScanInventory()	-- initializes and fills caches
 
 		frame:RegisterEvent("BAG_UPDATE")
@@ -52,7 +52,7 @@ local function eventHandler(self, event, arg1, ...)
 		frame:RegisterEvent("CHAT_MSG_SKILL")
 
 		frame:UnregisterEvent("ADDON_LOADED")
-	
+
 	elseif event == "MERCHANT_SHOW" then
 		BG.isAtVendor = true
 		BG.UpdateMerchantButton()
@@ -82,21 +82,21 @@ local function eventHandler(self, event, arg1, ...)
 				BG.sellValue, BG.repairCost = 0, 0
 			end
 		end
-	
+
 	elseif event == "LOOT_OPENED" then	-- [TODO] choose proper events
 		if BG_GlobalDB.restackInventory then
-			BG.DoFullRestack()
+			-- BG.DoFullRestack()
 		end
-	
+
 	elseif event == "ITEM_UNLOCKED" then	-- only registered during restack
 		BG.Restack()
-	
+
 	elseif not BG.locked and event == "BAG_UPDATE" then
 		if not arg1 or arg1 < 0 or arg1 > 4 then return end
-		
+
 		BG.Debug("Bag Update", arg1, ...)
 		BG.ScanInventoryContainer(arg1)	-- partial inventory scan on the relevant container
-	
+
 	elseif event == "AUCTION_HOUSE_CLOSED" then
 		-- Update cached auction values in case anything changed
 		BG.ClearCache()
@@ -113,7 +113,7 @@ local function eventHandler(self, event, arg1, ...)
 	elseif event == "PLAYER_EQUIPMENT_CHANGED" then
 		for i = 1, NUM_BAG_SLOTS do
 			if ContainerIDToInventoryID(i) and arg1 == ContainerIDToInventoryID(i) then
-				BG.Print("One of the players bags changed! "..arg1)
+				BG.Debug("One of the player's bags changed! "..arg1)
 				BG.ScanInventory()
 				return
 			end
@@ -129,7 +129,8 @@ local function eventHandler(self, event, arg1, ...)
 		end
 	-- elseif event == "" then
 		-- [TODO] items left inventory without bag_update event
-	end	
+		-- [TODO] sometimes lists don't update properly which causes "re-selling" the same items over and over again, inflating statistics
+	end
 end
 frame:RegisterEvent("ADDON_LOADED")
 frame:SetScript("OnEvent", eventHandler)
