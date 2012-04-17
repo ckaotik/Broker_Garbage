@@ -12,8 +12,9 @@ if GetLocale() == "zhTW" then
 	BG.locale.reportCannotSell = "這商人不買物品"
 	BG.locale.sellItem = "%3$s 賣出 %1$sx%2$d。"
 	BG.locale.sell = "賣出垃圾：%s。"
-	BG.locale.sellAndRepair = "賣出垃圾：%1$s，修理：%2$s。改變：%3$s。"
-	BG.locale.repair = "修理：%s。"
+	BG.locale.sellAndRepair = "賣出垃圾：%1$s，修理：%2$s%3$s。改變：%4$s。"
+	BG.locale.repair = "修理：%1$s%2$s。"
+	-- BG.locale.guildRepair = " (guild)"
 	BG.locale.couldNotRepair = "無法修理，因為你沒有足夠的錢。你需要%s。"
 
 	BG.locale.itemDeleted = "%1$sx%2$d 已經被刪除。"
@@ -33,4 +34,14 @@ if GetLocale() == "zhTW" then
 
 	-- Sell button tooltip
 	BG.locale.autoSellTooltip = "賣出物品：%s"
+
+	-- List names
+	-- BG.locale.listExclude= "Keep"
+	-- BG.locale.listInclude = "Include"
+	-- BG.locale.listVendor = "Vendor"
+	-- BG.locale.listSell = "Auto sell"
+	-- BG.locale.listAuction = "Auction"
+	-- BG.locale.listDisenchant = "Disenchant"
+	-- BG.locale.listUnusable = "Unusable Gear"
+	-- BG.locale.listOutdated = "Outdated"
 end

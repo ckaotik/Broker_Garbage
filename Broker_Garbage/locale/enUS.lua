@@ -12,8 +12,9 @@ BG.locale = {
 	reportCannotSell = "This vendor doesn't buy items.",
 	sellItem = "Sold %1$sx%2$d for %3$s.",
 	sell = "Sold trash for %s.",
-	sellAndRepair = "Sold trash for %1$s, repaired for %2$s. Change: %3$s.",
-	repair = "Repaired for %s.",
+	sellAndRepair = "Sold trash for %1$s, repaired for %2$s%3$s. Change: %4$s.",
+	repair = "Repaired for %1$s%2$s.",
+	guildRepair = " (guild)",
 	couldNotRepair = "Could not repair because you don't have enough money. You need %s.",
 
 	itemDeleted = "%1$sx%2$d has been deleted.",
@@ -33,4 +34,14 @@ BG.locale = {
 
 	-- Sell button tooltip
 	autoSellTooltip = "Sell Items for %s",
+
+	-- List names
+	listExclude= "Keep",
+	listInclude = "Include",
+	listVendor = "Vendor",
+	listSell = "Auto sell",
+	listAuction = "Auction",
+	listDisenchant = "Disenchant",
+	listUnusable = "Unusable Gear",
+	listOutdated = "Outdated",
 }

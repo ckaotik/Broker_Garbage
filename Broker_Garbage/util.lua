@@ -2,21 +2,35 @@ local _, BG = ...
 
 -- == Debugging Functions ==
 function BG.Print(text)
-	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622Broker_Garbage|r "..text)
+	DEFAULT_CHAT_FRAME:AddMessage(BG.name.." "..text)
 end
 
 hooksecurefunc (GameTooltip, "SetBagItem",
 	function(tip, bag, slot)
-		if BG_GlobalDB and BG_GlobalDB.debug then
-			local index = "?"
-			for tableIndex, tableItem in pairs(BG.cheapestItems) do
-				if tableItem.bag == bag and tableItem.slot == slot and not tableItem.invalid then
-					index = tableIndex
-					break
-				end
+		for tableIndex, tableItem in pairs(BG.cheapestItems) do
+			if tableItem.bag == bag and tableItem.slot == slot and not tableItem.invalid then
+				index = tableIndex
+				break
 			end
-			tip:AddDoubleLine("|cffee6622Broker_Garbage|r", "Index "..index)
-			tip:Show()
+		end
+
+		local item = BG.cheapestItems[index]
+		local cacheData = item and BG.GetCached(item.itemID)
+
+		if GetContainerItemInfo(bag, slot) and item and cacheData then
+			if BG_GlobalDB and BG_GlobalDB.showItemTooltipLabel and item.source then
+				if item.source >= 0 then
+					tip:AddDoubleLine(BG.name, BG.colors[item.source] .. BG.labels[item.source] .. "|r")
+				else
+					tip:AddDoubleLine(BG.name, "("..BG.colors[cacheData.classification] .. BG.labels[cacheData.classification] .. "|r)")
+				end
+				tip:Show()
+			end
+
+			if BG_GlobalDB and BG_GlobalDB.debug then
+				tip:AddDoubleLine(BG.name, "Index "..index..(item and ", label "..cacheData.classification or ""))
+				tip:Show()
+			end
 		end
 	end
 );
@@ -222,7 +236,7 @@ end
 function BG.Find(table, value)
 	if not table then return end
 	for k, v in pairs(table) do
-		if (v == value) then return true end
+		if (v == value) then return k end
 	end
 	return false
 end

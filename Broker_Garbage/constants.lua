@@ -13,6 +13,7 @@ BG.defaultGlobalSettings = {
 	autoRepairAtVendor = true,
 	sellNotWearable = false,
 	sellOldGear = false,
+	keepHighestItemLevel = true,
 	showSellLog = false,
 	overrideLPT = false,
 	restackInventory = false,
@@ -41,6 +42,7 @@ BG.defaultGlobalSettings = {
 	useRealValues = false,
 	hideZeroValue = true,
 	showAutoSellIcon = true,
+	showItemTooltipLabel = true,
 
 	-- LibDataBroker Display
 	LDBformat = "[itemname]x[itemcount] ([itemvalue])",
@@ -72,6 +74,8 @@ BG.defaultLocalSettings = {
 	moneyEarned = 0,
 }
 
+BG.name = "|cffee6622Broker_Garbage|r"
+
 -- item classifications
 BG.IGNORE = -1
 -- static list types
@@ -86,17 +90,39 @@ BG.AUCTION = 6
 BG.VENDOR = 7
 BG.DISENCHANT = 8
 
+
+BG.colors = {
+	[BG.EXCLUDE]	= "|cFF36BFA8", -- turkoise
+	[BG.INCLUDE] 	= "|cFFffffff",	-- white
+	[BG.VENDOR] 	= "|cFFff9c5a",	-- orange
+	[BG.AUTOSELL] 	= "|cFFff592d",	-- dark orange
+	[BG.AUCTION] 	= "|cFF2bff58",	-- green
+	[BG.DISENCHANT] = "|cFFe052ff",	-- purple
+	[BG.UNUSABLE] 	= "|cFF3c73ab",	-- blue
+	[BG.OUTDATED]   = "|cFF3c73ab",	-- blue
+}
+BG.labels = {
+	[BG.EXCLUDE]	= BG.locale.listExclude,
+	[BG.INCLUDE] 	= BG.locale.listInclude,
+	[BG.VENDOR] 	= BG.locale.listVendor,
+	[BG.AUTOSELL] 	= BG.locale.listSell,
+	[BG.AUCTION] 	= BG.locale.listAuction,
+	[BG.DISENCHANT] = BG.locale.listDisenchant,
+	[BG.UNUSABLE] 	= BG.locale.listUnusable,
+	[BG.OUTDATED]   = BG.locale.listOutdated,
+}
 -- corresponding tags to be used in the LDB tooltip; EXCLUDE never shows up there!
 BG.tag = {
-	[BG.INCLUDE] 	= "|cFFffffffI",	-- white
-	[BG.VENDOR] 	= "|cFFff9c5aV",	-- orange
-	[BG.AUTOSELL] 	= "|cFFff592dV",	-- dark orange
-	[BG.AUCTION] 	= "|cFF2bff58A",	-- green
-	[BG.DISENCHANT] = "|cFFe052ffD",	-- purple
-	[BG.UNUSABLE] 	= "|cFF3c73abG",	-- blue
-	[BG.OUTDATED]   = "|cFF3c73abO",	-- blue
+	[BG.INCLUDE] 	= "I",
+	[BG.VENDOR] 	= "V",
+	[BG.AUTOSELL] 	= "V",
+	[BG.AUCTION] 	= "A",
+	[BG.DISENCHANT] = "D",
+	[BG.UNUSABLE] 	= "G",
+	[BG.OUTDATED]   = "O",
 }
 
+-- do not change this! these are identifiers used in the code
 BG.lists = {
 	[BG.EXCLUDE] = "exclude",
 	[BG.INCLUDE] = "include",
