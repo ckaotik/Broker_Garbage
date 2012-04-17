@@ -125,7 +125,7 @@ function BG.ScanInventory(resetCache)
 	BG.containerInInventory = false
 
 	local totalSlots, numSlots = 0, 0
-	for container = 0, 4 do
+	for container = 0, NUM_BAG_SLOTS do
 		numSlots = BG.ScanInventoryContainer(container, true)
 		totalSlots = totalSlots + (numSlots or 0)
 	end
@@ -136,14 +136,23 @@ function BG.ScanInventoryContainer(container, waitForFullScan)
 	local numSlots = GetContainerNumSlots(container)
 	if not numSlots or select(2, GetContainerNumFreeSlots(container)) ~= 0 then return end -- no (scannable) bag -or- special bag
 
-	local newItemCount, newItemLink, itemID
+	local newItemCount, newItemLink, itemID, listIndex
+	local changedItems = {}
 	for slot = 1, numSlots do
 		_, newItemCount, _, _, _, _, newItemLink = GetContainerItemInfo(container, slot)
 		itemID = GetContainerItemID(container, slot)
 		_ = BG.GetCached(itemID)	-- if we don't have it cached yet, do so now
 
-		BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
+		listIndex = BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
+		if listIndex then
+			table.insert(changedItems, {container, slot, listIndex >= 0 and listIndex or nil})
+		end
 	end
+
+	for _, data in ipairs(changedItems) do
+		BG.SetDynamicLabelBySlot(unpack(data))
+	end
+
 	if not waitForFullScan then
 		BG.SortItemList()
 	end
@@ -159,29 +168,29 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 			slotFound = index
 
 			if item.invalid and newItemLink then
-				BG.Debug("New item in formerly invalid slot", newItemLink, container, slot)
+				BG.Debug("Reactivating "..container.."."..slot, newItemLink)
 				recheck = true
 			elseif item.itemLink and not newItemLink then 	-- tag data as invalid
-				BG.Debug("Item no longer present", item.itemLink, container, slot)
+				BG.Debug("Deactivating "..container.."."..slot, item.itemLink)
 				item.invalid = true
 			elseif item.itemLink ~= newItemLink then	-- update the whole item slot
-				BG.Debug("Update whole slot", newItemLink)
-				BG.SetDynamicLabelBySlot(container, slot, index)
+				BG.Debug("Update slot "..container.."."..slot, newItemLink)
+				recheck = true
 			elseif item.count ~= newItemCount then	-- update the item count
 				BG.Debug("Update item count", newItemLink)
 				BG.cheapestItems[index].value = (BG.cheapestItems[index].value / BG.cheapestItems[index].count) * newItemCount
 				BG.cheapestItems[index].count = newItemCount
 			else
-				-- BG.Debug("Item is still the same", newItemLink)
+				-- BG.Debug("Item unchanged", newItemLink)
 			end
-			break
 		end
 	end
 
 	if (not slotFound or recheck) and newItemLink then
-		-- was previously empty/non-existant
-		BG.Debug("Add new item "..newItemLink.." - "..(recheck and slotFound or "nil"))
-		BG.SetDynamicLabelBySlot(container, slot, slotFound)
+		-- -1: was previously empty/non-existant
+		-- BG.Debug("New item slot with new item", recheck and slotFound or "nil")
+		-- BG.SetDynamicLabelBySlot(container, slot, slotFound)
+		return slotFound or -1
 	end
 end
 
@@ -200,7 +209,7 @@ function BG.SortCheapestItemsList(a, b)
 			else
 				return a.value < b.value
 			end
-		else 
+		else
 			return a.source == BG.INCLUDE
 		end
 	else
@@ -229,7 +238,7 @@ function BG.UpdateItemLocations()
 			if not locations then	-- new item
 				BG.itemLocations[itemID] = { tableIndex }
 			else -- if not BG.Find(locations, tableIndex) then	-- item is known, slot is not
-				tinsert(locations, tableIndex)
+				table.insert(locations, tableIndex)
 			end
 
 			if item.sell and item.value and item.value ~= 0 and item.count then
@@ -249,9 +258,10 @@ end
 -- forces a rescan on all items qualifying as equipment
 -- [TODO] do we need to scan freshly looted items so we can determine "outdated" state?
 function BG.RescanEquipmentInBags()
-	local currentSlot
+	local invType
 	for itemIndex, item in pairs(BG.cheapestItems) do
-		if BG.IsItemEquipment(item.itemLink) then
+		invType = select(9, GetItemInfo(item.itemID))
+		if BG.IsItemEquipment(invType) then
 			BG.SetDynamicLabelBySlot(container, slot, itemIndex)
 		end
 	end
@@ -260,17 +270,27 @@ end
 -- checks current inventory state and assigns labels depending on limits, binding etc.
 function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 	if not container and not slot then return end
-	local item, maxValue, insert
+	local maxValue, insert
 	local _, count, _, _, _, canOpen, itemLink = GetContainerItemInfo(container, slot)
 	local itemID = itemLink and BG.GetItemID(itemLink)
 	local item = itemID and BG.GetCached(itemID)
 
+	if not BG.cheapestItems then
+		BG.cheapestItems = {}
+	end
+	if not itemIndex then -- create new item entry
+		itemIndex = #BG.cheapestItems + 1
+	end
+	local updateItem = BG.cheapestItems[itemIndex]
+
 	if item then
-		if noCheckOtherSlots and item.invalid then return itemIndex end
+		if noCheckOtherSlots and updateItem and updateItem.invalid then
+			return itemIndex
+		end
 
 		local value = item.value
 		local classification = item.classification
-		
+
 		-- remember lootable items
 		BG.containerInInventory = BG.containerInInventory or canOpen
 
@@ -297,7 +317,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 				sellItem = true
 			end
 		end
-		
+
 		if item.classification == BG.AUCTION and BG.IsItemSoulbound(itemLink, container, slot) then
 			-- e.g. BoEs that have become soulbound
 			local tempDE = BG.GetSingleItemValue(item, BG.DISENCHANT)
@@ -311,30 +331,57 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 			end
 		end
 
-		if item.classification ~= BG.EXCLUDE and BG_GlobalDB.sellOldGear 
+		if item.classification ~= BG.EXCLUDE and BG_GlobalDB.sellOldGear
 			and item.quality <= BG_GlobalDB.sellNWQualityTreshold and BG.IsOutdatedItem(itemLink) then
+			insert = true -- might be overridden later
 
-			insert = true
+			if BG_GlobalDB.keepHighestItemLevel and IsAddOnLoaded("TopFit") and TopFit.GetEquipLocationsByInvType then
+				local invType = select(9, GetItemInfo(itemLink))
+				local slots = TopFit:GetEquipLocationsByInvType(invType)
+				local keepItems
+
+				if #(slots) > 1 then
+					keepItems = 2
+					if slots[1] == 16 and slots[2] == 17 and TopFit.PlayerCanDualWield and not TopFit:PlayerCanDualWield() then
+						keepItems = 1
+					end
+				end
+
+				local itemsForInvType = GetInventoryItemsForSlot(invType)
+				table.sort(itemsForInvType, function(a, b) -- sort by itemLevel, descending
+					local itemLevelA, itemLevelB = select(4, GetItemInfo(a)), select(4, GetItemInfo(b))
+					return a > b
+				end)
+				for i = 1, keepItems do
+					if itemsForInvType[i] and itemsForInvType[i] == itemID then
+						insert = false
+						break
+					end
+				end
+			end
+
 			-- outdated gear might be better disenchanted
-			if item.classification == BG.DISENCHANT or classification == BG.DISENCHANT then
+			if insert and item.classification == BG.DISENCHANT or classification == BG.DISENCHANT then
 				if BG_GlobalDB.reportDisenchantOutdated then
 					BG.Print(string.format(BG.locale.disenchantOutdated, itemLink))
 				else
 					-- just keep it tagged as DISENCHANT, but don't notify the user
 				end
-			else
+			elseif insert then
 				BG.Debug("Item is OUTDATED by TopFit.", itemID, itemLink)
 				classification = BG.OUTDATED
 				sellItem = true
+			else
+				BG.Debug("Item is OUTDATED but saved for its item level", itemID, itemLink)
 			end
 		end
 
 		-- allowed tresholds
-		if item.quality <= BG_GlobalDB.sellNWQualityTreshold and 
-			((item.classification == BG.AUTOSELL and insert) or 
+		if item.quality <= BG_GlobalDB.sellNWQualityTreshold and
+			((item.classification == BG.AUTOSELL and insert) or
 			(item.classification == BG.UNUSABLE and BG_GlobalDB.sellNotWearable) or
 			(classification == BG.OUTDATED and BG_GlobalDB.sellNotWearable)) then
-			
+
 			insert = true
 			sellItem = true
 		elseif item.quality > BG_GlobalDB.dropQuality then
@@ -343,17 +390,17 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 				insert = true
 			else
 				-- not allowed, treshold surpassed
-				BG.Debug("quality too high and not junk "..itemLink)
+				BG.Debug("quality too high and not junk listed")
 				insert = nil
 			end
 		else
 			-- all is well, but keep existing preference
 		end
-		
+
 		if value == 0 and BG_GlobalDB.hideZeroValue and item.classification == BG.VENDOR then
+			BG.Debug("item has zero value")
 			insert = nil
-			BG.Debug("zero value, hidden "..itemLink)
-		end	
+		end
 
 		-- sell irrelevant gray items
 		if item.classification ~= BG.EXCLUDE and item.quality == 0 then
@@ -365,19 +412,14 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 			classification = BG.IGNORE
 		end
 
-		if not BG.cheapestItems then
-			BG.cheapestItems = {}
-		end
-		if not itemIndex then
-			-- create new item entry
-			BG.Debug("Adding new item to table "..itemLink)
-			itemIndex = #BG.cheapestItems + 1
-		end
+		local slotValue = value * count
+
 		if not BG.cheapestItems[itemIndex] then
 			BG.cheapestItems[itemIndex] = {}
 		end
-		local updateItem = BG.cheapestItems[itemIndex]
-		local slotValue = value * count
+		if not updateItem then
+			updateItem = BG.cheapestItems[itemIndex]
+		end
 
 		updateItem.itemID = itemID
 		updateItem.itemLink = itemLink
@@ -397,17 +439,18 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 
 	-- also check other slots with this item, to update category limits etc
 	if not noCheckOtherSlots and itemIndex then
-		BG.Debug("Container/Slot", container, slot, "itemIndex", itemIndex)
-		
+		BG.Debug("Location "..container.."."..slot, "Index "..itemIndex)
+
 		local otherLocations, maxLimit, hasLock = BG.GetItemLocations(BG.cheapestItems[itemIndex], nil, true, true, nil)
+		local myIndex = BG.Find(otherLocations, itemIndex)
+		if myIndex then table.remove(otherLocations, myIndex) end
+
 		if otherLocations and #otherLocations > 0 then
+			BG.Debug("Also check other indices: "..table.concat(otherLocations, ", "))
 			local otherItem
 			for _, otherIndex in pairs(otherLocations) do
-				if otherIndex ~= itemIndex then
-					BG.Debug("OtherIndex: "..otherIndex)
-					otherItem = BG.cheapestItems[otherIndex]
-					BG.SetDynamicLabelBySlot(otherItem.bag, otherItem.slot, otherIndex, true)
-				end
+				otherItem = BG.cheapestItems[otherIndex]
+				BG.SetDynamicLabelBySlot(otherItem.bag, otherItem.slot, otherIndex, true)
 			end
 		end
 	end

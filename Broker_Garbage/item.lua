@@ -12,7 +12,12 @@ end
 -- returns a list of (LPT) categories from the user's lists that an item belongs to
 function BG.GetItemListCategories(item)
 	if not item or type(item) ~= "table" then return end
-	local itemList, itemCategories = BG.lists[item.classification], {}
+	if item.bag then
+		-- this is a cheapestList item, but we need cache data
+		item = BG.GetCached(item.itemID)
+	end
+
+	local itemList, itemCategories, maxLimit = BG.lists[item.classification], {}, nil
 	if itemList then
 		local currentList = BG_GlobalDB[itemList]
 		if currentList then
@@ -62,7 +67,7 @@ function BG.IsItemInCategory(item, category)	-- itemID/itemLink/itemTable, categ
 	elseif type(item) == "table" then
 		itemID = item.itemID
 	end
-	
+
 	local searchResult, itemName
 	local categoryType, index = string.match(category, "^(.-)_(.+)")
 	if categoryType and index then -- not a LPT category
@@ -73,7 +78,7 @@ function BG.IsItemInCategory(item, category)	-- itemID/itemLink/itemTable, categ
 				searchResult = BG.Find(GetEquipmentSetItemIDs(category), itemID)
 			end
 		elseif categoryType == "AC" then	-- armor class
-			index = tonumber(index) 
+			index = tonumber(index)
 			local armorClass = select(index, GetAuctionItemSubClasses(2))
 			searchResult = select(7, GetItemInfo(itemID)) == armorClass
 		elseif categoryType == "NAME" then 	-- item name
@@ -98,7 +103,7 @@ function BG.IsItemInBGList(item, itemList, onlyLocal)	-- itemID/itemLink/itemTab
 			item = BG.GetItemID(item)
 		end
 	end
-	
+
 	local onLocalList, onGlobalList
 	if BG_LocalDB[itemList] and BG_LocalDB[itemList][item] then
 		onLocalList = true
@@ -110,7 +115,7 @@ function BG.IsItemInBGList(item, itemList, onlyLocal)	-- itemID/itemLink/itemTab
 end
 
 function BG.IsItemOverLimit(item, bag, slot)
-	local locations, limit = BG.GetItemLocations(item, nil, nil, true)
+	local locations, limit = BG.GetItemLocations(item, nil, true, true)
 	if not locations then return end
 
 	limit = limit or item.limit
@@ -130,6 +135,7 @@ function BG.IsItemOverLimit(item, bag, slot)
 end
 
 -- returns true if the item is equippable. **Trinkets don't count!**
+-- not using IsEquippableItem for this, as there bags would be equippable too
 function BG.IsItemEquipment(invType)	-- itemLink/itemID/invType
 	if not invType or invType == "" then
 		return nil
@@ -138,6 +144,7 @@ function BG.IsItemEquipment(invType)	-- itemLink/itemID/invType
 	end
 	return invType ~= "" and not string.find(invType, "BAG") and not string.find(invType, "TRINKET")
 end
+
 
 -- == Item Values ==
 -- calculates the value of a stack/partial stack of an item
@@ -153,7 +160,7 @@ function BG.GetItemValue(item, count)	-- itemID/itemLink/itemTable
 	elseif type(item) == "table" then
 		itemID = item.itemID
 	end
-	
+
 	local cachedItem = BG.GetCached(itemID)
 	if cachedItem then
 		return cachedItem.value * (count or 1)
@@ -177,8 +184,7 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 		itemID = item.itemID
 	end
 	local _, itemLink, itemQuality, itemLevel, _, _, _, _, itemType, _, vendorPrice = GetItemInfo(itemID)
-	
-	BG.Debug("BG.GetSingleItemValue", item, itemID, label, itemLink)
+
 	if not itemQuality then		-- invalid argument
 	   	BG.Debug("Error! GetSingleItemValue: Failed on "..(itemLink or itemID or "<unknown>").."."..(itemQuality or "no quality"))
 	   	return nil
@@ -202,26 +208,26 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 		auctionPrice = Atr_GetAuctionBuyout(itemLink) or 0
 		disenchantPrice = canDE and Atr_GetDisenchantValue(itemLink)
 	end
-	
+
 	if IsAddOnLoaded("Auc-Advanced") then	-- uses Market Value in any case
 		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "Auc-Advanced"
 		auctionPrice = math.max(auctionPrice, AucAdvanced.API.GetMarketValue(itemLink))
-		
+
 		if IsAddOnLoaded("Enchantrix") then
 			disenchantPrice = canDE and math.max(disenchantPrice or 0, select(3, Enchantrix.Storage.GetItemDisenchantTotals(itemLink)) or 0)
 		end
 	end
-	
+
 	if IsAddOnLoaded("AuctionLite") then
 		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "AuctionLite"
 		auctionPrice = math.max(auctionPrice, AuctionLite:GetAuctionValue(itemLink) or 0)
 		disenchantPrice = canDE and math.max(disenchantPrice or 0, AuctionLite:GetDisenchantValue(itemLink) or 0)
 	end
-		
+
 	if IsAddOnLoaded("WOWEcon_PriceMod") then
 		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "WoWecon"
 		auctionPrice = math.max(auctionPrice, Wowecon.API.GetAuctionPrice_ByLink(itemLink) or 0)
-		
+
 		if canDE and not disenchantPrice then
 			local tmpPrice = 0
 			local DEData = Wowecon.API.GetDisenchant_ByLink(itemLink)
@@ -289,7 +295,7 @@ function BG.FindInTooltip(searchString, scanRightText, filterFunc)
 		leftLineText = leftLine and leftLine:GetText()
 		rightLine = getglobal("Broker_Garbage_ItemScanTooltipTextRight"..i)
 		rightLineText = rightLine and rightLine:GetText()
-		
+
 		if (string.find(leftLineText, searchString) or (scanRightText and string.find(rightLineText, searchString)))
 			and (not filterFunc or filterFunc(leftLineText, rightLineText)) then
 			return leftLineText, rightLineText
@@ -304,13 +310,13 @@ function BG.IsItemSoulbound(itemLink, bag, slot)	-- itemLink/itemID, bag, slot -
 	elseif type(itemLink) == "number" or type(itemLink) == "table" then
 		itemLink = select(2, GetItemInfo(itemLink))
 	end
-	
+
 	local searchString
 	-- check needed to distinguish between BoP/Soulbound
 	if bag and type(bag) == "boolean" then
 		bag, slot = BG.FindItemInBags(itemLink)
 	end
-	
+
 	if not bag and not slot then	-- check if item is BOP
 		searchString = ITEM_BIND_ON_PICKUP
 	else	-- check if item is soulbound
@@ -324,7 +330,7 @@ end
 -- player can disenchant this item: [true/false]; skill difference until DE is possible [nil/number]
 function BG.CanDisenchant(itemLink, onlyMe)
 	if not itemLink then return end
-	
+
 	local required, skillRank
 	if IsAddOnLoaded("Enchantrix") then
 		required = Enchantrix.Util.DisenchantSkillRequiredForItem(itemLink)	-- might be more accurate/up to date in case I miss something
@@ -334,8 +340,8 @@ function BG.CanDisenchant(itemLink, onlyMe)
 
 		-- stackables are not DE-able, legendary/heirlooms are not DE-able
 		if quality > 1 and quality < 5 and stackSize == 1 and BG.IsItemEquipment(invType) then
-
 			skillRank = BG.GetProfessionSkill(BG.enchanting) or 0
+
 			if skillRank > 0 then
 				if level <= 20 then required = 1
 				elseif level <= 60 then required = 5*5*math.ceil(level/5)-100
@@ -361,7 +367,7 @@ function BG.CanDisenchant(itemLink, onlyMe)
 			end
 		end
 	end
-	
+
 	if not skillRank or not required then
 		return false
 	elseif skillRank >= required then
@@ -402,18 +408,17 @@ end
 
 -- returns true if, by TopFit's standards, the given item is "outdated"
 function BG.IsTopFitOutdatedItem(item)
-	local invType
 	if not item then
 		return nil
 	elseif type(item) == "number" or type(item) == "string" then
-		_, item, _, _, _, _, _, _, invType = GetItemInfo(item)
+		_, item = GetItemInfo(item)
 	else
-		invType = item.itemType
 		item = GetContainerItemLink(BG.FindItemInBags(item.itemID))
 	end
 
 	if IsAddOnLoaded("TopFit") and TopFit.IsInterestingItem then
-		if not TopFit:IsInterestingItem(item) and BG.IsItemEquipment(invType) then
+		local invType = select(9, GetItemInfo(item))
+		if BG.IsItemEquipment(invType) and not TopFit:IsInterestingItem(item.itemID) then
 			return true
 		end
 	else
@@ -424,7 +429,7 @@ end
 -- deletes the item in a given location of your bags
 function BG:Delete(item, position)
 	local itemID, itemCount, cursorType
-	
+
 	if type(item) == "string" and item == "cursor" then
 		-- item on the cursor
 		cursorType, itemID = GetCursorInfo()
@@ -438,11 +443,11 @@ function BG:Delete(item, position)
 		-- item given as an itemTable
 		itemID = item.itemID
 		position = {item.bag, item.slot}
-	
+
 	elseif type(item) == "number" then
 		-- item given via its itemID
 		itemID = item
-	
+
 	elseif item then
 		-- item given via its itemLink
 		itemID = BG.GetItemID(item)
@@ -459,24 +464,24 @@ function BG:Delete(item, position)
 		BG.Debug("I got these parameters:", item, bag, slot)
 		return
 	end
-	
+
 	-- make sure there is nothing unwanted on the cursor
 	if not cursorType then
 		ClearCursor()
 	end
-	
+
 	_, itemCount = GetContainerItemInfo(bag, slot)
-	
+
 	-- actual deleting happening after this
 	securecall(PickupContainerItem, bag, slot)
 	securecall(DeleteCursorItem)					-- comment this line to prevent item deletion
-	
+
 	local itemValue = (BG.GetCached(itemID).value or 0) * itemCount	-- if an item is unknown to the cache, statistics will not change
 	-- statistics
 	BG_GlobalDB.itemsDropped 		= BG_GlobalDB.itemsDropped + itemCount
 	BG_GlobalDB.moneyLostByDeleting	= BG_GlobalDB.moneyLostByDeleting + itemValue
 	BG_LocalDB.moneyLostByDeleting 	= BG_LocalDB.moneyLostByDeleting + itemValue
-	
+
 	local _, itemLink = GetItemInfo(itemID)
 	BG.Print(format(BG.locale.itemDeleted, itemLink, itemCount))
 end
@@ -489,11 +494,11 @@ end
 -- fetch an item from the item cache, or insert if it doesn't exist yet
 function BG.GetCached(item)	-- itemID/itemLink
 	if not item then
-		return 
+		return
 	elseif type(item) == "string" then
 		item = BG.GetItemID(item)
 	end
-	
+
 	if not BG.itemsCache[item] then
 		return BG.UpdateCache(item)
 	end
@@ -510,10 +515,10 @@ function BG.UpdateCache(item) -- itemID/itemLink
 	else
 		return nil
 	end
-	
-	BG.Debug("Updating cache for "..itemID)
-	local _, itemLink, quality, itemLevel, _, _, subClass, stackSize, invType, _, vendorValue = GetItemInfo(itemID)
-	local family = GetItemFamily(itemID)
+
+	local _, itemLink, quality, itemLevel, _, _, subClass, stackSize, _, _, vendorValue = GetItemInfo(itemID)
+	BG.Debug("|cffffd700> Updating cache for "..itemID.."|r", itemLink)
+
 	if not quality then
 		BG.Debug("UpdateCache("..(itemID or "<none>")..") failed - no GetItemInfo() data available!")
 		return nil
@@ -522,39 +527,39 @@ function BG.UpdateCache(item) -- itemID/itemLink
 	local itemLimit, label = 0, nil
 	-- check if item is classified by its itemID
 	if BG.ScanTooltipFor(ITEM_STARTS_QUEST, itemLink) or BG.ScanTooltipFor(ITEM_BIND_QUEST, itemLink) then
-		BG.Debug("Item is a quest starter/quest item.", itemID, itemLink)
+		BG.Debug("Item is a quest starter/quest item.")
 		label = BG.EXCLUDE
 	end
 
 	if not label and BG.IsItemInBGList(itemID, "exclude") then
-		BG.Debug("Item's ITEMID is on the KEEP LIST.", itemID, itemLink)
+		BG.Debug("Item's ITEMID is on the KEEP LIST.")
 		label = BG.EXCLUDE
 		itemLimit = BG_LocalDB.exclude[itemID] or BG_GlobalDB.exclude[itemID] or 0
 	end
 	if not label and BG.IsItemInBGList(itemID, "autoSellList") then
-		BG.Debug("Item's ITEMID is on the SELL LIST.", itemID, itemLink)
+		BG.Debug("Item's ITEMID is on the SELL LIST.")
 		label = BG.AUTOSELL
 		itemLimit = BG_LocalDB.autoSellList[itemID] or BG_GlobalDB.autoSellList[itemID] or 0
 	end
 	if not label and BG.IsItemInBGList(itemID, "include") then
-		BG.Debug("Item's ITEMID is on the JUNK LIST.", itemID, itemLink)
+		BG.Debug("Item's ITEMID is on the JUNK LIST.")
 		label = BG.INCLUDE
 		itemLimit = BG_LocalDB.include[itemID] or BG_GlobalDB.include[itemID] or 0
 	end
 	if not label and BG.IsItemInBGList(itemID, "forceVendorPrice") then
-		BG.Debug("Item's ITEMID is on the VENDOR PRICE LIST.", itemID, itemLink)
+		BG.Debug("Item's ITEMID is on the VENDOR PRICE LIST.")
 		label = BG.VENDOR
 	end
-	
+
 	-- check if item is classified by its category
 	if not label then
 		-- Exclude List
 		for category,_ in pairs(BG.JoinTables(BG_GlobalDB.exclude, BG_LocalDB.exclude)) do
 			if type(category) == "string" and BG.IsItemInCategory(itemID, category) then
 				if BG_GlobalDB.overrideLPT and quality == 0 then
-					BG.Debug("Item's CATEGORY is on the KEEP LIST but the item is JUNK!", itemID, itemLink)
+					BG.Debug("Item's CATEGORY is on the KEEP LIST but the item is JUNK!")
 				else
-					BG.Debug("Item' CATEGORY is on the KEEP LIST.", itemID, itemLink)
+					BG.Debug("Item's CATEGORY is on the KEEP LIST.")
 					label = BG.EXCLUDE
 					itemLimit = BG_LocalDB.exclude[category] or BG_GlobalDB.exclude[category] or 0
 					break
@@ -566,7 +571,7 @@ function BG.UpdateCache(item) -- itemID/itemLink
 		-- Auto Sell List
 		for category,_ in pairs(BG.JoinTables(BG_GlobalDB.autoSellList, BG_LocalDB.autoSellList)) do
 			if type(category) == "string" and BG.IsItemInCategory(itemID, category) then
-				BG.Debug("Item' CATEGORY is on the AUTO SELL LIST.", itemID, itemLink)
+				BG.Debug("Item's CATEGORY is on the AUTO SELL LIST.")
 				label = BG.AUTOSELL
 				itemLimit = BG_LocalDB.autoSellList[category] or BG_GlobalDB.autoSellList[category] or 0
 				break
@@ -577,7 +582,7 @@ function BG.UpdateCache(item) -- itemID/itemLink
 		-- Include List
 		for category,_ in pairs(BG.JoinTables(BG_GlobalDB.include, BG_LocalDB.include)) do
 			if type(category) == "string" and BG.IsItemInCategory(itemID, category) then
-				BG.Debug("Item's CATEGORY is on the JUNK LIST.", itemID, itemLink)
+				BG.Debug("Item's CATEGORY is on the JUNK LIST.")
 				label = BG.INCLUDE
 				itemLimit = BG_LocalDB.include[category] or BG_GlobalDB.include[category] or 0
 				break
@@ -588,7 +593,7 @@ function BG.UpdateCache(item) -- itemID/itemLink
 		-- Vendor Price List
 		for category,_ in pairs(BG_GlobalDB.forceVendorPrice) do
 			if type(category) == "string" and BG.IsItemInCategory(itemID, category) then
-				BG.Debug("Item's CATEGORY is on the VENDOR PRICE LIST.", itemID, itemLink)
+				BG.Debug("Item's CATEGORY is on the VENDOR PRICE LIST.")
 				label = BG.VENDOR
 				break
 			end
@@ -599,16 +604,16 @@ function BG.UpdateCache(item) -- itemID/itemLink
 	if not label and Unfit:IsItemUnusable(itemLink) and BG_GlobalDB.sellNotWearable
 		and quality <= BG_GlobalDB.sellNWQualityTreshold and BG.IsItemSoulbound(itemLink)
 		and (quality < 2 or not IsUsableSpell(BG.enchanting)) then
-		BG.Debug("Item is UNUSABLE; We can't ever wear it.", itemID, itemLink)
+		BG.Debug("Item is UNUSABLE; We can't ever wear it.")
 		label = BG.UNUSABLE
 	end
 
 	local value, itemLabel = BG.GetSingleItemValue(itemID, label)
 	if not label then
-		BG.Debug("Assigning simple label.", itemID, itemLink, itemLabel, value)
+		BG.Debug("Assigning simple label", itemLabel, BG.FormatMoney(value))
 		label = itemLabel
 	end
-	
+
 	-- still no data?
 	if not (label and quality and value) then
 		BG.Debug("Error! Caching item failed!", itemID, itemLink, label, quality, value)
@@ -622,15 +627,12 @@ function BG.UpdateCache(item) -- itemID/itemLink
 
 	itemCache.itemID = itemID
 	itemCache.classification = label
-
-	itemCache.level = itemLevel
 	itemCache.vendorValue = vendorValue
-	itemCache.value = value or 0
-	itemCache.limit = itemLimit
+	itemCache.value = value or 0 -- auction/DE/... value
 	itemCache.quality = quality
-	itemCache.family = family
-	itemCache.itemType = invType
 	itemCache.stackSize = stackSize or 1
+	itemCache.limit = itemLimit -- as configured in user lists
+	itemCache.level = itemLevel -- used for sorting, e.g. when using limits
 
 	return itemCache
 end
