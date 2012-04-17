@@ -1,14 +1,38 @@
 package-as: Broker_Garbage
 
 move-folders:
- Broker_Garbage/Broker_Garbage-Config: Broker_Garbage-Config
- Broker_Garbage/Broker_Garbage-LootManager: Broker_Garbage-LootManager
- Broker_Garbage/Broker_Garbage: Broker_Garbage
+    Broker_Garbage/Broker_Garbage-Config: Broker_Garbage-Config
+    Broker_Garbage/Broker_Garbage-LootManager: Broker_Garbage-LootManager
+    Broker_Garbage/Broker_Garbage: Broker_Garbage
 
 optional-dependencies:
- - libperiodictable-3-1
+    - libperiodictable-3-1
 
 ignore:
- - .gitignore
- - .pkgmeta
- - readme.textile
+    - .gitignore
+    - .pkgmeta
+    - readme.textile
+
+#enable-nolib-creation: no
+
+#externals:
+#    Broker_Garbage/libs/LibStub: 
+#        url: svn://svn.wowace.com/wow/libstub/mainline/trunk
+#        tag: latest
+#    Broker_Garbage/libs/LibQTip-1.0:
+#        url: svn://svn.wowace.com/wow/libqtip-1-0/mainline/trunk
+#        tag: latest
+#    Broker_Garbage/libs/Unfit-1.0:
+#        url: git://github.com/Jaliborc/Unfit-1.0.git
+#        tag: latest
+#    Broker_Garbage-Config/libs/tekkonfig:
+#        url: git://github.com/tekkub/tekkonfig.git
+#        tag: latest
+
+optional-dependencies:
+    - libperiodictable-3-1
+
+tools-used:
+    - tekkonfig
+    - libdatabroker-1-1
+    - callbackhandler
