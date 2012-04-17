@@ -16,7 +16,7 @@
 ## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 ## X-RelSite-WoWI: 15531
 ## X-Category: Inventory
-## X-Localizations: enUS, deDE, zhTW (by a9012456), works in any language
+## X-Localizations: enUS, deDE, zhTW (a9012456), works in any language
 ## X-Credits: GarbageFu, tekkub, Mirroar
 ## X-License: BSD
 

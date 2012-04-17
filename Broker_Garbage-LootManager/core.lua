@@ -53,12 +53,12 @@ frame:SetScript("OnEvent", eventHandler)
 function BGLM:DeletePartialStack(itemID, num)
 	local locations = Broker_Garbage:FindSlotToDelete(itemID)
 	local maxStack = select(8, GetItemInfo(itemID))
-	
+
 	if GetContainerItemID(locations[1].bag, locations[1].slot) ~= itemID then
 		BGLM:Print("Error! DeletePartialStack: This is not the item I expected.")
 		return
 	end
-	
+
 	securecall(SplitContainerItem, locations[1].bag, locations[1].slot, num)
 	if CursorHasItem() then
 		BGLM:Delete("cursor", num)
@@ -70,14 +70,14 @@ end
 function BGLM:CanSkin(mobLevel)
 	local skinning = Broker_Garbage:GetProfessionSkill(8613)
 	if not skinning then return false end
-	
+
 	local maxLevel
-	if skinning < 100 then 
+	if skinning < 100 then
 		maxLevel = floor(skinning/10) + 10
-	else 
-		maxLevel = floor(skinning/5) 
+	else
+		maxLevel = floor(skinning/5)
 	end
-	
+
 	return maxLevel >= mobLevel
 end
 
@@ -94,7 +94,7 @@ function BGLM:IsInteresting(itemTable)
 	end
 
 	local isQuestItem = ( select(6, GetItemInfo(itemTable.itemID)) ) == ( select(12, GetAuctionItemClasses()) )
-	local isTopFitInteresting = IsAddOnLoaded("TopFit") and Broker_Garbage.IsItemEquipment(itemTable.itemID) and TopFit:IsInterestingItem( (GetItemInfo(itemTable.itemID)) )
+	local isTopFitInteresting = IsAddOnLoaded("TopFit") and Broker_Garbage.IsItemEquipment(select(9, GetItemInfo(itemTable.itemID))) and TopFit:IsInterestingItem(itemTable.itemID)
 
 	if isQuestItem or isTopFitInteresting or BGLM_GlobalDB.forceClear or alwaysLoot then
 		return isInteresting, true
@@ -110,7 +110,7 @@ function BGLM.UpdateLootFrame(index)
 	local item = GetLootSlotLink(slot)
 		  item = item and BGLM:GetItemID(item)
 		  item = Broker_Garbage.GetCached(item)
-	
+
 	if item then
 		local isInteresting, alwaysLoot = BGLM:IsInteresting(item)
 		if isInteresting or alwaysLoot then
@@ -131,7 +131,7 @@ hooksecurefunc("LootFrame_UpdateButton", BGLM.UpdateLootFrame)
 function BGLM.AutoDestroy()
 	local location = {}
 	local itemLink
-	
+
 	for itemID, maxCount in pairs(BGLM:JoinTables(Broker_Garbage:GetOption("include"))) do
 		count = 0
 		if type(itemID) == "number" and type(maxCount) == "number" then
@@ -187,7 +187,7 @@ function BGLM.SelectiveLooting(autoloot)
 		local lootSlotItem, itemLink, itemID, lootAction
 		local slotQuantity, slotQuality, slotIsLocked
 		local maxStack, inBags, stackOverflow
-		
+
 		local isInteresting, alwaysLoot
 		local compareTo
 
@@ -220,7 +220,7 @@ function BGLM.SelectiveLooting(autoloot)
 			table.insert(itemPriorities, {
 				lootSlot = lootSlot,
 				isItem = slotItemIsItem,
-				
+
 				interesting = isInteresting,
 				always = alwaysLoot,
 				value = slotItemValue,
@@ -339,13 +339,13 @@ function BGLM.SelectiveLooting(autoloot)
 							lootAction = "take"
 							BGLM:Debug("Item goes into specialty bag", itemLink)
 
-						elseif not alwaysLoot and stackOverflow > 0 and BGLM_LocalDB.autoDestroy and 
+						elseif not alwaysLoot and stackOverflow > 0 and BGLM_LocalDB.autoDestroy and
 							(lootSkinning or (compareTo and (Broker_Garbage.GetItemValue(itemLink, stackOverflow) or 0) < compareTo.value)) then
 							-- delete partial stack. throw away partial stacks to squeeze in a little more
 							lootAction = "deletePartial"
 							BGLM:Debug("Item can be made to fit.", itemLink)
 
-						elseif BGLM_LocalDB.autoDestroy and compareTo and compareTo.value and 
+						elseif BGLM_LocalDB.autoDestroy and compareTo and compareTo.value and
 							(alwaysLoot or lootSkinning or lootSlotItem.value > compareTo.value) then
 							-- delete only if it's worth more, if it's an item we really need or if we want to skin the mob
 							lootAction = "delete"
@@ -372,7 +372,7 @@ function BGLM.SelectiveLooting(autoloot)
 					lootAction = "none"
 					BGLM:Print(format(BGLM.locale.couldNotLootBlacklist, itemLink), BGLM_GlobalDB.printJunk)
 				end
-				
+
 				-- last update & starting delete actions if needed
 				if lootAction ~= "none" and slotIsLocked then
 					-- we should probably be able to loot this, but something went wrong
@@ -394,7 +394,7 @@ function BGLM.SelectiveLooting(autoloot)
 					close = false
 				end
 			end
-			
+
 			-- finally, take what we can
 			if lootAction == "take" then
 				BGLM:Debug("Taking", itemLink or "<not an item>", (BGLM.privateLoot or BGLM_GlobalDB.autoConfirmBoP) and "confirm" or "no confirm")
