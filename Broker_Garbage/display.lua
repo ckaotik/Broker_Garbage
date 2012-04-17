@@ -16,7 +16,8 @@ function BG:UpdateLDB()
 	BG.totalBagSpace, BG.totalFreeSlots, BG.specialSlots, BG.freeSpecialSlots = BG:GetBagSlots()
 
 	local cheapestItem = BG.cheapestItems[1]
-	if cheapestItem and cheapestItem.source ~= BG.IGNORE then
+	DEBUG = cheapestItem
+	if cheapestItem and cheapestItem.source ~= BG.IGNORE and not cheapestItem.invalid then
 		BG.LDB.text = BG:FormatString(BG_GlobalDB.LDBformat)
 		BG.LDB.icon = select(10, GetItemInfo(cheapestItem.itemID))
 	else
@@ -111,8 +112,8 @@ function BG:Tooltip(self)
 			itemEntry.count,
 			BG.FormatMoney(itemEntry.value))
 
-		if colNum > 3 then
-			BG.tt:SetCell(lineNum, 4, BG.tag[itemEntry.source], "RIGHT", 1, 5, 0, 50, 10)
+		if colNum > 4 then
+			BG.tt:SetCell(lineNum, 4, BG.colors[itemEntry.source] .. BG.tag[itemEntry.source] .. "|r", "RIGHT", 1, 5, 0, 50, 10)
 		end
 
 		if BG.CanDisenchant(link) then
@@ -133,12 +134,12 @@ function BG:Tooltip(self)
 		or (BG_GlobalDB.showEarned and BG_LocalDB.moneyEarned ~= 0) then
 		lineNum = BG.tt:AddSeparator(2)
 
-		if BG_LocalDB.moneyLostByDeleting ~= 0 then
+		if BG_GlobalDB.showLost and BG_LocalDB.moneyLostByDeleting ~= 0 then
 			lineNum = BG.tt:AddLine(BG.locale.moneyLost, "", BG.FormatMoney(BG_LocalDB.moneyLostByDeleting), colNum == 4 and "" or nil)
 			BG.tt:SetCell(lineNum, 1, BG.locale.moneyLost, tooltipFont, "LEFT", 2)
 			BG.tt:SetCell(lineNum, 3, BG.FormatMoney(BG_LocalDB.moneyLostByDeleting), tooltipFont, "RIGHT", colNum - 2)
 		end
-		if BG_LocalDB.moneyEarned ~= 0 then
+		if BG_GlobalDB.showEarned and BG_LocalDB.moneyEarned ~= 0 then
 			lineNum = BG.tt:AddLine(BG.locale.moneyEarned, "", BG.FormatMoney(BG_LocalDB.moneyEarned), colNum == 4 and "" or nil)
 			BG.tt:SetCell(lineNum, 1, BG.locale.moneyEarned, tooltipFont, "LEFT", 2)
 			BG.tt:SetCell(lineNum, 3, BG.FormatMoney(BG_LocalDB.moneyEarned), tooltipFont, "RIGHT", colNum - 2)
