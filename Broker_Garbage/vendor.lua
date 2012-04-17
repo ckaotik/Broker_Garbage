@@ -2,7 +2,7 @@ local _, BG = ...
 
 function BG.ManualAutoSell()
 	local sellValue, numItems = BG.AutoSell(true)
-	
+
 	if sellValue ~= 0 then
 		BG.CallWithDelay(BG.ReportSelling, 0.3, 0, 0, numItems)
 	end
@@ -11,7 +11,7 @@ end
 function BG.AutoSell(manualSell)
 	if not BG.isAtVendor or (not manualSell and not BG_GlobalDB.autoSellToVendor) then return 0, 0 end
 	wipe(BG.sellLog)    -- reset data for refilling
-	
+
 	sellValue = 0
 	local cachedItem
 	for tableIndex, item in ipairs(BG.cheapestItems) do
@@ -37,18 +37,19 @@ function BG.AutoSell(manualSell)
 	return sellValue, #(BG.sellLog)
 end
 
-function BG.ReportSelling(repairCost, iteration, maxIteration)
+function BG.ReportSelling(repairCost, iteration, maxIteration, isGuildRepair)
 	BG.Debug("ReportSelling", repairCost, iteration)
 	local sellValue, numItems, isLocked = BG.CheckSoldItems()
 	if isLocked and iteration < (maxIteration or 10)+5 then
-		BG.CallWithDelay(BG.ReportSelling, 0.3, repairCost, iteration+1, maxIteration)
+		BG.CallWithDelay(BG.ReportSelling, 0.3, repairCost, iteration+1, maxIteration, isGuildRepair)
 	elseif isLocked then
 		BG.Print("Error! Was waiting too long for items to unlock after selling, but they are still locked.")
 	else
 		if sellValue > 0 and repairCost > 0 then
-			BG.Print(format(BG.locale.sellAndRepair, 
-				BG.FormatMoney(sellValue), 
-				BG.FormatMoney(repairCost), 
+			BG.Print(format(BG.locale.sellAndRepair,
+				BG.FormatMoney(sellValue),
+				BG.FormatMoney(repairCost),
+				isGuildRepair and BG.locale.guildRepair or "",
 				BG.FormatMoney(sellValue - repairCost)
 			))
 		elseif sellValue > 0 then
@@ -102,14 +103,15 @@ end
 
 -- automatically repair at a vendor
 function BG.AutoRepair()
-	local repairCost = 0
+	local repairCost, guildRepair = 0, nil
 	if BG_GlobalDB.autoRepairAtVendor and CanMerchantRepair() then
 		repairCost = GetRepairAllCost()
 		local guildRepairFunds = CanGuildBankRepair() and GetGuildBankWithdrawMoney()
-		
+
 		if repairCost > 0 then
 			if BG_LocalDB.repairGuildBank and guildRepairFunds and (guildRepairFunds == -1 or guildRepairFunds >= repairCost) then
 				-- guild repair if we're allowed to and the user wants it
+				guildRepair = true
 				RepairAllItems(1)
 			elseif GetMoney() >= repairCost then
 				-- not enough allowance to guild bank repair, pay ourselves
@@ -121,7 +123,7 @@ function BG.AutoRepair()
 			end
 		end
 	end
-	return repairCost
+	return repairCost, guildRepair
 end
 
 
@@ -143,17 +145,17 @@ function BG.UpdateMerchantButton(forceUpdate)
 		if not sellIcon then
 			sellIcon = CreateFrame("Button", "BG_SellIcon", MerchantFrame, "ItemButtonTemplate")
 			SetItemButtonTexture(sellIcon, "Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
-			
+
 			sellIcon:SetFrameStrata("HIGH")
 			sellIcon:SetScript("OnClick", BG.ManualAutoSell)
-			sellIcon:SetScript("OnEnter", function(self) 
+			sellIcon:SetScript("OnEnter", function(self)
 				GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-				GameTooltip:SetText(BG.junkValue ~= 0 and format(BG.locale.autoSellTooltip, BG.FormatMoney(BG.junkValue)) 
+				GameTooltip:SetText(BG.junkValue ~= 0 and format(BG.locale.autoSellTooltip, BG.FormatMoney(BG.junkValue))
 						or BG.locale.reportNothingToSell, nil, nil, nil, nil, true)
 			end)
 			sellIcon:SetScript("OnLeave", function() GameTooltip:Hide() end)
 		end
-		
+
 		-- update tooltip value
 		SetItemButtonDesaturated(sellIcon, BG.junkValue == 0)
 
@@ -162,7 +164,7 @@ function BG.UpdateMerchantButton(forceUpdate)
 		sellIcon:SetWidth(iconSize)
 		_G[sellIcon:GetName().."NormalTexture"]:SetHeight(64/37 * iconSize)
 		_G[sellIcon:GetName().."NormalTexture"]:SetWidth(64/37 * iconSize)
-		
+
 		if CanGuildBankRepair() then
 			MerchantRepairAllButton:SetPoint("BOTTOMRIGHT", MerchantFrame, "BOTTOMLEFT", 115 + 18, 89 + 4);
 		else
