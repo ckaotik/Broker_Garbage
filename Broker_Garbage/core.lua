@@ -61,12 +61,12 @@ local function eventHandler(self, event, arg1, ...)
 		if not (disable and disable()) then
 			local numSellItems
 			BG.sellValue, numSellItems = BG.AutoSell()
-			BG.repairCost = BG.AutoRepair()
+			BG.repairCost, guildRepair = BG.AutoRepair()
 
 			if BG.sellValue > 0 then
-				BG.CallWithDelay(BG.ReportSelling, 0.3, BG.repairCost, 0, numSellItems)
+				BG.CallWithDelay(BG.ReportSelling, 0.3, BG.repairCost, 0, numSellItems, guildRepair)
 			elseif BG.repairCost > 0 then
-				BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost)))
+				BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost), guildRepair and BG.locale.guildRepair or ""))
 			end
 		end
 
@@ -92,7 +92,7 @@ local function eventHandler(self, event, arg1, ...)
 		BG.Restack()
 
 	elseif not BG.locked and event == "BAG_UPDATE" then
-		if not arg1 or arg1 < 0 or arg1 > 4 then return end
+		if not arg1 or arg1 < 0 or arg1 > NUM_BAG_SLOTS then return end
 
 		BG.Debug("Bag Update", arg1, ...)
 		BG.ScanInventoryContainer(arg1)	-- partial inventory scan on the relevant container
