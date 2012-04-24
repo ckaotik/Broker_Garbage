@@ -357,12 +357,16 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 				for _, slot in ipairs(slots) do
 					GetInventoryItemsForSlot(slot, itemsForInvType)
 				end
-				table.sort(itemsForInvType, function(a, b) -- sort by itemLevel, descending
+				local itemsForSlot = {}
+				for _, itemID in pairs(itemsForInvType) do
+					table.insert(itemsForSlot, itemID)
+				end
+				table.sort(itemsForSlot, function(a, b) -- sort by itemLevel, descending
 					local itemLevelA, itemLevelB = select(4, GetItemInfo(a)), select(4, GetItemInfo(b))
-					return a > b
+					return itemLevelA > itemLevelB
 				end)
 				for i = 1, keepItems do
-					if itemsForInvType[i] and itemsForInvType[i] == itemID then
+					if itemsForSlot[i] and itemsForSlot[i] == itemID then
 						insert = false
 						break
 					end
