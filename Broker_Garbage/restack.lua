@@ -89,9 +89,9 @@ function BG.RestackStep(itemID, locations, stackSize)
 		local _, sourceCount = GetContainerItemInfo(moveFrom.bag, moveFrom.slot)
 		local _, targetCount = GetContainerItemInfo(moveTo.bag, moveTo.slot)
 
-		BG.Dump(locations)
-		BG.Dump({bag = moveFrom.bag, slot = moveFrom.slot, count = sourceCount})
-		BG.Dump({bag = moveTo.bag, slot = moveTo.slot, count = targetCount})
+		-- BG.Dump(locations)
+		-- BG.Dump({bag = moveFrom.bag, slot = moveFrom.slot, count = sourceCount})
+		-- BG.Dump({bag = moveTo.bag, slot = moveTo.slot, count = targetCount})
 
 		if not sourceCount then
 			tremove(locations, 1)
