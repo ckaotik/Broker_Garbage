@@ -145,12 +145,18 @@ function BG.ScanInventoryContainer(container, waitForFullScan)
 
 		listIndex = BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 		if listIndex then
-			table.insert(changedItems, {container, slot, listIndex >= 0 and listIndex or nil})
+			table.insert(changedItems, {container, slot, listIndex})
+			BG.Dump(changedItems)
 		end
 	end
 
 	for _, data in ipairs(changedItems) do
 		BG.SetDynamicLabelBySlot(unpack(data))
+		if BG_GlobalDB.restackInventory and not BG.currentRestackItem then
+			BG.currentRestackItem = GetContainerItemID(data[1], data[2])
+			BG.Debug("Setting BG.currentRestackItem to "..(BG.currentRestackItem or "nil"))
+			BG.Restack()
+		end
 	end
 
 	if not waitForFullScan then
@@ -190,7 +196,7 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 		-- -1: was previously empty/non-existant
 		-- BG.Debug("New item slot with new item", recheck and slotFound or "nil")
 		-- BG.SetDynamicLabelBySlot(container, slot, slotFound)
-		return slotFound or -1
+		return slotFound or 0
 	end
 end
 
@@ -269,7 +275,7 @@ end
 
 -- checks current inventory state and assigns labels depending on limits, binding etc.
 function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
-	if not container and not slot then return end
+	if not (container and slot) then return end
 	local maxValue, insert
 	local _, count, _, _, _, canOpen, itemLink = GetContainerItemInfo(container, slot)
 	local itemID = itemLink and BG.GetItemID(itemLink)
@@ -278,7 +284,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 	if not BG.cheapestItems then
 		BG.cheapestItems = {}
 	end
-	if not itemIndex then -- create new item entry
+	if not itemIndex or itemIndex < 1 then -- create new item entry
 		itemIndex = #BG.cheapestItems + 1
 	end
 	local updateItem = BG.cheapestItems[itemIndex]
@@ -338,7 +344,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 			if BG_GlobalDB.keepHighestItemLevel and IsAddOnLoaded("TopFit") and TopFit.GetEquipLocationsByInvType then
 				local invType = select(9, GetItemInfo(itemLink))
 				local slots = TopFit:GetEquipLocationsByInvType(invType)
-				local keepItems
+				local keepItems = 1
 
 				if #(slots) > 1 then
 					keepItems = 2
@@ -347,7 +353,10 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 					end
 				end
 
-				local itemsForInvType = GetInventoryItemsForSlot(invType)
+				local itemsForInvType = {}
+				for _, slot in ipairs(slots) do
+					GetInventoryItemsForSlot(slot, itemsForInvType)
+				end
 				table.sort(itemsForInvType, function(a, b) -- sort by itemLevel, descending
 					local itemLevelA, itemLevelB = select(4, GetItemInfo(a)), select(4, GetItemInfo(b))
 					return a > b
@@ -377,10 +386,11 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, noCheckOtherSlots)
 		end
 
 		-- allowed tresholds
-		if item.quality <= BG_GlobalDB.sellNWQualityTreshold and
-			((item.classification == BG.AUTOSELL and insert) or
-			(item.classification == BG.UNUSABLE and BG_GlobalDB.sellNotWearable) or
-			(classification == BG.OUTDATED and BG_GlobalDB.sellNotWearable)) then
+		if item.quality <= BG_GlobalDB.sellNWQualityTreshold and (
+				(item.classification == BG.AUTOSELL and insert) or
+				(item.classification == BG.UNUSABLE and BG_GlobalDB.sellNotWearable) or
+				(classification == BG.OUTDATED and BG_GlobalDB.sellNotWearable)
+			) then
 
 			insert = true
 			sellItem = true

@@ -387,17 +387,14 @@ function BG.CanDisenchant(itemLink, onlyMe)
 end
 
 function BG.IsOutdatedItem(item)	-- itemID/itemLink/itemTable
-	local itemLink, quality
+	local _, itemLink, quality
 	if not item then
 		return nil
-	elseif type(item) == "number" then
-		_, itemLink, quality = GetItemInfo(item)
-	elseif type(item) == "string" then
-		itemLink = item
-		quality = select(3, GetItemInfo(item))
-	else
+	elseif type(item) == "table" then
 		itemLink = select(2, GetItemInfo(item.itemID))
 		quality = item.quality
+	else
+		_, itemLink, quality = GetItemInfo(item)
 	end
 
 	if BG_GlobalDB.sellOldGear and quality <= BG_GlobalDB.sellNWQualityTreshold
@@ -408,21 +405,23 @@ end
 
 -- returns true if, by TopFit's standards, the given item is "outdated"
 function BG.IsTopFitOutdatedItem(item)
+	local _, itemLink
 	if not item then
 		return nil
-	elseif type(item) == "number" or type(item) == "string" then
-		_, item = GetItemInfo(item)
+	elseif type(item) == "table" then
+		itemLink = GetContainerItemLink(BG.FindItemInBags(item.itemID))
 	else
-		item = GetContainerItemLink(BG.FindItemInBags(item.itemID))
+		_, itemLink = GetItemInfo(item)
 	end
 
 	if IsAddOnLoaded("TopFit") and TopFit.IsInterestingItem then
-		local invType = select(9, GetItemInfo(item))
-		if BG.IsItemEquipment(invType) and not TopFit:IsInterestingItem(item.itemID) then
+		local invType = select(9, GetItemInfo(itemLink))
+		if BG.IsItemEquipment(invType) and not TopFit:IsInterestingItem(itemLink) then
 			return true
 		end
 	else
 		BG.Debug("TopFit is not loaded or too old.")
+		return nil
 	end
 end
 

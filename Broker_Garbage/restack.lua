@@ -1,9 +1,10 @@
 local _, BG = ...
 
+BG.currentRestackItem = nil
+
 -- initialize full inventory restacking
 -- [TODO] maybe also check bank?
 local restackIDs = {}
-local currentRestackItem = nil
 function BG.DoFullRestack(isRecursion)
 	if not isRecursion then
 		-- fill list of inventory itemIDs so we know what to restack
@@ -21,7 +22,7 @@ function BG.DoFullRestack(isRecursion)
 	-- do restacking for each itemID
 	local recursive = nil
 	for itemID, _ in pairs(restackIDs) do
-		currentRestackItem = itemID
+		BG.currentRestackItem = itemID
 		recursive = recursive or BG.Restack(itemID)
 	end
 
@@ -44,7 +45,6 @@ function BG.DoFullRestack(isRecursion)
 			BG.afterRestack()
 			BG.afterRestack = nil
 		end
-
 		BG.Debug("Full restack completed.")
 	end
 end
@@ -52,20 +52,22 @@ end
 -- register an item for restacking and manage each step
 -- [TODO] also restack when crafting (e.g. gems) and collecting mail items
 function BG.Restack(itemID)
-	itemID = itemID or currentRestackItem
-	if not itemID then
+	itemID = itemID or BG.currentRestackItem
+	local item = itemID and BG.GetCached(itemID)
+	if not itemID or not item then
 		return nil
 	end
 
-	local item = BG.GetCached(itemID)
-	local locations = BG.GetItemLocations(item, true)
+	local locations = BG.GetItemLocations(item, true, true)
 	local stillRestacking = BG.RestackStep(itemID, locations, item.stackSize)
 
 	if stillRestacking then
 		-- ITEM_UNLOCKED provokes BG.RestackStep()
 		BG.frame:RegisterEvent("ITEM_UNLOCKED")
 	else
+		BG.Debug("All done for "..itemID)
 		BG.frame:UnregisterEvent("ITEM_UNLOCKED")
+		BG.currentRestackItem = nil
 	end
 	_, _, hasItemLock = BG.GetItemLocations(BG.GetCached(itemID), true)
 	return hasItemLock
@@ -83,14 +85,20 @@ function BG.RestackStep(itemID, locations, stackSize)
 		restackIDs[ itemID ] = nil
 		return nil
 	else
-		BG.Debug("RestackStep", itemID, maxLoc)
-
 		local moveFrom, moveTo = BG.cheapestItems[ locations[1] ], BG.cheapestItems[ locations[maxLoc] ]
 		local _, sourceCount = GetContainerItemInfo(moveFrom.bag, moveFrom.slot)
 		local _, targetCount = GetContainerItemInfo(moveTo.bag, moveTo.slot)
 
-		-- remove full target steps
-		if targetCount == stackSize then
+		BG.Dump(locations)
+		BG.Dump({bag = moveFrom.bag, slot = moveFrom.slot, count = sourceCount})
+		BG.Dump({bag = moveTo.bag, slot = moveTo.slot, count = targetCount})
+
+		if not sourceCount then
+			tremove(locations, 1)
+			return BG.RestackStep(itemID, locations, stackSize)
+		end
+		-- remove full/empty target steps
+		if not targetCount or targetCount == stackSize then
 			tremove(locations, maxLoc)
 			return BG.RestackStep(itemID, locations, stackSize)
 		end
@@ -101,9 +109,11 @@ function BG.RestackStep(itemID, locations, stackSize)
 			tremove(locations, 1)
 		end
 
-		if not moveFrom.invalid and not itemWasMoved then
-			BG.Debug("Moving failed", itemID, moveFrom.bag, moveFrom.slot, moveTo.bag, moveTo.slot)
+		if not moveFrom.invalid and itemWasMoved == nil then
+			BG.Debug("Moving failed", itemID, moveFrom.bag.."."..moveFrom.slot, 'to', moveTo.bag.."."..moveTo.slot)
 			tremove(locations, 1)	-- couldn't move the item, so don't try this one again
+		else
+			tremove(locations, 1)
 		end
 		return true
 	end
@@ -135,7 +145,8 @@ end
 -- moves an item from A to B
 -- CAUTION: Call ClearCursor() straight after this!
 function BG.MoveItem(itemID, fromBag, fromSlot, toBag, toSlot, listIndex)
-	BG.Debug("From", fromBag, fromSlot, "to", toBag, toSlot)
+	if not (fromBag and fromSlot and toBag and toSlot) then return nil end
+	BG.Debug("From", fromBag.."."..fromSlot, "to", toBag.."."..toSlot)
 	if GetContainerItemID(fromBag, fromSlot) ~= itemID then
 		BG.Print("Error! Item to move does not match requested item.")
 		return nil
@@ -143,7 +154,7 @@ function BG.MoveItem(itemID, fromBag, fromSlot, toBag, toSlot, listIndex)
 	local targetLocked = select(3, GetContainerItemInfo(toBag, toSlot))
 	if targetLocked then
 		BG.Print("Error! Can't move item: Target location is locked.")
-		return nil
+		return false
 	end
 	ClearCursor()
 	securecall(PickupContainerItem, fromBag, fromSlot)

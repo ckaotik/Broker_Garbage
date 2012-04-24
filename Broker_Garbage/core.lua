@@ -34,12 +34,13 @@ local function eventHandler(self, event, arg1, ...)
 		BG.itemLocations = {}	-- itemID = { cheapestList-index }
 		BG.cheapestItems = {}	-- contains up-to-date labeled data
 		BG.sellLog = {}
-		BG.currentRestackItems = {}	-- contains itemIDs when restacking
 
 		BG.CheckSettings()
 		BG.AdjustLists_4_1()
 
+		BG.currentRestackItem = 0 -- cheating to prevent restack on logon
 		BG.ScanInventory()	-- initializes and fills caches
+		BG.currentRestackItem = nil
 
 		frame:RegisterEvent("BAG_UPDATE")
 		frame:RegisterEvent("MERCHANT_SHOW")
@@ -128,6 +129,7 @@ local function eventHandler(self, event, arg1, ...)
 			end
 		end
 	-- elseif event == "" then
+		-- [TODO] ITEM_PUSHED (?) for restack trigger
 		-- [TODO] items left inventory without bag_update event
 		-- [TODO] sometimes lists don't update properly which causes "re-selling" the same items over and over again, inflating statistics
 	end

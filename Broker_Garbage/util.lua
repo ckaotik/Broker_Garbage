@@ -5,40 +5,51 @@ function BG.Print(text)
 	DEFAULT_CHAT_FRAME:AddMessage(BG.name.." "..text)
 end
 
-hooksecurefunc (GameTooltip, "SetBagItem",
-	function(tip, bag, slot)
-		for tableIndex, tableItem in pairs(BG.cheapestItems) do
-			if tableItem.bag == bag and tableItem.slot == slot and not tableItem.invalid then
-				index = tableIndex
-				break
-			end
-		end
-
-		local item = BG.cheapestItems[index]
-		local cacheData = item and BG.GetCached(item.itemID)
-
-		if GetContainerItemInfo(bag, slot) and item and cacheData then
-			if BG_GlobalDB and BG_GlobalDB.showItemTooltipLabel and item.source then
-				if item.source >= 0 then
-					tip:AddDoubleLine(BG.name, BG.colors[item.source] .. BG.labels[item.source] .. "|r")
-				else
-					tip:AddDoubleLine(BG.name, "("..BG.colors[cacheData.classification] .. BG.labels[cacheData.classification] .. "|r)")
-				end
-				tip:Show()
-			end
-
-			if BG_GlobalDB and BG_GlobalDB.debug then
-				tip:AddDoubleLine(BG.name, "Index "..index..(item and ", label "..cacheData.classification or ""))
-				tip:Show()
-			end
+hooksecurefunc(GameTooltip, "SetBagItem", function(tip, bag, slot)
+	for tableIndex, tableItem in pairs(BG.cheapestItems) do
+		if tableItem.bag == bag and tableItem.slot == slot and not tableItem.invalid then
+			index = tableIndex
+			break
 		end
 	end
-);
+
+	local item = BG.cheapestItems[index]
+	local cacheData = item and BG.GetCached(item.itemID)
+	local sell = item and item.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or ""
+
+	if GetContainerItemInfo(bag, slot) and item and cacheData then
+		if BG_GlobalDB and BG_GlobalDB.showItemTooltipLabel and item.source then
+			if item.source >= 0 then
+				tip:AddDoubleLine(BG.name, sell .. BG.colors[item.source] .. BG.labels[item.source] .. "|r")
+			--else
+			--	tip:AddDoubleLine(BG.name, sell .. "("..BG.colors[cacheData.classification] .. BG.labels[cacheData.classification] .. "|r)")
+			end
+			tip:Show()
+		end
+
+		if BG_GlobalDB and BG_GlobalDB.debug then
+			tip:AddDoubleLine(BG.name, "Index "..index..
+				(cacheData and ", label "..cacheData.classification or "")..
+				(item and ", source "..item.source or "")
+			)
+			tip:Show()
+		end
+	end
+end)
 
 -- prints debug messages only when debug mode is active
 function BG.Debug(...)
 	if BG_GlobalDB and BG_GlobalDB.debug then
 		BG.Print("! "..string.join(", ", tostringall(...)))
+	end
+end
+
+local dumpCount = 0
+function BG.Dump(arg, force)
+	if (BG_GlobalDB and BG_GlobalDB.debug) or force then
+		UIParentLoadAddOn("Blizzard_DebugTools")
+		DevTools_Dump(arg, "BrokerGarbage_"..dumpCount)
+		dumpCount = dumpCount + 1
 	end
 end
 
