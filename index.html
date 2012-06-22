@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Broker garbage by ckaotik</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/ckaotik/Broker_Garbage">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/ckaotik/Broker_Garbage/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/ckaotik/Broker_Garbage/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Broker garbage</h1>
+          <p>WoW-Addon: Get that junk out of your bags</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/ckaotik">ckaotik</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h2>About</h2>
+
+<p>Broker_Garbage is a WoW add-on trying to manage that mess in your bags. Not enough information? Read on below!</p>
+
+<p>Have you ever been in a situation where you just can't turn in a quest because your inventory is full? Trying to figure out an item to delete that's cheap and won't make you loose much gold? This is one of the many situations where Broker_Garbage makes your life easier.</p>
+
+<h3>What it does</h3>
+
+<p>Broker_Garbage shows your cheapest item(s) for easily freeing bag space. It uses your auction addon of choice for pricing, including disenchant prices if available. If you don't want to throw away that precious [Broken I.W.I.N. Button], put it on your Keep List and Broker_Garbage will keep it. Forever. Really! And those [Shiny Fish Scales]? Just put them on your Junk List.</p>
+
+<h3>Broker? As in buying apartments?</h3>
+
+<p>This addon is a LibDataBroker plugin and as such requires a display addon to work properly (i.e. to show funky tooltips).
+Some are <a href="http://www.wowinterface.com/downloads/fileinfo.php?id=4459">Bagnon</a>, <a href="http://www.wowinterface.com/downloads/info11831-DockingStationDisplay.html">DockingStation</a>, (very minimalistic) <a href="http://www.wowinterface.com/downloads/info11884-NinjaPanel.html">NinjaPanel</a> or <a href="http://www.wowinterface.com/downloads/info14767-Bazooka.html">Bazooka</a>.</p>
+
+<h2>Features</h2>
+
+<p>You can disable almost all of these in the options panel. Default values are non destructive, so you don't loose anything by just installing the addon.</p>
+
+<h3>Broker_Garbage (Main Addon)</h3>
+
+<ul>
+<li>show cheap items in LDB tooltip to gain a quick overview</li>
+<li>customize the LDB display text</li>
+<li>temporarily disable the whole addon using a single button</li>
+<li>supports auction values from: Auctionator, Auctioneer+Enchantrix (Auc-Advandced), AuctionLite, WoWecon</li>
+<li>detect disenchantable items and consider DE prices if available</li>
+<li>repairs your gear if possible (using guild funds, or not)</li>
+<li>sells junk &amp; chosen items to vendors</li>
+<li>sells equipment you can't use nor trade/mail</li>
+<li>sells equipment you're not interested in (e.g. cloth on a warrior)</li>
+<li>show unopened containers &amp; clams reminder in the tooltip</li>
+<li>manage your items using four simple lists - Keep items, junk items, use vendor price, auto sell items</li>
+<li>lists can be character specific or shared account wide</li>
+<li>lists support single items, Equipment Manager item sets or item categories (using LibPeriodicTable)</li>
+<li>limit items such as Light Feather (never keep more than X of these)</li>
+<li>keeps statistics of gains &amp; losses</li>
+<li>localized in English and German, works in any language</li>
+</ul><h3>Broker_Garbage - Loot Manager</h3>
+
+<ul>
+<li>entirely optional plugin</li>
+<li>uses your Broker_Garbage lists</li>
+<li>intelligent autoloot - ignore cheap items if you have no bag space</li>
+<li>clear skinnable mobs, loot when pickpocketing or fishing</li>
+<li>option to auto destroy cheaper items to loot more valuable ones</li>
+<li>option to destroy items over their limit</li>
+<li>restack your inventory if needed</li>
+<li>localized in English and German, some features might not work in other locales</li>
+</ul><h2>Support</h2>
+
+<p>Do you enjoy Broker_Garbage? So do I! But keeping it up to date and supporting it takes quite a bit of time. If you feel like treating me to a steaming hot chocolate (YUM!) … Please do so ;) Every donation is highly appreciated!
+<img src="https://www.paypal.com/en_US/i/btn/btn_donate_LG.gif!:https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=7955703" alt="Buy me a muffin?"></p>
+
+<p>As with any addon: I provide no warranty for this addon but it should do The Right Thing(tm).
+If it does <em>not</em> do 'The Right Thing' or something doesn't feel right, leave me a note (see below) containing as much information on your problem as possible, so I can try to fix it.</p>
+
+<p>If you have any suggestions for new features, write a comment and I'll think about it. Likewise, if you speak a language currently not supported please feel free to help me localize Broker_Garbage! Send me a message so I can get you started ;)</p>
+
+<h3>Sources</h3>
+
+<ul>
+<li>
+<a href="https://github.com/ckaotik/Broker_Garbage">GitHub</a> Bleeding Edge (i.e. alpha) versions can be found here</li>
+<li><a href="http://wow.curse.com/downloads/wow-addons/details/broker_garbage.aspx">Curse</a></li>
+<li><a href="http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html">WoWInterface</a></li>
+</ul><h3>Issues</h3>
+
+<p>If you have an issue with the addon, feel free to use GitHub's issue tracker. I'll get notified of any posts there immediately and updates to fix your problem will find their way there first as well!
+In your bug report (or feature suggestion) include any information I could need. Such information could be:</p>
+
+<ul>
+<li>A stack trace/lua error message</li>
+<li>Which version are you using? Where did you get it?</li>
+<li>Is it connected to an action, item, character class? If so, which?</li>
+<li>What is happening - and what would you expect to happen, instead?</li>
+</ul><h3>Further information, hints, etc</h3>
+
+<p><strong>How to disable it (temporarily)</strong> Hold down your chosen disable key (SHIFT by default). If you want to prevent looting or selling, hold it until the corresponding frame shows up!</p>
+
+<p><strong>Tooltip Shortcuts</strong></p>
+
+<ul>
+<li>SHIFT + Click: Delete the item on that line</li>
+<li>CTRL + Click: Add the item on that line to your Keep List</li>
+<li>ALT + Click: Add the item on that line to your Vendor Price List</li>
+</ul><p><strong>How to add item categories</strong> Right-click on the blue "+" button on the options panel. Then choose your desired entry.</p>
+
+<p><strong>How to limit an item</strong> This only works on your Junk List. Use your mouse wheel to increase/decrease the count, hold SHIFT while doing so to move 10 steps at a time</p>
+
+<p><strong>What of those question mark items</strong> Those are items your client doesn't know yet. Hover them to update the display.</p>
+
+<p><strong>Anything else</strong> Broker_Garbage uses the slash command /garbage (or /garb in short).
+For more detailed information on how things work, have a look at the readme.txt files in the addon folders.</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>
