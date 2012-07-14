@@ -70,19 +70,19 @@ local function Options_CategoryTest(pluginID)
 					index = index + 1
 					show = true
 				end
-				
+
 				if show then
 					local button = _G["BG_PreviewIconButton"..index]
 					if not button then
 						-- create another button
 						button = CreateFrame("Button", "BG_PreviewIconButton"..index, parent, "ItemButtonTemplate")
-						
+
 						button:SetScript("OnClick", function(self)
 							HandleModifiedItemClick(self.link)
 						end)
 						button:SetScript("OnEnter", BGC.ShowTooltip)
 						button:SetScript("OnLeave", BGC.HideTooltip)
-						
+
 						if index == 1 then	-- place first icon
 							button:SetPoint("TOPLEFT", parent, "TOPLEFT", 6, -6)
 						elseif mod(index, numCols) == 1 then	-- new row
@@ -98,7 +98,7 @@ local function Options_CategoryTest(pluginID)
 					button:Show()
 				end
 			end
-			
+
 			-- hide unnessessary buttons
 			index = index + 1
 			while _G["BG_PreviewIconButton"..index] do
@@ -116,7 +116,7 @@ local function Options_CategoryTest(pluginID)
 	scrollFrame:SetBackdrop(backdrop)
 	scrollFrame:SetBackdropBorderColor(0.4, 0.4, 0.4)
 	scrollFrame:SetBackdropColor(0.1, 0.1, 0.1)
-	
+
 	local scrollFrameContent = CreateFrame("Frame", scrollFrame:GetName().."Frame", scrollFrame)
 	scrollFrameContent:SetAllPoints()
 	scrollFrameContent:SetWidth( scrollFrame:GetWidth() - 22)
@@ -149,12 +149,12 @@ local function Options_CategoryTest(pluginID)
 	itemSlot:SetScript("OnLeave", BGC.HideTooltip)
 	itemSlot.tiptext = BGC.locale.categoryTestItemSlot
 
-	UIDropDownMenu_Initialize(LPTDropDown, function(self, level)
+	LPTDropDown.initialize = function(self, level)
 		BGC:LPTDropDown(self, level, function(self)
 			UIDropDownMenu_SetSelectedValue(LPTDropDown, self.value)
 			UIDropDownMenu_SetText(LPTDropDown, self.value)
 			UpdatePreviewBox(self.value, "category", scrollFrameContent)
 		end)
-	end)
+	end
 end
 local _ = Broker_Garbage:RegisterPlugin(BGC.locale.PTCategoryTest, Options_CategoryTest)

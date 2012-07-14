@@ -16,7 +16,6 @@ function BG:UpdateLDB()
 	BG.totalBagSpace, BG.totalFreeSlots, BG.specialSlots, BG.freeSpecialSlots = BG:GetBagSlots()
 
 	local cheapestItem = BG.cheapestItems[1]
-	DEBUG = cheapestItem
 	if cheapestItem and cheapestItem.source ~= BG.IGNORE and not cheapestItem.invalid then
 		BG.LDB.text = BG:FormatString(BG_GlobalDB.LDBformat)
 		BG.LDB.icon = select(10, GetItemInfo(cheapestItem.itemID))

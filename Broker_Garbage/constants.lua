@@ -11,15 +11,15 @@ BG.defaultGlobalSettings = {
 	-- behavior
 	autoSellToVendor = true,
 	autoRepairAtVendor = true,
-	sellNotWearable = false,
-	sellOldGear = false,
+	sellNotWearable = nil,
+	sellOldGear = nil,
 	keepHighestItemLevel = true,
-	showSellLog = false,
-	overrideLPT = false,
-	restackInventory = false,
+	showSellLog = nil,
+	overrideLPT = nil,
+	restackInventory = nil,
 
 	disableKey = "SHIFT",
-	autoSellIncludeItems = false,	-- toggle include list being sell list as well
+	autoSellIncludeItems = nil,	-- toggle include list being sell list as well
 	keepItemsForLaterDE = 0,
 
 	-- tresholds
@@ -39,10 +39,11 @@ BG.defaultGlobalSettings = {
 	itemsDropped = 0,
 
 	-- display options
-	useRealValues = false,
+	useRealValues = nil,
 	hideZeroValue = true,
 	showAutoSellIcon = true,
 	showItemTooltipLabel = true,
+	showLabelReason = nil,
 
 	-- LibDataBroker Display
 	LDBformat = "[itemname]x[itemcount] ([itemvalue])",
@@ -52,12 +53,12 @@ BG.defaultGlobalSettings = {
 	showIcon = true,
 	showLost = true,
 	showEarned = true,
-	showSource = false,
+	showSource = nil,
 	showContainers = true,
 
 	-- output options
 	reportNothingToSell = true,
-	reportDisenchantOutdated = false,
+	reportDisenchantOutdated = nil,
 }
 
 BG.defaultLocalSettings = {
@@ -113,6 +114,7 @@ BG.labels = {
 }
 -- corresponding tags to be used in the LDB tooltip; EXCLUDE never shows up there!
 BG.tag = {
+	[BG.EXCLUDE]	= "K",
 	[BG.INCLUDE] 	= "I",
 	[BG.VENDOR] 	= "V",
 	[BG.AUTOSELL] 	= "V",

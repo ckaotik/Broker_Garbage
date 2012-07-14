@@ -3,7 +3,7 @@ local _, BGC = ...
 -- creates child options frame for setting up one's lists
 function BGC:ShowListOptions(frame)
 	local title = LibStub("tekKonfig-Heading").new(frame, "Broker_Garbage - " .. BGC.locale.LOTitle)
-	
+
 	local explanation = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	explanation:SetHeight(80)
 	explanation:SetPoint("TOPLEFT", title, "TOPLEFT", 0, -20)
@@ -12,7 +12,7 @@ function BGC:ShowListOptions(frame)
 	explanation:SetJustifyH("LEFT")
 	explanation:SetJustifyV("TOP")
 	explanation:SetText(BGC.locale.LOSubTitle)
-	
+
 	local autoSellIncludeItems = LibStub("tekKonfig-Checkbox").new(frame, nil, BGC.locale.LOIncludeAutoSellText, "TOPLEFT", explanation, "BOTTOMLEFT", 10, -8)
 	autoSellIncludeItems.tiptext = BGC.locale.LOIncludeAutoSellTooltip .. BGC.locale.GlobalSetting
 	autoSellIncludeItems:SetChecked( Broker_Garbage:GetOption("autoSellIncludeItems", true) )
@@ -22,7 +22,7 @@ function BGC:ShowListOptions(frame)
 		Broker_Garbage:ToggleOption("autoSellIncludeItems", true)
 		Broker_Garbage.ScanInventory(true)
 	end)
-	
+
 	local includeMode = LibStub("tekKonfig-Checkbox").new(frame, nil, BGC.locale.LOUseRealValues, "TOPLEFT", autoSellIncludeItems, "BOTTOMLEFT", 0, 8)
 	includeMode.tiptext = BGC.locale.LOUseRealValuesTooltip .. BGC.locale.GlobalSetting
 	includeMode:SetChecked( Broker_Garbage:GetOption("useRealValues", true) )
@@ -33,11 +33,11 @@ function BGC:ShowListOptions(frame)
 		Broker_Garbage.UpdateAllCaches()
 		Broker_Garbage:UpdateLDB()
 	end)
-	
+
 	local panel = LibStub("tekKonfig-Group").new(frame, nil, "TOPLEFT", includeMode, "BOTTOMLEFT", -10, -20)
 	panel:SetPoint("LEFT", 8 + 3, 0)
 	panel:SetPoint("BOTTOMRIGHT", -8 -4, 34)
-	
+
 	local topTab = LibStub("tekKonfig-TopTab")
 	local include = topTab.new(frame, BGC.locale.LOTabTitleInclude, "BOTTOMLEFT", panel, "TOPLEFT", 0, -4)
 	frame.current = "include"
@@ -77,7 +77,7 @@ function BGC:ShowListOptions(frame)
 		Broker_Garbage.UpdateAllDynamicItems()
 		Broker_Garbage:UpdateLDB()
 	end)
-	
+
 	-- action buttons
 	local plus = CreateFrame("Button", "Broker_Garbage_AddButton", frame)
 	plus:SetPoint("TOPLEFT", panel, "BOTTOMLEFT", 4, -2)
@@ -109,7 +109,7 @@ function BGC:ShowListOptions(frame)
 	emptyList:SetWidth(25); emptyList:SetHeight(25)
 	emptyList:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-UP")
 	emptyList.tiptext = BGC.locale.LOEmptyList
-	
+
 	-- editboxes curtesy of Tekkub
 	local itemNameBox = CreateFrame("EditBox", frame:GetName().."SearchBox", frame)
 	itemNameBox:SetAutoFocus(false)
@@ -121,7 +121,7 @@ function BGC:ShowListOptions(frame)
 	itemNameBox:SetTextColor(0.75, 0.75, 0.75, 1)
 	itemNameBox:SetText(BGC.locale.namedItems)
 	itemNameBox:SetCursorPosition(0)
-	
+
 	itemNameBox:SetScript("OnEditFocusGained", itemNameBox.HighlightText)
 	itemNameBox:SetScript("OnEscapePressed", itemNameBox.ClearFocus)
 	itemNameBox:SetScript("OnEnterPressed", function(self)
@@ -149,7 +149,7 @@ function BGC:ShowListOptions(frame)
 	searchbox:SetTextColor(0.75, 0.75, 0.75, 1)
 	searchbox:SetText(BGC.locale.search)
 	searchbox:SetCursorPosition(0)
-	
+
 	searchbox:SetScript("OnEscapePressed", searchbox.ClearFocus)
 	searchbox:SetScript("OnEnterPressed", searchbox.ClearFocus)
 
@@ -170,7 +170,7 @@ function BGC:ShowListOptions(frame)
 			self:SetTextColor(0.75, 0.75, 0.75, 1)
 		end
 	end)
-	
+
 	-- tab changing actions
 	include:SetScript("OnClick", function(self)
 		self:Activate()
@@ -232,7 +232,7 @@ function BGC:ShowListOptions(frame)
 		scrollFrame:SetVerticalScroll(0)
 		BGC:ListOptionsUpdate()
 	end)
-	
+
 	-- function to set the drop treshold (limit) via the mousewheel
 	local function OnMouseWheel(self, dir)
 		local text, limit = self.limit:GetText()
@@ -241,7 +241,7 @@ function BGC:ShowListOptions(frame)
 		else
 			list = Broker_Garbage:GetOption(frame.current, false)
 		end
-		
+
 		local change = IsShiftKeyDown() and 10 or 1
 		local item = self.itemID or self.tiptext
 		if dir == 1 then	-- up
@@ -258,14 +258,14 @@ function BGC:ShowListOptions(frame)
 				list[item] = list[item] - change
 				text = list[item]
 			end
-			
+
 			if type(list[item]) == "number" and list[item] <= 0 then
 				list[item] = 0
 				text = ""
 			end
 		end
 		self.limit:SetText(text)
-		if self.itemID then 
+		if self.itemID then
 			Broker_Garbage.UpdateCache(self.itemID)
 		else -- commented because of huuuuge memory/CPU requirements
 			-- Broker_Garbage.UpdateAllCaches()
@@ -273,7 +273,7 @@ function BGC:ShowListOptions(frame)
 			-- Broker_Garbage:UpdateLDB()
 		end
 	end
-	
+
 	-- function that updates & shows items from various lists
 	function BGC:ListOptionsUpdate()
 		scrollContent:SetWidth(scrollFrame:GetWidth())	-- update scrollframe content to full width
@@ -288,10 +288,10 @@ function BGC:ShowListOptions(frame)
 		elseif _G["BG_HelpFrame"] then
 			_G["BG_HelpFrame"]:Hide()
 		end
-		
+
 		local localList, globalList = Broker_Garbage:GetOption(frame.current)
 		local dataList = BGC:JoinTables(globalList or {}, localList or {})
-		
+
 		-- make this table sortable
 		data = {}
 		for key, value in pairs(dataList) do
@@ -322,14 +322,14 @@ function BGC:ShowListOptions(frame)
 				button.limit:SetJustifyH("RIGHT")
 				button.limit:SetJustifyV("BOTTOM")
 				button.limit:SetText("")
-				
+
 				button.global = button:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 				button.global:SetPoint("TOPLEFT", button, "TOPLEFT", 2, -2)
 				button.global:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -3, 1)
 				button.global:SetJustifyH("LEFT")
 				button.global:SetJustifyV("TOP")
 				button.global:SetText("")
-				
+
 				button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 				button:SetCheckedTexture("Interface\\Buttons\\UI-Button-Outline")
 				button:SetChecked(false)
@@ -337,7 +337,7 @@ function BGC:ShowListOptions(frame)
 				tex:ClearAllPoints()
 				tex:SetPoint("CENTER")
 				tex:SetWidth(36/37*66) tex:SetHeight(36/37*66)
-				
+
 				button:SetScript("OnClick", function(self)
 					local check = self:GetChecked()
 					if IsModifiedClick() then	-- this handles chat linking as well as dress-up
@@ -351,9 +351,9 @@ function BGC:ShowListOptions(frame)
 					end
 				end)
 				button:SetScript("OnEnter", BGC.ShowTooltip)
-				button:SetScript("OnLeave", BGC.HideTooltip)				
+				button:SetScript("OnLeave", BGC.HideTooltip)
 			end
-			
+
 			-- update button positions
 			if index == 1 then		-- place first icon
 				button:SetPoint("TOPLEFT", scrollContent, "TOPLEFT", 6, -6)
@@ -362,7 +362,7 @@ function BGC:ShowListOptions(frame)
 			else					-- new button next to the old one
 				button:SetPoint("LEFT", _G[scrollContent:GetName().."_Item" .. index - 1], "RIGHT", 4, 0)
 			end
-			
+
 			-- update this button with data
 			local itemLink, texture
 			if type(itemID) == "string" then
@@ -372,7 +372,7 @@ function BGC:ShowListOptions(frame)
 					local identifier = tonumber(identifier)
 					identifier = select(index, GetAuctionItemSubClasses(2))
 					texture = "Interface\\Icons\\INV_Misc_Toy_07"
-					
+
 					button.itemLink = nil
 					button.itemID = itemID
 					button.tiptext = armorType or "Invalid Armor Type"
@@ -380,7 +380,7 @@ function BGC:ShowListOptions(frame)
 					-- blizzard gear set
 					identifier = tonumber(identifier)
 					identifier, texture = identifier and GetEquipmentSetInfo(identifier)
-					
+
 					button.itemLink = nil
 					button.itemID = itemID
 					button.tiptext = identifier
@@ -394,7 +394,7 @@ function BGC:ShowListOptions(frame)
 				else
 					-- this is an item category
 					texture = "Interface\\Icons\\Trade_engineering"
-					
+
 					button.itemLink = nil
 					button.itemID = nil
 					button.tiptext = itemID			-- category description string
@@ -406,7 +406,7 @@ function BGC:ShowListOptions(frame)
 				button.itemID = itemID
 				button.tiptext = nil
 			end
-			
+
 			if texture then	-- everything's fine
 				if globalList[itemID] then
 					button.global:SetText("G")
@@ -422,7 +422,7 @@ function BGC:ShowListOptions(frame)
 				else
 					button.limit:SetText("")
 				end
-				
+
 				if not itemLink and not BGC.PT then
 					button:SetAlpha(0.2)
 					button.tiptext = button.tiptext .. "\n|cffff0000"..BGC.locale.LPTNotLoaded
@@ -431,7 +431,7 @@ function BGC:ShowListOptions(frame)
 				end
 			end
 			button:SetNormalTexture(texture or "Interface\\Icons\\Inv_misc_questionmark")
-			
+
 			if BGC.listOptions.current ~= "forceVendorPrice" then
 				button:EnableMouseWheel(true)
 				button:SetScript("OnMouseWheel", OnMouseWheel)
@@ -448,13 +448,13 @@ function BGC:ShowListOptions(frame)
 			index = index + 1
 		end
 	end
-	
+
 	-- shows some help strings for setting up the lists
 	function BGC:ShowHelp()
 		if not _G["BG_HelpFrame"] then
 			local helpFrame = CreateFrame("Frame", "BG_HelpFrame", scrollContent)
 			helpFrame:SetAllPoints()
-			
+
 			local helpTexts = helpFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 			helpTexts:SetPoint("TOPLEFT", helpFrame, "TOPLEFT", 8, -4)
 			helpTexts:SetWidth(helpFrame:GetWidth() - 8)	-- substract the offset we added to the left
@@ -469,7 +469,7 @@ function BGC:ShowListOptions(frame)
 			_G["BG_HelpFrame"]:Show()
 		end
 	end
-	
+
 	-- when a search string is passed, suitable items will be shown while the rest is grayed out
 	function BGC:UpdateSearch(searchString)
 		local index = 1
@@ -478,7 +478,7 @@ function BGC:ShowListOptions(frame)
 			local name = button.itemID and GetItemInfo(button.itemID) or button.tiptext
 			name = (button.itemID or "") .. " " .. (name or "")
 			name = name:lower()
-			
+
 			if not searchString or string.match(name, searchString) then
 				button:SetAlpha(1)
 			else
@@ -488,7 +488,7 @@ function BGC:ShowListOptions(frame)
 			button = _G[scrollContent:GetName().."_Item"..index]
 		end
 	end
-	
+
 	local function AddItem(item)
 		local link
 		if not item then
@@ -498,7 +498,7 @@ function BGC:ShowListOptions(frame)
 			end
 		end
 
-		local resetRequired	= nil	
+		local resetRequired	= nil
 		-- create "link" for output
 		if item and type(item) == "number" then
 			-- item on cursor
@@ -523,7 +523,7 @@ function BGC:ShowListOptions(frame)
 				link = item
 			end
 		end
-		
+
 		local localList, globalList = Broker_Garbage:GetOption(frame.current)
 		if localList and localList[item] == nil then
 			localList[item] = 0
@@ -538,17 +538,17 @@ function BGC:ShowListOptions(frame)
 		else
 			BGC:Print(string.format(BGC.locale.itemAlreadyOnList, link))
 		end
-		
+
 		-- post new data
 		Broker_Garbage:SetOption(frame.current, false, localList)
 		Broker_Garbage:SetOption(frame.current, true, globalList)
-		
+
 		if not resetRequired and type(item) == "number" then
 			Broker_Garbage.UpdateAllCaches(item)
 		end
 		return resetRequired
 	end
-	
+
 	if not _G["BG_LPTMenuFrame"] then
 		local RightClickMenuOnClick = function(self)
 			local reset = AddItem(self.value)
@@ -559,32 +559,33 @@ function BGC:ShowListOptions(frame)
 			Broker_Garbage.UpdateMerchantButton()
 			BGC:ListOptionsUpdate()
 		end
-		
+
 		--initialize dropdown menu for adding setstrings
 		BGC.menuFrame = CreateFrame("Frame", "BG_LPTMenuFrame", UIParent, "UIDropDownMenuTemplate")
-		UIDropDownMenu_Initialize(BGC.menuFrame, function(self, level)
+		BGC.menuFrame.displayMode = "MENU"
+		BGC.menuFrame.initialize = function(self, level)
 			BGC:LPTDropDown(self, level, RightClickMenuOnClick, true)
-			
+
 			-- add equipment sets
 			if level == 1 then
 				local info = UIDropDownMenu_CreateInfo()
 				info.notCheckable = true
 				UIDropDownMenu_AddButton(info, level)
-				
+
 				info = UIDropDownMenu_CreateInfo()
 				info.notCheckable = true
 				info.notClickable = true
 				info.isTitle = true
 				info.text = BGC.locale.tooltipHeadingOther
 				UIDropDownMenu_AddButton(info, level)
-				
+
 				info = UIDropDownMenu_CreateInfo()
 				info.notCheckable = true
 				info.hasArrow = true
 				info.text = BGC.locale.equipmentManager
 				info.value = "BEQ"
 				UIDropDownMenu_AddButton(info, level)
-				
+
 				info = UIDropDownMenu_CreateInfo()
 				info.notCheckable = true
 				info.hasArrow = true
@@ -597,45 +598,45 @@ function BGC:ShowListOptions(frame)
 						local info = UIDropDownMenu_CreateInfo()
 						info.text = GetEquipmentSetInfo(k)
 						info.value = "BEQ_" .. k
-						
+
 						info.notCheckable = true
 						info.hasArrow = false
 						info.func = RightClickMenuOnClick
-						
+
 						UIDropDownMenu_AddButton(info, level);
 					end
 				elseif UIDROPDOWNMENU_MENU_VALUE == "AC" then
 					local armorTypes = { GetAuctionItemSubClasses(2) }
-					
+
 					for k = 2, 5 do
 						local info = UIDropDownMenu_CreateInfo()
 						info.text = armorTypes[k]
 						info.value = "AC_"..k
-						
+
 						info.notCheckable = true
 						info.hasArrow = false
 						info.func = RightClickMenuOnClick
-						
+
 						UIDropDownMenu_AddButton(info, level);
 					end
 				end
 			end
-		end, "MENU")
+		end
 	end
-	
+
 	local function OnClick(self, button)
 		if frame.current == nil then return end
 		if button == "RightButton" then
 			-- toggle LibPeriodicTable menu
 			BGC.menuFrame.clickTarget = self
-			ToggleDropDownMenu(1, nil, BGC.menuFrame, self, -20, 0)
+			ToggleDropDownMenu(nil, nil, BGC.menuFrame, self, -20, 0)
 			return
 		end
-		
+
 		local reset = nil	-- used to clean the items cache once we're done here
 		local localList, globalList = Broker_Garbage:GetOption(frame.current)
 		-- add action
-		if self == plus then			
+		if self == plus then
 			reset = AddItem()
 		-- remove action
 		elseif self == minus then
@@ -651,7 +652,7 @@ function BGC:ShowListOptions(frame)
 					if globalList then
 						globalList[item] = nil
 					end
-					
+
 					if type(item) == "number" then	-- regular item
 						Broker_Garbage.UpdateAllCaches(item)
 					else							-- category string
@@ -698,11 +699,11 @@ function BGC:ShowListOptions(frame)
 			end
 			reset = true
 		end
-		
+
 		-- post changed data
 		Broker_Garbage:SetOption(frame.current, false, localList)
 		Broker_Garbage:SetOption(frame.current, true, globalList)
-		
+
 		if reset then
 			Broker_Garbage.UpdateAllDynamicItems()
 		end
@@ -710,7 +711,7 @@ function BGC:ShowListOptions(frame)
 		Broker_Garbage:UpdateMerchantButton()
 		BGC:ListOptionsUpdate()
 	end
-	
+
 	plus:SetScript("OnClick", OnClick)
 	plus:SetScript("OnEnter", BGC.ShowTooltip)
 	plus:SetScript("OnLeave", BGC.HideTooltip)
@@ -726,12 +727,12 @@ function BGC:ShowListOptions(frame)
 	emptyList:SetScript("OnClick", OnClick)
 	emptyList:SetScript("OnEnter", BGC.ShowTooltip)
 	emptyList:SetScript("OnLeave", BGC.HideTooltip)
-	
+
 	-- support for add-mechanism
 	plus:RegisterForDrag("LeftButton")
 	plus:SetScript("OnReceiveDrag", ItemDrop)
 	plus:SetScript("OnMouseDown", ItemDrop)
-	
+
 	BGC:ListOptionsUpdate()
 	BGC.listOptions:SetScript("OnShow", BGC.ListOptionsUpdate)
 end

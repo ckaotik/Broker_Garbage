@@ -197,7 +197,7 @@ function BGLM.SelectiveLooting(autoloot)
 		local itemMaxStack, itemInBags, itemStackOverflow
 		local itemPriorities = {}
 		for lootSlot = 1, GetNumLootItems() do
-			slotItemIsItem = LootSlotIsItem(lootSlot)
+			slotItemIsItem = LootSlotHasItem(lootSlot)
 			if slotItemIsItem then
 				slotQuantity = select(3, GetLootSlotInfo(lootSlot))
 				slotItemLink = GetLootSlotLink(lootSlot)
@@ -271,28 +271,28 @@ function BGLM.SelectiveLooting(autoloot)
 			_, _, slotQuantity, slotQuality, slotIsLocked = GetLootSlotInfo(slot)
 			itemLink = GetLootSlotLink(slot)
 
-			if lootThreshold and slotQuality >= lootThreshold then
+			if BGLM.privateLoot then
+				lootConstraint = nil -- private loot = god mode. you want it, you take it!
+
+			elseif lootThreshold and slotQuality >= lootThreshold then
 				if lootMethod == "master" then
 					lootConstraint = true
-					if lootMasterRaid and GetNumRaidMembers() > 1 and UnitIsUnit("raid"..lootMasterRaid, "player") then
+					if lootMasterRaid and UnitInRaid("player") and UnitIsUnit("raid"..lootMasterRaid, "player") then
 						playerIsLootMaster = true
-					elseif lootMasterGroup and GetNumPartyMembers() > 0 and lootMasterGroup == 0 then
+					elseif lootMasterGroup and UnitInParty("player") and lootMasterGroup == 0 then
 						playerIsLootMaster = true
 					end
 				elseif lootMethod ~= "freeforall" then
-					lootConstraint = GetNumPartyMembers() > 0 or GetNumRaidMembers() > 1
+					lootConstraint = UnitInParty("player") or UnitInRaid("player")
 				end
 			else
 				lootConstraint = nil
-			end
-			if BGLM.privateLoot then
-				lootConstraint = nil -- private loot = god mode. you want it, you take it!
 			end
 
 			BGLM:Debug("Loot Slot", slot, "Has constraint?", lootConstraint)
 
 			-- preparations are done, now decide on actions
-			if not itemLink or not LootSlotIsItem(slot) then 		-- e.g. currency
+			if not itemLink or not LootSlotHasItem(slot) then 		-- e.g. currency
 				lootAction = "take"
 
 			elseif lootConstraint then 	-- loot master / group loot

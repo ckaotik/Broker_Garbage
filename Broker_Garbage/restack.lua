@@ -49,6 +49,39 @@ function BG.DoFullRestack(isRecursion)
 	end
 end
 
+-- [TODO] merge with DoFullRestack
+function BG.DoContainerRestack(container, isRecursion)
+	if not isRecursion then
+		-- fill list of inventory itemIDs so we know what to restack
+		for slot = 1, (GetContainerNumSlots(container) or 0) do
+			local itemID = GetContainerItemID(container, slot)
+
+			if itemID and not restackIDs[itemID] then
+				restackIDs[itemID] = true
+			end
+		end
+	end
+
+	-- do restacking for each itemID
+	local recursive = nil
+	for itemID, _ in pairs(restackIDs) do
+		BG.currentRestackItem = itemID
+		recursive = recursive or BG.Restack(itemID)
+	end
+
+	if recursive then
+		BG.Debug("Restack: More work to do.")
+		BG.CallWithDelay(BG.DoContainerRestack, 1, container, true)
+	else
+		wipe(restackIDs)
+		if BG.afterRestack ~= nil then
+			BG.afterRestack()
+			BG.afterRestack = nil
+		end
+		BG.Debug("Container restack completed.")
+	end
+end
+
 -- register an item for restacking and manage each step
 -- [TODO] also restack when crafting (e.g. gems) and collecting mail items
 function BG.Restack(itemID)
@@ -125,7 +158,7 @@ function BG.PutIntoBestContainer(curBag, curSlot, usedSlots)
 	if not itemID or itemFamily == 0 then return end 	-- empty slots / general items
 
 	local bestContainer = BG.FindBestContainerForItem(itemID, itemFamily)
-	if bestContainer then
+	if bestContainer and bestContainer ~= curBag then
 		local targetSlots = GetContainerFreeSlots(bestContainer)
 		for i, slot in pairs(targetSlots) do
 			if BG.Find(usedSlots, bestContainer..slot) then
@@ -160,7 +193,9 @@ function BG.MoveItem(itemID, fromBag, fromSlot, toBag, toSlot, listIndex)
 	securecall(PickupContainerItem, fromBag, fromSlot)
 	securecall(PickupContainerItem, toBag, toSlot)
 
-	-- this slot was modified, mark it as invalid
-	BG.cheapestItems[ listIndex ].invalid = true
+	if listIndex then
+		-- this slot was modified, mark it as invalid
+		BG.cheapestItems[ listIndex ].invalid = true
+	end
 	return true
 end

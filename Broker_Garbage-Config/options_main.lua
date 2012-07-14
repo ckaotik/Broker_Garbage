@@ -140,7 +140,7 @@ local function Options_BasicOptions(pluginID)
 		UIDropDownMenu_SetSelectedValue(disableKey, self.value)
 		Broker_Garbage:SetOption("disableKey", true, self.value)
 	end
-	UIDropDownMenu_Initialize(disableKey, function()
+	disableKey.initialize = function()
 		local selected, info = UIDropDownMenu_GetSelectedValue(disableKey), UIDropDownMenu_CreateInfo()
 		local keys = Broker_Garbage:GetVariable("disableKey")
 		for name in pairs(keys) do
@@ -150,7 +150,7 @@ local function Options_BasicOptions(pluginID)
 			info.checked = name == selected
 			UIDropDownMenu_AddButton(info)
 		end
-	end)
+	end
 
 	local thresholds = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupTresholds, "TOPLEFT", behavior, "TOPRIGHT", 10, 0)
 	thresholds:SetHeight(96); thresholds:SetWidth(180)
@@ -176,7 +176,7 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:SetOption("dropQuality", true, self.value)
 		Broker_Garbage.ScanInventory(true)
 	end
-	UIDropDownMenu_Initialize(qualityTreshold, function(self)
+	qualityTreshold.initialize = function(self)
 		local selected, info = UIDropDownMenu_GetSelectedValue(self), UIDropDownMenu_CreateInfo()
 		for i = 0, #BGC.quality do
 			info.text = BGC.quality[i]
@@ -185,7 +185,7 @@ local function Options_BasicOptions(pluginID)
 			info.checked = i == selected
 			UIDropDownMenu_AddButton(info)
 		end
-	end)
+	end
 
 	local sellGearTeshold = CreateFrame("Frame", "BG_SellQualityDropDown", thresholds, "UIDropDownMenuTemplate")
 	sellGearTeshold.displayMode = "MENU"
@@ -207,7 +207,7 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:SetOption("sellNWQualityTreshold", true, self.value)
 		Broker_Garbage.ScanInventory(true)
 	end
-	UIDropDownMenu_Initialize(sellGearTeshold, function(self)
+	sellGearTeshold.initialize = function(self)
 		local selected, info = UIDropDownMenu_GetSelectedValue(self), UIDropDownMenu_CreateInfo()
 		for i = 0, #BGC.quality do
 			info.text = BGC.quality[i]
@@ -216,7 +216,7 @@ local function Options_BasicOptions(pluginID)
 			info.checked = i == selected
 			UIDropDownMenu_AddButton(info)
 		end
-	end)
+	end
 
 	local tooltip = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupTooltip, "TOPLEFT", thresholds, "BOTTOMLEFT", 0, -14)
 	tooltip:SetHeight(215); tooltip:SetWidth(180)
@@ -394,7 +394,7 @@ local function Options_BasicOptions(pluginID)
 	-- ----------------------------------------------------------------------------------------------------
 
 	local display = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupDisplay, "TOPLEFT", thresholds, "TOPRIGHT", 10, 0)
-	display:SetHeight(104); display:SetWidth(180)
+	display:SetHeight(125); display:SetWidth(180)
 	display:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
 	local sellIcon = BGC.CreateCheckBox(display, nil, BGC.locale.showAutoSellIconTitle, "TOPLEFT", display, "TOPLEFT", 4, -2)
@@ -416,9 +416,18 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("showItemTooltipLabel", true)
 	end)
 
+	local itemTooltipLabelReason = BGC.CreateCheckBox(panel, nil, "[TODO]"..BGC.locale.showItemTooltipLabelTitle, "TOPLEFT", itemTooltipLabel, "BOTTOMLEFT", 0, 4)
+	itemTooltipLabelReason.tiptext = BGC.locale.showItemTooltipLabelText .. BGC.locale.GlobalSetting
+	itemTooltipLabelReason:SetChecked( Broker_Garbage:GetOption("showLabelReason", true) )
+	local checksound = itemTooltipLabelReason:GetScript("OnClick")
+	itemTooltipLabelReason:SetScript("OnClick", function(self)
+		checksound(self)
+		Broker_Garbage:ToggleOption("showLabelReason", true)
+	end)
+
 	-- -----------------------------------------------------------------
 	local lineDisplay = BGC.CreateHorizontalRule(display)
-	lineDisplay:SetPoint("TOPLEFT", itemTooltipLabel, "BOTTOMLEFT", 2, 2)
+	lineDisplay:SetPoint("TOPLEFT", itemTooltipLabelReason, "BOTTOMLEFT", 2, 2)
 	lineDisplay:SetPoint("RIGHT", -6, 2)
 	-- -----------------------------------------------------------------
 
@@ -443,7 +452,7 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:SetOption("showMoney", true, self.value)
 		Broker_Garbage.ScanInventory()
 	end
-	UIDropDownMenu_Initialize(moneyFormat, function(self)
+	moneyFormat.initialize = function(self)
 		local selected, info = UIDropDownMenu_GetSelectedValue(self), UIDropDownMenu_CreateInfo()
 		local index = 0
 		local formatString = Broker_Garbage.FormatMoney(testValue, 0)
@@ -457,7 +466,7 @@ local function Options_BasicOptions(pluginID)
 			index = index + 1
 			formatString = Broker_Garbage.FormatMoney(testValue, index)
 		end
-	end)
+	end
 
 	local output = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupOutput, "TOPLEFT", display, "BOTTOMLEFT", 0, -14)
 	output:SetHeight(148); output:SetWidth(180)

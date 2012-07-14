@@ -109,8 +109,6 @@ local function eventHandler(self, event, arg1, ...)
 		end
 		BG.sellValue, BG.repairCost = 0, 0
 
-	elseif event == "EQUIPMENT_SETS_CHANGED" then
-		BG.RescanEquipmentInBags()
 	elseif event == "PLAYER_EQUIPMENT_CHANGED" then
 		for i = 1, NUM_BAG_SLOTS do
 			if ContainerIDToInventoryID(i) and arg1 == ContainerIDToInventoryID(i) then
@@ -128,8 +126,15 @@ local function eventHandler(self, event, arg1, ...)
 				BG.Print(BG.locale.listsUpdatedPleaseCheck)
 			end
 		end
-	-- elseif event == "" then
-		-- [TODO] ITEM_PUSHED (?) for restack trigger
+	elseif event == "ITEM_PUSH" then
+		if BG_GlobalDB.restackInventory then -- and not BG.currentRestackItem then
+			-- BG.currentRestackItem = GetContainerItemID(data[1], data[2])
+			-- BG.Debug("Setting BG.currentRestackItem to "..(BG.currentRestackItem or "nil"))
+			-- BG.DoContainerRestack(arg1 - INVSLOT_LAST_EQUIPPED)
+		end
+	elseif event == "EQUIPMENT_SETS_CHANGED" then
+		BG.RescanEquipmentInBags()
+		-- UNIT_INVENTORY_CHANGED, arg1 == "player" => new item slot filled
 		-- [TODO] items left inventory without bag_update event
 		-- [TODO] sometimes lists don't update properly which causes "re-selling" the same items over and over again, inflating statistics
 	end

@@ -6,13 +6,7 @@ function BG.Print(text)
 end
 
 hooksecurefunc(GameTooltip, "SetBagItem", function(tip, bag, slot)
-	for tableIndex, tableItem in pairs(BG.cheapestItems) do
-		if tableItem.bag == bag and tableItem.slot == slot and not tableItem.invalid then
-			index = tableIndex
-			break
-		end
-	end
-
+	local index = BG.GetListIndex(bag, slot)
 	local item = BG.cheapestItems[index]
 	local cacheData = item and BG.GetCached(item.itemID)
 	local sell = item and item.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or ""
@@ -23,6 +17,9 @@ hooksecurefunc(GameTooltip, "SetBagItem", function(tip, bag, slot)
 				tip:AddDoubleLine(BG.name, sell .. BG.colors[item.source] .. BG.labels[item.source] .. "|r")
 			--else
 			--	tip:AddDoubleLine(BG.name, sell .. "("..BG.colors[cacheData.classification] .. BG.labels[cacheData.classification] .. "|r)")
+			end
+			if item.reason and BG_GlobalDB.showLabelReason then
+				tip:AddDoubleLine(BG.name, item.reason)
 			end
 			tip:Show()
 		end
@@ -78,6 +75,14 @@ function BG.ReformatGlobalString(globalString)
 	returnString = string.gsub(returnString, "%%[1-9]?$?c", "([+-]?)")
 	returnString = string.gsub(returnString, "%%[1-9]?$?d", "(%%d+)")
 	return returnString
+end
+
+function BG.GetListIndex(bag, slot)
+	for tableIndex, tableItem in pairs(BG.cheapestItems) do
+		if tableItem.bag == bag and tableItem.slot == slot and not tableItem.invalid then
+			return tableIndex
+		end
+	end
 end
 
 -- == Saved Variables ==
