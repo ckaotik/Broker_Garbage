@@ -416,8 +416,8 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("showItemTooltipLabel", true)
 	end)
 
-	local itemTooltipLabelReason = BGC.CreateCheckBox(panel, nil, "[TODO]"..BGC.locale.showItemTooltipLabelTitle, "TOPLEFT", itemTooltipLabel, "BOTTOMLEFT", 0, 4)
-	itemTooltipLabelReason.tiptext = BGC.locale.showItemTooltipLabelText .. BGC.locale.GlobalSetting
+	local itemTooltipLabelReason = BGC.CreateCheckBox(panel, nil, BGC.locale.showItemTooltipDetailTitle, "TOPLEFT", itemTooltipLabel, "BOTTOMLEFT", 0, 4)
+	itemTooltipLabelReason.tiptext = BGC.locale.showItemTooltipDetailText .. BGC.locale.GlobalSetting
 	itemTooltipLabelReason:SetChecked( Broker_Garbage:GetOption("showLabelReason", true) )
 	local checksound = itemTooltipLabelReason:GetScript("OnClick")
 	itemTooltipLabelReason:SetScript("OnClick", function(self)

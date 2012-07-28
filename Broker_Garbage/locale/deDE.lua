@@ -39,6 +39,7 @@ if GetLocale() == "deDE" then
 	BG.locale.listInclude = "Müll"
 	BG.locale.listVendor = "Händlerpreis"
 	BG.locale.listSell = "Verkaufen"
+	BG.locale.listCustom = "Eigener Preis"
 	BG.locale.listAuction = "Auktion"
 	BG.locale.listDisenchant = "Entzaubern"
 	BG.locale.listUnusable = "Nicht anlegbar"

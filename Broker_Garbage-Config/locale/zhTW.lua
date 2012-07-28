@@ -82,6 +82,9 @@ if GetLocale() == "zhTW" then
 	-- BGC.locale.showItemTooltipLabelTitle = "Show labels"
 	-- BGC.locale.showItemTooltipLabelText = "Check to show the label assigned by Broker_Garbage in the item's tooltip."
 
+	-- BGC.locale.showItemTooltipDetailTitle = "Show reasoning"
+	-- BGC.locale.showItemTooltipDetailText = "Check to show detailed information of Broker_Garbage's assigned label in the item's tooltip."
+
 	BGC.locale.showNothingToSellTitle = "'沒有東西可以賣'"
 	BGC.locale.showNothingToSellText = "勾選顯示聊天訊息當在商人時，但是卻沒有東西可以賣。"
 

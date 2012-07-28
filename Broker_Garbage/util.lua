@@ -1,5 +1,19 @@
 local _, BG = ...
 
+-- == degrade so this version can be used in pre 5.0 environments ==
+BG.PANDARIA = select(4, GetBuildInfo()) >= 50000
+if not BG.PANDARIA then
+	UnitInRaid = function() -- we only need this for "player"
+		return GetNumRaidMembers() > 1
+	end
+	UnitInParty = function()
+		return GetNumPartyMembers() > 0
+	end
+	LootSlotHasItem = function(slotID)
+		return LootSlotIsItem(slotID)
+	end
+end
+
 -- == Debugging Functions ==
 function BG.Print(text)
 	DEFAULT_CHAT_FRAME:AddMessage(BG.name.." "..text)
@@ -15,8 +29,6 @@ hooksecurefunc(GameTooltip, "SetBagItem", function(tip, bag, slot)
 		if BG_GlobalDB and BG_GlobalDB.showItemTooltipLabel and item.source then
 			if item.source >= 0 then
 				tip:AddDoubleLine(BG.name, sell .. BG.colors[item.source] .. BG.labels[item.source] .. "|r")
-			--else
-			--	tip:AddDoubleLine(BG.name, sell .. "("..BG.colors[cacheData.classification] .. BG.labels[cacheData.classification] .. "|r)")
 			end
 			if item.reason and BG_GlobalDB.showLabelReason then
 				tip:AddDoubleLine(BG.name, item.reason)
@@ -103,47 +115,29 @@ function BG.CheckSettings()
 		end
 	end
 
-	if newGlobals or newLocals then
-		-- this is the first load (either this or all character)
-		BG.CreateDefaultLists(newGlobals)
+	if newGlobals then
+		-- first load ever of Broker_Garbage
+		BG_GlobalDB.version = BG.version
+		BG.CreateDefaultLists(true)
+	elseif newLocals then
+		-- first load on this character
+		BG.CreateDefaultLists()
 	end
+
+	if not BG_GlobalDB.version or BG_GlobalDB.version < 1 then BG.AdjustLists_4_1() end
 end
 
 function BG.AdjustLists_4_1()
-	for key, value in pairs(BG_GlobalDB.exclude) do
-		if value == true then
-			BG_GlobalDB.exclude[key] = 0
+	for _, subtable in pairs({"exclude", "include", "autoSellList", "forceVendorPrice"}) do
+		for key, value in pairs(BG_GlobalDB[ subtable ] or {}) do
+			if value == true then
+				BG_GlobalDB[subtable][key] = 0
+			end
 		end
-	end
-	for key, value in pairs(BG_GlobalDB.include) do
-		if value == true then
-			BG_GlobalDB.include[key] = 0
-		end
-	end
-	for key, value in pairs(BG_GlobalDB.autoSellList) do
-		if value == true then
-			BG_GlobalDB.autoSellList[key] = 0
-		end
-	end
-	for key, value in pairs(BG_GlobalDB.forceVendorPrice) do
-		if value == true then
-			BG_GlobalDB.forceVendorPrice[key] = 0
-		end
-	end
-
-	for key, value in pairs(BG_LocalDB.exclude) do
-		if value == true then
-			BG_LocalDB.exclude[key] = 0
-		end
-	end
-	for key, value in pairs(BG_LocalDB.include) do
-		if value == true then
-			BG_LocalDB.include[key] = 0
-		end
-	end
-	for key, value in pairs(BG_LocalDB.autoSellList) do
-		if value == true then
-			BG_LocalDB.autoSellList[key] = 0
+		for key, value in pairs(BG_LocalDB[ subtable ] or {}) do
+			if value == true then
+				BG_LocalDB[subtable][key] = 0
+			end
 		end
 	end
 
@@ -156,6 +150,8 @@ function BG.AdjustLists_4_1()
 	if BG_GlobalDB.keepItemsForLaterDE and type(BG_GlobalDB.keepItemsForLaterDE) ~= "number" then
 		BG_GlobalDB.keepItemsForLaterDE = 0
 	end
+
+	BG_GlobalDB.version = 1
 end
 
 -- inserts some basic list settings
@@ -180,12 +176,8 @@ function BG.CreateDefaultLists(global)
 	end
 
 	-- class specific
-	if BG.playerClass == "WARRIOR" or BG.playerClass == "ROGUE" or BG.playerClass == "DEATHKNIGHT" or BG.playerClass == "HUNTER" then
+	if BG.playerClass == "WARRIOR" or BG.playerClass == "ROGUE" or BG.playerClass == "DEATHKNIGHT" or BG.playerClass == "HUNTER" or BG.playerClass == "MONK" then
 		BG_LocalDB.autoSellList["Consumable.Water"] = 0
-
-	elseif BG.playerClass == "SHAMAN" then
-		if not BG_LocalDB.include[17058] then BG_LocalDB.include[17058] = 20 end	-- fish oil
-		if not BG_LocalDB.include[17057] then BG_LocalDB.include[17057] = 20 end	-- scales
 	end
 	BG_LocalDB.exclude["Misc.Reagent.Class."..string.gsub(string.lower(BG.playerClass), "^.", string.upper)] = 0
 

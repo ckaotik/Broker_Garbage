@@ -115,18 +115,20 @@ function BG.IsItemInBGList(item, itemList, onlyLocal)	-- itemID/itemLink/itemTab
 end
 
 -- supply either <bag, slot, itemTable> or <bag, slot, itemTable/limit, locationsTable>
-function BG.IsItemOverLimit(bag, slot, item, locationTable)
+function BG.IsItemOverLimit(bag, slot, item, locations)
+	-- BG.IsItemOverLimit(container, slot, itemLimit, itemLocations)
 	if not (bag and slot) then return end
 
-	local locations, limit = locationTable, (type(item) == "table" and item.limit or item)
+	local limit = (type(item) == "table" and item.limit or item)
 	if not (locations and limit) then
 		locations, limit = BG.GetItemLocations(item, nil, true, true)
 	end
-	if not locations or not limit or limit < 1 then return end
+	if not (locations and limit) or limit < 1 then return end
 
-	local itemCount, currentItem = 0
+	local itemCount, currentItem = 0, nil
 	for i = #locations, 1, -1 do
 		currentItem = BG.cheapestItems[ locations[i] ]
+
 		if itemCount < limit then
 			-- keep this amount
 			itemCount = itemCount + currentItem.count
@@ -177,9 +179,11 @@ end
 
 -- returns which of the items' values is the highest (value, type)
 function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
-	local itemID
+	local itemID, reason
 	if not item then return nil
-	elseif type(item) == "table" then itemID = item.itemID
+	elseif type(item) == "table" then
+		itemID = item.itemID
+		reason = item.reason
 	elseif type(item) == "number" then itemID = item
 	elseif type(item) == "string" then
 		itemID = BG.GetItemID(item)
@@ -192,10 +196,20 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 	   	return nil
 	end
 
-	-- handle special cases
+	-- == handle special cases ========
+	-- handle custom pricing
+	if type(item) == "table" and item.priceLabel then
+		if label and label == BG.EXCLUDE then
+			-- fallback for over-limit keep items
+			return item.priceLabel, BG.VENDOR, item.priceReason
+		else
+			return item.priceLabel, BG.CUSTOM, item.priceReason
+		end
+	end
+
 	-- ignore AH prices for gray or BoP items
 	if itemQuality == 0 or label == BG.VENDOR or ( BG.IsItemSoulbound(itemLink) and not IsUsableSpell(BG.enchanting) ) then
-		return vendorPrice, vendorPrice and BG.VENDOR
+		return vendorPrice, vendorPrice and BG.VENDOR, reason
 	end
 
 	-- check auction data
@@ -252,21 +266,21 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 	end
 
 	if label == BG.AUCTION then
-		return auctionPrice, BG.AUCTION
+		return auctionPrice, BG.AUCTION, reason
 	elseif label == BG.DISENCHANT or (label == BG.UNUSABLE and IsUsableSpell(BG.enchanting)) then
-		return disenchantPrice, BG.DISENCHANT
+		return disenchantPrice, BG.DISENCHANT, reason
 	end
 
 	-- simply return the highest value price
 	local maximum = math.max((disenchantPrice or 0), (auctionPrice or 0), (vendorPrice or 0))
 	if disenchantPrice and maximum == disenchantPrice then
-		return disenchantPrice, BG.DISENCHANT
+		return disenchantPrice, BG.DISENCHANT, reason
 	elseif vendorPrice and maximum == vendorPrice then
-		return vendorPrice, BG.VENDOR
+		return vendorPrice, BG.VENDOR, reason
 	elseif auctionPrice and maximum == auctionPrice then
-		return auctionPrice, BG.AUCTION
+		return auctionPrice, BG.AUCTION, reason
 	else
-		return nil, nil
+		return nil, nil, nil
 	end
 end
 
@@ -527,7 +541,9 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 		return nil
 	end
 
-	local itemLimit, label, reason = 0, nil, nil
+	local itemLimit = 0
+	local label, reason = nil, nil
+	local priceLabel, priceReason = nil, nil
 
 	-- check if item is classified by its itemID
 	if not label and BG.IsItemInBGList(itemID, "exclude") then
@@ -545,9 +561,20 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 		reason = "ItemID is JUNK"
 		itemLimit = BG_LocalDB.include[itemID] or BG_GlobalDB.include[itemID] or 0
 	end
-	if not label and BG.IsItemInBGList(itemID, "forceVendorPrice") then
+	--[[ if not label and BG.IsItemInBGList(itemID, "forceVendorPrice") then
 		label = BG.VENDOR
 		reason = "ItemID is VendorPrice"
+	end --]]
+
+	if BG.IsItemInBGList(itemID, "forceVendorPrice") then
+		if not label then
+			label = BG.VENDOR
+			reason = "ItemID is VendorPrice"
+		end
+		if not priceLabel then
+			priceLabel = priceLabel or BG.VENDOR
+			priceReason = priceReason or "ItemID is VendorPrice"
+		end
 	end
 
 	-- check if item is classified by its category
@@ -597,6 +624,17 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 				break
 			end
 		end
+	end --]]
+
+	if not priceLabel then
+		-- Vendor Price List
+		for category,_ in pairs(BG_GlobalDB.forceVendorPrice) do
+			if type(category) == "string" and BG.IsItemInCategory(itemID, category) then
+				priceLabel = BG.VENDOR
+				priceReason = "Category is VendorPrice"
+				break
+			end
+		end
 	end
 
 	-- quest items
@@ -633,6 +671,8 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 	itemCache.itemID = itemID
 	itemCache.classification = label
 	itemCache.reason = reason
+	itemCache.priceLabel = priceLabel
+	itemCache.priceReason = priceReason
 	itemCache.vendorValue = vendorValue
 	itemCache.value = value or 0 -- auction/DE/... value
 	itemCache.quality = quality

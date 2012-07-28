@@ -40,6 +40,7 @@ if GetLocale() == "zhTW" then
 	-- BG.locale.listInclude = "Include"
 	-- BG.locale.listVendor = "Vendor"
 	-- BG.locale.listSell = "Auto sell"
+	-- BG.locale.listCustom = "Custom price"
 	-- BG.locale.listAuction = "Auction"
 	-- BG.locale.listDisenchant = "Disenchant"
 	-- BG.locale.listUnusable = "Unusable Gear"

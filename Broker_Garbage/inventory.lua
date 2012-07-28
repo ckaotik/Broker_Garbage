@@ -56,6 +56,10 @@ function BG.GetItemLocations(item, ignoreFullStacks, includeLocked, scanCategory
 			isLocked = select(3, GetContainerItemInfo(tableItem.bag, tableItem.slot))
 			cachedItem = BG.GetCached(tableItem.itemID)
 
+			if cachedItem and cachedItem.limit and (not maxLimit or cachedItem.limit > maxLimit) then
+				maxLimit = cachedItem.limit
+			end
+
 			itemIsRelevant = nil
 			inCategory, categoryName = BG.IsItemInCategories(tableItem.itemID, itemCategories)
 			if tableItem.itemID == item.itemID then
@@ -298,8 +302,9 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 			itemLimit = currentItem.limit
 			itemLocations = currentItem.locations
 		else
-			itemLimit = item
+			itemLimit = item.limit
 		end
+		itemLimit = itemLimit or 0
 
 		-- initial values, will get overridden if necessary
 		local value = item.value
@@ -310,18 +315,18 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 
 		local insert, sellItem = true, nil
 		local itemOverLimit = BG.IsItemOverLimit(container, slot, itemLimit, itemLocations)
-		if itemOverLimit and item.limit > 0 and classification == BG.EXCLUDE then
-			-- inverse logic: KEEP items over limit are handled like regular items
-			value, classification = BG.GetSingleItemValue(item)
-			insert = true
-			reason = item.reason.." (over limit)"
-		elseif not itemOverLimit and item.limit > 0 then
+		if itemLimit > 0 and not itemOverLimit then
 			-- limit exists, but is not yet reached
 			insert = nil
+			classification = BG.EXCLUDE
 			reason = item.reason.." (under limit)"
-		else
+		elseif itemLimit > 0 and itemOverLimit and classification == BG.EXCLUDE then
+			-- inverse logic: KEEP items over limit are handled like regular items
+			value, classification, classificationReason = BG.GetSingleItemValue(item, classification)
+			insert = true
+			reason = string.join(", ", item.reason.." (over limit)", classificationReason)
+		else -- regular list behaviour: no limit or non-keep over limit
 			if classification == BG.EXCLUDE then
-				-- regular list behaviour
 				insert = nil
 				reason = item.reason
 			elseif classification == BG.INCLUDE then
@@ -334,6 +339,11 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 				insert = true
 				reason = item.reason
 				sellItem = true
+			end
+
+			-- add info
+			if itemLimit > 0 then
+				reason = reason.." (over limit)"
 			end
 		end
 
@@ -485,17 +495,18 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 
 		local otherLocations, maxLimit, hasLock = BG.GetItemLocations(BG.cheapestItems[itemIndex], nil, true, true, nil)
 		local myIndex = BG.Find(otherLocations, itemIndex)
-		if myIndex then table.remove(otherLocations, myIndex) end
 
-		if otherLocations and #otherLocations > 0 then
+		if otherLocations and #otherLocations > 1 then
 			currentItem.locations = otherLocations
 			currentItem.limit = maxLimit
 
 			BG.Debug("Also check other indices: "..table.concat(otherLocations, ", "))
 			local otherItem
 			for _, otherIndex in pairs(otherLocations) do
-				otherItem = BG.cheapestItems[otherIndex]
-				BG.SetDynamicLabelBySlot(otherItem.bag, otherItem.slot, otherIndex, isSpecialBag, true)
+				if otherIndex ~= itemIndex then
+					otherItem = BG.cheapestItems[otherIndex]
+					BG.SetDynamicLabelBySlot(otherItem.bag, otherItem.slot, otherIndex, isSpecialBag, true)
+				end
 			end
 		end
 	end

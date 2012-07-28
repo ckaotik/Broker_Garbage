@@ -165,13 +165,21 @@ function BG.UpdateMerchantButton(forceUpdate)
 		_G[sellIcon:GetName().."NormalTexture"]:SetHeight(64/37 * iconSize)
 		_G[sellIcon:GetName().."NormalTexture"]:SetWidth(64/37 * iconSize)
 
-		--[[ if CanGuildBankRepair() then
-			MerchantRepairAllButton:SetPoint("BOTTOMRIGHT", MerchantFrame, "BOTTOMLEFT", 115 + 18, 89 + 4);
+		if not BG.PANDARIA then
+			if CanGuildBankRepair() then
+				MerchantRepairAllButton:SetPoint("BOTTOMRIGHT", MerchantFrame, "BOTTOMLEFT", 115 + 18, 89 + 4);
+			else
+				MerchantRepairAllButton:SetPoint("BOTTOMRIGHT", MerchantFrame, "BOTTOMLEFT", 172 - 18, 91);
+			end
+		end
+
+		sellIcon:ClearAllPoints()
+		if MerchantRepairAllButton:IsShown() then
+			sellIcon:SetPoint("RIGHT", MerchantRepairAllButton, "LEFT", -4 - 36, 0)
+			MerchantRepairText:Hide()
 		else
-			MerchantRepairAllButton:SetPoint("BOTTOMRIGHT", MerchantFrame, "BOTTOMLEFT", 172 - 18, 91);
-		end --]]
-		sellIcon:SetPoint("RIGHT", MerchantRepairAllButton, "LEFT", -4 - 36, 0)
-		MerchantRepairText:Hide()
+			sellIcon:SetPoint("BOTTOMRIGHT", MerchantFrameInset, "BOTTOM", -10, 8)
+		end
 		sellIcon:Show()
 	end
 end

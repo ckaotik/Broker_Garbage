@@ -14,6 +14,7 @@ local addonName, BG = ...
 BG.PT = LibStub("LibPeriodicTable-3.1", true)	-- don't scream if LPT isn't present
 
 -- internal variables
+BG.version = GetAddOnMetadata(addonName, "X-Version")
 BG.locked = nil						-- is set to true while selling stuff
 BG.sellValue = 0					-- represents the actual value that we sold stuff for
 BG.repairCost = 0					-- the amount of money that we repaired for
@@ -36,7 +37,6 @@ local function eventHandler(self, event, arg1, ...)
 		BG.sellLog = {}
 
 		BG.CheckSettings()
-		BG.AdjustLists_4_1()
 
 		BG.currentRestackItem = 0 -- cheating to prevent restack on logon
 		BG.ScanInventory()	-- initializes and fills caches

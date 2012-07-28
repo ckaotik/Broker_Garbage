@@ -82,6 +82,9 @@ if GetLocale() == "deDE" then
 	BGC.locale.showItemTooltipLabelTitle = "Einordnung anzeigen"
 	BGC.locale.showItemTooltipLabelText = "Auswählen um die Einordnung von Broker_Garbage im Tooltip eines Gegenstands anzuzeigen."
 
+	BGC.locale.showItemTooltipDetailTitle = "Begründung anzeigen"
+	BGC.locale.showItemTooltipDetailText = "Auswählen um detaillierte Informationen von Broker_Garbage's Einordnung im Tooltip eines Gegenstands anzuzeigen."
+
 	BGC.locale.showNothingToSellTitle = "Nichts zu verkaufen"
 	BGC.locale.showNothingToSellText = "Auswählen um bei Besuch eines Händlers eine Nachricht auszugegeben, falls es nichts zu verkaufen gibt"
 

@@ -5,7 +5,7 @@
 
 ## Title: Broker_Garbage-LootManager
 ## Author: ckaotik
-## Version: 4.3v1
+## Version: @project-version@
 ## Notes: Plugin for Broker_Garbage. Selective looting and more!
 ## Notes-deDE: Plugin für Broker_Garbage. Selektives Plündern und mehr!
 

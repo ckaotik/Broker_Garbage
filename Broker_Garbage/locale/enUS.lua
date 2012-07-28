@@ -40,6 +40,7 @@ BG.locale = {
 	listInclude = "Include",
 	listVendor = "Vendor",
 	listSell = "Auto sell",
+	listCuostom = "Custom price",
 	listAuction = "Auction",
 	listDisenchant = "Disenchant",
 	listUnusable = "Unusable Gear",

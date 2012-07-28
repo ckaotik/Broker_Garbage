@@ -82,6 +82,9 @@ BGC.locale = {
 	showItemTooltipLabelTitle = "Show labels",
 	showItemTooltipLabelText = "Check to show the label assigned by Broker_Garbage in the item's tooltip.",
 
+	showItemTooltipDetailTitle = "Show reasoning",
+	showItemTooltipDetailText = "Check to show detailed information of Broker_Garbage's assigned label in the item's tooltip.",
+
 	showNothingToSellTitle = "'Nothing to sell'",
 	showNothingToSellText = "Check to get a chat message when at a merchant but there is nothing to sell.",
 
