@@ -110,35 +110,6 @@ function BGC:ShowListOptions(frame)
 	emptyList:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-UP")
 	emptyList.tiptext = BGC.locale.LOEmptyList
 
-	-- editboxes curtesy of Tekkub
-	local itemNameBox = CreateFrame("EditBox", frame:GetName().."SearchBox", frame)
-	itemNameBox:SetAutoFocus(false)
-	itemNameBox:SetPoint("TOPRIGHT", panel, "BOTTOMRIGHT", -170, 2)
-	itemNameBox:SetWidth(160)
-	itemNameBox:SetHeight(32)
-	itemNameBox:SetFontObject("GameFontHighlightSmall")
-	BGC.CreateFrameBorders(itemNameBox)
-	itemNameBox:SetTextColor(0.75, 0.75, 0.75, 1)
-	itemNameBox:SetText(BGC.locale.namedItems)
-	itemNameBox:SetCursorPosition(0)
-
-	itemNameBox:SetScript("OnEditFocusGained", itemNameBox.HighlightText)
-	itemNameBox:SetScript("OnEscapePressed", itemNameBox.ClearFocus)
-	itemNameBox:SetScript("OnEnterPressed", function(self)
-		local input = self:GetText()
-		local name = GetItemInfo(input) or input
-		if name and name ~= "" then
-			name = "NAME_"..name
-			local localList, globalList = Broker_Garbage:GetOption(frame.current)
-			if localList and localList[name] == nil then localList[name] = 0
-			elseif globalList and globalList[name] == nil then globalList[name] = 0
-			end
-			BGC:ListOptionsUpdate()
-			self:SetText(BGC.locale.namedItems)
-		end
-		self:ClearFocus()
-	end)
-
 	local searchbox = CreateFrame("EditBox", frame:GetName().."SearchBox", frame)
 	searchbox:SetAutoFocus(false)
 	searchbox:SetPoint("TOPRIGHT", panel, "BOTTOMRIGHT", -4, 2)
@@ -551,7 +522,12 @@ function BGC:ShowListOptions(frame)
 
 	if not _G["BG_LPTMenuFrame"] then
 		local RightClickMenuOnClick = function(self)
-			local reset = AddItem(self.value)
+			local value = self
+			if type(self) == "table" then
+				value = self.value
+			end
+
+			local reset = AddItem(value)
 			if reset then
 				Broker_Garbage.UpdateAllDynamicItems()
 			end
@@ -559,6 +535,41 @@ function BGC:ShowListOptions(frame)
 			Broker_Garbage.UpdateMerchantButton()
 			BGC:ListOptionsUpdate()
 		end
+
+		StaticPopupDialogs["BROKERGARBAGE_ADDITEMNAME"] = {
+			text = BGC.locale.namedItemsInfo,
+			button1 = OKAY,
+			button2 = CANCEL,
+			hasEditBox = true,
+			OnShow = function(self)
+				self.editBox:SetScript("OnEnterPressed", function()
+					if StaticPopup3.which == "BROKERGARBAGE_ADDITEMNAME" then
+						StaticPopup3Button1:Click()
+					end
+				end)
+				self.editBox:SetScript("OnEscapePressed", function()
+					StaticPopup_Hide("BROKERGARBAGE_ADDITEMNAME")
+				end)
+			end,
+			OnAccept = function(self)
+				local name = self.editBox:GetText()
+				name = GetItemInfo(name) or name
+
+				if name and name ~= "" then
+					name = "NAME_"..name
+					local localList, globalList = Broker_Garbage:GetOption(frame.current)
+					if localList and localList[name] == nil then localList[name] = 0
+					elseif globalList and globalList[name] == nil then globalList[name] = 0
+					end
+					BGC:ListOptionsUpdate()
+				end
+			end,
+			timeout = 0,
+			whileDead = true,
+			enterClicksFirstButton = true,
+			hideOnEscape = true,
+			preferredIndex = 3,
+		}
 
 		--initialize dropdown menu for adding setstrings
 		BGC.menuFrame = CreateFrame("Frame", "BG_LPTMenuFrame", UIParent, "UIDropDownMenuTemplate")
@@ -568,27 +579,34 @@ function BGC:ShowListOptions(frame)
 
 			-- add equipment sets
 			if level == 1 then
+				-- placeholder
 				local info = UIDropDownMenu_CreateInfo()
 				info.notCheckable = true
 				UIDropDownMenu_AddButton(info, level)
 
-				info = UIDropDownMenu_CreateInfo()
-				info.notCheckable = true
 				info.notClickable = true
 				info.isTitle = true
 				info.text = BGC.locale.tooltipHeadingOther
 				UIDropDownMenu_AddButton(info, level)
 
-				info = UIDropDownMenu_CreateInfo()
-				info.notCheckable = true
+				-- reset unwanted attributes
+				info.notClickable = nil
+				info.isTitle = nil
+				info.disabled = nil
+
+				info.text = BGC.locale.namedItems
+				info.value = "NAME"
+				info.func = function()
+					StaticPopup_Show("BROKERGARBAGE_ADDITEMNAME")
+					ToggleDropDownMenu(nil, nil, BGC.menuFrame)
+				end
+				UIDropDownMenu_AddButton(info, level)
+
 				info.hasArrow = true
 				info.text = BGC.locale.equipmentManager
 				info.value = "BEQ"
 				UIDropDownMenu_AddButton(info, level)
 
-				info = UIDropDownMenu_CreateInfo()
-				info.notCheckable = true
-				info.hasArrow = true
 				info.text = BGC.locale.armorClass
 				info.value = "AC"
 				UIDropDownMenu_AddButton(info, level)

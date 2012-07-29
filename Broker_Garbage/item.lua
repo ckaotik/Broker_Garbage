@@ -17,14 +17,14 @@ function BG.GetItemListCategories(item)
 		item = BG.GetCached(item.itemID)
 	end
 
-	local itemList, itemCategories, maxLimit = BG.lists[item.classification], {}, nil
+	local itemList, itemCategories, maxLimit = BG.lists[item.classification], {}, 0
 	if itemList then
 		local currentList = BG_GlobalDB[itemList]
 		if currentList then
 			for listItem, limit in pairs(currentList) do
 				if type(listItem) == "string" and BG.IsItemInCategory(item.itemID, listItem) then
 					table.insert(itemCategories, listItem)
-					if not maxLimit or limit > maxLimit then
+					if limit > maxLimit then
 						maxLimit = limit
 					end
 				end
@@ -35,7 +35,7 @@ function BG.GetItemListCategories(item)
 			for listItem, limit in pairs(currentList) do
 				if type(listItem) == "string" and not BG.Find(itemCategories, listItem) and BG.IsItemInCategory(item.itemID, listItem) then
 					table.insert(itemCategories, listItem)
-					if not maxLimit or limit > maxLimit then
+					if limit > maxLimit then
 						maxLimit = limit
 					end
 				end
@@ -83,7 +83,11 @@ function BG.IsItemInCategory(item, category)	-- itemID/itemLink/itemTable, categ
 			searchResult = select(7, GetItemInfo(itemID)) == armorClass
 		elseif categoryType == "NAME" then 	-- item name
 			itemName = GetItemInfo(itemID)
-			searchResult = itemName == index
+			-- create pattern
+			index = string.gsub(index, "%*", ".-")
+			index = "^" .. index .. "$"
+			searchResult = string.match(itemName, index)
+			-- searchResult = itemName == index
 		end
 	elseif BG.PT then	-- LPT category
 		_, searchResult = BG.PT:ItemInSet(itemID, category)

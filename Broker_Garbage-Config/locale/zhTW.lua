@@ -22,6 +22,7 @@ if GetLocale() == "zhTW" then
 /garbage |cffc0c0c0globallimit |cffc0c0ffitemLink/ID count|r 設定所有角色限制。
 /garbage |cffc0c0c0value |cffc0c0ffvalueInCopper|r 設定捨取物品的最小價值(捨取管理員需要)。
 /garbage |cffc0c0c0freeslots |cffc0c0ffnumber|r 設定保留背包槽為空的數量。]]
+	-- BGC.locale.requiresLootManager = "This command requires the Loot Manager."
 	BGC.locale.invalidArgument = "你輸入無效的參數。請檢查你的輸入並再一次嘗試。"
 
 	-- Tooltip
@@ -259,6 +260,7 @@ if GetLocale() == "zhTW" then
 		"|cffff0000Shift-點擊!|r 清空任何全局項目。"
 
 	BGC.locale.namedItems = "|TInterface\\Icons\\Spell_chargepositive:15:15|t 物品名稱..."
+	-- BGC.locale.namedItemsInfo = "|cffffd200Add Item Name Rule|r|nInsert an item name or a pattern:|ne.g. \"|cFF36BFA8Scroll of *|r\" will match \"|cFF2bff58Scroll of Agility|r\" or \"|cFF2bff58Scroll of the Tiger|r\""
 	BGC.locale.search = "搜尋..."
 
 	-- LibPeriodicTable category testing

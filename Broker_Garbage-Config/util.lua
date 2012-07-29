@@ -16,14 +16,14 @@ BGC.quality = {
 -- Basic Functions
 -- ---------------------------------------------------------
 function BGC:Print(text)
-	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622Broker_Garbage|r "..text)
+	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622Broker_Garbage|r "..(text or ""))
 end
 
 -- joins any number of non-basic index tables together, one after the other. elements within the input-tables _will_ get mixed
 function BGC:JoinTables(...)
 	local result = {}
 	local tab
-	
+
 	for i=1,select("#", ...) do
 		tab = select(i, ...)
 		if tab then
@@ -32,7 +32,7 @@ function BGC:JoinTables(...)
 			end
 		end
 	end
-	
+
 	return result
 end
 
@@ -41,7 +41,7 @@ end
 -- button tooltip infos
 function BGC.ShowTooltip(self)
 	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-	
+
 	if self.itemLink then
 		GameTooltip:SetHyperlink(self.itemLink)
 
@@ -77,19 +77,19 @@ function BGC.ShowTooltip(self)
 			GameTooltip:AddLine(BGC.locale.anythingCalled)
 			GameTooltip:AddLine(self.tiptext or BGC.locale.unknown, 1, 1, 1, true)
 		end
-		
+
 	elseif self.tiptext and self:GetParent() == _G["BG_ListOptions_ScrollFrame"] then
 		-- LibPeriodicTable category
 		local text = string.gsub(self.tiptext, "%.", " |cffffd200>|r ")
-		
-		GameTooltip:ClearLines() 
+
+		GameTooltip:ClearLines()
 		GameTooltip:AddLine("LibPeriodicTable")
 		GameTooltip:AddLine(text, 1, 1, 1, true)
 
 	else
 		GameTooltip:SetText(self.tiptext, nil, nil, nil, nil, true)
 	end
-	
+
 	GameTooltip:Show()
 end
 
@@ -100,7 +100,7 @@ function BGC.CreateHorizontalRule(parent)
 	line:SetHeight(8)
 	line:SetTexture("Interface\\Tooltips\\UI-Tooltip-Border")
 	line:SetTexCoord(0.81, 0.94, 0.5, 1)
-	
+
 	return line
 end
 
@@ -121,7 +121,7 @@ function BGC.CreateFrameBorders(frame)
 	center:SetPoint("LEFT", left, "RIGHT", 0, 0)
 	center:SetTexture("Interface\\Common\\Common-Input-Border")
 	center:SetTexCoord(0.0625, 0.9375, 0, 0.625)
-	
+
 	return left, center, right
 end
 
@@ -133,7 +133,7 @@ function BGC.CreateCheckBox(parent, size, text, ...)
 	label:SetJustifyH("LEFT")
 	label:SetJustifyV("TOP")
 	check:SetHitRectInsets(0, -1 * label:GetStringWidth(), 0, 0)
-	
+
 	return check, label
 end
 
@@ -148,21 +148,21 @@ function BGC:CreateOptionsTab(id)
 	else
 		tab = topTab.new(BGC.options, plugin.name, "BOTTOMLEFT", BGC.modules[ id - 1 ].tab, "BOTTOMRIGHT", -15, 0)
 	end
-	
+
 	panel = CreateFrame("Frame", nil, BGC.options.group)
 	panel:SetAllPoints()
 	panel.tab = tab
-	
+
 	tab.panel = panel
 	tab:SetID(id)
 	tab:SetScript("OnClick", function(self)
 		BGC.ChangeView(self:GetID())
 	end)
 	tab:Deactivate()
-	
+
 	plugin.panel = panel
 	plugin.tab = tab
-	
+
 	return panel, tab
 end
 
@@ -176,7 +176,7 @@ local function CreateLPTTable()
 		local partials = { strsplit(".", set) }
 		local maxParts = #partials
 		local pre = BGC.PTSets
-			
+
 		for i = 1, maxParts do
 			if i == maxParts then
 				-- actual clickable entries
@@ -207,7 +207,7 @@ function BGC:LPTDropDown(self, level, functionHandler, notChecked)
 	end
 
 	-- display a heading
-	if (level == 1) then		
+	if (level == 1) then
 		local info = UIDropDownMenu_CreateInfo()
 		info.isTitle = true
 		info.notCheckable = true
@@ -223,20 +223,20 @@ function BGC:LPTDropDown(self, level, functionHandler, notChecked)
 			UIDropDownMenu_AddButton(info, level)
 		end
 	end
-	
+
 	for key, value in pairs(dataTable or {}) do
 		local info = UIDropDownMenu_CreateInfo()
 		local prefix = ""
 		if UIDROPDOWNMENU_MENU_VALUE then
 			prefix = UIDROPDOWNMENU_MENU_VALUE .. "."
 		end
-		
+
 		info.text = key
 		info.value = prefix .. key
 		info.notCheckable = true -- notChecked
 		info.hasArrow = type(value) == "table" and true or false
 		info.func = functionHandler
-		
+
 		UIDropDownMenu_AddButton(info, level);
 	end
 end

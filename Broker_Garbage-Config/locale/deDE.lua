@@ -15,13 +15,14 @@ if GetLocale() == "deDE" then
 	BGC.locale.minValueSet = "Mindestwert für items wurde auf %s gesetzt."
 	BGC.locale.minSlotsSet = "Der Loot Manager wird versuchen, mindestens %s Inventarplätze frei halten."
 
-	BGC.locale.slashCommandHelp = [[Folgende Kommandos werden unterstützt:
-/garbage |cffc0c0c0config|r öffnet die Optionen.
-/garbage |cffc0c0c0format |cffc0c0ffformatstring|r lässt dich das Format der LDB Anzeige anpassen, |cffc0c0c0 format reset|r setzt es zurück.
-/garbage |cffc0c0c0limit |cffc0c0ffitemLink/ID Anzahl|r setzt ein Limit für das gewählte Item für den aktuellen Charakter.
-/garbage |cffc0c0c0globallimit |cffc0c0ffitemLink/ID Anzahl|r setzt ein Limit für alle Charaktere.
-/garbage |cffc0c0c0value |cffc0c0ffWertInKupfer|r setzt den Itemwert, ab dem Items gelootet werden (benötigt den Loot Manager).
-/garbage |cffc0c0c0freeslots |cffc0c0ffnumber|r setzt die Anzahl an Taschenplätzen, die frei bleiben sollen.]]
+	BGC.locale.slashCommandHelp = [[unterstützt |cffee6622/garbage|r, |cffee6622/garb|r, |cffee6622/junk|r mit diesen Befehlen:
+    |cFF36BFA8config|r öffnet die Optionen.
+    |cFF36BFA8format|r |cFF2bff58<Text>|r setzt das LDB-Anzeigeformat, |cFF2bff58reset|r setzt es zurück.
+    |cFF36BFA8limit|r |cFF2bff58<Item>|r |cFF2bff58<Anzahl>|r setzt ein Limit für dieses Item für diesen Charakter.
+    |cFF36BFA8globallimit|r |cFF2bff58<Item>|r |cFF2bff58<Anzahl>|r setzt ein Limit für alle Charaktere.
+    |cFF36BFA8value|r |cFF2bff58<WertInKupfer>|r setzt den Itemwert, ab dem Items gelootet werden. (Loot Manager)
+    |cFF36BFA8freeslots|r |cFF2bff58<Anzahl>|r setzt die Anzahl an Taschenplätzen, die frei bleiben sollen. (Loot Manager)]]
+	BGC.locale.requiresLootManager = "Dieser Befehl benötigt den Loot Manager."
 	BGC.locale.invalidArgument = "Ungültiges Argument. Bitte überprüfe deine Eingabe!"
 
 	-- Tooltip
@@ -258,7 +259,8 @@ Unterhalb dieses Fensters siehst du 5 Buttons und eine Suchleiste.
 	BGC.locale.LOEmptyList = "|cffff0000Achtung!|r\n|cffffffffKlicke|r, um die lokalen Einträge dieser Liste zu löschen.\n"..
 		"|cffffffffShift-Klicke|r, um die globalen Einträge zu löschen."
 
-	BGC.locale.namedItems = "|TInterface\\Icons\\Spell_chargepositive:15:15|t Item mit Namen ..."
+	BGC.locale.namedItems = "Item mit Namen ..."
+	BGC.locale.namedItemsInfo = "|cffffd200Namensregel hinzufügen|r|nGib einen Itemnamen oder ein Muster ein:|nz.B. \"|cFF36BFA8Rolle de*|r\" für \"|cFF2bff58Rolle der Stärke|r\" oder \"|cFF2bff58Rolle des Bären|r\""
 	BGC.locale.search = "Suchen..."
 
 	-- LibPeriodicTable category testing

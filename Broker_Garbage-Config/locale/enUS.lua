@@ -22,6 +22,7 @@ BGC.locale = {
 /garbage |cffc0c0c0globallimit |cffc0c0ffitemLink/ID count|r sets a limit for all characters.
 /garbage |cffc0c0c0value |cffc0c0ffvalueInCopper|r sets the minimum value for items to be looted (Loot Manager needed).
 /garbage |cffc0c0c0freeslots |cffc0c0ffnumber|r sets the number of inventory slots to keep empty.]],
+	requiresLootManager = "This command requires the Loot Manager.",
 	invalidArgument = "You supplied an invalid argument. Please check your input and try again.",
 
 	-- Tooltip
@@ -259,6 +260,7 @@ Below this window you'll see five buttons and a search bar.
 		"|cffffffffShift-Click|r to empty any global entries.",
 
 	namedItems = "|TInterface\\Icons\\Spell_chargepositive:15:15|t item with name ...",
+	namedItemsInfo = "|cffffd200Add Item Name Rule|r|nInsert an item name or a pattern:|ne.g. \"|cFF36BFA8Scroll of *|r\" will match \"|cFF2bff58Scroll of Agility|r\" or \"|cFF2bff58Scroll of the Tiger|r\"",
 	search = "Search...",
 
 	-- LibPeriodicTable category testing

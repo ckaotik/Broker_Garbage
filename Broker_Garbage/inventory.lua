@@ -56,14 +56,14 @@ function BG.GetItemLocations(item, ignoreFullStacks, includeLocked, scanCategory
 			isLocked = select(3, GetContainerItemInfo(tableItem.bag, tableItem.slot))
 			cachedItem = BG.GetCached(tableItem.itemID)
 
-			if cachedItem and cachedItem.limit and (not maxLimit or cachedItem.limit > maxLimit) then
-				maxLimit = cachedItem.limit
-			end
-
 			itemIsRelevant = nil
 			inCategory, categoryName = BG.IsItemInCategories(tableItem.itemID, itemCategories)
 			if tableItem.itemID == item.itemID then
 				itemIsRelevant = true
+
+				if cachedItem and cachedItem.limit and cachedItem.limit > maxLimit then
+					maxLimit = cachedItem.limit
+				end
 			elseif scanCategory and itemCategories and inCategory and not string.find(categoryName, "_") then
 				itemIsRelevant = true
 			end
@@ -138,13 +138,15 @@ function BG.ScanInventory(resetCache)
 	BG.SortItemList()
 end
 
+local changedItems = {}
 function BG.ScanInventoryContainer(container, waitForFullScan)
 	local numSlots = GetContainerNumSlots(container)
 	if not numSlots then return end -- no (scannable) bag
 
 	local isSpecialBag = select(2, GetContainerNumFreeSlots(container)) ~= 0
 	local newItemCount, newItemLink, itemID, listIndex
-	local changedItems = {}
+	wipe(changedItems)
+
 	for slot = 1, numSlots do
 		_, newItemCount, _, _, _, _, newItemLink = GetContainerItemInfo(container, slot)
 		itemID = GetContainerItemID(container, slot)
@@ -158,11 +160,6 @@ function BG.ScanInventoryContainer(container, waitForFullScan)
 
 	for _, data in ipairs(changedItems) do
 		BG.SetDynamicLabelBySlot(unpack(data))
-		--[[ if BG_GlobalDB.restackInventory and not BG.currentRestackItem then
-			BG.currentRestackItem = GetContainerItemID(data[1], data[2])
-			BG.Debug("Setting BG.currentRestackItem to "..(BG.currentRestackItem or "nil"))
-			BG.Restack()
-		end --]]
 	end
 
 	if not waitForFullScan then
@@ -204,10 +201,12 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 	end
 end
 
+-- [TODO] FIXME!
 function BG.UpdateAllDynamicItems()
-	BG.ClearCache()
+	--[[ BG.ClearCache()
 	wipe(BG.cheapestItems)
-	BG.ScanInventory()
+	BG.ScanInventory() --]]
+	return
 end
 
 -- == Pure Logic Ahead ==
@@ -304,7 +303,6 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 		else
 			itemLimit = item.limit
 		end
-		itemLimit = itemLimit or 0
 
 		-- initial values, will get overridden if necessary
 		local value = item.value
@@ -314,6 +312,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 		BG.containerInInventory = BG.containerInInventory or canOpen
 
 		local insert, sellItem = true, nil
+		-- update: limits
 		local itemOverLimit = BG.IsItemOverLimit(container, slot, itemLimit, itemLocations)
 		if itemLimit > 0 and not itemOverLimit then
 			-- limit exists, but is not yet reached
@@ -347,6 +346,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 			end
 		end
 
+		-- update: unusable / outdated gear
 		if item.classification == BG.UNUSABLE and BG_GlobalDB.sellNotWearable and item.quality <= BG_GlobalDB.sellNWQualityTreshold then
 			insert = true
 			sellItem = true
@@ -383,6 +383,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 						return itemLevelA > itemLevelB
 					end
 				end)
+				-- [TODO] fix situation where item is kept even though same ilvl item is equipped
 				for i = 1, keepItems do
 					if itemsForSlot[i] and itemsForSlot[i] == itemID then
 						insert = false
@@ -402,6 +403,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 			end
 		end
 
+		-- update: disenchanting
 		local canDE, missing = BG.CanDisenchant(itemLink)
 		if BG.IsItemSoulbound(itemLink, container, slot) and (canDE or (missing and missing <= BG_GlobalDB.keepItemsForLaterDE))
 			and (item.classification == BG.AUCTION or classification == BG.UNUSABLE or classification == BG.OUTDATED) then
@@ -425,7 +427,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 			end
 		end
 
-		-- allowed tresholds
+		-- update: visibility thresholds and sell tags
 		if classification == BG.UNUSABLE or classification == BG.OUTDATED then
 			-- don't handle again
 		elseif classification == BG.INCLUDE then -- used to be item.classification
@@ -494,8 +496,6 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 		BG.Debug("Location "..container.."."..slot, "Index "..itemIndex)
 
 		local otherLocations, maxLimit, hasLock = BG.GetItemLocations(BG.cheapestItems[itemIndex], nil, true, true, nil)
-		local myIndex = BG.Find(otherLocations, itemIndex)
-
 		if otherLocations and #otherLocations > 1 then
 			currentItem.locations = otherLocations
 			currentItem.limit = maxLimit

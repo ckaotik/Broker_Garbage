@@ -102,7 +102,7 @@ BG.colors = {
 	[BG.AUCTION] 	= "|cFF2bff58",	-- green
 	[BG.DISENCHANT] = "|cFFe052ff",	-- purple
 	[BG.UNUSABLE] 	= "|cFF3c73ab",	-- blue
-	[BG.OUTDATED]   = "|cFF36BFA8",	-- blue
+	[BG.OUTDATED]   = "|cFF36BFA8",	-- turkoise
 }
 BG.labels = {
 	[BG.EXCLUDE]	= BG.locale.listExclude,
