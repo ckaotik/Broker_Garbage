@@ -203,7 +203,7 @@ end
 
 -- [TODO] FIXME!
 function BG.UpdateAllDynamicItems()
-	--[[ BG.ClearCache()
+	BG.ClearCache()
 	wipe(BG.cheapestItems)
 	BG.ScanInventory() --]]
 	return

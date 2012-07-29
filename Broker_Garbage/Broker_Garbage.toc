@@ -1,4 +1,4 @@
-## Interface: 40300
+## Interface: 50001
 ## Dependencies:
 ## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auc-Advanced, Enchantrix, WOWEcon_PriceMod
 ## SavedVariables: BG_GlobalDB
@@ -12,7 +12,7 @@
 
 ## LoadManagers: AddonLoader, Addon Control Panel
 ## X-LoadOn-Always: delayed
-## X-Version: 1
+## X-Version: 2
 
 ## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 ## X-RelSite-WoWI: 15531

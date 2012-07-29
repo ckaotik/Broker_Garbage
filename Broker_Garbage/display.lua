@@ -196,7 +196,7 @@ function BG:OnClick(itemTable, button)
 
 	elseif itemTable and IsAltKeyDown() then
 		-- add to force vendor price list
-		BG_GlobalDB.forceVendorPrice[itemTable.itemID] = 0
+		BG_GlobalDB.forceVendorPrice[itemTable.itemID] = -1
 		BG.Print(format(BG.locale.addedTo_forceVendorPrice, select(2,GetItemInfo(itemTable.itemID))))
 
 		if BG.optionsLoaded then

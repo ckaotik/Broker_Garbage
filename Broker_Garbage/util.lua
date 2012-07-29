@@ -125,6 +125,7 @@ function BG.CheckSettings()
 	end
 
 	if not BG_GlobalDB.version or BG_GlobalDB.version < 1 then BG.AdjustLists_4_1() end
+	if BG_GlobalDB.version < 2 then BG.AdjustLists_4_3() end
 end
 
 function BG.AdjustLists_4_1()
@@ -152,6 +153,14 @@ function BG.AdjustLists_4_1()
 	end
 
 	BG_GlobalDB.version = 1
+end
+function BG.AdjustLists_4_3()
+	for key, value in pairs(BG_GlobalDB.forceVendorPrice) do
+		if value == 0 then
+			BG_GlobalDB.forceVendorPrice[key] = -1
+		end
+	end
+	BG_GlobalDB.version = 2
 end
 
 -- inserts some basic list settings

@@ -197,9 +197,7 @@ if GetLocale() == "deDE" then
 
 	-- List Options Panel
 	BGC.locale.LOTitle = "Listen"
-	BGC.locale.LOSubTitle = [[Wenn du Hilfe brauchst, klicke das "?"-Tab an.
-
-|cffffd200Müll|r: Diese Liste beinhaltet Items, die weggeworfen werden können, solltest du keinen Inventarplatz mehr haben.
+	BGC.locale.LOSubTitle = [[|cffffd200Müll|r: Diese Liste beinhaltet Items, die weggeworfen werden können, solltest du keinen Inventarplatz mehr haben.
 |cffffd200Behalten|r: Items auf dieser Liste werden nie weggeworfen oder verkauft.
 |cffffd200Händlerpreis|r: Items auf dieser Liste nutzen nur den Händlerpreis. (Diese Liste ist für alle Charaktere gleich)
 |cffffd200Verkaufen|r: Diese Items werden bei Händlern automatisch verkauft, ihr Wert ist der Händlerpreis.
@@ -214,7 +212,7 @@ if GetLocale() == "deDE" then
 
 	BGC.locale.LOTabTitleInclude = "Müll"
 	BGC.locale.LOTabTitleExclude = "Behalten"
-	BGC.locale.LOTabTitleVendorPrice = "Händlerpreis"
+	BGC.locale.LOTabTitleVendorPrice = "Festpreis"
 	BGC.locale.LOTabTitleAutoSell = "Verkaufen"
 
 	BGC.locale.LOIncludeAutoSellText = "Müll-Items verkaufen"
@@ -258,6 +256,9 @@ Unterhalb dieses Fensters siehst du 5 Buttons und eine Suchleiste.
 	BGC.locale.LOPromote = "|cffffffffKlicke|r um alle markierten Items als globale Regel zu nutzen."
 	BGC.locale.LOEmptyList = "|cffff0000Achtung!|r\n|cffffffffKlicke|r, um die lokalen Einträge dieser Liste zu löschen.\n"..
 		"|cffffffffShift-Klicke|r, um die globalen Einträge zu löschen."
+
+	BGC.locale.LOSetPrice = "|cffffffffKlicke|r um allen markierten Items einen speziellen Preis zuzuweisen."
+	BGC.locale.setPriceInfo = "|cffffd200Preis manuell festlegen|r|nKlicke auf Verkaufspreis um immer den Händlerpreis zu nutzen."
 
 	BGC.locale.namedItems = "Item mit Namen ..."
 	BGC.locale.namedItemsInfo = "|cffffd200Namensregel hinzufügen|r|nGib einen Itemnamen oder ein Muster ein:|nz.B. \"|cFF36BFA8Rolle de*|r\" für \"|cFF2bff58Rolle der Stärke|r\" oder \"|cFF2bff58Rolle des Bären|r\""

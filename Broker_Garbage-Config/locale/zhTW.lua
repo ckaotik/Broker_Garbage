@@ -197,9 +197,7 @@ if GetLocale() == "zhTW" then
 
 	-- List Options Panel
 	BGC.locale.LOTitle = "列表"
-	BGC.locale.LOSubTitle = [[如果你需要幫助點擊"?"標籤
-
-|cffffd200垃圾|r: 在列表的物品可能會被丟出如果背包需要空間。
+	BGC.locale.LOSubTitle = [[|cffffd200垃圾|r: 在列表的物品可能會被丟出如果背包需要空間。
 |cffffd200保留|r: 在列表的物品不會被刪除或賣出。
 |cffffd200商店價格|r: 在列表裡的物品只使用商店價值。(這列表是全局的)
 |cffffd200賣出|r: 在列表的物品當在商人時會被賣掉。這也只使用商店價值。
@@ -214,7 +212,7 @@ if GetLocale() == "zhTW" then
 
 	BGC.locale.LOTabTitleInclude = "垃圾"
 	BGC.locale.LOTabTitleExclude = "保留"
-	BGC.locale.LOTabTitleVendorPrice = "商店價格"
+	-- BGC.locale.LOTabTitleVendorPrice = "Fixed Price"
 	BGC.locale.LOTabTitleAutoSell = "賣出"
 
 	BGC.locale.LOIncludeAutoSellText = "賣出垃圾列表物品"
@@ -258,6 +256,9 @@ if GetLocale() == "zhTW" then
 	BGC.locale.LOPromote = "|cffffffff點擊|r來使用任何被標記的物品作為帳號的廣泛規則。"
 	BGC.locale.LOEmptyList = "|cffff0000注意!|r\n|cffffffff點擊|r清空任何局部列表項目。\n"..
 		"|cffff0000Shift-點擊!|r 清空任何全局項目。"
+
+	-- BGC.locale.LOSetPrice = "|cffffffffClick|r to set a custom price for all selected entries."
+	-- BGC.locale.setPriceInfo = "|cffffd200Set custom price|r|nClick on vendor price to use merchant values."
 
 	BGC.locale.namedItems = "|TInterface\\Icons\\Spell_chargepositive:15:15|t 物品名稱..."
 	-- BGC.locale.namedItemsInfo = "|cffffd200Add Item Name Rule|r|nInsert an item name or a pattern:|ne.g. \"|cFF36BFA8Scroll of *|r\" will match \"|cFF2bff58Scroll of Agility|r\" or \"|cFF2bff58Scroll of the Tiger|r\""

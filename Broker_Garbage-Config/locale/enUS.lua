@@ -197,9 +197,7 @@ BGC.locale = {
 
 	-- List Options Panel
 	LOTitle = "Lists",
-	LOSubTitle = [[If you need help click the "?"-tab.
-
-|cffffd200Junk|r: Items on this list can be thrown away if inventory space is needed.
+	LOSubTitle = [[|cffffd200Junk|r: Items on this list can be thrown away if inventory space is needed.
 |cffffd200Keep|r: Items on this list will never be deleted or sold.
 |cffffd200Vendor Price|r: Items on this list only use vendor values. (This list is always global)
 |cffffd200Sell|r: Items on this list will be sold when at a merchant. They also only use vendor prices.
@@ -214,7 +212,7 @@ BGC.locale = {
 
 	LOTabTitleInclude = "Junk",
 	LOTabTitleExclude = "Keep",
-	LOTabTitleVendorPrice = "Vendor Price",
+	LOTabTitleVendorPrice = "Fixed Price",
 	LOTabTitleAutoSell = "Sell",
 
 	LOIncludeAutoSellText = "Sell Junk List items",
@@ -258,6 +256,9 @@ Below this window you'll see five buttons and a search bar.
 	LOPromote = "|cffffffffClick|r to use any marked item as account wide rule.",
 	LOEmptyList = "|cffff0000Caution!|r\n|cffffffffClick|r to empty any local entries on this list.\n"..
 		"|cffffffffShift-Click|r to empty any global entries.",
+
+	LOSetPrice = "|cffffffffClick|r to set a custom price for all selected entries.",
+	setPriceInfo = "|cffffd200Set custom price|r|nClick on vendor price to use merchant values.",
 
 	namedItems = "|TInterface\\Icons\\Spell_chargepositive:15:15|t item with name ...",
 	namedItemsInfo = "|cffffd200Add Item Name Rule|r|nInsert an item name or a pattern:|ne.g. \"|cFF36BFA8Scroll of *|r\" will match \"|cFF2bff58Scroll of Agility|r\" or \"|cFF2bff58Scroll of the Tiger|r\"",

@@ -43,11 +43,11 @@ function BGC:ShowListOptions(frame)
 	frame.current = "include"
 	local exclude = topTab.new(frame, BGC.locale.LOTabTitleExclude, "LEFT", include, "RIGHT", -15, 0)
 	exclude:Deactivate()
-	local vendorPrice = topTab.new(frame, BGC.locale.LOTabTitleVendorPrice, "LEFT", exclude, "RIGHT", -15, 0)
-	vendorPrice:Deactivate()
-	local autoSell = topTab.new(frame, BGC.locale.LOTabTitleAutoSell, "LEFT", vendorPrice, "RIGHT", -15, 0)
+	local autoSell = topTab.new(frame, BGC.locale.LOTabTitleAutoSell, "LEFT", exclude, "RIGHT", -15, 0)
 	autoSell:Deactivate()
-	local help = topTab.new(frame, "?", "LEFT", autoSell, "RIGHT", -15, 0)
+	local vendorPrice = topTab.new(frame, BGC.locale.LOTabTitleVendorPrice, "LEFT", autoSell, "RIGHT", -15, 0)
+	vendorPrice:Deactivate()
+	local help = topTab.new(frame, "?", "LEFT", vendorPrice, "RIGHT", -15, 0)
 	help:Deactivate()
 
 	local scrollFrame = CreateFrame("ScrollFrame", frame:GetName().."_Scroll", panel, "UIPanelScrollFrameTemplate")
@@ -104,8 +104,66 @@ function BGC:ShowListOptions(frame)
 	promote:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	promote:SetNormalTexture("Interface\\Icons\\INV_Misc_GroupNeedMore")
 	promote.tiptext = BGC.locale.LOPromote
+
+	local savePriceSetting = function(value)
+		if not value then return end
+		local index, button, item, resetRequired = 1, nil, nil, nil
+		while _G["BG_ListOptions_ScrollFrame_Item"..index] do
+			button = _G["BG_ListOptions_ScrollFrame_Item"..index]
+			if button:IsVisible() and button:GetChecked() then
+				item = button.itemID or button.tiptext
+				BG_GlobalDB.forceVendorPrice[item] = value
+				if button.itemID and type(button.itemID) == "number" then
+					Broker_Garbage.UpdateAllCaches(item)
+				else
+					resetRequired = true
+				end
+			end
+			index = index + 1
+		end
+
+		if resetRequired then
+			Broker_Garbage.UpdateAllDynamicItems()
+		end
+
+		Broker_Garbage:UpdateLDB()
+		Broker_Garbage:UpdateMerchantButton()
+		BGC:ListOptionsUpdate()
+	end
+	StaticPopupDialogs["BROKERGARBAGE_SETITEMPRICE"] = {
+		text = BGC.locale.setPriceInfo,
+		button1 = OKAY,
+		button2 = CANCEL,
+		button3 = SELL_PRICE,
+		hasMoneyInputFrame = true,
+		OnAccept = function(self)
+			local value = MoneyInputFrame_GetCopper(self.moneyInputFrame)
+			savePriceSetting(value)
+		end,
+		OnAlt = function(self)
+			savePriceSetting(-1)
+		end,
+		EditBoxOnEscapePressed = function(self)
+			self:GetParent():GetParent().button2:Click()
+		end,
+		EditBoxOnEnterPressed = function(self)
+			self:GetParent():GetParent().button1:Click()
+		end,
+		timeout = 0,
+		whileDead = true,
+		enterClicksFirstButton = true,
+		hideOnEscape = true,
+		preferredIndex = 3,
+	}
+	local setPrice = CreateFrame("Button", "Broker_Garbage_SetPriceButton", frame)
+	setPrice:SetPoint("LEFT", promote, "RIGHT", 14, 0)
+	setPrice:SetWidth(25); setPrice:SetHeight(25)
+	setPrice:SetNormalTexture("Interface\\Icons\\INV_Misc_Coin_02") -- Coin_06
+	setPrice.tiptext = BGC.locale.LOSetPrice
+	setPrice:Disable(); setPrice:GetNormalTexture():SetDesaturated(true)
+
 	local emptyList = CreateFrame("Button", "Broker_Garbage_EmptyListButton", frame)
-	emptyList:SetPoint("LEFT", promote, "RIGHT", 14, 0)
+	emptyList:SetPoint("LEFT", setPrice, "RIGHT", 14, 0)
 	emptyList:SetWidth(25); emptyList:SetHeight(25)
 	emptyList:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-UP")
 	emptyList.tiptext = BGC.locale.LOEmptyList
@@ -149,8 +207,9 @@ function BGC:ShowListOptions(frame)
 		vendorPrice:Deactivate()
 		autoSell:Deactivate()
 		help:Deactivate()
-		promote:Enable(); promote:GetNormalTexture():SetDesaturated(false)
-		demote:Enable(); demote:GetNormalTexture():SetDesaturated(false)
+		promote:Enable();   promote:GetNormalTexture():SetDesaturated(false)
+		demote:Enable();    demote:GetNormalTexture():SetDesaturated(false)
+		setPrice:Disable(); setPrice:GetNormalTexture():SetDesaturated(true)
 		frame.current = "include"
 		scrollFrame:SetVerticalScroll(0)
 		BGC:ListOptionsUpdate()
@@ -161,8 +220,9 @@ function BGC:ShowListOptions(frame)
 		vendorPrice:Deactivate()
 		autoSell:Deactivate()
 		help:Deactivate()
-		promote:Enable(); promote:GetNormalTexture():SetDesaturated(false)
-		demote:Enable(); demote:GetNormalTexture():SetDesaturated(false)
+		promote:Enable();   promote:GetNormalTexture():SetDesaturated(false)
+		demote:Enable();    demote:GetNormalTexture():SetDesaturated(false)
+		setPrice:Disable(); setPrice:GetNormalTexture():SetDesaturated(true)
 		frame.current = "exclude"
 		scrollFrame:SetVerticalScroll(0)
 		BGC:ListOptionsUpdate()
@@ -174,7 +234,8 @@ function BGC:ShowListOptions(frame)
 		autoSell:Deactivate()
 		help:Deactivate()
 		promote:Disable(); promote:GetNormalTexture():SetDesaturated(true)
-		demote:Disable(); demote:GetNormalTexture():SetDesaturated(true)
+		demote:Disable();  demote:GetNormalTexture():SetDesaturated(true)
+		setPrice:Enable(); setPrice:GetNormalTexture():SetDesaturated(false)
 		frame.current = "forceVendorPrice"
 		scrollFrame:SetVerticalScroll(0)
 		BGC:ListOptionsUpdate()
@@ -185,8 +246,9 @@ function BGC:ShowListOptions(frame)
 		exclude:Deactivate()
 		vendorPrice:Deactivate()
 		help:Deactivate()
-		promote:Enable(); promote:GetNormalTexture():SetDesaturated(false)
-		demote:Enable(); demote:GetNormalTexture():SetDesaturated(false)
+		promote:Enable();   promote:GetNormalTexture():SetDesaturated(false)
+		demote:Enable();    demote:GetNormalTexture():SetDesaturated(false)
+		setPrice:Disable(); setPrice:GetNormalTexture():SetDesaturated(true)
 		frame.current = "autoSellList"
 		scrollFrame:SetVerticalScroll(0)
 		BGC:ListOptionsUpdate()
@@ -197,8 +259,9 @@ function BGC:ShowListOptions(frame)
 		exclude:Deactivate()
 		autoSell:Deactivate()
 		vendorPrice:Deactivate()
-		promote:Enable(); promote:GetNormalTexture():SetDesaturated(false)
-		demote:Enable(); demote:GetNormalTexture():SetDesaturated(false)
+		promote:Enable();   promote:GetNormalTexture():SetDesaturated(false)
+		demote:Enable();    demote:GetNormalTexture():SetDesaturated(false)
+		setPrice:Disable(); setPrice:GetNormalTexture():SetDesaturated(true)
 		frame.current = nil
 		scrollFrame:SetVerticalScroll(0)
 		BGC:ListOptionsUpdate()
@@ -246,6 +309,7 @@ function BGC:ShowListOptions(frame)
 	end
 
 	-- function that updates & shows items from various lists
+	local data = {}
 	function BGC:ListOptionsUpdate()
 		scrollContent:SetWidth(scrollFrame:GetWidth())	-- update scrollframe content to full width
 		if frame.current == nil then
@@ -264,7 +328,7 @@ function BGC:ShowListOptions(frame)
 		local dataList = BGC:JoinTables(globalList or {}, localList or {})
 
 		-- make this table sortable
-		data = {}
+		wipe(data)
 		for key, value in pairs(dataList) do
 			table.insert(data, key)
 		end
@@ -289,7 +353,8 @@ function BGC:ShowListOptions(frame)
 				button.limit = button:CreateFontString(nil, "ARTWORK", "NumberFontNormal")
 				button.limit:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 2, 2)
 				button.limit:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 2)
-				button.limit:SetHeight(20)
+				button.limit:SetPoint("TOP", button, 0, 4)
+				-- button.limit:SetHeight(20)
 				button.limit:SetJustifyH("RIGHT")
 				button.limit:SetJustifyV("BOTTOM")
 				button.limit:SetText("")
@@ -379,6 +444,7 @@ function BGC:ShowListOptions(frame)
 			end
 
 			if texture then	-- everything's fine
+				button.global.tiptext = ""
 				if globalList[itemID] then
 					button.global:SetText("G")
 					button.isGlobal = true
@@ -386,12 +452,23 @@ function BGC:ShowListOptions(frame)
 					button.global:SetText("")
 					button.isGlobal = false
 				end
-				if button.isGlobal and globalList[itemID] ~= true then
-					button.limit:SetText(globalList[itemID] > 0 and globalList[itemID] or "")
-				elseif localList and localList[itemID] ~= true then
-					button.limit:SetText(localList[itemID] > 0 and localList[itemID] or "")
+
+				if frame.current == "forceVendorPrice" then
+					button.limit:SetFontObject("ReputationDetailFont")
+					if globalList[itemID] >= 0 then
+						button.limit:SetText( Broker_Garbage.FormatMoney(globalList[itemID]) )
+					else
+						button.limit:SetText("")
+					end
 				else
-					button.limit:SetText("")
+					button.limit:SetFontObject("NumberFontNormal")
+					if button.isGlobal and globalList[itemID] ~= true then
+						button.limit:SetText(globalList[itemID] > 0 and globalList[itemID] or "")
+					elseif localList and localList[itemID] ~= true then
+						button.limit:SetText(localList[itemID] > 0 and localList[itemID] or "")
+					else
+						button.limit:SetText("")
+					end
 				end
 
 				if not itemLink and not BGC.PT then
@@ -502,7 +579,7 @@ function BGC:ShowListOptions(frame)
 			BGC:ListOptionsUpdate()
 			ClearCursor()
 		elseif localList == nil and globalList and globalList[item] == nil then
-			globalList[item] = 0
+			globalList[item] = (frame.current == "forceVendorPrice" and -1 or 0)
 			BGC:Print(format(BGC.locale["addedTo_" .. frame.current], link))
 			BGC:ListOptionsUpdate()
 			ClearCursor()
@@ -541,16 +618,6 @@ function BGC:ShowListOptions(frame)
 			button1 = OKAY,
 			button2 = CANCEL,
 			hasEditBox = true,
-			OnShow = function(self)
-				self.editBox:SetScript("OnEnterPressed", function()
-					if StaticPopup3.which == "BROKERGARBAGE_ADDITEMNAME" then
-						StaticPopup3Button1:Click()
-					end
-				end)
-				self.editBox:SetScript("OnEscapePressed", function()
-					StaticPopup_Hide("BROKERGARBAGE_ADDITEMNAME")
-				end)
-			end,
 			OnAccept = function(self)
 				local name = self.editBox:GetText()
 				name = GetItemInfo(name) or name
@@ -563,6 +630,12 @@ function BGC:ShowListOptions(frame)
 					end
 					BGC:ListOptionsUpdate()
 				end
+			end,
+			EditBoxOnEscapePressed = function(self)
+				self:GetParent().button2:Click()
+			end,
+			EditBoxOnEnterPressed = function(self)
+				self:GetParent().button1:Click()
 			end,
 			timeout = 0,
 			whileDead = true,
@@ -707,6 +780,18 @@ function BGC:ShowListOptions(frame)
 				end
 				index = index + 1
 			end
+		-- setPrice action
+		elseif self == setPrice then
+			local index = 1
+			while _G["BG_ListOptions_ScrollFrame_Item"..index] do
+				local button = _G["BG_ListOptions_ScrollFrame_Item"..index]
+				if button:IsVisible() and button:GetChecked() then
+					StaticPopup_Show("BROKERGARBAGE_SETITEMPRICE")
+					break
+				end
+				index = index + 1
+			end
+			return -- continued in savePriceSetting() called from popup
 		-- empty action
 		elseif self == emptyList then
 			Broker_Garbage.ClearCache()
@@ -742,6 +827,9 @@ function BGC:ShowListOptions(frame)
 	promote:SetScript("OnClick", OnClick)
 	promote:SetScript("OnEnter", BGC.ShowTooltip)
 	promote:SetScript("OnLeave", BGC.HideTooltip)
+	setPrice:SetScript("OnClick", OnClick)
+	setPrice:SetScript("OnEnter", BGC.ShowTooltip)
+	setPrice:SetScript("OnLeave", BGC.HideTooltip)
 	emptyList:SetScript("OnClick", OnClick)
 	emptyList:SetScript("OnEnter", BGC.ShowTooltip)
 	emptyList:SetScript("OnLeave", BGC.HideTooltip)

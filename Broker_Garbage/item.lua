@@ -565,10 +565,6 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 		reason = "ItemID is JUNK"
 		itemLimit = BG_LocalDB.include[itemID] or BG_GlobalDB.include[itemID] or 0
 	end
-	--[[ if not label and BG.IsItemInBGList(itemID, "forceVendorPrice") then
-		label = BG.VENDOR
-		reason = "ItemID is VendorPrice"
-	end --]]
 
 	if BG.IsItemInBGList(itemID, "forceVendorPrice") then
 		if not label then
@@ -576,8 +572,8 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 			reason = "ItemID is VendorPrice"
 		end
 		if not priceLabel then
-			priceLabel = priceLabel or BG.VENDOR
-			priceReason = priceReason or "ItemID is VendorPrice"
+			priceLabel = BG_GlobalDB.forceVendorPrice[itemID]
+			priceReason = "ItemID custom value"
 		end
 	end
 
@@ -628,14 +624,14 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 				break
 			end
 		end
-	end --]]
+	end
 
 	if not priceLabel then
 		-- Vendor Price List
 		for category,_ in pairs(BG_GlobalDB.forceVendorPrice) do
 			if type(category) == "string" and BG.IsItemInCategory(itemID, category) then
-				priceLabel = BG.VENDOR
-				priceReason = "Category is VendorPrice"
+				priceLabel = BG_GlobalDB.forceVendorPrice[category]
+				priceReason = "Category custom value"
 				break
 			end
 		end
@@ -659,6 +655,16 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 	if not label then
 		BG.Debug("Assigning simple label", itemLabel, BG.FormatMoney(value))
 		label = itemLabel
+	end
+
+	if priceLabel then
+		if priceLabel < 0 then
+			value = vendorValue
+			label = BG.VENDOR
+		else
+			value = priceLabel
+			label = BG.CUSTOM
+		end
 	end
 
 	-- still no data?
