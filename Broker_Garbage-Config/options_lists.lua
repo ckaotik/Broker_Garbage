@@ -537,66 +537,6 @@ function BGC:ShowListOptions(frame)
 		end
 	end
 
-	local function AddItem(item)
-		local link
-		if not item then
-			_, item, link = GetCursorInfo()
-			if not item or not link then
-				return
-			end
-		end
-
-		local resetRequired	= nil
-		-- create "link" for output
-		if item and type(item) == "number" then
-			-- item on cursor
-			link = select(2, GetItemInfo(item))
-
-		elseif item and type(item) == "string" then
-			resetRequired = true
-			local specialType, identifier = string.match(item, "^(.-)_(.+)")
-			if specialType == "BEQ" then
-				-- equipment set
-				identifier = tonumber(identifier)
-				link = setID and GetEquipmentSetInfo(identifier) or "Invalid Set"
-			elseif specialType == "AC" then
-				-- armor class
-				identifier = tonumber(identifier)
-				armorType = select(identifier, GetAuctionItemSubClasses(2))
-				link = BGC.locale.armorClass .. ": " .. (armorType or "Invalid Armor Class")
-			elseif specialType == "NAME" then
-				link = BGC.locale.anythingCalled .. " \"" .. identifier .. "\""
-		    else
-				-- LPT category
-				link = item
-			end
-		end
-
-		local localList, globalList = Broker_Garbage:GetOption(frame.current)
-		if localList and localList[item] == nil then
-			localList[item] = 0
-			BGC:Print(format(BGC.locale["addedTo_" .. frame.current], link))
-			BGC:ListOptionsUpdate()
-			ClearCursor()
-		elseif localList == nil and globalList and globalList[item] == nil then
-			globalList[item] = (frame.current == "forceVendorPrice" and -1 or 0)
-			BGC:Print(format(BGC.locale["addedTo_" .. frame.current], link))
-			BGC:ListOptionsUpdate()
-			ClearCursor()
-		else
-			BGC:Print(string.format(BGC.locale.itemAlreadyOnList, link))
-		end
-
-		-- post new data
-		Broker_Garbage:SetOption(frame.current, false, localList)
-		Broker_Garbage:SetOption(frame.current, true, globalList)
-
-		if not resetRequired and type(item) == "number" then
-			Broker_Garbage.UpdateAllCaches(item)
-		end
-		return resetRequired
-	end
-
 	if not _G["BG_LPTMenuFrame"] then
 		local RightClickMenuOnClick = function(self)
 			local value = self
@@ -604,7 +544,7 @@ function BGC:ShowListOptions(frame)
 				value = self.value
 			end
 
-			local reset = AddItem(value)
+			local reset = BGC.RemoteAddItemToList(value, frame.current)
 			if reset then
 				Broker_Garbage.UpdateAllDynamicItems()
 			end
@@ -648,6 +588,7 @@ function BGC:ShowListOptions(frame)
 		BGC.menuFrame = CreateFrame("Frame", "BG_LPTMenuFrame", UIParent, "UIDropDownMenuTemplate")
 		BGC.menuFrame.displayMode = "MENU"
 		BGC.menuFrame.initialize = function(self, level)
+			-- LPT sets as dropdown entries
 			BGC:LPTDropDown(self, level, RightClickMenuOnClick, true)
 
 			-- add equipment sets
@@ -728,27 +669,18 @@ function BGC:ShowListOptions(frame)
 		local localList, globalList = Broker_Garbage:GetOption(frame.current)
 		-- add action
 		if self == plus then
-			reset = AddItem()
+			cursorType, item, _ = GetCursorInfo()
+			if not (cursorType == "item" and item) then return end
+			reset = BGC.RemoteAddItemToList(item, frame.current)
 		-- remove action
 		elseif self == minus then
-			local index = 1
+			local index, newReset = 1, nil
 			while _G["BG_ListOptions_ScrollFrame_Item"..index] do
 				local button = _G["BG_ListOptions_ScrollFrame_Item"..index]
 				if button:IsVisible() and button:GetChecked() then
 					local item = button.itemID or button.tiptext
-
-					if localList then
-						localList[item] = nil
-					end
-					if globalList then
-						globalList[item] = nil
-					end
-
-					if type(item) == "number" then	-- regular item
-						Broker_Garbage.UpdateAllCaches(item)
-					else							-- category string
-						reset = true
-					end
+					newReset = BGC.RemoteRemoveItemFromList(item, frame.current)
+					reset = reset or newReset
 				end
 				index = index + 1
 			end
@@ -759,10 +691,7 @@ function BGC:ShowListOptions(frame)
 				local button = _G["BG_ListOptions_ScrollFrame_Item"..index]
 				if button:IsVisible() and button:GetChecked() then
 					local item = button.itemID or button.tiptext
-					if globalList[item] and localList then
-						localList[item] = globalList[item]
-						globalList[item] = nil
-					end
+					BGC.RemoteDemoteItemInList(item, frame.current)
 				end
 				index = index + 1
 			end
@@ -773,10 +702,7 @@ function BGC:ShowListOptions(frame)
 				local button = _G["BG_ListOptions_ScrollFrame_Item"..index]
 				if button:IsVisible() and button:GetChecked() then
 					local item = button.itemID or button.tiptext
-					if not globalList[item] then
-						globalList[item] = localList[item]
-						localList[item] = nil
-					end
+					BGC.RemotePromoteItemInList(item, frame.current)
 				end
 				index = index + 1
 			end

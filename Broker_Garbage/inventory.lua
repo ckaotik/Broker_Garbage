@@ -211,21 +211,15 @@ end
 
 -- == Pure Logic Ahead ==
 function BG.SortCheapestItemsList(a, b)
-	if not (a.source == BG.IGNORE or b.source == BG.IGNORE or a.invalid or b.invalid) then
-		if (a.source == b.source) or (a.source ~= BG.INCLUDE and b.source ~= BG.INCLUDE) or BG_GlobalDB.useRealValues then
-			if a.value == b.value then
-				return a.count < b.count
-			else
-				return a.value < b.value
-			end
-		else
-			return a.source == BG.INCLUDE
-		end
+	if a.source == BG.IGNORE or a.invalid then
+		return false
+	elseif b.source == BG.IGNORE or b.invalid then
+		return true
 	else
-		if a.source == BG.IGNORE or a.invalid then
-			return false
-		else
-			return true
+		for _, attribute in ipairs({'value', 'count', 'bag', 'slot'}) do
+			if a[attribute] ~= b[attribute] then
+				return a[attribute] < b[attribute]
+			end
 		end
 	end
 end
@@ -235,7 +229,7 @@ function BG.UpdateItemLocations()
 		wipe(v)
 	end
 
-	local itemID, location
+	local itemID, locations
 	local numEntries = #BG.cheapestItems
 
 	BG.junkValue = 0

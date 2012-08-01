@@ -6,10 +6,10 @@ if not BG.PANDARIA then
 	UnitInRaid = function() -- we only need this for "player"
 		return GetNumRaidMembers() > 1
 	end
-	UnitInParty = function()
+	UnitInParty = UnitInParty or function()
 		return GetNumPartyMembers() > 0
 	end
-	LootSlotHasItem = function(slotID)
+	LootSlotHasItem = LootSlotHasItem or function(slotID)
 		return LootSlotIsItem(slotID)
 	end
 end
@@ -23,11 +23,11 @@ hooksecurefunc(GameTooltip, "SetBagItem", function(tip, bag, slot)
 	local index = BG.GetListIndex(bag, slot)
 	local item = BG.cheapestItems[index]
 	local cacheData = item and BG.GetCached(item.itemID)
-	local sell = item and item.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or ""
+	local sell = (item and item.sell) and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or ""
 
 	if GetContainerItemInfo(bag, slot) and item and cacheData then
 		if BG_GlobalDB and BG_GlobalDB.showItemTooltipLabel and item.source then
-			if item.source >= 0 then
+			if item.source and item.source >= 0 then
 				tip:AddDoubleLine(BG.name, sell .. BG.colors[item.source] .. BG.labels[item.source] .. "|r")
 			end
 			if item.reason and BG_GlobalDB.showLabelReason then
@@ -170,9 +170,9 @@ function BG.CreateDefaultLists(global)
 		BG_GlobalDB.include["Consumable.Water.Conjured"] = 20
 		BG_GlobalDB.include["Consumable.Food.Edible.Basic.Conjured"] = 0
 		BG_GlobalDB.exclude["Misc.StartsQuest"] = 0
-		BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible.Basic"] = 0
-		BG_GlobalDB.forceVendorPrice["Consumable.Water.Basic"] = 0
-		BG_GlobalDB.forceVendorPrice["Tradeskill.Mat.BySource.Vendor"] = 0
+		BG_GlobalDB.forceVendorPrice["Consumable.Food.Edible.Basic"] = -1
+		BG_GlobalDB.forceVendorPrice["Consumable.Water.Basic"] = -1
+		BG_GlobalDB.forceVendorPrice["Tradeskill.Mat.BySource.Vendor"] = -1
 	end
 
 	-- tradeskills

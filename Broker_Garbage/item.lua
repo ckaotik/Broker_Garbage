@@ -3,7 +3,7 @@ local _, BG = ...
 local Unfit = LibStub("Unfit-1.0")	-- library to determine unusable items
 
 function BG.GetItemID(itemLink)
-	if not itemLink then return end
+	if not itemLink or type(itemLink) ~= "string" then return end
 	local itemID = string.gsub(itemLink, ".-Hitem:([0-9]*):.*", "%1")
 	return tonumber(itemID)
 end
@@ -277,14 +277,14 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 
 	-- simply return the highest value price
 	local maximum = math.max((disenchantPrice or 0), (auctionPrice or 0), (vendorPrice or 0))
-	if disenchantPrice and maximum == disenchantPrice then
+	if disenchantPrice and disenchantPrice ~= 0 and maximum == disenchantPrice then
 		return disenchantPrice, BG.DISENCHANT, reason
-	elseif vendorPrice and maximum == vendorPrice then
+	elseif vendorPrice and vendorPrice ~= 0 and maximum == vendorPrice then
 		return vendorPrice, BG.VENDOR, reason
-	elseif auctionPrice and maximum == auctionPrice then
+	elseif auctionPrice and auctionPrice ~= 0 and maximum == auctionPrice then
 		return auctionPrice, BG.AUCTION, reason
 	else
-		return nil, nil, nil
+		return 0, BG.IGNORE, "No price available"
 	end
 end
 
@@ -651,7 +651,7 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 		reason = "Item is UNUSABLE"
 	end
 
-	local value, itemLabel = BG.GetSingleItemValue(itemID, label)
+	local value, itemLabel, reason = BG.GetSingleItemValue(itemID, label)
 	if not label then
 		BG.Debug("Assigning simple label", itemLabel, BG.FormatMoney(value))
 		label = itemLabel

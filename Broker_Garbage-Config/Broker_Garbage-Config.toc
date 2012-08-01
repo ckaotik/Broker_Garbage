@@ -6,7 +6,6 @@
 ## Author: ckaotik
 ## Version: @project-version@
 
-## LoadOnDemand: 1
 ## LoadManagers: AddonLoader, Addon Control Panel
 ## X-LoadOn-InterfaceOptions: Broker_Garbage
 ## X-LoadOn-Slash: /garbage, /garb, /junk

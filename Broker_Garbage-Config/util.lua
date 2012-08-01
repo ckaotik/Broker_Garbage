@@ -36,6 +36,105 @@ function BGC:JoinTables(...)
 	return result
 end
 
+function BGC.GetListEntryInfo(item)
+	local link, resetRequired = nil, nil
+	-- create "link" for output
+	if item and type(item) == "number" then -- item on cursor
+		link = select(2, GetItemInfo(item))
+
+	elseif item and type(item) == "string" then
+		resetRequired = true
+		local specialType, identifier = string.match(item, "^(.-)_(.+)")
+		if specialType == "BEQ" then
+			-- equipment set
+			identifier = tonumber(identifier)
+			link = setID and GetEquipmentSetInfo(identifier) or "Invalid Set"
+		elseif specialType == "AC" then
+			-- armor class
+			identifier = tonumber(identifier)
+			armorType = select(identifier, GetAuctionItemSubClasses(2))
+			link = BGC.locale.armorClass .. ": " .. (armorType or "Invalid Armor Class")
+		elseif specialType == "NAME" then
+			link = BGC.locale.anythingCalled .. " \"" .. identifier .. "\""
+		else
+			-- LPT category
+			link = item
+		end
+	end
+	return link, resetRequired
+end
+
+function BGC.RemoteAddItemToList(item, list)
+	if not item then return end
+	item = Broker_Garbage.GetItemID(item) or item
+
+	local name, resetRequired = BGC.GetListEntryInfo(item)
+	local localList, globalList = Broker_Garbage:GetOption(list)
+
+	if localList and localList[item] == nil then
+		localList[item] = 0
+		BGC:Print(format(BGC.locale["addedTo_" .. list], name))
+		BGC:ListOptionsUpdate()
+		ClearCursor()
+	elseif localList == nil and globalList and globalList[item] == nil then
+		globalList[item] = (list == "forceVendorPrice" and -1 or 0)
+		BGC:Print(format(BGC.locale["addedTo_" .. list], name))
+		BGC:ListOptionsUpdate()
+		ClearCursor()
+	else
+		BGC:Print(string.format(BGC.locale.itemAlreadyOnList, name))
+	end
+
+	-- post new data
+	Broker_Garbage:SetOption(list, false, localList)
+	Broker_Garbage:SetOption(list, true, globalList)
+
+	if not resetRequired and type(item) == "number" then
+		Broker_Garbage.UpdateAllCaches(item)
+	end
+
+	return resetRequired
+end
+function BGC.RemoteRemoveItemFromList(item, list)
+	if not item then return end
+	item = Broker_Garbage.GetItemID(item) or item
+
+	local resetRequired = nil
+	local localList, globalList = Broker_Garbage:GetOption(list)
+	if localList then localList[item] = nil end
+	if globalList then globalList[item] = nil end
+
+	if type(item) == "number" then	-- regular item
+		Broker_Garbage.UpdateAllCaches(item)
+	else							-- category string
+		resetRequired = true
+	end
+	return resetRequired
+end
+function BGC.RemoteDemoteItemInList(item, list)
+	if not item then return end
+	item = Broker_Garbage.GetItemID(item) or item
+
+	local localList, globalList = Broker_Garbage:GetOption(list)
+	if globalList[item] and localList then
+		localList[item] = globalList[item]
+		globalList[item] = nil
+	end
+end
+function BGC.RemotePromoteItemInList(item, list)
+	if not item then return end
+	item = Broker_Garbage.GetItemID(item) or item
+
+	local localList, globalList = Broker_Garbage:GetOption(list)
+	if not globalList[item] then
+		globalList[item] = localList[item]
+		localList[item] = nil
+	else
+		local name = BGC.GetListEntryInfo(item)
+		BGC:Print(string.format(BGC.locale.itemAlreadyOnList, name))
+	end
+end
+
 -- Config Helpers
 -- -------------------------------------------------------------------------------------
 -- button tooltip infos
@@ -169,7 +268,7 @@ end
 -- ---------------------------------------------------------------------------------------
 
 BGC.PT = LibStub("LibPeriodicTable-3.1", true)	-- don't scream if LPT isn't present
--- constructs a DropDown ready table
+-- constructs a DropDown ready tablewo
 local function CreateLPTTable()
 	BGC.PTSets = {}
 	for set, _ in pairs( BGC.PT and BGC.PT.sets or {} ) do

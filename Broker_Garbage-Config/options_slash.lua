@@ -4,31 +4,43 @@ local _, BGC = ...
 SLASH_Broker_Garbage1 = "/garbage"
 SLASH_Broker_Garbage2 = "/garb"
 SLASH_Broker_Garbage3 = "/junk"
-local COMMAND_LISTADDACTION = {
-	-- [FIXME] access issues? update issues
-	keep = function(item)
-		BG_LocalDB.exclude[item] = true
-	end,
-	junk = function(item)
-		BG_LocalDB.include[item] = true
-	end,
-	sell = function(item)
-		BG_LocalDB.autoSellList[item] = true
-	end,
-	price = function(item)
-		BG_GlobalDB.forceVendorPrice[item] = -1
-	end
+local COMMAND_ALIAS = {
+--	alias 		= 'original'
+	options		= 'config',
+	option		= 'config',
+	menu		= 'config',
+	display 	= 'format',
+	glimit 		= 'globallimit',
+	numlines 	= 'tooltiplines',
+	height 		= 'tooltipheight',
+	value 		= 'minvalue',
+	freeslots 	= 'minfreeslots',
+	minfree 	= 'minfreeslots',
+	slots 		= 'minfreeslots',
+	free 		= 'minfreeslots',
+	category 	= 'categories',
+	list 		= 'categories',
+	lists 		= 'categories',
+	updatecache = 'cache',
+	resetcache 	= 'cache',
+	update 		= 'cache',
+
+	treasure 	= 'exclude',
+	keep 		= 'exclude',
+	garbage 	= 'include',
+	junk 		= 'include',
+	autosell 	= 'autoSellList',
+	vendor 		= 'autoSellList',
+	autoselllist = 'autoSellList',
+	vendorprice	= 'forceVendorPrice',
+	forceprice 	= 'forceVendorPrice',
+	forcevendorprice = 'forceVendorPrice',
 }
 -- * = TODO; + = documented, implemented; - = not documented, implemented
 local COMMAND_PARAMS = {
 	-- + open config UI
 	config = function(param)
 		InterfaceOptionsFrame_OpenToCategory(BGC.options)
-	end,
-
-	-- - add item/category/... to lists
-	quickadd = function(param)
-		-- [TODO] quick add ui?
 	end,
 
 	-- + change LDB display format
@@ -163,58 +175,62 @@ local COMMAND_PARAMS = {
 		end
 	end,
 
-	--
+	-- add an <itemID/itemLink/category/...> to a <list>
 	add = function(param)
-		local list, item, itemID = string.split(" ", param)
+		local list, item = param:match("^(%S*)%s*(.-)%s*$")
 		if not (list and item) then
 			BGC:Print(BGC.locale.invalidArgument)
 			return
 		end
+		list = list:lower()
 
-		if type(item) == "string" then
-			itemID = Broker_Garbage.GetItemID(item) or item
-		elseif type(item) == "number" then
+		local itemID = tonumber(item) or item
+		if type(itemID) == "string" then
+			itemID = Broker_Garbage.GetItemID(item) or itemID
+		elseif type(itemID) == "number" then
 			itemID = item
 		end
 
-		if COMMAND_LISTADDACTION[list] then
-			COMMAND_LISTADDACTION[list](itemID)
-		elseif COMMAND_ALIAS[list] and COMMAND_LISTADDACTION[ COMMAND_ALIAS[list] ] then
-			COMMAND_LISTADDACTION[ COMMAND_ALIAS[list] ](itemID)
+		local itemList = COMMAND_ALIAS[list] or itemList
+		local resetRequired = BGC.RemoteAddItemToList(item, itemList)
+		if resetRequired then
+			BGC:Print("Please update the item caches: /garbage update") -- [TODO]
+		end
+	end,
+	remove = function(param)
+		local list, item = param:match("^(%S*)%s*(.-)%s*$")
+		if not (list and item) then
+			BGC:Print(BGC.locale.invalidArgument)
+			return
+		end
+		list = list:lower()
+
+		local itemID = tonumber(item) or item
+		if type(itemID) == "string" then
+			itemID = Broker_Garbage.GetItemID(item) or itemID
+		elseif type(itemID) == "number" then
+			itemID = item
+		end
+
+		local itemList = COMMAND_ALIAS[list] or itemList
+		local resetRequired = BGC.RemoteRemoveItemFromList(item, itemList)
+		if resetRequired then
+			BGC:Print("Please update the item caches: /garbage update") -- [TODO]
+		end
+	end,
+
+	cache = function(item)
+		if item and type(item) == "number" then
+			Broker_Garbage.UpdateAllCaches(item)
+		else
+			Broker_Garbage.UpdateAllDynamicItems()
 		end
 	end
 }
-local COMMAND_ALIAS = {
---	alias 		= 'original'
-	options		= 'config',
-	option		= 'config',
-	menu		= 'config',
-	qa 			= 'quickadd',
-	glimit 		= 'globallimit',
-	numlines 	= 'tooltiplines',
-	height 		= 'tooltipheight',
-	value 		= 'minvalue',
-	freeslots 	= 'minfreeslots',
-	minfree 	= 'minfreeslots',
-	slots 		= 'minfreeslots',
-	free 		= 'minfreeslots',
-	category 	= 'categories',
-	list 		= 'categories',
-	lists 		= 'categories',
-
-	treasure 	= 'keep',
-	exclude 	= 'keep',
-	garbage 	= 'junk',
-	include 	= 'junk',
-	autosell 	= 'sell',
-	vendor 		= 'sell',
-	vendorprice	= 'price',
-	forceprice 	= 'price',
-}
 
 local function handler(msg)
-	msg = msg:lower()
-	local command, param = msg:match("^(%S*)%s*(.-)$")
+	local command, param = msg:match("^(%S*)%s*(.-)%s*$")
+	command = command:lower()
 
 	if COMMAND_PARAMS[command] then
 		COMMAND_PARAMS[command](param)

@@ -22,15 +22,15 @@ BG.repairCost = 0					-- the amount of money that we repaired for
 -- Event Handler
 -- ---------------------------------------------------------
 local frame = CreateFrame("frame")
+local changedBag -- for restack triggering
 local function eventHandler(self, event, arg1, ...)
+	-- == Initialize ==
 	if event == "ADDON_LOADED" and arg1 == addonName then
-		-- some default values initialization
 		BG.isAtVendor = nil
 		BG.totalBagSpace = 0
 		BG.totalFreeSlots = 0
-
-		-- inventory database
 		BG.containerInInventory = nil
+
 		BG.itemsCache = {}		-- contains static item data, e.g. price, stack size
 		BG.itemLocations = {}	-- itemID = { cheapestList-index }
 		BG.cheapestItems = {}	-- contains up-to-date labeled data
@@ -38,22 +38,14 @@ local function eventHandler(self, event, arg1, ...)
 
 		BG.CheckSettings()
 
-		BG.currentRestackItem = 0 -- cheating to prevent restack on logon
 		BG.ScanInventory()	-- initializes and fills caches
-		BG.currentRestackItem = nil
 
-		frame:RegisterEvent("BAG_UPDATE")
-		frame:RegisterEvent("MERCHANT_SHOW")
-		frame:RegisterEvent("MERCHANT_CLOSED")
-		frame:RegisterEvent("AUCTION_HOUSE_CLOSED")
-		frame:RegisterEvent("UI_ERROR_MESSAGE")
-		frame:RegisterEvent("LOOT_OPENED")
-		frame:RegisterEvent("EQUIPMENT_SETS_CHANGED")
-		frame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
-		frame:RegisterEvent("CHAT_MSG_SKILL")
-
+		for _, event in ipairs({"BAG_UPDATE", "MERCHANT_SHOW", "MERCHANT_CLOSED", "UI_ERROR_MESSAGE", "LOOT_OPENED", "EQUIPMENT_SETS_CHANGED", "PLAYER_EQUIPMENT_CHANGED", "CHAT_MSG_SKILL"}) do
+			frame:RegisterEvent(event)
+		end
 		frame:UnregisterEvent("ADDON_LOADED")
 
+	-- == Auto Repair/Auto Sell ==
 	elseif event == "MERCHANT_SHOW" then
 		BG.isAtVendor = true
 		BG.UpdateMerchantButton()
@@ -70,7 +62,6 @@ local function eventHandler(self, event, arg1, ...)
 				BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost), guildRepair and BG.locale.guildRepair or ""))
 			end
 		end
-
 	elseif event == "MERCHANT_CLOSED" then
 		BG.isAtVendor = nil
 		-- fallback unlock
@@ -85,12 +76,9 @@ local function eventHandler(self, event, arg1, ...)
 		end
 
 	elseif event == "LOOT_OPENED" then	-- [TODO] choose proper events
-		if BG_GlobalDB.restackInventory then
+		if BG_GlobalDB.restackInventory and true then -- and too few bag spaces
 			-- BG.DoFullRestack()
 		end
-
-	elseif event == "ITEM_UNLOCKED" then	-- only registered during restack
-		BG.Restack()
 
 	elseif not BG.locked and event == "BAG_UPDATE" then
 		if not arg1 or arg1 < 0 or arg1 > NUM_BAG_SLOTS then return end
@@ -109,6 +97,7 @@ local function eventHandler(self, event, arg1, ...)
 		end
 		BG.sellValue, BG.repairCost = 0, 0
 
+	-- == Equipment/Sets ==
 	elseif event == "PLAYER_EQUIPMENT_CHANGED" then
 		for i = 1, NUM_BAG_SLOTS do
 			if ContainerIDToInventoryID(i) and arg1 == ContainerIDToInventoryID(i) then
@@ -117,6 +106,10 @@ local function eventHandler(self, event, arg1, ...)
 				return
 			end
 		end
+	elseif event == "EQUIPMENT_SETS_CHANGED" then
+		BG.RescanEquipmentInBags()
+
+	-- == Default List Updates ==
 	elseif event == "CHAT_MSG_SKILL" then
 		local skillName = string.match(arg1, BG.ReformatGlobalString(ERR_SKILL_GAINED_S))
 		if skillName then
@@ -126,17 +119,26 @@ local function eventHandler(self, event, arg1, ...)
 				BG.Print(BG.locale.listsUpdatedPleaseCheck)
 			end
 		end
-	elseif event == "ITEM_PUSH" then
-		if BG_GlobalDB.restackInventory then -- and not BG.currentRestackItem then
-			-- BG.currentRestackItem = GetContainerItemID(data[1], data[2])
-			-- BG.Debug("Setting BG.currentRestackItem to "..(BG.currentRestackItem or "nil"))
-			-- BG.DoContainerRestack(arg1 - INVSLOT_LAST_EQUIPPED)
+
+	-- == Restack ==
+	elseif event == "ITEM_UNLOCKED" then
+		BG.restackEventCounter = BG.restackEventCounter - 1
+		if BG.restackEventCounter < 1 then
+			frame:UnregisterEvent('ITEM_UNLOCKED')
+			BG.Restack()
 		end
-	elseif event == "EQUIPMENT_SETS_CHANGED" then
-		BG.RescanEquipmentInBags()
-		-- UNIT_INVENTORY_CHANGED, arg1 == "player" => new item slot filled
-		-- [TODO] items left inventory without bag_update event
-		-- [TODO] sometimes lists don't update properly which causes "re-selling" the same items over and over again, inflating statistics
+	-- [TODO] suspecting ITEM_PUSH to always fire before UNIT_INVENTORY_CHANGED
+	elseif event == "ITEM_PUSH" and arg1 then
+		if BG_GlobalDB.restackInventory then
+			changedBag = arg1
+			frame:RegisterEvent("UNIT_INVENTORY_CHANGED")
+		end
+	elseif event == "UNIT_INVENTORY_CHANGED" and arg1 == "player" then
+		if BG_GlobalDB.restackInventory then
+			BG.DoContainerRestack(changedBag)
+			changedBag = nil
+			frame:UnregisterEvent("UNIT_INVENTORY_CHANGED")
+		end
 	end
 end
 frame:RegisterEvent("ADDON_LOADED")

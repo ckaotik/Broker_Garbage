@@ -1,201 +1,127 @@
 local _, BG = ...
 
-BG.currentRestackItem = nil
+local restackQueue = {}
+function BG.QueryRestackForItem(itemID)
+	local tableItem
+	if itemID and type(itemID) == "number" and restackQueue[itemID] == nil then
+		local locations = BG.GetItemLocations(BG.GetCached(itemID), true)
+		-- if it's only one, there's nothing to do
+		if #(locations or {}) > 1 then
+			-- fetch proper location data
+			for index, tableIndex in ipairs(locations) do
+				tableItem = BG.cheapestItems[tableIndex]
+				locations[index] = {tableItem.bag, tableItem.slot}
+			end
+			restackQueue[itemID] = locations
+		end
+	end
+end
 
--- initialize full inventory restacking
--- [TODO] maybe also check bank?
-local restackIDs = {}
-function BG.DoFullRestack(isRecursion)
-	if not isRecursion then
-		-- fill list of inventory itemIDs so we know what to restack
-		for container = 0, NUM_BAG_SLOTS do
-			for slot = 1, (GetContainerNumSlots(container) or 0) do
-				local itemID = GetContainerItemID(container, slot)
+function BG.DoFullRestack()
+	for container = 0, NUM_BAG_SLOTS do
+		for slot = 1, (GetContainerNumSlots(container) or 0) do
+			local itemID = GetContainerItemID(container, slot)
+			BG.QueryRestackForItem(itemID)
+		end
+	end
 
-				if itemID and not restackIDs[itemID] then
-					restackIDs[itemID] = true
+	BG.Restack()
+end
+function BG.DoContainerRestack(container)
+	for slot = 1, (GetContainerNumSlots(container) or 0) do
+		local itemID = GetContainerItemID(container, slot)
+		BG.QueryRestackForItem(itemID)
+	end
+	BG.Restack()
+end
+
+local restackRoutine = nil
+BG.restackEventCounter = 0
+function BG.Restack()
+	local success, event, eventCounter
+	if not restackRoutine then
+		restackRoutine = coroutine.create(BG.RestackIteration)
+		success, event, eventCounter = coroutine.resume(restackRoutine, 1)
+	else
+		success, event, eventCounter = coroutine.resume(restackRoutine)
+	end
+	BG.restackEventCounter = eventCounter
+
+	if coroutine.status(restackRoutine) == "dead" then
+		restackRoutine = nil
+	else
+		BG.frame:RegisterEvent(event)
+	end
+end
+
+function BG.RestackIteration(stepCount)
+	while true do
+		stepCount = stepCount + 1
+
+		local count, isLocked, targetCount, targetLocked, targetIndex
+		local success, stackSize
+		local numMoves = 0
+
+		for itemID, locations in pairs(restackQueue) do
+			stackSize = select(8, GetItemInfo(itemID))
+
+			for currentIndex = 1, math.floor(#(locations)/2) do
+				targetIndex = #(locations) - currentIndex + 1
+				if currentIndex == targetIndex then break end
+
+				_, count, isLocked = GetContainerItemInfo(locations[currentIndex][1], locations[currentIndex][2])
+				_, targetCount, targetLocked = GetContainerItemInfo(locations[targetIndex][1], locations[targetIndex][2])
+
+				if not isLocked and not targetLocked
+					and BG.MoveItem(itemID, locations[currentIndex][1], locations[currentIndex][2],
+						locations[targetIndex][1], locations[targetIndex][2]) then
+					numMoves = numMoves + 2
+				end
+
+				if count + targetCount <= stackSize then
+					numMoves = numMoves - 1
+					table.insert(restackQueue[itemID][currentIndex], true)
+				end
+				if count + targetCount >= stackSize then
+					table.insert(restackQueue[itemID][targetIndex], true)
+				end
+			end
+			-- update locations: remove empty/full slots
+			for currentIndex = #(locations), 1, -1 do
+				if locations[currentIndex][3] then
+					table.remove(locations, currentIndex)
 				end
 			end
 		end
-	end
-
-	-- do restacking for each itemID
-	local recursive = nil
-	for itemID, _ in pairs(restackIDs) do
-		BG.currentRestackItem = itemID
-		recursive = recursive or BG.Restack(itemID)
-	end
-
-	if recursive then
-		BG.Debug("Restack: More work to do.")
-		BG.CallWithDelay(BG.DoFullRestack, 1, true)
-
-	else
-		-- almost done; move appropriate stacks into specialty bags
-		local usedSlots = {}
-		for container = 0, NUM_BAG_SLOTS do
-			for slot = 1, GetContainerNumSlots(container) do
-				BG.PutIntoBestContainer(container, slot, usedSlots)
+		for itemID, locations in pairs(restackQueue) do
+			if #(locations) < 2 then
+				-- done with this itemID
+				table.wipe(restackQueue[itemID])
+				table.remove(restackQueue, itemID)
 			end
 		end
-		wipe(usedSlots); usedSlots = nil
-		wipe(restackIDs)
 
-		if BG.afterRestack ~= nil then
-			BG.afterRestack()
-			BG.afterRestack = nil
-		end
-		BG.Debug("Full restack completed.")
-	end
-end
-
--- [TODO] merge with DoFullRestack
-function BG.DoContainerRestack(container, isRecursion)
-	if not isRecursion then
-		-- fill list of inventory itemIDs so we know what to restack
-		for slot = 1, (GetContainerNumSlots(container) or 0) do
-			local itemID = GetContainerItemID(container, slot)
-
-			if itemID and not restackIDs[itemID] then
-				restackIDs[itemID] = true
-			end
-		end
-	end
-
-	-- do restacking for each itemID
-	local recursive = nil
-	for itemID, _ in pairs(restackIDs) do
-		BG.currentRestackItem = itemID
-		recursive = recursive or BG.Restack(itemID)
-	end
-
-	if recursive then
-		BG.Debug("Restack: More work to do.")
-		BG.CallWithDelay(BG.DoContainerRestack, 1, container, true)
-	else
-		wipe(restackIDs)
-		if BG.afterRestack ~= nil then
-			BG.afterRestack()
-			BG.afterRestack = nil
-		end
-		BG.Debug("Container restack completed.")
-	end
-end
-
--- register an item for restacking and manage each step
--- [TODO] also restack when crafting (e.g. gems) and collecting mail items
-function BG.Restack(itemID)
-	itemID = itemID or BG.currentRestackItem
-	local item = itemID and BG.GetCached(itemID)
-	if not itemID or not item then
-		return nil
-	end
-
-	local locations = BG.GetItemLocations(item, true, true)
-	local stillRestacking = BG.RestackStep(itemID, locations, item.stackSize)
-
-	if stillRestacking then
-		-- ITEM_UNLOCKED provokes BG.RestackStep()
-		BG.frame:RegisterEvent("ITEM_UNLOCKED")
-	else
-		BG.Debug("All done for "..itemID)
-		BG.frame:UnregisterEvent("ITEM_UNLOCKED")
-		BG.currentRestackItem = nil
-	end
-	_, _, hasItemLock = BG.GetItemLocations(BG.GetCached(itemID), true)
-	return hasItemLock
-end
-
--- single restack step, moves one item from A to B, returns true if more moving actions are required for this item
-function BG.RestackStep(itemID, locations, stackSize)
-	if not itemID then
-		BG.Print("Error! Don't know which item to restack")
-		return nil
-	end
-	local maxLoc = locations and #(locations)
-
-	if not maxLoc or maxLoc <= 1 then
-		restackIDs[ itemID ] = nil
-		return nil
-	else
-		local moveFrom, moveTo = BG.cheapestItems[ locations[1] ], BG.cheapestItems[ locations[maxLoc] ]
-		local _, sourceCount = GetContainerItemInfo(moveFrom.bag, moveFrom.slot)
-		local _, targetCount = GetContainerItemInfo(moveTo.bag, moveTo.slot)
-
-		-- BG.Dump(locations)
-		-- BG.Dump({bag = moveFrom.bag, slot = moveFrom.slot, count = sourceCount})
-		-- BG.Dump({bag = moveTo.bag, slot = moveTo.slot, count = targetCount})
-
-		if not sourceCount then
-			tremove(locations, 1)
-			return BG.RestackStep(itemID, locations, stackSize)
-		end
-		-- remove full/empty target steps
-		if not targetCount or targetCount == stackSize then
-			tremove(locations, maxLoc)
-			return BG.RestackStep(itemID, locations, stackSize)
-		end
-
-		local itemWasMoved = BG.MoveItem(itemID, moveFrom.bag, moveFrom.slot, moveTo.bag, moveTo.slot, locations[1])
-		-- only remove location if it's now empty
-		if sourceCount + targetCount <= stackSize then
-			tremove(locations, 1)
-		end
-
-		if not moveFrom.invalid and itemWasMoved == nil then
-			BG.Debug("Moving failed", itemID, moveFrom.bag.."."..moveFrom.slot, 'to', moveTo.bag.."."..moveTo.slot)
-			tremove(locations, 1)	-- couldn't move the item, so don't try this one again
+		if BG.Count(restackQueue) > 0 then
+			-- more to do
+			coroutine.yield("ITEM_UNLOCKED", numMoves)
 		else
-			tremove(locations, 1)
+			-- done with all items
+			break
 		end
-		return true
 	end
 end
 
-function BG.PutIntoBestContainer(curBag, curSlot, usedSlots)
-	local itemID = GetContainerItemID(curBag, curSlot)
-	local itemFamily = itemID and GetItemFamily(itemID)
-	if not itemID or itemFamily == 0 then return end 	-- empty slots / general items
 
-	local bestContainer = BG.FindBestContainerForItem(itemID, itemFamily)
-	if bestContainer and bestContainer ~= curBag then
-		local targetSlots = GetContainerFreeSlots(bestContainer)
-		for i, slot in pairs(targetSlots) do
-			if BG.Find(usedSlots, bestContainer..slot) then
-				table.remove(targetSlots, i)
-			end
-		end
-		if #targetSlots ~= 0 then
-			BG.MoveItem(itemID, curBag, curSlot, bestContainer, targetSlots[1])
-			table.insert(usedSlots, bestContainer..targetSlots[1])
-		else
-			BG.Debug("No more room in target bag!")
-		end
-	end
-	return bestContainer, bestSlot
-end
-
--- moves an item from A to B
--- CAUTION: Call ClearCursor() straight after this!
-function BG.MoveItem(itemID, fromBag, fromSlot, toBag, toSlot, listIndex)
+function BG.MoveItem(itemID, fromBag, fromSlot, toBag, toSlot)
 	if not (fromBag and fromSlot and toBag and toSlot) then return nil end
-	BG.Debug("From", fromBag.."."..fromSlot, "to", toBag.."."..toSlot)
+	print("From", fromBag.."."..fromSlot, "to", toBag.."."..toSlot)
+
 	if GetContainerItemID(fromBag, fromSlot) ~= itemID then
-		BG.Print("Error! Item to move does not match requested item.")
+		print("Error! Item to move does not match requested item.")
 		return nil
-	end
-	local targetLocked = select(3, GetContainerItemInfo(toBag, toSlot))
-	if targetLocked then
-		BG.Print("Error! Can't move item: Target location is locked.")
-		return false
 	end
 	ClearCursor()
 	securecall(PickupContainerItem, fromBag, fromSlot)
 	securecall(PickupContainerItem, toBag, toSlot)
-
-	if listIndex then
-		-- this slot was modified, mark it as invalid
-		BG.cheapestItems[ listIndex ].invalid = true
-	end
 	return true
 end
