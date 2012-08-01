@@ -16,12 +16,12 @@ if GetLocale() == "zhTW" then
 	BGC.locale.minSlotsSet = "捨取管理員嘗試保留至少%s空間。"
 
 	BGC.locale.slashCommandHelp = [[以下命令是可行的:
-/garbage |cffc0c0c0config|r 開啟設定面板。
-/garbage |cffc0c0c0format |cffc0c0ffformatstring|r 讓你自訂LDB顯示文字，|cffc0c0c0 format reset|r 重置。
-/garbage |cffc0c0c0limit |cffc0c0ffitemLink/ID count|r 在目前的角色上設定給予物品限制。
-/garbage |cffc0c0c0globallimit |cffc0c0ffitemLink/ID count|r 設定所有角色限制。
-/garbage |cffc0c0c0value |cffc0c0ffvalueInCopper|r 設定捨取物品的最小價值(捨取管理員需要)。
-/garbage |cffc0c0c0freeslots |cffc0c0ffnumber|r 設定保留背包槽為空的數量。]]
+    |cFF36BFA8config|r 開啟設定面板。
+    |cFF36BFA8format |cFF2bff58<text>|r 讓你自訂LDB顯示文字，|cFF2bff58reset|r 重置。
+    |cFF36BFA8limit|r |cFF2bff58<item>|r |cFF2bff58<count>|r 在目前的角色上設定給予物品限制。
+    |cFF36BFA8globallimit|r |cFF2bff58<item>|r |cFF2bff58<count>|r 設定所有角色限制。
+    |cFF36BFA8value|r |cFF2bff58<valueInCopper>|r 設定捨取物品的最小價值(捨取管理員需要)。
+    |cFF36BFA8freeslots|r |cFF2bff58<count>|r 設定保留背包槽為空的數量。]]
 	-- BGC.locale.requiresLootManager = "This command requires the Loot Manager."
 	BGC.locale.invalidArgument = "你輸入無效的參數。請檢查你的輸入並再一次嘗試。"
 
@@ -260,7 +260,7 @@ if GetLocale() == "zhTW" then
 	-- BGC.locale.LOSetPrice = "|cffffffffClick|r to set a custom price for all selected entries."
 	-- BGC.locale.setPriceInfo = "|cffffd200Set custom price|r|nClick on vendor price to use merchant values."
 
-	BGC.locale.namedItems = "|TInterface\\Icons\\Spell_chargepositive:15:15|t 物品名稱..."
+	BGC.locale.namedItems = "物品名稱..."
 	-- BGC.locale.namedItemsInfo = "|cffffd200Add Item Name Rule|r|nInsert an item name or a pattern:|ne.g. \"|cFF36BFA8Scroll of *|r\" will match \"|cFF2bff58Scroll of Agility|r\" or \"|cFF2bff58Scroll of the Tiger|r\""
 	BGC.locale.search = "搜尋..."
 

@@ -16,7 +16,6 @@ if GetLocale() == "zhTW" then
 	BG.locale.repair = "修理：%1$s%2$s。"
 	-- BG.locale.guildRepair = " (guild)"
 	BG.locale.couldNotRepair = "無法修理，因為你沒有足夠的錢。你需要%s。"
-
 	BG.locale.itemDeleted = "%1$sx%2$d 已經被刪除。"
 	BG.locale.listsUpdatedPleaseCheck = "你的列表已更新。請看看你的設定並且檢查是否符合你的需要。"
 	BG.locale.disenchantOutdated = "%1$s 已經淘汰並且應該分解。"

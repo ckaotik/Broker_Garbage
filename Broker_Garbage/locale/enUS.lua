@@ -16,7 +16,6 @@ BG.locale = {
 	repair = "Repaired for %1$s%2$s.",
 	guildRepair = " (guild)",
 	couldNotRepair = "Could not repair because you don't have enough money. You need %s.",
-
 	itemDeleted = "%1$sx%2$d has been deleted.",
 	listsUpdatedPleaseCheck = "Your lists have been updated. Please have a look at your settings and check if they fit your needs.",
 	disenchantOutdated = "%1$s is outdated and should get disenchanted.",

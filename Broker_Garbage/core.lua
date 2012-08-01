@@ -40,7 +40,7 @@ local function eventHandler(self, event, arg1, ...)
 
 		BG.ScanInventory()	-- initializes and fills caches
 
-		for _, event in ipairs({"BAG_UPDATE", "MERCHANT_SHOW", "MERCHANT_CLOSED", "UI_ERROR_MESSAGE", "LOOT_OPENED", "EQUIPMENT_SETS_CHANGED", "PLAYER_EQUIPMENT_CHANGED", "CHAT_MSG_SKILL"}) do
+		for _, event in ipairs({"BAG_UPDATE", "MERCHANT_SHOW", "MERCHANT_CLOSED", "UI_ERROR_MESSAGE", "LOOT_OPENED", "EQUIPMENT_SETS_CHANGED", "PLAYER_EQUIPMENT_CHANGED", "CHAT_MSG_SKILL", "ITEM_PUSH"}) do
 			frame:RegisterEvent(event)
 		end
 		frame:UnregisterEvent("ADDON_LOADED")
@@ -130,7 +130,7 @@ local function eventHandler(self, event, arg1, ...)
 	-- [TODO] suspecting ITEM_PUSH to always fire before UNIT_INVENTORY_CHANGED
 	elseif event == "ITEM_PUSH" and arg1 then
 		if BG_GlobalDB.restackInventory then
-			changedBag = arg1
+			changedBag = arg1 - INVSLOT_LAST_EQUIPPED
 			frame:RegisterEvent("UNIT_INVENTORY_CHANGED")
 		end
 	elseif event == "UNIT_INVENTORY_CHANGED" and arg1 == "player" then

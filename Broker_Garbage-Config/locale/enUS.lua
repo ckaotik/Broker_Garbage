@@ -15,13 +15,13 @@ BGC.locale = {
 	minValueSet = "Items with a value less than %s will not be looted anymore.",
 	minSlotsSet = "The Loot Manager will try to keep at least %s slots free.",
 
-	slashCommandHelp = [[The following commands are available:
-/garbage |cffc0c0c0config|r opens the options panel.
-/garbage |cffc0c0c0format |cffc0c0ffformatstring|r lets you customize the LDB display text, |cffc0c0c0 format reset|r resets it.
-/garbage |cffc0c0c0limit |cffc0c0ffitemLink/ID count|r sets a limit for the given item on the current character.
-/garbage |cffc0c0c0globallimit |cffc0c0ffitemLink/ID count|r sets a limit for all characters.
-/garbage |cffc0c0c0value |cffc0c0ffvalueInCopper|r sets the minimum value for items to be looted (Loot Manager needed).
-/garbage |cffc0c0c0freeslots |cffc0c0ffnumber|r sets the number of inventory slots to keep empty.]],
+	slashCommandHelp = [[supports |cffee6622/garbage|r, |cffee6622/garb|r, |cffee6622/junk|r with these commands:
+    |cFF36BFA8config|r opens the options panel.
+    |cFF36BFA8format|r |cFF2bff58<text>|r lets you customize the LDB display text, |cFF2bff58reset|r resets it.
+    |cFF36BFA8limit|r |cFF2bff58<item>|r |cFF2bff58<count>|r sets a limit for the given item on the current character.
+    |cFF36BFA8globallimit|r |cFF2bff58<item>|r |cFF2bff58<count>|r sets a limit for all characters.
+    |cFF36BFA8value|r |cFF2bff58<valueInCopper>|r sets the minimum value for items to be looted (Loot Manager).
+    |cFF36BFA8freeslots|r |cFF2bff58<count>|r sets the number of inventory slots to keep empty.]],
 	requiresLootManager = "This command requires the Loot Manager.",
 	invalidArgument = "You supplied an invalid argument. Please check your input and try again.",
 
