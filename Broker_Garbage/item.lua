@@ -651,10 +651,11 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 		reason = "Item is UNUSABLE"
 	end
 
-	local value, itemLabel, reason = BG.GetSingleItemValue(itemID, label)
+	local value, itemLabel, tempReason = BG.GetSingleItemValue(itemID, label)
 	if not label then
 		BG.Debug("Assigning simple label", itemLabel, BG.FormatMoney(value))
 		label = itemLabel
+		reason = tempReason
 	end
 
 	if priceLabel then
