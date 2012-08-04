@@ -311,9 +311,9 @@ function BG.FindInTooltip(searchString, scanRightText, filterFunc)
 	local numLines = scanTooltip:NumLines()
 	local leftLine, leftLineText, rightLine, rightLineText
 	for i = 1, numLines do
-		leftLine = getglobal("BrokerGarbage_ItemScanTooltipTextLeft"..i)
+		leftLine = _G["BrokerGarbage_ItemScanTooltipTextLeft"..i]
 		leftLineText = leftLine and leftLine:GetText()
-		rightLine = getglobal("Broker_Garbage_ItemScanTooltipTextRight"..i)
+		rightLine = _G["Broker_Garbage_ItemScanTooltipTextRight"..i]
 		rightLineText = rightLine and rightLine:GetText()
 
 		if (string.find(leftLineText, searchString) or (scanRightText and string.find(rightLineText, searchString)))

@@ -3,13 +3,7 @@ local _, BG = ...
 -- == degrade so this version can be used in pre 5.0 environments ==
 BG.PANDARIA = select(4, GetBuildInfo()) >= 50000
 if not BG.PANDARIA then
-	UnitInRaid = function() -- we only need this for "player"
-		return GetNumRaidMembers() > 1
-	end
-	UnitInParty = UnitInParty or function()
-		return GetNumPartyMembers() > 0
-	end
-	LootSlotHasItem = LootSlotHasItem or function(slotID)
+	LootSlotHasItem = function(slotID)
 		return LootSlotIsItem(slotID)
 	end
 end
