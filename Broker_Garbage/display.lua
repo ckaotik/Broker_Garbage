@@ -179,7 +179,7 @@ function BG:OnClick(itemTable, button)
 			UseContainerItem(itemTable.bag, itemTable.slot)
 		else
 			BG.Debug("Not at vendor", "Deleting")
-			BG:Delete(itemTable)
+			BG.Delete(itemTable)
 		end
 
 	elseif itemTable and IsControlKeyDown() then
@@ -242,9 +242,9 @@ function BG:GetBagSlots()
 	local specialSlots, specialFree = 0, 0
 	local bagSlots, emptySlots, bagType
 
-	for i = 0, 4 do
-		bagSlots = GetContainerNumSlots(i) or 0
-		emptySlots, bagType = GetContainerNumFreeSlots(i)
+	for bag = 0, NUM_BAG_SLOTS do
+		bagSlots = GetContainerNumSlots(bag) or 0
+		emptySlots, bagType = GetContainerNumFreeSlots(bag)
 
 		if bagType and bagType == 0 then
 			numSlots = numSlots + bagSlots

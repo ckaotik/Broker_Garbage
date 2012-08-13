@@ -49,9 +49,15 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:SetScript("OnEvent", eventHandler)
 
 -- ---------------------------------------------------------
--- calls restack and deletes as many items as needed
+--
+function BGLM:FindSlotToDelete(itemID, ignoreFull)
+	local locations = Broker_Garbage.GetItemLocations(itemID)
+	return locations
+end
+
+-- deletes as many items as needed
 function BGLM:DeletePartialStack(itemID, num)
-	local locations = Broker_Garbage:FindSlotToDelete(itemID)
+	local locations = BGLM:FindSlotToDelete(itemID)
 	local maxStack = select(8, GetItemInfo(itemID))
 
 	if GetContainerItemID(locations[1].bag, locations[1].slot) ~= itemID then
@@ -62,13 +68,13 @@ function BGLM:DeletePartialStack(itemID, num)
 	securecall(SplitContainerItem, locations[1].bag, locations[1].slot, num)
 	if CursorHasItem() then
 		BGLM:Delete("cursor", num)
-		BGLM:Debug("DeletePartialStack", select(2,GetItemInfo(itemID)), num, locations[1].bag, locations[1].slot)
+		BGLM:Debug("DeletePartialStack", itemID, num, locations[1].bag, locations[1].slot)
 	end
 end
 
 -- returns true if the requested mob is skinnable with our skinning skill
 function BGLM:CanSkin(mobLevel)
-	local skinning = Broker_Garbage:GetProfessionSkill(8613)
+	local skinning = Broker_Garbage.GetProfessionSkill(8613)
 	if not skinning then return false end
 
 	local maxLevel
@@ -93,7 +99,7 @@ function BGLM:IsInteresting(itemTable)
 		isInteresting = true
 	end
 
-	local isQuestItem = ( select(6, GetItemInfo(itemTable.itemID)) ) == ( select(12, GetAuctionItemClasses()) )
+	local isQuestItem = ( select(6, GetItemInfo(itemTable.itemID)) ) == ( select(10, GetAuctionItemClasses()) )
 	local isTopFitInteresting = IsAddOnLoaded("TopFit") and Broker_Garbage.IsItemEquipment(select(9, GetItemInfo(itemTable.itemID))) and TopFit:IsInterestingItem(itemTable.itemID)
 
 	if isQuestItem or isTopFitInteresting or BGLM_GlobalDB.forceClear or alwaysLoot then
@@ -137,11 +143,11 @@ function BGLM.AutoDestroy()
 		if type(itemID) == "number" and type(maxCount) == "number" then
 			BGLM:Debug(itemID, maxCount)
 			-- delete excess items
-			location = Broker_Garbage:FindSlotToDelete(itemID)
+			location = BGLM:FindSlotToDelete(itemID)
 			for i = #location, 1, -1 do
 				if count >= maxCount then
 					itemLink = select(2, GetItemInfo(itemID))
-					Broker_Garbage:Delete(itemLink, {location[i].bag, location[i].slot})
+					Broker_Garbage.Delete(itemLink, {location[i].bag, location[i].slot})
 				else
 					count = count + location[i].count
 				end
@@ -158,7 +164,7 @@ function BGLM.TrimInventory(emptySlotNum)
 			BGLM:Print("Error! I tried to make space but there is nothing left for me to delete!")
 			return
 		end
-		Broker_Garbage:Delete(deleteThis)
+		Broker_Garbage.Delete(deleteThis)
 	end
 end
 
@@ -262,28 +268,40 @@ function BGLM.SelectiveLooting(autoloot)
 
 		local close = true
 
-		local lootConstraint, playerIsLootMaster = nil, nil
-		local lootThreshold, lootMethod, lootMasterGroup, lootMasterRaid = GetLootThreshold(), GetLootMethod()
+		local lootConstraint, playerIsLootMaster, isQuestItem = nil, nil
+		local lootThreshold = GetLootThreshold()
+		local lootMethod, lootMasterGroup, lootMasterRaid = GetLootMethod()
+
+		if not IsInGroup() then
+			lootThreshold = nil
+		end
+
+		if Broker_Garbage.totalFreeSlots <= BGLM_GlobalDB.tooFewSlots and Broker_Garbage:GetOption("restackInventory", true) then
+			BGLM:Debug("Out of bag space, trying restack ...")
+			Broker_Garbage.DoFullRestack()
+		end
 
 		for slot = 1, GetNumLootItems() do
 			lootAction = nil
 
 			_, _, slotQuantity, slotQuality, slotIsLocked = GetLootSlotInfo(slot)
 			itemLink = GetLootSlotLink(slot)
+			isQuestItem = itemLink and (( select(6, GetItemInfo(itemLink)) ) == ( select(10, GetAuctionItemClasses()) ))
 
-			if BGLM.privateLoot then
-				lootConstraint = nil -- private loot = god mode. you want it, you take it!
-
+			-- private loot = god mode. you want it, you take it!
+			if BGLM.privateLoot or isQuestItem then
+				lootConstraint = nil
+			-- we might not be allowed to take this item
 			elseif lootThreshold and slotQuality >= lootThreshold then
 				if lootMethod == "master" then
 					lootConstraint = true
-					if lootMasterRaid and UnitInRaid("player") and UnitIsUnit("raid"..lootMasterRaid, "player") then
-						playerIsLootMaster = true
-					elseif lootMasterGroup and UnitInParty("player") and lootMasterGroup == 0 then
-						playerIsLootMaster = true
+					if IsInRaid() then
+						playerIsLootMaster = lootMasterRaid and UnitIsUnit("raid"..lootMasterRaid, "player")
+					else
+						playerIsLootMaster = lootMasterGroup and lootMasterGroup == 0
 					end
 				elseif lootMethod ~= "freeforall" then
-					lootConstraint = UnitInParty("player") or UnitInRaid("player")
+					lootConstraint = IsInGroup()
 				end
 			else
 				lootConstraint = nil
@@ -323,7 +341,7 @@ function BGLM.SelectiveLooting(autoloot)
 					if lootSlotItem.value < BGLM_LocalDB.itemMinValue and not alwaysLoot then
 						-- minimum loot value not reached; item is too cheap
 						lootAction = "none"
-						BGLM:Print(format(BGLM.locale.couldNotLootValue, itemLink), BGLM_GlobalDB.printValue)
+						BGLM:Print(format(BGLM.locale.couldNotLootValue, itemLink.."x"..slotQuantity), BGLM_GlobalDB.printValue)
 
 					elseif Broker_Garbage.totalFreeSlots <= BGLM_GlobalDB.tooFewSlots then
 						-- dropping low on bag space
@@ -354,14 +372,14 @@ function BGLM.SelectiveLooting(autoloot)
 						elseif not alwaysLoot and compareTo and compareTo.value and lootSlotItem.value <= compareTo.value then
 							lootAction = "none"
 							BGLM:Debug("Making space for this item makes us loose money.", itemLink)
-							BGLM:Print(format(BGLM.locale.couldNotLootCompareValue, itemLink), BGLM_GlobalDB.printCompareValue)
+							BGLM:Print(format(BGLM.locale.couldNotLootCompareValue, itemLink.."x"..slotQuantity), BGLM_GlobalDB.printCompareValue)
 
 						else
 							-- we'd like to take the item but have no bag space (and can't make any)
 							lootAction = "none"
 							close = false
 
-							BGLM:Print(format(BGLM.locale.couldNotLootSpace, itemLink), BGLM_GlobalDB.printSpace)
+							BGLM:Print(format(BGLM.locale.couldNotLootSpace, itemLink.."x"..slotQuantity), BGLM_GlobalDB.printSpace)
 						end
 					else
 						-- enough bag space available
@@ -385,7 +403,7 @@ function BGLM.SelectiveLooting(autoloot)
 					BGLM:DeletePartialStack(itemID, stackOverflow)
 
 				elseif lootAction == "delete" then
-					Broker_Garbage:Delete(compareTo)
+					Broker_Garbage.Delete(compareTo)
 					lootAction = "take"
 				end
 

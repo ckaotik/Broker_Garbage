@@ -41,7 +41,8 @@ end
 
 -- finds all occurences of the given item or its category; returns table sorted by relevance (lowest first); item :: <itemTable>
 function BG.GetItemLocations(item, ignoreFullStacks, includeLocked, scanCategory, useTable)
-	if not item or type(item) ~= "table" then return end
+	item = (type(item) == "table" and item) or (type(item) == "number" and BG.GetCached(item)) or nil
+	if not item then return end
 	local locations
 	if useTable and type(useTable) == "table" then
 		wipe(useTable)
@@ -138,14 +139,12 @@ function BG.ScanInventory(resetCache)
 	BG.SortItemList()
 end
 
-local changedItems = {}
 function BG.ScanInventoryContainer(container, waitForFullScan)
 	local numSlots = GetContainerNumSlots(container)
 	if not numSlots then return end -- no (scannable) bag
 
 	local isSpecialBag = select(2, GetContainerNumFreeSlots(container)) ~= 0
 	local newItemCount, newItemLink, itemID, listIndex
-	wipe(changedItems)
 
 	for slot = 1, numSlots do
 		_, newItemCount, _, _, _, _, newItemLink = GetContainerItemInfo(container, slot)
@@ -154,12 +153,8 @@ function BG.ScanInventoryContainer(container, waitForFullScan)
 
 		listIndex = BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 		if listIndex then
-			table.insert(changedItems, {container, slot, listIndex, isSpecialBag})
+			BG.SetDynamicLabelBySlot(container, slot, listIndex, isSpecialBag)
 		end
-	end
-
-	for _, data in ipairs(changedItems) do
-		BG.SetDynamicLabelBySlot(unpack(data))
 	end
 
 	if not waitForFullScan then
@@ -179,7 +174,7 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 			if item.invalid and newItemLink then
 				BG.Debug("Reactivating "..container.."."..slot, newItemLink)
 				recheck = true
-			elseif item.itemLink and not newItemLink then 	-- tag data as invalid
+			elseif not item.invalid and item.itemLink and not newItemLink then 	-- tag data as invalid
 				BG.Debug("Deactivating "..container.."."..slot, item.itemLink)
 				item.invalid = true
 			elseif item.itemLink ~= newItemLink then	-- update the whole item slot

@@ -1,5 +1,19 @@
 local _, BGLM = ...
 
+-- == degrade so this version can be used in pre 5.0 environments ==
+BGLM.PANDARIA = select(4, GetBuildInfo()) >= 50000
+if not BGLM.PANDARIA then
+	LootSlotHasItem = function(slotID)
+		return LootSlotIsItem(slotID)
+	end
+
+	IsInGroup = function()
+		return (GetNumPartyMembers() > 0) or (GetNumRaidMembers() > 0)
+	end
+	IsInRaid = function()
+		return GetNumRaidMembers() > 0
+	end
+end
 
 BGLM.PT = LibStub("LibPeriodicTable-3.1", true)
 BGLM.privateLootSpells = { 51005, 13262, 31252, 73979,	-- milling, disenchanting, prospecting, archaeology
@@ -28,7 +42,7 @@ BGLM.defaultGlobalSettings = {
 	autoLootSkinning = true,
 	autoLootFishing = true,
 	autoLootPickpocket = true,
-	
+
 	useInCombat = false,
 	closeLootWindow = true,
 	autoConfirmBoP = false,
@@ -44,7 +58,7 @@ BGLM.defaultGlobalSettings = {
 	printJunk = true,
 	printSpace = true,
 	printLocked = true,
-	
+
 	privateLootTimer = 4,
 	keepPrivateLootOpen = true,
 	keepGroupLootOpen = true,
@@ -75,7 +89,7 @@ function BGLM.CheckSettings()
 			BGLM_GlobalDB[key] = value
 		end
 	end
-	
+
 	if not BGLM_LocalDB then BGLM_LocalDB = {} end
 	for key, value in pairs(BGLM.defaultLocalSettings) do
 		if BGLM_LocalDB[key] == nil then
@@ -101,7 +115,7 @@ end
 function BGLM:JoinTables(...)
 	local result = {}
 	local tab
-	
+
 	for i=1,select("#", ...) do
 		tab = select(i, ...)
 		if tab then
@@ -110,7 +124,7 @@ function BGLM:JoinTables(...)
 			end
 		end
 	end
-	
+
 	return result
 end
 
@@ -137,6 +151,6 @@ function BGLM.CreateHorizontalRule(parent)
 	line:SetHeight(8)
 	line:SetTexture("Interface\\Tooltips\\UI-Tooltip-Border")
 	line:SetTexCoord(0.81, 0.94, 0.5, 1)
-	
+
 	return line
 end

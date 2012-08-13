@@ -446,7 +446,7 @@ function BG.IsTopFitOutdatedItem(item)
 end
 
 -- deletes the item in a given location of your bags
-function BG:Delete(item, position)
+function BG.Delete(item, position)
 	local itemID, itemCount, cursorType
 
 	if type(item) == "string" and item == "cursor" then
@@ -460,8 +460,7 @@ function BG:Delete(item, position)
 
 	elseif type(item) == "table" then
 		-- item given as an itemTable
-		itemID = item.itemID
-		position = {item.bag, item.slot}
+		itemID = item.itemID or BG.GetItemID(item.itemLink)
 
 	elseif type(item) == "number" then
 		-- item given via its itemID
@@ -476,11 +475,11 @@ function BG:Delete(item, position)
 	end
 
 	-- security check
-	local bag = position[1] or item.bag
-	local slot = position[2] or item.slot
+	local bag = position and position[1] or item.bag
+	local slot = position and position[2] or item.slot
 	if not cursorType and (not (bag and slot) or GetContainerItemID(bag, slot) ~= itemID) then
 		BG.Print("Error! Item to be deleted is not the expected item.")
-		BG.Debug("I got these parameters:", item, bag, slot)
+		BG.Debug("I got these parameters:", itemID, bag, slot)
 		return
 	end
 
@@ -661,10 +660,10 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 	if priceLabel then
 		if priceLabel < 0 then
 			value = vendorValue
-			label = BG.VENDOR
+			label = label or BG.VENDOR
 		else
 			value = priceLabel
-			label = BG.CUSTOM
+			label = label or BG.CUSTOM
 		end
 	end
 

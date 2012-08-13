@@ -1,13 +1,5 @@
 local _, BG = ...
 
--- == degrade so this version can be used in pre 5.0 environments ==
-BG.PANDARIA = select(4, GetBuildInfo()) >= 50000
-if not BG.PANDARIA then
-	LootSlotHasItem = function(slotID)
-		return LootSlotIsItem(slotID)
-	end
-end
-
 -- == Debugging Functions ==
 function BG.Print(text)
 	DEFAULT_CHAT_FRAME:AddMessage(BG.name.." "..text)
