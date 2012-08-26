@@ -19,6 +19,7 @@ if GetLocale() == "deDE" then
 	BG.locale.itemDeleted = "%1$sx%2$d wurde gelöscht."
 	BG.locale.listsUpdatedPleaseCheck = "Die Listeneinstellungen wurden geändert. Bitte sieh in den Einstellungen nach, ob sie für dich passend sind."
 	BG.locale.disenchantOutdated = "%1$s ist veraltet und sollte entzaubert werden."
+	BG.locale.couldNotMoveItem = "Fehler! Der zu bewegende Gegenstand ist nicht der erwartete."
 
 	-- Tooltip
 	BG.locale.headerAltClick = "Alt-Klick: Händlerpreis nutzen"

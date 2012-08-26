@@ -525,24 +525,23 @@ end
 
 -- gets an item's static information and saves it to the BG.itemsCache
 function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
-	if not itemID then return nil
-	elseif type(itemID) == table then itemID = itemID.itemID
-	elseif type(itemID) == "number" then itemID = itemID
-	elseif type(itemID) == "string" then itemID = BG.GetItemID(itemID)
+	if itemID and type(itemID) == table then itemID = itemID.itemID
+	elseif itemID and type(itemID) == "number" then itemID = itemID
+	elseif itemID and type(itemID) == "string" then itemID = BG.GetItemID(itemID)
 	else return nil
 	end
 
 	-- recheck, we might not have gotten what we wanted
-	if not itemID then return nil
-	else
-		BG.Debug("|cffffd700> Updating cache for "..itemID.."|r", itemLink)
-	end
+	if not itemID or itemID == 0 then return nil end
 
 	local _, itemLink, quality, itemLevel, _, _, subClass, stackSize, _, _, vendorValue = GetItemInfo(itemID)
-	if not quality then
+	if not itemLink then
 		BG.Debug("UpdateCache("..itemID..") failed - no GetItemInfo() data available!")
+		BG.requestedItemID = itemID
+		BG.frame:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 		return nil
 	end
+	BG.Debug("|cffffd700> Updating cache for "..itemID.."|r ", itemLink)
 
 	local itemLimit = 0
 	local label, reason = nil, nil

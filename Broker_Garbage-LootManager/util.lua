@@ -1,11 +1,9 @@
 local _, BGLM = ...
+BGLM.name = "|cffee6622Broker_Garbage LootManager|r"
 
 -- == degrade so this version can be used in pre 5.0 environments ==
 BGLM.PANDARIA = select(4, GetBuildInfo()) >= 50000
 if not BGLM.PANDARIA then
-	LootSlotHasItem = function(slotID)
-		return LootSlotIsItem(slotID)
-	end
 
 	IsInGroup = function()
 		return (GetNumPartyMembers() > 0) or (GetNumRaidMembers() > 0)
@@ -13,9 +11,32 @@ if not BGLM.PANDARIA then
 	IsInRaid = function()
 		return GetNumRaidMembers() > 0
 	end
+
+	if not LOOT_SLOT_NONE then
+		LOOT_SLOT_NONE = 0
+	end
+	if not LOOT_SLOT_ITEM then
+		LOOT_SLOT_ITEM = 1
+	end
+	if not LOOT_SLOT_MONEY then
+		LOOT_SLOT_MONEY = 2
+	end
+	if not LOOT_SLOT_CURRENCY then
+		LOOT_SLOT_CURRENCY = 3
+	end
+	GetLootSlotType = function(slotID)
+		if LootSlotIsItem(slotID) then
+			return LOOT_SLOT_ITEM
+		elseif select(3, GetLootSlotInfo(slotID)) == 0 then
+			return LOOT_SLOT_MONEY
+		else
+			return LOOT_SLOT_NONE
+		end
+	end
 end
 
 BGLM.PT = LibStub("LibPeriodicTable-3.1", true)
+-- [TODO] Pandaria!
 BGLM.privateLootSpells = { 51005, 13262, 31252, 73979,	-- milling, disenchanting, prospecting, archaeology
 	2575, 2576, 3564, 10248, 29354, 50310, 74517, 		-- mining
 	2366, 2368, 3570, 11993, 28695, 60300, 74519, 		-- herbalism
@@ -23,9 +44,14 @@ BGLM.privateLootSpells = { 51005, 13262, 31252, 73979,	-- milling, disenchanting
 	49383, -- engineering
 }
 
+BGLM.LOOT_ACTION_NONE = 0
+BGLM.LOOT_ACTION_SPLIT = 1
+BGLM.LOOT_ACTION_DELETE = 2
+BGLM.LOOT_ACTION_TAKE = 3
+
 function BGLM:Print(text, trigger)
 	if trigger == nil or trigger == true then
-		DEFAULT_CHAT_FRAME:AddMessage("|cffee6622Broker_Garbage LootManager|r "..text)
+		DEFAULT_CHAT_FRAME:AddMessage(BGLM.name.." "..text)
 	end
 end
 
@@ -43,9 +69,9 @@ BGLM.defaultGlobalSettings = {
 	autoLootFishing = true,
 	autoLootPickpocket = true,
 
-	useInCombat = false,
-	closeLootWindow = true,
-	autoConfirmBoP = false,
+	useInCombat = false, -- [TODO] test wether still tainting
+	closeLootWindow = true, -- [TODO] test wether still tainting
+	autoConfirmBoP = false, -- [TODO] wait for bop-promt, or it won't ork
 	forceClear = false,
 	lootExcludeItems = true,
 	lootIncludeItems = false,
@@ -59,25 +85,27 @@ BGLM.defaultGlobalSettings = {
 	printSpace = true,
 	printLocked = true,
 
-	privateLootTimer = 4,
-	keepPrivateLootOpen = true,
-	keepGroupLootOpen = true,
+	privateLootTimer = 4, -- [TODO] config
+	keepPrivateLootOpen = true, -- [TODO] config
+	keepGroupLootOpen = true, -- [TODO] config
 }
 BGLM.defaultLocalSettings = {
 	-- behavior
 	itemMinValue = 0,
+	minItemQuality = 0, -- [TODO] config
 	autoDestroy = false,
 	autoDestroyInstant = false,
 }
 
 -- Helper functions
 -- ---------------------------------------------------------
-function BGLM.SetMinValue(value)
-	BGLM_LocalDB.itemMinValue = value
+function BGLM:Set(setting, value, isGlobal)
+	local tab = isGlobal and BGLM_GlobalDB or BGLM_LocalDB
+	tab[setting] = value
 end
-
-function BGLM.SetMinSlots(value)
-	BGLM_GlobalDB.tooFewSlots = value
+function BGLM:Get(setting, isGlobal)
+	local tab = isGlobal and BGLM_GlobalDB or BGLM_LocalDB
+	return tab[setting]
 end
 
 -- create default settings if not existant
@@ -105,12 +133,6 @@ function BGLM.UpdateSettings_4_1()
 	end
 end
 
-function BGLM:GetItemID(itemLink)
-	if not itemLink then return end
-	local itemID = string.gsub(itemLink, ".-Hitem:([0-9]*):.*", "%1")
-	return tonumber(itemID)
-end
-
 -- joins any number of non-basic index tables together, one after the other. elements within the input-tables _will_ get mixed
 function BGLM:JoinTables(...)
 	local result = {}
@@ -126,13 +148,6 @@ function BGLM:JoinTables(...)
 	end
 
 	return result
-end
-
-function BGLM:Find(table, value)
-	for k, v in pairs(table) do
-		if (v == value) then return true end
-	end
-	return false
 end
 
 function BGLM.ShowTooltip(self)
@@ -153,4 +168,100 @@ function BGLM.CreateHorizontalRule(parent)
 	line:SetTexCoord(0.81, 0.94, 0.5, 1)
 
 	return line
+end
+
+-- returns true if the requested mob is skinnable with our skinning skill
+function BGLM:CanSkin(mobLevel)
+	local skinning = Broker_Garbage.GetProfessionSkill(8613)
+	if not skinning then return false end
+
+	local maxLevel
+	if skinning < 100 then
+		maxLevel = floor(skinning/10) + 10
+	else
+		maxLevel = floor(skinning/5)
+	end
+
+	return maxLevel >= mobLevel
+end
+
+-- determines if an item should be looted
+function BGLM:IsInteresting(cachedItemTable)
+	local isInteresting, alwaysLoot
+	if cachedItemTable.classification == Broker_Garbage.EXCLUDE then
+		isInteresting = true
+		alwaysLoot = BGLM_GlobalDB.lootExcludeItems
+	elseif cachedItemTable.classification == Broker_Garbage.INCLUDE and not BGLM_GlobalDB.lootIncludeItems then
+		isInteresting = false
+	elseif cachedItemTable.quality < BGLM_LocalDB.minItemQuality then
+		isInteresting = false
+	else
+		isInteresting = true
+	end
+
+	-- local isQuestItem = ( select(6, GetItemInfo(cachedItemTable.itemID)) ) == ( select(10, GetAuctionItemClasses()) )
+	local isTopFitInteresting = IsAddOnLoaded("TopFit") and Broker_Garbage.IsItemEquipment(select(9, GetItemInfo(cachedItemTable.itemID))) and TopFit:IsInterestingItem(cachedItemTable.itemID)
+
+	if isTopFitInteresting or BGLM_GlobalDB.forceClear or alwaysLoot then
+		return isInteresting, true
+	else
+		return isInteresting, false
+	end
+end
+
+-- returns <shouldAL:true|false>, <clearAll:true|false>
+function BGLM:ShouldAutoLoot(blizzAutoLoot)
+	local lootAny = blizzAutoLoot ~= 0 or BGLM_GlobalDB.autoLoot
+	local lootPickpocket = BGLM_GlobalDB.autoLootPickpocket and Broker_Garbage:GetVariable("playerClass") == "ROGUE" and IsStealthed()
+	local lootFishing = BGLM_GlobalDB.autoLootFishing and IsFishingLoot()
+	local lootSkinning = BGLM_GlobalDB.autoLootSkinning and UnitExists("target") and UnitIsDead("target") and UnitCreatureType("target") == BGLM.locale.CreatureTypeBeast and BGLM:CanSkin(UnitLevel("target"))
+
+	return (lootAny or lootPickpocket or lootFishing or lootSkinning), (BGLM_GlobalDB.forceClear or lootSkinning)
+end
+
+function BGLM:IsPrivateLoot()
+	local private = nil
+	if IsFishingLoot() then
+		private = true
+	elseif BGLM.privateLoot then
+		if GetTime() - BGLM.privateLoot <= BGLM_GlobalDB.privateLootTimer then
+			private = true
+		else	-- reset, data is too old
+			BGLM.privateLoot = nil
+		end
+	end
+	return private
+end
+
+-- returns -threshold if player is LootMaster, nil if unrestricted or else threshold
+function BGLM:GetLootConstraint()
+	if BGLM:IsPrivateLoot() or not (IsInGroup() or IsInRaid()) then
+		return nil
+	else
+		local lootMethod, lootMasterGroup, lootMasterRaid = GetLootMethod()
+		local lootThreshold = GetLootThreshold()
+
+		if lootMethod == "freeforall" then
+			return nil
+		elseif lootMethod == "master" then
+			local playerIsLootMaster
+
+			if IsInRaid() then
+				playerIsLootMaster = lootMasterRaid and UnitIsUnit("raid"..lootMasterRaid, "player")
+			else
+				playerIsLootMaster = lootMasterGroup and lootMasterGroup == 0
+			end
+
+			return (playerIsLootMaster and -1 or 1) * lootThreshold
+		else
+			return lootThreshold
+		end
+	end
+end
+
+function BGLM:DeleteCheapestItem()
+	local item = Broker_Garbage.cheapestItems and Broker_Garbage.cheapestItems
+	if item then
+		Broker_Garbage.Delete(item)
+	end
 end

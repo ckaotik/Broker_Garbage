@@ -14,7 +14,7 @@ local addonName, BG = ...
 BG.PT = LibStub("LibPeriodicTable-3.1", true)	-- don't scream if LPT isn't present
 
 -- internal variables
-BG.version = GetAddOnMetadata(addonName, "X-Version")
+BG.version = tonumber(GetAddOnMetadata(addonName, "X-Version"))
 BG.locked = nil						-- is set to true while selling stuff
 BG.sellValue = 0					-- represents the actual value that we sold stuff for
 BG.repairCost = 0					-- the amount of money that we repaired for
@@ -32,7 +32,7 @@ local function eventHandler(self, event, arg1, ...)
 		BG.containerInInventory = nil
 
 		BG.itemsCache = {}		-- contains static item data, e.g. price, stack size
-		BG.itemLocations = {}	-- itemID = { cheapestList-index }
+		BG.itemLocations = {}	-- itemID = { cheapestItems-ListIndex }
 		BG.cheapestItems = {}	-- contains up-to-date labeled data
 		BG.sellLog = {}
 
@@ -40,10 +40,20 @@ local function eventHandler(self, event, arg1, ...)
 
 		BG.ScanInventory()	-- initializes and fills caches
 
-		for _, event in ipairs({"BAG_UPDATE", "MERCHANT_SHOW", "MERCHANT_CLOSED", "UI_ERROR_MESSAGE", "LOOT_OPENED", "EQUIPMENT_SETS_CHANGED", "PLAYER_EQUIPMENT_CHANGED", "CHAT_MSG_SKILL", "ITEM_PUSH"}) do
+		local events = {
+			"ITEM_PUSH", "BAG_UPDATE",
+			"MERCHANT_SHOW", "MERCHANT_CLOSED",
+			"UI_ERROR_MESSAGE", "CHAT_MSG_SKILL",
+			"EQUIPMENT_SETS_CHANGED", "PLAYER_EQUIPMENT_CHANGED"
+		}
+		for _, event in ipairs(events) do
 			frame:RegisterEvent(event)
 		end
 		frame:UnregisterEvent("ADDON_LOADED")
+	elseif event == "GET_ITEM_INFO_RECEIVED" then
+		BG.UpdateCache(BG.requestedItemID)
+		BG.requestedItemID = nil
+		frame:UnregisterEvent("GET_ITEM_INFO_RECEIVED")
 
 	-- == Auto Repair/Auto Sell ==
 	elseif event == "MERCHANT_SHOW" then
@@ -73,11 +83,6 @@ local function eventHandler(self, event, arg1, ...)
 				BG.locked = nil
 				BG.sellValue, BG.repairCost = 0, 0
 			end
-		end
-
-	elseif event == "LOOT_OPENED" then	-- [TODO] choose proper events
-		if BG_GlobalDB.restackInventory and true then -- and too few bag spaces
-			-- BG.DoFullRestack()
 		end
 
 	elseif not BG.locked and event == "BAG_UPDATE" then

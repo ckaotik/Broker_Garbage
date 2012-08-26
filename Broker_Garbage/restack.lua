@@ -50,7 +50,7 @@ function BG.Restack()
 	end
 end
 
-function BG.RestackIteration(stepCount)
+function BG.RestackIteration()
 	local count, isLocked, targetCount, targetLocked, targetIndex
 	local success, stackSize
 	local numMoves = 0
@@ -108,11 +108,14 @@ function BG.MoveItem(itemID, fromBag, fromSlot, toBag, toSlot)
 	BG.Debug("From", fromBag.."."..fromSlot, "to", toBag.."."..toSlot)
 
 	if GetContainerItemID(fromBag, fromSlot) ~= itemID then
-		print("Error! Item to move does not match requested item.")
+		BG.Print(BG.locale.couldNotMoveItem)
 		return nil
 	end
+
 	ClearCursor()
 	securecall(PickupContainerItem, fromBag, fromSlot)
 	securecall(PickupContainerItem, toBag, toSlot)
+	ClearCursor()
+
 	return true
 end

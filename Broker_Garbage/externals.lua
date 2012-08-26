@@ -6,12 +6,17 @@ function BG:RegisterPlugin(name, init)
 		BG.Print("Error! Cannot register a plugin without a name and initialize function.")
 		return
 	end
-	
+
 	table.insert(BG.modules, {
 		name = name,
 		init = init
 	})
 	return #BG.modules
+end
+
+function BG:IsDisabled()
+	local disable = BG.disableKey[BG_GlobalDB.disableKey]
+	return (disable and disable())
 end
 
 function BG:GetVariable(name)

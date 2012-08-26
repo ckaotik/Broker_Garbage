@@ -110,6 +110,9 @@ function BG.CheckSettings()
 		BG.CreateDefaultLists()
 	end
 
+	if BG_GlobalDB.version and type(BG_GlobalDB.version) ~= "number" then
+		BG_GlobalDB.version = tonumber(BG_GlobalDB.version)
+	end
 	if not BG_GlobalDB.version or BG_GlobalDB.version < 1 then BG.AdjustLists_4_1() end
 	if BG_GlobalDB.version < 2 then BG.AdjustLists_4_3() end
 end

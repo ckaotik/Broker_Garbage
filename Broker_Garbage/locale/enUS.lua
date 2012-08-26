@@ -19,6 +19,7 @@ BG.locale = {
 	itemDeleted = "%1$sx%2$d has been deleted.",
 	listsUpdatedPleaseCheck = "Your lists have been updated. Please have a look at your settings and check if they fit your needs.",
 	disenchantOutdated = "%1$s is outdated and should get disenchanted.",
+	couldNotMoveItem = "Error! Item to move does not match requested item.",
 
 	-- Tooltip
 	headerAltClick = "Alt-Click: Use Vendor Price",

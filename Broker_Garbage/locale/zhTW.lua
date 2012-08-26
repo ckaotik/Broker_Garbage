@@ -19,6 +19,7 @@ if GetLocale() == "zhTW" then
 	BG.locale.itemDeleted = "%1$sx%2$d 已經被刪除。"
 	BG.locale.listsUpdatedPleaseCheck = "你的列表已更新。請看看你的設定並且檢查是否符合你的需要。"
 	BG.locale.disenchantOutdated = "%1$s 已經淘汰並且應該分解。"
+	-- BG.locale.couldNotMoveItem = "Error! Item to move does not match requested item."
 
 	-- Tooltip
 	-- headerAltClick = "Alt-Click: Use Vendor Price"

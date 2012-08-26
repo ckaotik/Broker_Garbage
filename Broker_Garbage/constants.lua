@@ -1,4 +1,5 @@
 local _, BG = ...
+BG.name = "|cffee6622Broker_Garbage|r"
 
 -- default saved variables
 BG.defaultGlobalSettings = {
@@ -24,7 +25,7 @@ BG.defaultGlobalSettings = {
 
 	-- tresholds
 	dropQuality = 0,
-	sellNWQualityTreshold = 4,
+	sellNWQualityTreshold = 3,
 
 	-- numeric values
 	tooltipMaxHeight = 220,
@@ -74,8 +75,6 @@ BG.defaultLocalSettings = {
 	moneyLostByDeleting = 0,
 	moneyEarned = 0,
 }
-
-BG.name = "|cffee6622Broker_Garbage|r"
 
 -- item classifications
 BG.IGNORE = -1

@@ -135,7 +135,7 @@ local COMMAND_PARAMS = {
 			return
 		end
 
-		Broker_Garbage_LootManager:SetMinValue(param)
+		Broker_Garbage_LootManager:Set("itemMinValue", param)
 		BGC:Print(format(BGC.locale.minValueSet, Broker_Garbage.FormatMoney(Broker_Garbage:GetOption("itemMinValue", false))))
 	end,
 
@@ -152,7 +152,7 @@ local COMMAND_PARAMS = {
 			return
 		end
 
-		Broker_Garbage_LootManager:SetMinSlots(param)
+		Broker_Garbage_LootManager:Set("tooFewSlots", param, true)
 		BGC.Print(format(BGC.locale.minSlotsSet, Broker_Garbage:GetOption("tooFewSlots", false)))
 	end,
 
