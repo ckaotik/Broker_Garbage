@@ -113,20 +113,29 @@ function BG.CheckSettings()
 	if BG_GlobalDB.version and type(BG_GlobalDB.version) ~= "number" then
 		BG_GlobalDB.version = tonumber(BG_GlobalDB.version)
 	end
-	if not BG_GlobalDB.version or BG_GlobalDB.version < 1 then BG.AdjustLists_4_1() end
-	if BG_GlobalDB.version < 2 then BG.AdjustLists_4_3() end
+
+	if not BG_GlobalDB.version or BG_GlobalDB.version < 1 then BG.AdjustLists_4_1()
+	elseif not BG_LocalDB.version or BG_LocalDB.version < 1 then BG.AdjustLists_4_1(true) end
+
+	if BG_GlobalDB.version < 2 then BG.AdjustLists_4_3()
+	elseif BG_LocalDB.version < 2 then BG.AdjustLists_4_3(true) end
 end
 
-function BG.AdjustLists_4_1()
+function BG.AdjustLists_4_1(localOnly)
+	for _, subtable in pairs({"exclude", "include", "autoSellList", "forceVendorPrice"}) do
+		for key, value in pairs(BG_LocalDB[ subtable ] or {}) do
+			if value == true then
+				BG_LocalDB[subtable][key] = 0
+			end
+		end
+	end
+	BG_LocalDB.version = 1
+	if localOnly then return end
+
 	for _, subtable in pairs({"exclude", "include", "autoSellList", "forceVendorPrice"}) do
 		for key, value in pairs(BG_GlobalDB[ subtable ] or {}) do
 			if value == true then
 				BG_GlobalDB[subtable][key] = 0
-			end
-		end
-		for key, value in pairs(BG_LocalDB[ subtable ] or {}) do
-			if value == true then
-				BG_LocalDB[subtable][key] = 0
 			end
 		end
 	end
@@ -143,7 +152,10 @@ function BG.AdjustLists_4_1()
 
 	BG_GlobalDB.version = 1
 end
-function BG.AdjustLists_4_3()
+function BG.AdjustLists_4_3(localOnly)
+	BG_LocalDB.version = 2
+	if localOnly then return end
+
 	for key, value in pairs(BG_GlobalDB.forceVendorPrice) do
 		if value == 0 then
 			BG_GlobalDB.forceVendorPrice[key] = -1

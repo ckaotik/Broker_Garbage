@@ -223,12 +223,12 @@ BGC.locale = {
 
 	listsBestUse = [[|cffffd200List Examples|r
 Don't forget to use the default lists! They provide a great example.
-First, put any items you don't want to lose on your |cffffd200Keep List|r. Make good use of categories (see below)! If the LootManager is active it will alwas try to loot these items.
+First, put any items you don't want to lose on your |cffffd200Keep List|r. Make good use of categories (see below)! If the LootManager is active it will by default alwas try to loot these items (changable in LM settings).
 |cffAAAAAAe.g. class reagents, flasks|r
 Items which may be thrown away any time belong on the |cffffd200Junk List|r.
 |cffAAAAAAe.g. summoned food & drink, argent lance|r
-In case you encounter highly overrated items, put them on your |cffffd200Vendor Price List|r. They will only have their vendor value used instead of auction or disenchant values.
-|cffAAAAAAe.g. fish oil|r
+In case you encounter highly overvalued items, put them on your |cffffd200Fixed Price List|r. They will only have their vendor value used instead of auction or disenchant values. Alternatively, you can set a custom price by using |TInterface\Icons\INV_Misc_Coin_02:18|t.
+|cffAAAAAAe.g. fish oil (vendor price), Broiled Dragon Feast (custom price of e.g. 20g)|r
 Put items on your |cffffd200Sell List|r that should be sold when visiting a merchant.
 |cffAAAAAAe.g. water as a warrior, cheese|r]],
 
@@ -239,7 +239,8 @@ Put items on your |cffffd200Sell List|r that should be sold when visiting a merc
 	iconButtonsUse = [[|cffffd200Item Buttons|r
 For any item you'll either see its icon, a gear if it's a category or a question mark in case the server doesn't know this item.
 In the top left of each button you'll see a "G" (or not). If it's there, the item is on your |cffffd200global list|r meaning this rule is effective for every character.
-Items on your Junk List may also have a |cffffd200limit|r. This will be shown as a small number in the lower right corner. By using the |cffffd200mousewheel|r on this button you can change this number. Limited items will only be dropped/destroyed if you have more than their limit indicates.]],
+Items on your Junk List may also have a |cffffd200limit|r. This will be shown as a small number in the lower right corner. By using the |cffffd200mousewheel|r on this button you can change this number. For categories, the number of all corresponding items will be added up.
+If a limit is surpassed, items will be considered expendable, or in case of Keep-List limits regarded as regular items.]],
 
 	actionButtonsUse = [[|cffffd200Action Buttons|r
 Below this window you'll see five buttons and a search bar.
@@ -248,6 +249,7 @@ Below this window you'll see five buttons and a search bar.
 |TInterface\Icons\Spell_ChargeNegative:18|t |cffffd200Minus|r: Mark items on the list (by clicking them). When you click the minus, they will be removed from this list.
 |TInterface\Icons\INV_Misc_GroupLooking:18|t |cffffd200Local|r: Marked items will be put on your local list, meaning the rule is only active for the current character.
 |TInterface\Icons\INV_Misc_GroupNeedMore:18|t |cffffd200Global|r: Same as local, only this time items will be put on your global list. Those rules are active for all your characters.
+|TInterface\Icons\INV_Misc_Coin_02:18|t |cffffd200Set Price|r: Marked items will get their value set to whatever is specified in the following popup dialogue.
 |TInterface\Buttons\UI-GroupLoot-Pass-UP:18|t |cffffd200Empty|r: Click this button to remove any character specific (local) items from it. Shift-click empties any account wide (global) rules. |cffff0000Use with caution!|r]],
 
 	LOPlus = "Add items to this list by |cffffffffdragging|r/ |cffffffffdropping|r them onto this button.\n|cffffffffRight-click|r to add categories!",

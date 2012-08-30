@@ -1,40 +1,6 @@
 local _, BGLM = ...
 BGLM.name = "|cffee6622Broker_Garbage LootManager|r"
 
--- == degrade so this version can be used in pre 5.0 environments ==
-BGLM.PANDARIA = select(4, GetBuildInfo()) >= 50000
-if not BGLM.PANDARIA then
-
-	IsInGroup = function()
-		return (GetNumPartyMembers() > 0) or (GetNumRaidMembers() > 0)
-	end
-	IsInRaid = function()
-		return GetNumRaidMembers() > 0
-	end
-
-	if not LOOT_SLOT_NONE then
-		LOOT_SLOT_NONE = 0
-	end
-	if not LOOT_SLOT_ITEM then
-		LOOT_SLOT_ITEM = 1
-	end
-	if not LOOT_SLOT_MONEY then
-		LOOT_SLOT_MONEY = 2
-	end
-	if not LOOT_SLOT_CURRENCY then
-		LOOT_SLOT_CURRENCY = 3
-	end
-	GetLootSlotType = function(slotID)
-		if LootSlotIsItem(slotID) then
-			return LOOT_SLOT_ITEM
-		elseif select(3, GetLootSlotInfo(slotID)) == 0 then
-			return LOOT_SLOT_MONEY
-		else
-			return LOOT_SLOT_NONE
-		end
-	end
-end
-
 BGLM.PT = LibStub("LibPeriodicTable-3.1", true)
 -- [TODO] Pandaria!
 BGLM.privateLootSpells = { 51005, 13262, 31252, 73979,	-- milling, disenchanting, prospecting, archaeology
@@ -69,9 +35,9 @@ BGLM.defaultGlobalSettings = {
 	autoLootFishing = true,
 	autoLootPickpocket = true,
 
-	useInCombat = false, -- [TODO] test wether still tainting
-	closeLootWindow = true, -- [TODO] test wether still tainting
-	autoConfirmBoP = false, -- [TODO] wait for bop-promt, or it won't ork
+	useInCombat = true,
+	closeLootWindow = true,
+	autoConfirmBoP = false,
 	forceClear = false,
 	lootExcludeItems = true,
 	lootIncludeItems = false,
@@ -87,7 +53,6 @@ BGLM.defaultGlobalSettings = {
 
 	privateLootTimer = 4, -- [TODO] config
 	keepPrivateLootOpen = true, -- [TODO] config
-	keepGroupLootOpen = true, -- [TODO] config
 }
 BGLM.defaultLocalSettings = {
 	-- behavior

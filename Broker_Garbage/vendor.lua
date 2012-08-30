@@ -156,6 +156,12 @@ function BG.UpdateMerchantButton(forceUpdate)
 			sellIcon:SetScript("OnLeave", function() GameTooltip:Hide() end)
 		end
 
+		if MerchantRepairAllButton:IsShown() then
+			MerchantRepairAllButton:ClearAllPoints()
+			MerchantRepairAllButton:SetPoint("BOTTOMLEFT", 51, 33)
+			MerchantRepairText:Hide()
+		end
+
 		-- update tooltip value
 		SetItemButtonDesaturated(sellIcon, BG.junkValue == 0)
 
@@ -165,21 +171,7 @@ function BG.UpdateMerchantButton(forceUpdate)
 		_G[sellIcon:GetName().."NormalTexture"]:SetHeight(64/37 * iconSize)
 		_G[sellIcon:GetName().."NormalTexture"]:SetWidth(64/37 * iconSize)
 
-		if not BG.PANDARIA then
-			if CanGuildBankRepair() then
-				MerchantRepairAllButton:SetPoint("BOTTOMRIGHT", MerchantFrame, "BOTTOMLEFT", 115 + 18, 89 + 4);
-			else
-				MerchantRepairAllButton:SetPoint("BOTTOMRIGHT", MerchantFrame, "BOTTOMLEFT", 172 - 18, 91);
-			end
-		end
-
-		sellIcon:ClearAllPoints()
-		if MerchantRepairAllButton:IsShown() then
-			sellIcon:SetPoint("RIGHT", MerchantRepairAllButton, "LEFT", -4 - 36, 0)
-			MerchantRepairText:Hide()
-		else
-			sellIcon:SetPoint("BOTTOMRIGHT", MerchantFrameInset, "BOTTOM", -10, 8)
-		end
+		sellIcon:SetPoint("BOTTOMRIGHT", MerchantFrameInset, "BOTTOM", -10, 8)
 		sellIcon:Show()
 	end
 end

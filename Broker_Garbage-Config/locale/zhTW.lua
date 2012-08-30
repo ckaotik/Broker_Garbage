@@ -227,8 +227,8 @@ if GetLocale() == "zhTW" then
 |cffAAAAAA例如 class reagents, flasks|r
 物品在你|cffffd200垃圾列表|r將被任何時候被丟棄。
 |cffAAAAAA例如 summoned food & drink, argent lance|r
-假如你遇到高度高估的物品，放置他們到你的|cffffd200商店價格列表|r。他們就只會有商店價格而不是拍賣或是分解價格。
-|cffAAAAAA例如 fish oil|r
+假如你遇到高度高估的物品，放置他們到你的|cffffd200Fixed Price List|r。他們就只會有商店價格而不是拍賣或是分解價格。Alternatively, you can set a custom price by using |TInterface\Icons\INV_Misc_Coin_02:18|t.
+|cffAAAAAAe.g. fish oil (vendor price), Broiled Dragon Feast (custom price of e.g. 20g)|r
 放置物品到你的|cffffd200賣出列表|r當你訪問商人會被賣出。
 |cffAAAAAA例如 water as a warrior, cheese|r]]
 
@@ -239,7 +239,8 @@ if GetLocale() == "zhTW" then
 	BGC.locale.iconButtonsUse = [[|cffffd200物品按鈕|r
 對任何物品你可以看到圖示，如果分類或是或是伺服器無法辨識的問題。
 在左上的任何按鈕你可以看見"G"(或是沒有)。如果有，物品在你的|cffffd200全局列表|r，指的是對你所有角色都有影響。
-在你垃圾列表的物品也有個|cffffd200限制|r。會在右下角顯示小數字，在按鈕上使用|cffffd200滑鼠滾輪|r你可以改變數字。限制的物品只會被拖曳如果你對他們有更多的指示。]]
+在你垃圾列表的物品也有個|cffffd200限制|r。會在右下角顯示小數字，在按鈕上使用|cffffd200滑鼠滾輪|r你可以改變數字。For categories, the number of all corresponding items will be added up.
+If a limit is surpassed, items will be considered expendable, or in case of Keep-List limits regarded as regular items.]]
 
 	BGC.locale.actionButtonsUse = [[|cffffd200拍賣按鈕|r
 下面這視窗你可以看到5個按鈕和搜尋條。
@@ -248,6 +249,7 @@ if GetLocale() == "zhTW" then
 |TInterface\Icons\Spell_ChargeNegative:18|t |cffffd200減少|r: 點選在列表裡標記的物品。當你點擊減少，就會從列表中移除。
 |TInterface\Icons\INV_Misc_GroupLooking:18|t |cffffd200局部|r: 被標記的物品會放到你的局部列表，這想規則只作用在你目前啟動的角色。
 |TInterface\Icons\INV_Misc_GroupNeedMore:18|t |cffffd200全局|r: 某些是局部，只有這項物品會被放到你的全局列表。這些規則對你所有角色都有效。
+|TInterface\Icons\INV_Misc_Coin_02:18|t |cffffd200Set Price|r: Marked items will get their value set to whatever is specified in the following popup dialogue.
 |TInterface\Buttons\UI-GroupLoot-Pass-UP:18|t |cffffd200清空|r: 點擊這按鈕來移除任何角色個別(局部)物品。Shift-點擊 清空任何帳號的廣泛(局部)規則。|cffff0000使用警告!|r]]
 
 	BGC.locale.LOPlus = "|cffffffff拖曳|r物品到按鈕來新增物品到列表。\n|cffffffff右鍵-點擊|r 新增種類!"

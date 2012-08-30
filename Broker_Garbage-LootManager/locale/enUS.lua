@@ -25,7 +25,7 @@ BGLM.locale = {
 	GroupTreshold = "Tresholds",
 
 	LMEnableInCombatTitle = "Enable in combat",
-	LMEnableInCombatTooltip = "If checked, Broker_Garbage will try to loot even if you're in combat.\n|cffff0000Caution|r: This may cause 'Addon Blocked' issues.",
+	LMEnableInCombatTooltip = "If checked, Broker_Garbage will try to loot even if you're in combat.",
 
 	LMAutoLootTitle = "Autoloot",
 	LMAutoLootTooltip = "Use this setting or any combination of the settings below to decide how/if Broker_Garbage handles looting.",

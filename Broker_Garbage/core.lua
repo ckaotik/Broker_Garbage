@@ -12,6 +12,7 @@ local addonName, BG = ...
 -- Libraries & setting up the LDB
 -- ---------------------------------------------------------
 BG.PT = LibStub("LibPeriodicTable-3.1", true)	-- don't scream if LPT isn't present
+BG.callbacks = LibStub("CallbackHandler-1.0"):New(BG)
 
 -- internal variables
 BG.version = tonumber(GetAddOnMetadata(addonName, "X-Version"))
@@ -36,12 +37,17 @@ local function eventHandler(self, event, arg1, ...)
 		BG.cheapestItems = {}	-- contains up-to-date labeled data
 		BG.sellLog = {}
 
+		BG.updateAvailable = {}
+		for i=1,NUM_BAG_SLOTS do
+			BG.updateAvailable[i] = false
+		end
+
 		BG.CheckSettings()
 
 		BG.ScanInventory()	-- initializes and fills caches
 
 		local events = {
-			"ITEM_PUSH", "BAG_UPDATE",
+			"ITEM_PUSH", "BAG_UPDATE", "BAG_UPDATE_DELAYED",
 			"MERCHANT_SHOW", "MERCHANT_CLOSED",
 			"UI_ERROR_MESSAGE", "CHAT_MSG_SKILL",
 			"EQUIPMENT_SETS_CHANGED", "PLAYER_EQUIPMENT_CHANGED"
@@ -89,7 +95,17 @@ local function eventHandler(self, event, arg1, ...)
 		if not arg1 or arg1 < 0 or arg1 > NUM_BAG_SLOTS then return end
 
 		BG.Debug("Bag Update", arg1, ...)
-		BG.ScanInventoryContainer(arg1)	-- partial inventory scan on the relevant container
+		BG.updateAvailable[arg1] = true
+		-- BG.ScanInventoryContainer(arg1)	-- partial inventory scan on the relevant container
+
+	elseif event == "BAG_UPDATE_DELAYED" then
+		-- no locking required, aye?
+		for container, needsUpdate in ipairs(BG.updateAvailable) do
+			if needsUpdate then
+				BG.ScanInventoryContainer(container)
+				BG.updateAvailable[container] = false
+			end
+		end
 
 	elseif event == "AUCTION_HOUSE_CLOSED" then
 		-- Update cached auction values in case anything changed

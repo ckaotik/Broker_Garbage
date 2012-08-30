@@ -223,13 +223,13 @@ if GetLocale() == "deDE" then
 
 	BGC.locale.listsBestUse = [[|cffffd200Listen-Beispiele|r
 Die Standardlisten geben eine Hilfestellung, was auf welcher Liste nützlich sein könnte.
-Setze erst alle Items, die du auf jeden Fall behalten möchtest, auf die |cffffd200Behalten-Liste|r. Denke auch daran, dass es Kategorien (s.u.) gibt! Ist der LootManager aktiv, wird er Items von dieser Liste immer plündern.
+Setze erst alle Items, die du auf jeden Fall behalten möchtest, auf die |cffffd200Behalten-Liste|r. Denke auch daran, dass es Kategorien (s.u.) gibt! Ist der LootManager aktiv, wird er Items von dieser Liste standardmäßig immer plündern (änderbar in den LM-Einstellungen).
 |cffAAAAAAz.B. Klassenreagenzien, Fläschchen|r
 Dinge, von denen du weißt, dass sie sorglos weggeworfen werden können, gehören auf die |cffffd200Müll-Liste|r.
 |cffAAAAAAz.B. Herbeigezauberter Manakeks, Argentumlanze|r
-Sollte ein Item einen ungewollt hohen Wert zugewiesen bekommen, setze das Item auf die |cffffd200Händlerpreis-Liste|r. Diese Items werden nur den Händlerpreis nutzen.
-|cffAAAAAAz.B. Fischöl|r
-Auf die |cffffd200Verkaufen-Liste|r kannst du alles setzen, was Broker_Garbage verkaufen soll.
+Sollte ein Item einen ungewollt hohen Wert zugewiesen bekommen, setze das Item auf die |cffffd200Festpreis-Liste|r. Diese Items werden nur den Händlerpreis nutzen. Alternativ kannst du hier auch mit |TInterface\Icons\INV_Misc_Coin_02:18|t einen eigenen Preis festlegen.
+|cffAAAAAAz.B. Fischöl (Händlerpreis), Gebratenes Drachenfestmahl (eigener Preis, z.B. 20g)|r
+Auf die |cffffd200Verkaufen-Liste|r kannst du alles setzen, was Broker_Garbage automatisch verkaufen soll.
 |cffAAAAAAz.B. Wasser (als Krieger), Alterachochkäse|r]]
 
 	BGC.locale.listsSpecialOptions = [[|cffffd200Spezielle Müll-Listen Optionen|r
@@ -239,7 +239,8 @@ Auf die |cffffd200Verkaufen-Liste|r kannst du alles setzen, was Broker_Garbage v
 	BGC.locale.iconButtonsUse = [[|cffffd200Item-Buttons|r
 Angezeigt wird entweder das Icon des Items, ein Zahnrad, wenn es sich um eine Kategorie handelt, oder ein Fragezeichen, wenn der Server das Item nicht finden kann.
 Oben links jedes Buttons kann ein "G" stehen. Ist dies der Fall, ist das entsprechende Item auf der |cffffd200globalen Liste|r, d.h. diese Regel gilt für alle Charaktere.
-Items auf der Müll-Liste können ein |cffffd200Limit|r haben. Dies wird als kleine Zahl in der unteren rechten Ecke angezeigt. Zum Ändern nutze das |cffffd200Mausrad|r über dem Button. Diese Items werden erst gelöscht, sollte das Limit überschritten werden.]]
+Items oder Kategorien (mit Ausnahme der Festpreis-Liste) können ein |cffffd200Limit|r haben. Dies wird als kleine Zahl in der unteren rechten Ecke angezeigt. Zum Ändern nutze das |cffffd200Mausrad|r über dem Button. Für Kategorien wird die Anzahl aller zugehörigen Items aufaddiert.
+Sollte das Limit überschritten werden, werden Items als löschbar bzw. wie reguläre Items (falls dieses Limit aus der Behalten-Liste stammt) behandelt.]]
 
 	BGC.locale.actionButtonsUse = [[|cffffd200Aktions-Buttons|r
 Unterhalb dieses Fensters siehst du 5 Buttons und eine Suchleiste.
@@ -248,6 +249,7 @@ Unterhalb dieses Fensters siehst du 5 Buttons und eine Suchleiste.
 |TInterface\Icons\Spell_ChargeNegative:18|t |cffffd200Minus|r: Markiere Items aus der Liste (anklicken). Beim Klick auf das Minus werden diese Items von der Liste entfernt.
 |TInterface\Icons\INV_Misc_GroupLooking:18|t |cffffd200Lokal|r: Markierte Items werden auf die lokale Liste gesetzt, gelten also nur für diesen Charakter.
 |TInterface\Icons\INV_Misc_GroupNeedMore:18|t |cffffd200Global|r: Analog zu Lokal, nur werden hierbei die Items auf die globale Liste gesetzt, die Regeln gelten damit für alle Charaktere.
+|TInterface\Icons\INV_Misc_Coin_02:18|t |cffffd200Wert festlegen|r: Markierte Items bekommen den im folgenden Dialog gesetzten Wert zugewiesen.
 |TInterface\Buttons\UI-GroupLoot-Pass-UP:18|t |cffffd200Leeren|r: Ein Klick auf diesen Button leert die charakterspezifischen Regeln dieser Liste. Shift-Klick leert die accountweiten Regeln. |cffff0000Mit Vorsicht benutzen!|r]]
 
 	BGC.locale.LOPlus = "Füge Items zu dieser Liste hinzu, indem du sie hierher |cffffffffziehst|r/hier |cffffffffablegst|r.\n|cffffffffRechtsklick|r, um Kategorien hinzuzufügen!"

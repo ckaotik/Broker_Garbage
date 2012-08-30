@@ -25,7 +25,7 @@ if GetLocale() == "deDE" then
 	BGLM.locale.GroupTreshold = "Grenzwerte"
 
 	BGLM.locale.LMEnableInCombatTitle = "Im Kampf aktivieren"
-	BGLM.locale.LMEnableInCombatTooltip = "Wenn ausgewählt wird der Loot Manager auch im Kampf versuchen, Beute zu plündern.\n|cffff0000Achtung|r: Dies kann 'Addon blockiert' Fehler verursachen."
+	BGLM.locale.LMEnableInCombatTooltip = "Wenn ausgewählt wird der Loot Manager auch im Kampf versuchen, Beute zu plündern."
 
 	BGLM.locale.LMAutoLootTitle = "Autoloot"
 	BGLM.locale.LMAutoLootTooltip = "Wenn nicht ausgewählt wird Broker_Garbage nur in bestimmten Situationen looten (s.u.)."

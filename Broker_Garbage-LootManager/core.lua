@@ -5,8 +5,12 @@ local function InitializePrivateLoot()
 end
 
 -- register events
-local frame = CreateFrame("Frame")
 local lootRoutine = nil
+local frame = CreateFrame("Frame")
+function frame.BrokerGarbage_RESTACK_COMPLETE()
+	Broker_Garbage.CBH.UnregisterCallback(BGLM, "RESTACK_COMPLETE")
+	BGLM:HandleLootCallback()
+end
 local function eventHandler(self, event, arg1, ...)
 	if event == "ADDON_LOADED" and arg1 == addonName then
 		BGLM.CheckSettings()
@@ -38,28 +42,14 @@ local function eventHandler(self, event, arg1, ...)
 		end
 
 	elseif event == "LOOT_OPENED" then
-		if not Broker_Garbage:IsDisabled() and (not InCombatLockdown() or BGLM_GlobalDB.useInCombat) then
-			if Broker_Garbage:GetOption("restackInventory", true) then
-				Broker_Garbage.DoFullRestack()
-			end
-
+		if not Broker_Garbage:IsDisabled() then -- and (not InCombatLockdown() or BGLM_GlobalDB.useInCombat) then
 			lootRoutine = coroutine.wrap(BGLM.SelectiveLooting)
-			local waitFor = lootRoutine(arg1)
-			if waitFor then
-				frame:RegisterEvent(waitFor)
-			else
-				lootRoutine = nil
-			end
+			BGLM:HandleLootCallback(arg1)
 		end
+
 	elseif lootRoutine and (event == "BAG_UPDATE" or event == "UNIT_INVENTORY_CHANGED" or event == "GET_ITEM_INFO_RECEIVED") then
 		frame:UnregisterEvent(event)
-
-		local waitFor = lootRoutine
-		if waitFor then
-			frame:RegisterEvent(waitFor)
-		else
-			lootRoutine = nil
-		end
+		BGLM:HandleLootCallback()
 
 	elseif event == "LOOT_BIND_CONFIRM" and BGLM.BoPConfirmation > 0 then
 		ConfirmLootSlot(arg1)
@@ -78,6 +68,20 @@ end
 
 frame:RegisterEvent("ADDON_LOADED")
 frame:SetScript("OnEvent", eventHandler)
+
+function BGLM:HandleLootCallback(blizzAutoLoot)
+	local waitFor, isCBH = lootRoutine(blizzAutoLoot)
+	if waitFor then
+		if isCBH then
+			Broker_Garbage.CBH.RegisterCallback(BGLM, waitFor, frame[waitFor])
+		else
+			frame:RegisterEvent(waitFor)
+		end
+	else
+		lootRoutine = nil
+	end
+end
+
 
 -- ---------------------------------------------------------
 -- deletes as many items as needed
@@ -146,7 +150,7 @@ end
 -- decides how to handle loot in a LOOT_OPENED event
 local lootData, capacities = {}, {}
 function BGLM.SelectiveLooting(blizzAutoLoot)
-	if InCombatLockdown() and not BGLM_GlobalDB.useInCombat then return end
+	-- if InCombatLockdown() and not BGLM_GlobalDB.useInCombat then return end
 
 	local shouldAutoLoot, clearAll = BGLM:ShouldAutoLoot(blizzAutoLoot)
 	BGLM:Debug("Selective looting ...", shouldAutoLoot and "yes" or "no")
@@ -285,7 +289,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 	if outOfBagSpace and Broker_Garbage:GetOption("restackInventory", true) then
 		BGLM:Debug("Out of bag space, trying restack ...")
 		Broker_Garbage.DoFullRestack()
-		-- [TODO] yield until restack is done
+		coroutine.yield("RESTACK_COMPLETE", true)
 
 		-- update, in case restack helped
 		outOfBagSpace = (numRequiredSlots - Broker_Garbage.totalFreeSlots) > 0
@@ -304,11 +308,6 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 	for i = start, finish, step do
 		slot = lootData[i]
 		takeItem = nil
-
-		if not slot.slotID then
-			print("Ooops, something went wrong!")
-			Broker_Garbage.Dump(lootData, true)
-		end
 
 		if slot.stackOverflow <= 0 then
 			-- item stacks somehow, no actions nessessary
@@ -347,7 +346,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 				end
 			else
 				BGLM:Print(format(BGLM.locale.couldNotLootSpace, slot.itemLink, slot.count), BGLM_GlobalDB.printSpace)
-				if slot.clear then
+				if slot.clear or slot.quest then
 					closeLootWindow = false
 				end
 			end

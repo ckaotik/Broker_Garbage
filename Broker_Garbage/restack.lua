@@ -45,6 +45,7 @@ function BG.Restack()
 
 	if event == nil then
 		restackRoutine = nil
+		BG.callbacks:Fire("RESTACK_COMPLETE")
 	else
 		BG.frame:RegisterEvent(event)
 	end

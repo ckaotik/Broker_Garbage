@@ -25,7 +25,7 @@ if GetLocale() == "zhTW" then
 	BGLM.locale.GroupTreshold = "門檻"
 
 	BGLM.locale.LMEnableInCombatTitle = "戰鬥中啟用"
-	BGLM.locale.LMEnableInCombatTooltip = "如果勾選，Broker_Garbage會嘗試捨取即使你在戰鬥中。\n|cffff0000警告|r: 這可能會造成'插件被阻擋'事件。"
+	BGLM.locale.LMEnableInCombatTooltip = "如果勾選，Broker_Garbage會嘗試捨取即使你在戰鬥中。"
 
 	BGLM.locale.LMAutoLootTitle = "自動捨取"
 	BGLM.locale.LMAutoLootTooltip = "使用這設定或是組合以下設定讓Broker_Garbage來決定如何/如果處理捨取。"

@@ -35,14 +35,14 @@ function BGC.ChangeView(pluginID)
 			end
 			plugin.init(i)	-- supply the plugin's ID just in case
 		end
-		
+
 		if i == pluginID then
 			plugin.tab:Activate()
 			if plugin.panel.Update then
 				plugin.panel:Update()
 			end
 			plugin.panel:Show()
-			
+
 			BGC.options.currentTab = pluginID
 		else
 			plugin.tab:Deactivate()
@@ -60,10 +60,9 @@ function BGC:CreateOptionsPanel()
 	group:SetPoint("BOTTOMRIGHT")
 	group:SetBackdropColor(0.1, 0.1, 0.1, 0.3)
 	self.group = group
-	
+
 	BGC.ChangeView(1)
 	BGC:ShowListOptions(BGC.listOptions)
-	collectgarbage()
 	self:SetScript("OnShow", BGC.UpdateOptionsPanel)
 end
 
