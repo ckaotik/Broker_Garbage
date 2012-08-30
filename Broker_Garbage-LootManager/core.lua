@@ -42,8 +42,10 @@ local function eventHandler(self, event, arg1, ...)
 		end
 
 	elseif event == "LOOT_OPENED" then
-		if not Broker_Garbage:IsDisabled() then -- and (not InCombatLockdown() or BGLM_GlobalDB.useInCombat) then
-			lootRoutine = coroutine.wrap(BGLM.SelectiveLooting)
+		if not Broker_Garbage:IsDisabled() and (not InCombatLockdown() or BGLM_GlobalDB.useInCombat) then
+			if not lootRoutine then
+				lootRoutine = coroutine.wrap(BGLM.SelectiveLooting)
+			end
 			BGLM:HandleLootCallback(arg1)
 		end
 
@@ -57,7 +59,6 @@ local function eventHandler(self, event, arg1, ...)
 
 	elseif event == "LOOT_CLOSED" then
 		BGLM.BoPConfirmation = 0
-		lootRoutine = nil
 
 	elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
 		if arg1 == "player" and Broker_Garbage.Find(BGLM.privateLootSpells, ( select(4, ...) )) then

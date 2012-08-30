@@ -38,7 +38,7 @@ local function eventHandler(self, event, arg1, ...)
 		BG.sellLog = {}
 
 		BG.updateAvailable = {}
-		for i=1,NUM_BAG_SLOTS do
+		for i=0, NUM_BAG_SLOTS do
 			BG.updateAvailable[i] = false
 		end
 
@@ -96,11 +96,10 @@ local function eventHandler(self, event, arg1, ...)
 
 		BG.Debug("Bag Update", arg1, ...)
 		BG.updateAvailable[arg1] = true
-		-- BG.ScanInventoryContainer(arg1)	-- partial inventory scan on the relevant container
 
 	elseif event == "BAG_UPDATE_DELAYED" then
 		-- no locking required, aye?
-		for container, needsUpdate in ipairs(BG.updateAvailable) do
+		for container, needsUpdate in pairs(BG.updateAvailable) do
 			if needsUpdate then
 				BG.ScanInventoryContainer(container)
 				BG.updateAvailable[container] = false
@@ -148,17 +147,14 @@ local function eventHandler(self, event, arg1, ...)
 			frame:UnregisterEvent('ITEM_UNLOCKED')
 			BG.Restack()
 		end
-	-- [TODO] suspecting ITEM_PUSH to always fire before UNIT_INVENTORY_CHANGED
+
 	elseif event == "ITEM_PUSH" and arg1 then
 		if BG_GlobalDB.restackInventory then
-			changedBag = arg1 - INVSLOT_LAST_EQUIPPED
-			frame:RegisterEvent("UNIT_INVENTORY_CHANGED")
-		end
-	elseif event == "UNIT_INVENTORY_CHANGED" and arg1 == "player" then
-		if BG_GlobalDB.restackInventory then
-			BG.DoContainerRestack(changedBag)
-			changedBag = nil
-			frame:UnregisterEvent("UNIT_INVENTORY_CHANGED")
+			if arg1 == 0 then
+				BG.DoContainerRestack(0)
+			else
+				BG.DoContainerRestack(arg1 - INVSLOT_LAST_EQUIPPED)
+			end
 		end
 	end
 end
