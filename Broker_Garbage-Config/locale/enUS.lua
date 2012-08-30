@@ -23,6 +23,7 @@ BGC.locale = {
     |cFF36BFA8value|r |cFF2bff58<valueInCopper>|r sets the minimum value for items to be looted (Loot Manager).
     |cFF36BFA8freeslots|r |cFF2bff58<count>|r sets the number of inventory slots to keep empty.]],
 	requiresLootManager = "This command requires the Loot Manager.",
+	updateCache = "Please update the item caches via /garbage update",
 	invalidArgument = "You supplied an invalid argument. Please check your input and try again.",
 
 	-- Tooltip

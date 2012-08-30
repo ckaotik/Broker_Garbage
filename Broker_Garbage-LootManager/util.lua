@@ -52,12 +52,12 @@ BGLM.defaultGlobalSettings = {
 	printLocked = true,
 
 	privateLootTimer = 4, -- [TODO] config
-	keepPrivateLootOpen = true, -- [TODO] config
+	keepPrivateLootOpen = true,
 }
 BGLM.defaultLocalSettings = {
 	-- behavior
 	itemMinValue = 0,
-	minItemQuality = 0, -- [TODO] config
+	minItemQuality = 0,
 	autoDestroy = false,
 	autoDestroyInstant = false,
 }
@@ -164,7 +164,6 @@ function BGLM:IsInteresting(cachedItemTable)
 		isInteresting = true
 	end
 
-	-- local isQuestItem = ( select(6, GetItemInfo(cachedItemTable.itemID)) ) == ( select(10, GetAuctionItemClasses()) )
 	local isTopFitInteresting = IsAddOnLoaded("TopFit") and Broker_Garbage.IsItemEquipment(select(9, GetItemInfo(cachedItemTable.itemID))) and TopFit:IsInterestingItem(cachedItemTable.itemID)
 
 	if isTopFitInteresting or BGLM_GlobalDB.forceClear or alwaysLoot then

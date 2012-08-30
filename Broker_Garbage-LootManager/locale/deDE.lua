@@ -22,13 +22,14 @@ if GetLocale() == "deDE" then
 	BGLM.locale.GroupLooting = "Lootverhalten"
 	BGLM.locale.GroupInventory = "Inventar"
 	BGLM.locale.GroupNotices = " Benachrichtigungen"
-	BGLM.locale.GroupTreshold = "Grenzwerte"
+	BGLM.locale.GroupThreshold = "Grenzwerte"
 
 	BGLM.locale.LMEnableInCombatTitle = "Im Kampf aktivieren"
 	BGLM.locale.LMEnableInCombatTooltip = "Wenn ausgewählt wird der Loot Manager auch im Kampf versuchen, Beute zu plündern."
 
 	BGLM.locale.LMAutoLootTitle = "Autoloot"
 	BGLM.locale.LMAutoLootTooltip = "Wenn nicht ausgewählt wird Broker_Garbage nur in bestimmten Situationen looten (s.u.)."
+	BGLM.locale.disableBlizzAutoLoot = "\n|cffff0000Warnung:|r Bitte deaktiviere Blizzards Schnell-Plündern."
 
 	BGLM.locale.LMAutoLootSkinningTitle = "Kürschnern"
 	BGLM.locale.LMAutoLootSkinningTooltip = "Wenn ausgewählt wird Broker_Garbage versuchen, von dir kürschnerbare Kreaturen zu plündern."
@@ -44,6 +45,9 @@ if GetLocale() == "deDE" then
 
 	BGLM.locale.LMCloseLootTitle = "Fenster schließen"
 	BGLM.locale.LMCloseLootTooltip = "Auswählen, um das Lootfenster automatisch zu schließen, sobald keine interessanten Items mehr enthalten sind.\n|cffff0000Achtung|r: Dies kann Probleme mit anderen Addons verursachen."
+
+	BGLM.locale.LMKeepPLOpenTitle = "Eigenes offen lassen"
+	BGLM.locale.LMKeepPLOpenTooltip = "Auswählen, um das Lootfenster offen zu lassen, wenn ein relevantes Item nicht geplündert werden kann und es sich um persönliche Beute handelt (z.B. Item-Beutel aus den Taschen, Bergbau-Vorkommen)."
 
 	BGLM.locale.LMForceClearTitle = "Immer alles leeren"
 	BGLM.locale.LMForceClearTooltip = "Wenn ausgewählt wird Broker_Garbage immer alle Items plündern, auch wenn du kein Kürschner bist. Diese Einstellung kann zu Verlusten führen!"
@@ -89,4 +93,7 @@ if GetLocale() == "deDE" then
 	BGLM.locale.printLockedText = "Wenn ausgewählt wird Broker_Garbage eine Meldung ausgeben wenn ein Item nicht geplündert wird, da es gesperrt ist (z.B. wenn jemand anderes bereits plündert)."
 
 	BGLM.locale.LMItemMinValue = "Mindestwert zum Looten"
+
+	BGLM.locale.minLootQualityTitle = "Mindestqualität"
+	BGLM.locale.minLootQualityTooltip = "Der LootManager wird keine Gegenstände unterhalb der hier angegebenen Qualität plündern."
 end

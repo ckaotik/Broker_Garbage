@@ -22,13 +22,14 @@ if GetLocale() == "zhTW" then
 	BGLM.locale.GroupLooting = "捨取"
 	BGLM.locale.GroupInventory = "背包"
 	BGLM.locale.GroupNotices = "注意"
-	BGLM.locale.GroupTreshold = "門檻"
+	BGLM.locale.GroupThreshold = "門檻"
 
 	BGLM.locale.LMEnableInCombatTitle = "戰鬥中啟用"
 	BGLM.locale.LMEnableInCombatTooltip = "如果勾選，Broker_Garbage會嘗試捨取即使你在戰鬥中。"
 
 	BGLM.locale.LMAutoLootTitle = "自動捨取"
 	BGLM.locale.LMAutoLootTooltip = "使用這設定或是組合以下設定讓Broker_Garbage來決定如何/如果處理捨取。"
+	-- BGLM.locale.disableBlizzAutoLoot = "\n|cffff0000Warning:|r Please disable Blizzard's Auto Loot."
 
 	BGLM.locale.LMAutoLootSkinningTitle = "剝皮"
 	BGLM.locale.LMAutoLootSkinningTooltip = "勾選來捨取如果你可以剝皮生物。"
@@ -44,6 +45,9 @@ if GetLocale() == "zhTW" then
 
 	BGLM.locale.LMCloseLootTitle = "關閉視窗"
 	BGLM.locale.LMCloseLootTooltip = "勾選自動關閉捨取視窗同時沒有興趣的物品會被遺留在裡面。\n|cffff0000警告|r: 這可能會干擾其它插件。"
+
+	-- BGLM.locale.LMKeepPLOpenTitle = "Keep open when personal"
+	-- BGLM.locale.LMKeepPLOpenTooltip = "Check this to keep the loot window open when you can't loot something relevant in case you are currently dealing with personal loot (e.g. containers from your inventory, mining nodes)."
 
 	BGLM.locale.LMForceClearTitle = "強制清除Mobs"
 	BGLM.locale.LMForceClearTooltip = "勾選清除Mobs(即使你不是skinner)。用這設定你可能失去金錢!"
@@ -89,4 +93,7 @@ if GetLocale() == "zhTW" then
 	BGLM.locale.printLockedText = "勾選收到聊天訊息當Broker_Garbage不捨取物品，因為已經鎖定(舉例：已經有人捨取)。"
 
 	BGLM.locale.LMItemMinValue = "最小物品價值捨取"
+
+	-- BGLM.locale.minLootQualityTitle = "Minimum item quality"
+	-- BGLM.locale.minLootQualityTooltip = "The LootManager will not loot any items below this threshold."
 end

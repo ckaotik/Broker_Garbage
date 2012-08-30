@@ -204,7 +204,6 @@ function BG:OnClick(itemTable, button)
 		end
 		BG.UpdateAllCaches(itemTable.itemID)
 
-	-- [TODO] interface options opened -> also load config, if not yet done
 	elseif button == "RightButton" then
 		if not IsAddOnLoaded("Broker_Garbage-Config") then
 			LoadAddOn("Broker_Garbage-Config")

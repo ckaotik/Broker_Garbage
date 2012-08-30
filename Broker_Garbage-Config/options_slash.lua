@@ -194,7 +194,7 @@ local COMMAND_PARAMS = {
 		local itemList = COMMAND_ALIAS[list] or itemList
 		local resetRequired = BGC.RemoteAddItemToList(item, itemList)
 		if resetRequired then
-			BGC:Print("Please update the item caches: /garbage update") -- [TODO]
+			BGC:Print(BGC.locale.updateCache)
 		end
 	end,
 	remove = function(param)
@@ -215,7 +215,7 @@ local COMMAND_PARAMS = {
 		local itemList = COMMAND_ALIAS[list] or itemList
 		local resetRequired = BGC.RemoteRemoveItemFromList(item, itemList)
 		if resetRequired then
-			BGC:Print("Please update the item caches: /garbage update") -- [TODO]
+			BGC:Print(BGC.locale.updateCache)
 		end
 	end,
 

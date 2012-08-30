@@ -23,13 +23,19 @@ local function Options_LootManager(pluginID)
 	subtitle:SetText(BGLM.locale.LMSubTitle)
 
 	--[[ Looting Group ]]--
-	local looting = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupLooting, "TOPLEFT", subtitle, "BOTTOMLEFT", 0, 5)--panel, 21, -16)
-	looting:SetHeight(210); looting:SetWidth(180)
+	local looting = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupLooting, "TOPLEFT", subtitle, "BOTTOMLEFT", 0, 5)
+	looting:SetHeight(230); looting:SetWidth(180)
 	looting:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
-	-- [TODO] add notice if Blizzard autoloot is enabled
-	local autoLoot = LibStub("tekKonfig-Checkbox").new(looting, nil, BGLM.locale.LMAutoLootTitle, "TOPLEFT", 4, -2)
-	autoLoot.tiptext = BGLM.locale.LMAutoLootTooltip .. BGLM.locale.GlobalSetting
+	local autoLootTitle = BGLM.locale.LMAutoLootTitle
+	local autoLootTooltip = BGLM.locale.LMAutoLootTooltip
+	if GetCVarBool("autoLootDefault") then
+		autoLootTitle = autoLootTitle .. "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t"
+		autoLootTooltip = autoLootTooltip .. BGLM.locale.disableBlizzAutoLoot
+	end
+
+	local autoLoot = LibStub("tekKonfig-Checkbox").new(looting, nil, autoLootTitle, "TOPLEFT", 4, -2)
+	autoLoot.tiptext = autoLootTooltip .. BGLM.locale.GlobalSetting
 	autoLoot.stat = "autoLoot"
 	autoLoot.global = true
 	autoLoot:SetChecked(BGLM_GlobalDB.autoLoot)
@@ -101,7 +107,14 @@ local function Options_LootManager(pluginID)
 	closeLoot:SetChecked(BGLM_GlobalDB.closeLootWindow)
 	closeLoot:SetScript("OnClick", Toggle)
 
-	local forceClear = LibStub("tekKonfig-Checkbox").new(looting, nil, BGLM.locale.LMForceClearTitle, "TOPLEFT", closeLoot, "BOTTOMLEFT", 0, 4)
+	local keepPLOpen = LibStub("tekKonfig-Checkbox").new(looting, nil, BGLM.locale.LMKeepPLOpenTitle, "TOPLEFT", closeLoot, "BOTTOMLEFT", 14, 4)
+	keepPLOpen.tiptext = BGLM.locale.LMKeepPLOpenTooltip .. BGLM.locale.GlobalSetting
+	keepPLOpen.stat = "keepPrivateLootOpen"
+	keepPLOpen.global = true
+	keepPLOpen:SetChecked(BGLM_GlobalDB.keepPrivateLootOpen)
+	keepPLOpen:SetScript("OnClick", Toggle)
+
+	local forceClear = LibStub("tekKonfig-Checkbox").new(looting, nil, BGLM.locale.LMForceClearTitle, "TOPLEFT", keepPLOpen, "BOTTOMLEFT", -14, 4)
 	forceClear.tiptext = BGLM.locale.LMForceClearTooltip .. BGLM.locale.GlobalSetting
 	forceClear.stat = "forceClear"
 	forceClear.global = true
@@ -137,7 +150,7 @@ local function Options_LootManager(pluginID)
 
 	--[[ Inventory Group ]]--
 	local inventory = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupInventory, "TOPLEFT", looting, "TOPRIGHT", 10, 0)
-	inventory:SetHeight(55); inventory:SetWidth(180)
+	inventory:SetHeight(88); inventory:SetWidth(180)
 	inventory:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
 	local autoDestroy = LibStub("tekKonfig-Checkbox").new(inventory, nil, BGLM.locale.LMAutoDestroyTitle, "TOPLEFT", 4, -2)
@@ -152,12 +165,24 @@ local function Options_LootManager(pluginID)
 	autoDestroyInstant:SetChecked(BGLM_LocalDB.autoDestroyInstant)
 	autoDestroyInstant:SetScript("OnClick", Toggle)
 
-	--[[ Thresholds Group ]]--
-	local treshold = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupTreshold, "TOPLEFT", inventory, "BOTTOMLEFT", 0, -14)
-	treshold:SetHeight(90); treshold:SetWidth(180)
-	treshold:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
+	local minFreeSlots, minFreeSlotsText, _, low, high = LibStub("tekKonfig-Slider").new(inventory, BGLM.locale.LMFreeSlotsTitle .. ": " .. BGLM_GlobalDB.tooFewSlots, 0, 30, "TOPLEFT", autoDestroyInstant, "BOTTOMLEFT", 0, -4)
+	minFreeSlots.tiptext = BGLM.locale.LMFreeSlotsTooltip .. BGLM.locale.GlobalSetting
+	minFreeSlots:SetWidth(160)
+	minFreeSlots:SetValueStep(1)
+	minFreeSlots:SetValue(BGLM_GlobalDB.tooFewSlots)
+	minFreeSlots:SetScript("OnValueChanged", function(minFreeSlots)
+		BGLM_GlobalDB.tooFewSlots = minFreeSlots:GetValue()
+		minFreeSlotsText:SetText(BGLM.locale.LMFreeSlotsTitle .. ": " .. BGLM_GlobalDB.tooFewSlots)
+		Broker_Garbage.ScanInventory()
+	end)
+	low:Hide(); high:Hide()
 
-	local editbox = CreateFrame("EditBox", nil, treshold)
+	--[[ Thresholds Group ]]--
+	local threshold = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupThreshold, "TOPLEFT", inventory, "BOTTOMLEFT", 0, -14)
+	threshold:SetHeight(94); threshold:SetWidth(180)
+	threshold:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
+
+	local editbox = CreateFrame("EditBox", nil, threshold)
 	editbox:SetPoint("TOPLEFT", 13, -16)
 	editbox:SetAutoFocus(false)
 	editbox:SetWidth(160); editbox:SetHeight(32)
@@ -201,17 +226,35 @@ local function Options_LootManager(pluginID)
 	editbox:SetScript("OnEnterPressed", SubmitEditBox)
 	editbox:SetScript("OnEditFocusGained", UnFormatEditBox)
 
-	local minFreeSlots, minFreeSlotsText, _, low, high = LibStub("tekKonfig-Slider").new(treshold, BGLM.locale.LMFreeSlotsTitle .. ": " .. BGLM_GlobalDB.tooFewSlots, 0, 30, "TOPLEFT", editbox, "BOTTOMLEFT", 6, -8)
-	minFreeSlots.tiptext = BGLM.locale.LMFreeSlotsTooltip .. BGLM.locale.GlobalSetting
-	minFreeSlots:SetWidth(160)
-	minFreeSlots:SetValueStep(1)
-	minFreeSlots:SetValue(BGLM_GlobalDB.tooFewSlots)
-	minFreeSlots:SetScript("OnValueChanged", function(minFreeSlots)
-		BGLM_GlobalDB.tooFewSlots = minFreeSlots:GetValue()
-		minFreeSlotsText:SetText(BGLM.locale.LMFreeSlotsTitle .. ": " .. BGLM_GlobalDB.tooFewSlots)
-		Broker_Garbage.ScanInventory()
-	end)
-	low:Hide(); high:Hide()
+	local qualitythreshold = CreateFrame("Frame", "BGLM_LootQualityDropDown", threshold, "UIDropDownMenuTemplate")
+	qualitythreshold.displayMode = "MENU"
+	qualitythreshold:SetPoint("TOPLEFT", editbox, "BOTTOMLEFT", -23, -12)
+	_G[qualitythreshold:GetName() .. "Button"]:SetPoint("LEFT", _G[qualitythreshold:GetName().."Middle"])
+	_G[qualitythreshold:GetName() .. "Button"].tiptext = BGLM.locale.minLootQualityTooltip
+	_G[qualitythreshold:GetName() .. "Button"]:SetScript("OnEnter", BGLM.ShowTooltip)
+	_G[qualitythreshold:GetName() .. "Button"]:SetScript("OnLeave", BGLM.HideTooltip)
+
+	local qualitythresholdLabel = qualitythreshold:CreateFontString(nil, "BACKGROUND", "GameFontNormalSmall")
+	qualitythresholdLabel:SetPoint("BOTTOMLEFT", qualitythreshold, "TOPLEFT", 20, 2)
+	qualitythresholdLabel:SetText(BGLM.locale.minLootQualityTitle)
+	UIDropDownMenu_SetSelectedValue(qualitythreshold, BGLM_LocalDB.minItemQuality )
+	UIDropDownMenu_SetText(qualitythreshold, Broker_Garbage_Config.quality[ BGLM_LocalDB.minItemQuality ])
+	UIDropDownMenu_SetWidth(qualitythreshold, 150, 0)
+	UIDropDownMenu_JustifyText(qualitythreshold, "LEFT")
+	local function DropQualityOnSelect(self)
+		UIDropDownMenu_SetSelectedValue(qualitythreshold, self.value)
+		BGLM_LocalDB.minItemQuality = self.value
+	end
+	qualitythreshold.initialize = function(self)
+		local selected, info = UIDropDownMenu_GetSelectedValue(self), UIDropDownMenu_CreateInfo()
+		for i = 0, #Broker_Garbage_Config.quality do
+			info.text = Broker_Garbage_Config.quality[i]
+			info.value = i
+			info.func = DropQualityOnSelect
+			info.checked = i == selected
+			UIDropDownMenu_AddButton(info)
+		end
+	end
 
 	--[[ Notices Group ]]--
 	local notices = LibStub("tekKonfig-Group").new(panel, BGLM.locale.GroupNotices, "TOPLEFT", inventory, "TOPRIGHT", 10, 0)

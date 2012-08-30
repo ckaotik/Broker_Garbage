@@ -23,6 +23,7 @@ if GetLocale() == "deDE" then
     |cFF36BFA8value|r |cFF2bff58<WertInKupfer>|r setzt den Itemwert, ab dem Items gelootet werden. (Loot Manager)
     |cFF36BFA8freeslots|r |cFF2bff58<Anzahl>|r setzt die Anzahl an Taschenplätzen, die frei bleiben sollen. (Loot Manager)]]
 	BGC.locale.requiresLootManager = "Dieser Befehl benötigt den Loot Manager."
+	BGC.locale.updateCache = "Bitte aktualisiere die Item Caches via /garbage update"
 	BGC.locale.invalidArgument = "Ungültiges Argument. Bitte überprüfe deine Eingabe!"
 
 	-- Tooltip

@@ -147,7 +147,6 @@ function BGLM.Loot(lootSlotID)
 	LootSlot(lootSlotID)
 end
 
--- [TODO] maybe consider LOOT_SLOT_CLEARED event?
 -- decides how to handle loot in a LOOT_OPENED event
 local lootData, capacities = {}, {}
 function BGLM.SelectiveLooting(blizzAutoLoot)
@@ -157,7 +156,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 	BGLM:Debug("Selective looting ...", shouldAutoLoot and "yes" or "no")
 	if not shouldAutoLoot then return end
 
-	local isPrivateLoot = BGLM:IsPrivateLoot() -- [TODO] almost unused
+	local isPrivateLoot = BGLM:IsPrivateLoot()
 	if isPrivateLoot then BGLM:Debug("Currently dealing with private loot") end
 	local constraint = BGLM:GetLootConstraint() or math.huge
 
@@ -335,6 +334,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 				if slot.stackOverflow > 0 then
 					-- delete partial stack. throw away partial stacks to squeeze in a little more
 					BGLM:Debug("Deleting partial stack of", slot.itemLink)
+					local itemID = Broker_Garbage.GetItemID(slot.itemLink)
 					BGLM:DeletePartialStack(itemID, slot.stackOverflow)
 					coroutine.yield("BAG_UPDATE")
 					takeItem = true

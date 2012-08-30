@@ -23,6 +23,7 @@ if GetLocale() == "zhTW" then
     |cFF36BFA8value|r |cFF2bff58<valueInCopper>|r 設定捨取物品的最小價值(捨取管理員需要)。
     |cFF36BFA8freeslots|r |cFF2bff58<count>|r 設定保留背包槽為空的數量。]]
 	-- BGC.locale.requiresLootManager = "This command requires the Loot Manager."
+	-- BGC.locale.updateCache = "Please update the item caches via /garbage update"
 	BGC.locale.invalidArgument = "你輸入無效的參數。請檢查你的輸入並再一次嘗試。"
 
 	-- Tooltip

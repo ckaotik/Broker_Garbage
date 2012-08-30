@@ -22,13 +22,14 @@ BGLM.locale = {
 	GroupLooting = "Looting",
 	GroupInventory = "Inventory",
 	GroupNotices = "Notices",
-	GroupTreshold = "Tresholds",
+	GroupThreshold = "Tresholds",
 
 	LMEnableInCombatTitle = "Enable in combat",
 	LMEnableInCombatTooltip = "If checked, Broker_Garbage will try to loot even if you're in combat.",
 
 	LMAutoLootTitle = "Autoloot",
 	LMAutoLootTooltip = "Use this setting or any combination of the settings below to decide how/if Broker_Garbage handles looting.",
+	disableBlizzAutoLoot = "\n|cffff0000Warning:|r Please disable Blizzard's Auto Loot.",
 
 	LMAutoLootSkinningTitle = "Skinning",
 	LMAutoLootSkinningTooltip = "Check to loot if you can skin this creature.",
@@ -44,6 +45,9 @@ BGLM.locale = {
 
 	LMCloseLootTitle = "Close Window",
 	LMCloseLootTooltip = "Check to automatically close the loot window once no interesting items are left inside.\n|cffff0000Caution|r: This may interfere with other addons.",
+
+	LMKeepPLOpenTitle = "Keep open when personal",
+	LMKeepPLOpenTooltip = "Check this to keep the loot window open when you can't loot something relevant in case you are currently dealing with personal loot (e.g. containers from your inventory, mining nodes).",
 
 	LMForceClearTitle = "Force Clearing Mobs",
 	LMForceClearTooltip = "Check to clear mobs (even if you aren't a skinner). You may loose money with this setting!",
@@ -89,4 +93,7 @@ BGLM.locale = {
 	printLockedText = "Check to get a chat message whenever Broker_Garbage doesn't loot an item because it is locked (e.g. someone else already loots this).",
 
 	LMItemMinValue = "Min. item value to loot",
+
+	minLootQualityTitle = "Minimum item quality",
+	minLootQualityTooltip = "The LootManager will not loot any items below this threshold.",
 }
