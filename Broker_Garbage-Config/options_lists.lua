@@ -310,7 +310,11 @@ function BGC:ShowListOptions(frame)
 
 	-- function that updates & shows items from various lists
 	local data = {}
-	function BGC:ListOptionsUpdate()
+	function BGC:ListOptionsUpdate(listName)
+		if listName and frame.current and listName ~= frame.current then
+			return
+		end
+
 		scrollContent:SetWidth(scrollFrame:GetWidth())	-- update scrollframe content to full width
 		if frame.current == nil then
 			local index = 1

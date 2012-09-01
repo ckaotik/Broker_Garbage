@@ -3,6 +3,9 @@ local addonName, BGLM = ...
 local function InitializePrivateLoot()
 	BGLM.privateLoot = GetTime()
 end
+local function MarkSlotAsLooted(lootSlotID)
+	BGLM.looted[lootSlotID] = true
+end
 
 -- register events
 local lootRoutine = nil
@@ -18,6 +21,9 @@ local function eventHandler(self, event, arg1, ...)
 
 		-- used to distinguish between raid loot and inventory loot
 		hooksecurefunc("UseContainerItem", InitializePrivateLoot)
+
+		BGLM.looted = {}
+		hooksecurefunc("LootSlot", MarkSlotAsLooted)
 
 		BGLM.BoPConfirmation = 0 -- number of pending item confirmations
 
@@ -42,9 +48,12 @@ local function eventHandler(self, event, arg1, ...)
 		end
 
 	elseif event == "LOOT_OPENED" then
+		for lootSlotID = 1, GetNumLootItems() do
+			BGLM:Debug("LOOT_OPENED:", lootSlotID, GetLootSlotType(lootSlotID), GetLootSlotInfo(lootSlotID))
+		end
 		if not Broker_Garbage:IsDisabled() and (not InCombatLockdown() or BGLM_GlobalDB.useInCombat) then
 			if not lootRoutine then
-				lootRoutine = coroutine.wrap(BGLM.SelectiveLooting)
+				lootRoutine = coroutine.create(BGLM.SelectiveLooting)
 			end
 			BGLM:HandleLootCallback(arg1)
 		end
@@ -59,6 +68,9 @@ local function eventHandler(self, event, arg1, ...)
 
 	elseif event == "LOOT_CLOSED" then
 		BGLM.BoPConfirmation = 0
+		for lootSlotID, looted in pairs(BGLM.looted) do
+			BGLM.looted[lootSlotID] = nil
+		end
 
 	elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
 		if arg1 == "player" and Broker_Garbage.Find(BGLM.privateLootSpells, ( select(4, ...) )) then
@@ -71,12 +83,16 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:SetScript("OnEvent", eventHandler)
 
 function BGLM:HandleLootCallback(blizzAutoLoot)
-	local waitFor, isCBH = lootRoutine(blizzAutoLoot)
-	if waitFor then
-		if isCBH then
-			Broker_Garbage.CBH.RegisterCallback(BGLM, waitFor, frame[waitFor])
+	if lootRoutine and coroutine.status(lootRoutine) ~= "dead" then
+		local success, waitFor, isCBH = coroutine.resume(lootRoutine, blizzAutoLoot)
+		if waitFor then
+			if isCBH then
+				Broker_Garbage.CBH.RegisterCallback(BGLM, waitFor, frame[waitFor])
+			else
+				frame:RegisterEvent(waitFor)
+			end
 		else
-			frame:RegisterEvent(waitFor)
+			lootRoutine = nil
 		end
 	else
 		lootRoutine = nil
@@ -139,12 +155,11 @@ function BGLM.TrimInventory(emptySlotNum)
 end
 
 function BGLM.Loot(lootSlotID)
-	--[[
-	if isPrivateLoot or BGLM_GlobalDB.autoConfirmBoP then
-		BGLM.BoPConfirmation = BGLM.BoPConfirmation + 1
+	if not lootSlotID or BGLM.looted[lootSlotID] or not (GetLootSlotInfo(lootSlotID)) then
+		BGLM:Debug("Trying to loot, but there is nothing left in slot", lootSlotID)
+	else
+		LootSlot(lootSlotID)
 	end
-	]]
-	LootSlot(lootSlotID)
 end
 
 -- decides how to handle loot in a LOOT_OPENED event
@@ -184,6 +199,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 			slotItem = Broker_Garbage.GetCached(slotItemID)
 
 			if not slotItem then
+				BGLM:Print("PAUSE: GET_ITEM_INFO_RECEIVED")
 				coroutine.yield("GET_ITEM_INFO_RECEIVED")
 				slotItem = Broker_Garbage.GetCached(slotItemID)
 				BGLM:Debug("GET_ITEM_INFO_RECEIVED: "..(slotItem and slotItem.itemLink or "nil"))
@@ -289,6 +305,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 	if outOfBagSpace and Broker_Garbage:GetOption("restackInventory", true) then
 		BGLM:Debug("Out of bag space, trying restack ...")
 		Broker_Garbage.DoFullRestack()
+		BGLM:Print("PAUSE: RESTACK_COMPLETE")
 		coroutine.yield("RESTACK_COMPLETE", true)
 
 		-- update, in case restack helped
@@ -336,12 +353,14 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 					BGLM:Debug("Deleting partial stack of", slot.itemLink)
 					local itemID = Broker_Garbage.GetItemID(slot.itemLink)
 					BGLM:DeletePartialStack(itemID, slot.stackOverflow)
+					BGLM:Print("PAUSE: BAG_UPDATE")
 					coroutine.yield("BAG_UPDATE")
 					takeItem = true
 				else
 					-- delete only if it's worth more, if it's an item we really need or if we want to skin the mob
 					BGLM:Debug("Deleting item to make room for", itemLink)
 					BGLM:DeleteCheapestItem()
+					BGLM:Print("PAUSE: UNIT_INVENTORY_CHANGED")
 					coroutine.yield("UNIT_INVENTORY_CHANGED")
 					takeItem = true
 				end

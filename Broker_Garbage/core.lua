@@ -23,7 +23,6 @@ BG.repairCost = 0					-- the amount of money that we repaired for
 -- Event Handler
 -- ---------------------------------------------------------
 local frame = CreateFrame("frame")
-local changedBag -- for restack triggering
 local function eventHandler(self, event, arg1, ...)
 	-- == Initialize ==
 	if event == "ADDON_LOADED" and arg1 == addonName then
@@ -103,8 +102,13 @@ local function eventHandler(self, event, arg1, ...)
 			if needsUpdate then
 				BG.ScanInventoryContainer(container)
 				BG.updateAvailable[container] = false
+
+				if BG_GlobalDB.restackInventory and BG.checkRestack then
+					BG.DoContainerRestack(container)
+				end
 			end
 		end
+		BG.checkRestack = nil
 
 	elseif event == "AUCTION_HOUSE_CLOSED" then
 		-- Update cached auction values in case anything changed
@@ -149,13 +153,7 @@ local function eventHandler(self, event, arg1, ...)
 		end
 
 	elseif event == "ITEM_PUSH" and arg1 then
-		if BG_GlobalDB.restackInventory then
-			if arg1 == 0 then
-				BG.DoContainerRestack(0)
-			else
-				BG.DoContainerRestack(arg1 - INVSLOT_LAST_EQUIPPED)
-			end
-		end
+		BG.checkRestack = true
 	end
 end
 frame:RegisterEvent("ADDON_LOADED")

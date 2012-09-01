@@ -34,7 +34,7 @@ local function Options_LootManager(pluginID)
 		autoLootTooltip = autoLootTooltip .. BGLM.locale.disableBlizzAutoLoot
 	end
 
-	local autoLoot = LibStub("tekKonfig-Checkbox").new(looting, nil, autoLootTitle, "TOPLEFT", 4, -2)
+	local autoLoot, autoLootLabel = LibStub("tekKonfig-Checkbox").new(looting, nil, autoLootTitle, "TOPLEFT", 4, -2)
 	autoLoot.tiptext = autoLootTooltip .. BGLM.locale.GlobalSetting
 	autoLoot.stat = "autoLoot"
 	autoLoot.global = true
@@ -326,6 +326,15 @@ local function Options_LootManager(pluginID)
 			minFreeSlots:SetValue(BGLM_GlobalDB.tooFewSlots)
 		end
 		minFreeSlotsText:SetText(BGLM.locale.LMFreeSlotsTitle .. ": " .. BGLM_GlobalDB.tooFewSlots)
+
+		local autoLootTitle = BGLM.locale.LMAutoLootTitle
+		local autoLootTooltip = BGLM.locale.LMAutoLootTooltip
+		if GetCVarBool("autoLootDefault") then
+			autoLootTitle = autoLootTitle .. "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t"
+			autoLootTooltip = autoLootTooltip .. BGLM.locale.disableBlizzAutoLoot
+		end
+		autoLootLabel:SetText(autoLootTitle)
+		autoLoot.tiptext = autoLootTooltip .. BGLM.locale.GlobalSetting
 	end
 end
 BGLM.options = panel

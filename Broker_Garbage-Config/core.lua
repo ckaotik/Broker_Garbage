@@ -76,4 +76,3 @@ LibStub("tekKonfig-AboutPanel").new("Broker_Garbage", "Broker_Garbage")
 if InterfaceOptionsFrame:IsVisible() then
 	InterfaceOptionsFrame_OpenToCategory("Broker_Garbage")
 end
-Broker_Garbage.optionsLoaded = true
