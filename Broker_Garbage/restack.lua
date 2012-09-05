@@ -103,6 +103,28 @@ function BG.RestackIteration()
 	end
 end
 
+--[[function BG.PutIntoBestContainer(curBag, curSlot, usedSlots)
+	local itemID = GetContainerItemID(curBag, curSlot)
+	local itemFamily = itemID and GetItemFamily(itemID)
+	if not itemID or itemFamily == 0 then return end 	-- empty slots / general items
+
+	local bestContainer = BG.FindBestContainerForItem(itemID, itemFamily)
+	if bestContainer and bestContainer ~= curBag then
+		local targetSlots = GetContainerFreeSlots(bestContainer)
+		for i, slot in pairs(targetSlots) do
+			if BG.Find(usedSlots, bestContainer..slot) then
+				table.remove(targetSlots, i)
+			end
+		end
+		if #targetSlots ~= 0 then
+			BG.MoveItem(itemID, curBag, curSlot, bestContainer, targetSlots[1])
+			table.insert(usedSlots, bestContainer..targetSlots[1])
+		else
+			BG.Debug("No more room in target bag!")
+		end
+	end
+	return bestContainer, bestSlot
+end --]]
 
 function BG.MoveItem(itemID, fromBag, fromSlot, toBag, toSlot)
 	if not (fromBag and fromSlot and toBag and toSlot) then return nil end

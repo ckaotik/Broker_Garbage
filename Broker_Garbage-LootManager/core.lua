@@ -10,8 +10,8 @@ end
 -- register events
 local lootRoutine = nil
 local frame = CreateFrame("Frame")
-function frame.BrokerGarbage_RESTACK_COMPLETE()
-	Broker_Garbage.CBH.UnregisterCallback(BGLM, "RESTACK_COMPLETE")
+function frame.RESTACK_COMPLETE()
+	Broker_Garbage.UnregisterCallback("Broker_Garbage-LootManager", "RESTACK_COMPLETE")
 	BGLM:HandleLootCallback()
 end
 local function eventHandler(self, event, arg1, ...)
@@ -24,6 +24,8 @@ local function eventHandler(self, event, arg1, ...)
 
 		BGLM.looted = {}
 		hooksecurefunc("LootSlot", MarkSlotAsLooted)
+
+		BGLM.confirm = {}
 
 		BGLM.BoPConfirmation = 0 -- number of pending item confirmations
 
@@ -47,29 +49,34 @@ local function eventHandler(self, event, arg1, ...)
 			BGLM:Print(BGLM.locale.errorInventoryFull, BGLM_GlobalDB.warnInvFull)
 		end
 
+	elseif lootRoutine and (event == "BAG_UPDATE" or event == "UNIT_INVENTORY_CHANGED" or event == "GET_ITEM_INFO_RECEIVED") then
+		frame:UnregisterEvent(event)
+		BGLM:HandleLootCallback()
+
+	elseif event == "LOOT_BIND_CONFIRM" and BGLM_GlobalDB.autoConfirmBoP then
+		BGLM.confirm[arg1] = true
+
 	elseif event == "LOOT_OPENED" then
-		for lootSlotID = 1, GetNumLootItems() do
-			BGLM:Debug("LOOT_OPENED:", lootSlotID, GetLootSlotType(lootSlotID), GetLootSlotInfo(lootSlotID))
-		end
 		if not Broker_Garbage:IsDisabled() and (not InCombatLockdown() or BGLM_GlobalDB.useInCombat) then
+			for lootSlotID, confirm in pairs(BGLM.confirm) do
+				if confirm then
+					StaticPopup1:Hide()
+				end
+			end
+
 			if not lootRoutine then
 				lootRoutine = coroutine.create(BGLM.SelectiveLooting)
 			end
 			BGLM:HandleLootCallback(arg1)
 		end
 
-	elseif lootRoutine and (event == "BAG_UPDATE" or event == "UNIT_INVENTORY_CHANGED" or event == "GET_ITEM_INFO_RECEIVED") then
-		frame:UnregisterEvent(event)
-		BGLM:HandleLootCallback()
-
-	elseif event == "LOOT_BIND_CONFIRM" and BGLM.BoPConfirmation > 0 then
-		ConfirmLootSlot(arg1)
-		BGLM.BoPConfirmation = BGLM.BoPConfirmation - 1
-
 	elseif event == "LOOT_CLOSED" then
-		BGLM.BoPConfirmation = 0
+		StaticPopup1:Hide()
 		for lootSlotID, looted in pairs(BGLM.looted) do
 			BGLM.looted[lootSlotID] = nil
+		end
+		for lootSlotID, confirm in pairs(BGLM.confirm) do
+			BGLM.confirm[lootSlotID] = nil
 		end
 
 	elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
@@ -86,8 +93,9 @@ function BGLM:HandleLootCallback(blizzAutoLoot)
 	if lootRoutine and coroutine.status(lootRoutine) ~= "dead" then
 		local success, waitFor, isCBH = coroutine.resume(lootRoutine, blizzAutoLoot)
 		if waitFor then
-			if isCBH then
-				Broker_Garbage.CBH.RegisterCallback(BGLM, waitFor, frame[waitFor])
+			if isCBH and waitFor == "RESTACK_COMPLETE" then
+				Broker_Garbage.RegisterCallback("Broker_Garbage-LootManager", waitFor, frame[waitFor])
+				Broker_Garbage.DoFullRestack()
 			else
 				frame:RegisterEvent(waitFor)
 			end
@@ -159,6 +167,9 @@ function BGLM.Loot(lootSlotID)
 		BGLM:Debug("Trying to loot, but there is nothing left in slot", lootSlotID)
 	else
 		LootSlot(lootSlotID)
+		if BGLM.confirm[lootSlotID] then
+			ConfirmLootSlot(lootSlotID)
+		end
 	end
 end
 
@@ -199,7 +210,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 			slotItem = Broker_Garbage.GetCached(slotItemID)
 
 			if not slotItem then
-				BGLM:Print("PAUSE: GET_ITEM_INFO_RECEIVED")
+				BGLM:Debug("PAUSE: GET_ITEM_INFO_RECEIVED")
 				coroutine.yield("GET_ITEM_INFO_RECEIVED")
 				slotItem = Broker_Garbage.GetCached(slotItemID)
 				BGLM:Debug("GET_ITEM_INFO_RECEIVED: "..(slotItem and slotItem.itemLink or "nil"))
@@ -301,11 +312,12 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 		end
 	end)
 
-	local outOfBagSpace = (numRequiredSlots - Broker_Garbage.totalFreeSlots) > 0 or (numSpecialSlots - Broker_Garbage.freeSpecialSlots) > 0
+	local outOfBagSpace = (numRequiredSlots - Broker_Garbage.totalFreeSlots) > 0
+		or ((numRequiredSlots+numSpecialSlots) - (Broker_Garbage.freeSpecialSlots+Broker_Garbage.totalFreeSlots)) > 0
+	BGLM:Debug("Out of bag space?", outOfBagSpace and "true" or "false", numRequiredSlots, numSpecialSlots, Broker_Garbage.totalFreeSlots, Broker_Garbage.freeSpecialSlots)
+
 	if outOfBagSpace and Broker_Garbage:GetOption("restackInventory", true) then
 		BGLM:Debug("Out of bag space, trying restack ...")
-		Broker_Garbage.DoFullRestack()
-		BGLM:Print("PAUSE: RESTACK_COMPLETE")
 		coroutine.yield("RESTACK_COMPLETE", true)
 
 		-- update, in case restack helped
@@ -353,14 +365,14 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 					BGLM:Debug("Deleting partial stack of", slot.itemLink)
 					local itemID = Broker_Garbage.GetItemID(slot.itemLink)
 					BGLM:DeletePartialStack(itemID, slot.stackOverflow)
-					BGLM:Print("PAUSE: BAG_UPDATE")
+					BGLM:Debug("PAUSE: BAG_UPDATE")
 					coroutine.yield("BAG_UPDATE")
 					takeItem = true
 				else
 					-- delete only if it's worth more, if it's an item we really need or if we want to skin the mob
 					BGLM:Debug("Deleting item to make room for", itemLink)
 					BGLM:DeleteCheapestItem()
-					BGLM:Print("PAUSE: UNIT_INVENTORY_CHANGED")
+					BGLM:Debug("PAUSE: UNIT_INVENTORY_CHANGED")
 					coroutine.yield("UNIT_INVENTORY_CHANGED")
 					takeItem = true
 				end

@@ -12,7 +12,7 @@ local addonName, BG = ...
 -- Libraries & setting up the LDB
 -- ---------------------------------------------------------
 BG.PT = LibStub("LibPeriodicTable-3.1", true)	-- don't scream if LPT isn't present
-BG.callbacks = LibStub("CallbackHandler-1.0"):New(BG)
+BG.callbacks = BG.callbacks or LibStub("CallbackHandler-1.0"):New(BG)
 
 -- internal variables
 BG.version = tonumber(GetAddOnMetadata(addonName, "X-Version"))
