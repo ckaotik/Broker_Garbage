@@ -1,5 +1,16 @@
 local _, BG = ...
 
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, Broker_Garbage_Config, UIParent, LibStub, GameTooltipText
+-- GLOBALS: GetItemInfo, GetContainerNumSlots, GetContainerNumFreeSlots, InterfaceOptionsFrame_OpenToCategory, IsAddOnLoaded, LoadAddOn, IsAltKeyDown, IsShiftKeyDown, IsControlKeyDown, UseContainerItem, CreateFrame, CreateFont, ClearCursor
+local select = select
+local type = type
+local format = string.format
+local gsub = string.gsub
+local abs = math.abs
+local fmod = math.fmod
+local floor = math.floor
+local _G = _G
+
 -- == LDB Display ==
 BG.LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
 	type	= "data source",
@@ -272,7 +283,7 @@ function BG:Colorize(min, max)
 		end
 	end
 
-	color = string.format("|cff%02x%02x%02x", color[1], color[2], color[3])
+	color = format("|cff%02x%02x%02x", color[1], color[2], color[3])
 	return color
 end
 
@@ -286,32 +297,32 @@ function BG:FormatString(text)
 	end
 
 	-- [junkvalue]
-	text = string.gsub(text, "%[junkvalue%]", BG.FormatMoney(BG.junkValue))
+	text = gsub(text, "%[junkvalue%]", BG.FormatMoney(BG.junkValue))
 
 	-- [itemname][itemcount][itemvalue]
-	text = string.gsub(text, "%[itemname%]", (select(2,GetItemInfo(item.itemID)) or ""))
-	text = string.gsub(text, "%[itemicon%]", "|T"..(select(10,GetItemInfo(item.itemID)) or "")..":0|t")
-	text = string.gsub(text, "%[itemcount%]", item.count)
-	text = string.gsub(text, "%[itemvalue%]", BG.FormatMoney(item.value))
+	text = gsub(text, "%[itemname%]", (select(2,GetItemInfo(item.itemID)) or ""))
+	text = gsub(text, "%[itemicon%]", "|T"..(select(10,GetItemInfo(item.itemID)) or "")..":0|t")
+	text = gsub(text, "%[itemcount%]", item.count)
+	text = gsub(text, "%[itemvalue%]", BG.FormatMoney(item.value))
 
 	-- [freeslots][totalslots]
-	text = string.gsub(text, "%[freeslots%]", BG.totalFreeSlots + BG.freeSpecialSlots)
-	text = string.gsub(text, "%[totalslots%]", BG.totalBagSpace + BG.specialSlots)
+	text = gsub(text, "%[freeslots%]", BG.totalFreeSlots + BG.freeSpecialSlots)
+	text = gsub(text, "%[totalslots%]", BG.totalBagSpace + BG.specialSlots)
 
 	-- [specialfree][specialslots][specialslots][basicslots]
-	text = string.gsub(text, "%[specialfree%]", BG.freeSpecialSlots)
-	text = string.gsub(text, "%[specialslots%]", BG.specialSlots)
-	text = string.gsub(text, "%[basicfree%]", BG.totalFreeSlots)
-	text = string.gsub(text, "%[basicslots%]", BG.totalBagSpace)
+	text = gsub(text, "%[specialfree%]", BG.freeSpecialSlots)
+	text = gsub(text, "%[specialslots%]", BG.specialSlots)
+	text = gsub(text, "%[basicfree%]", BG.totalFreeSlots)
+	text = gsub(text, "%[basicslots%]", BG.totalBagSpace)
 
 	-- [bagspacecolor][basicbagcolor][specialbagcolor][endcolor]
-	text = string.gsub(text, "%[bagspacecolor%]",
+	text = gsub(text, "%[bagspacecolor%]",
 		BG:Colorize(BG.totalFreeSlots + BG.freeSpecialSlots, BG.totalBagSpace + BG.specialSlots))
-	text = string.gsub(text, "%[basicbagcolor%]",
+	text = gsub(text, "%[basicbagcolor%]",
 			BG:Colorize(BG.totalFreeSlots, BG.totalBagSpace))
-	text = string.gsub(text, "%[specialbagcolor%]",
+	text = gsub(text, "%[specialbagcolor%]",
 			BG:Colorize(BG.freeSpecialSlots, BG.specialSlots))
-	text = string.gsub(text, "%[endcolor%]", "|r")
+	text = gsub(text, "%[endcolor%]", "|r")
 
 	return text
 end
@@ -322,11 +333,11 @@ function BG.FormatMoney(amount, displayMode)
 	displayMode = displayMode or BG_GlobalDB.showMoney
 
 	local signum = amount < 0 and "-" or ""
-		  amount = math.abs(amount)
+		  amount = abs(amount)
 
 	local gold   = floor(amount / (100 * 100))
-	local silver = math.fmod(floor(amount / 100), 100)
-	local copper = math.fmod(floor(amount), 100)
+	local silver = fmod(floor(amount / 100), 100)
+	local copper = fmod(floor(amount), 100)
 
 	local formatGold, formatSilver, formatCopper
 	-- plain, dot-seperated
@@ -377,10 +388,10 @@ function BG.FormatMoney(amount, displayMode)
 	end
 
 	if gold > 0 then
-		return string.format(signum .. formatGold, gold, silver, copper)
+		return format(signum .. formatGold, gold, silver, copper)
 	elseif silver > 0 then
-		return string.format(signum .. formatSilver, silver, copper)
+		return format(signum .. formatSilver, silver, copper)
 	else
-		return string.format(signum .. formatCopper, copper)
+		return format(signum .. formatCopper, copper)
 	end
 end

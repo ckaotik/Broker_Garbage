@@ -1,5 +1,15 @@
 local _, BG = ...
 
+-- GLOBALS: NUM_BAG_SLOTS
+-- GLOBALS: GetContainerNumSlots, GetContainerItemID, GetContainerItemInfo, ClearCursor, PickupContainerItem, GetItemInfo
+local type = type
+local select = select
+local pairs = pairs
+local ipairs = ipairs
+local floor = math.floor
+local tinsert = table.insert
+local tremove = table.remove
+
 local restackQueue = {}
 function BG.QueryRestackForItem(itemID)
 	local tableItem
@@ -59,7 +69,7 @@ function BG.RestackIteration()
 	for itemID, locations in pairs(restackQueue) do
 		stackSize = select(8, GetItemInfo(itemID))
 
-		for currentIndex = 1, math.floor(#(locations)/2) do
+		for currentIndex = 1, floor(#(locations)/2) do
 			targetIndex = #(locations) - currentIndex + 1
 			if currentIndex == targetIndex then break end
 			failed = nil
@@ -77,16 +87,16 @@ function BG.RestackIteration()
 
 			if not failed and count + targetCount <= stackSize then
 				numMoves = numMoves - 1
-				table.insert(restackQueue[itemID][currentIndex], true)
+				tinsert(restackQueue[itemID][currentIndex], true)
 			end
 			if not failed and count + targetCount >= stackSize then
-				table.insert(restackQueue[itemID][targetIndex], true)
+				tinsert(restackQueue[itemID][targetIndex], true)
 			end
 		end
 		-- update locations: remove empty/full slots
 		for currentIndex = #(locations), 1, -1 do
 			if locations[currentIndex][3] then
-				table.remove(locations, currentIndex)
+				tremove(locations, currentIndex)
 			end
 		end
 	end
@@ -139,8 +149,8 @@ function BG.MoveItem(itemID, fromBag, fromSlot, toBag, toSlot)
 	end
 
 	ClearCursor()
-	securecall(PickupContainerItem, fromBag, fromSlot)
-	securecall(PickupContainerItem, toBag, toSlot)
+	PickupContainerItem(fromBag, fromSlot)
+	PickupContainerItem(toBag, toSlot)
 	ClearCursor()
 
 	return true

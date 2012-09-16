@@ -1,5 +1,9 @@
 local _, BGLM = ...
 
+-- GLOBALS: BGLM_GlobalDB, BGLM_LocalDB, Broker_Garbage, Broker_Garbage_Config, LibStub, _G
+-- GLOBALS: GetCVarBool, UIDropDownMenu_GetSelectedValue, UIDropDownMenu_CreateInfo, UIDropDownMenu_AddButton, UIDropDownMenu_SetText, UIDropDownMenu_SetWidth, UIDropDownMenu_JustifyText, UIDropDownMenu_SetSelectedValue, CreateFrame
+local tonumber = tonumber
+
 local function Options_LootManager(pluginID)
 	local function Toggle(self)
 		if not (self and self.stat) then return end

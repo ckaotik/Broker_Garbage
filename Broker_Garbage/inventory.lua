@@ -1,5 +1,20 @@
 local _, BG = ...
 
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, TopFit
+-- GLOBALS: GetContainerNumSlots, GetContainerNumFreeSlots, GetContainerItemLink, GetContainerItemID, GetContainerItemInfo, GetItemInfo, GetInventoryItemsForSlot, GetItemFamily
+local type = type
+local pairs = pairs
+local ipairs = ipairs
+local wipe = wipe
+local select = select
+local band = bit.band
+local sort = table.sort
+local concat = table.concat
+local tinsert = table.insert
+local format = string.format
+local join = string.join
+local find = string.find
+
 -- == Finding things in your inventory ==
 -- returns the first occurrence of a given item; item :: <itemID>|<itemLink>
 function BG.FindItemInBags(item)
@@ -31,7 +46,7 @@ function BG.FindBestContainerForItem(item, itemFamily)
 	for container = 0, NUM_BAG_SLOTS do
 		freeSlots, bagType = GetContainerNumFreeSlots(container)
 
-		if freeSlots > 0 and bit.band(itemFamily, bagType) > 0 and bagType ~= 0 then
+		if freeSlots > 0 and band(itemFamily, bagType) > 0 and bagType ~= 0 then
 			bestContainer = container
 			bestFreeSlots, bestBagType = freeSlots, bagType
 		end
@@ -65,14 +80,14 @@ function BG.GetItemLocations(item, ignoreFullStacks, includeLocked, scanCategory
 				if cachedItem and cachedItem.limit and cachedItem.limit > maxLimit then
 					maxLimit = cachedItem.limit
 				end
-			elseif scanCategory and itemCategories and inCategory and not string.find(categoryName, "_") then
+			elseif scanCategory and itemCategories and inCategory and not find(categoryName, "_") then
 				itemIsRelevant = true
 			end
 			if itemIsRelevant then
 				if not isLocked or includeLocked then
 					if not ignoreFullStacks or tableItem.count < cachedItem.stackSize then
 						if not locations then locations = {} end
-						table.insert(locations, tableIndex)
+						tinsert(locations, tableIndex)
 					end
 				end
 				if isLocked then
@@ -82,7 +97,7 @@ function BG.GetItemLocations(item, ignoreFullStacks, includeLocked, scanCategory
 		end
 	end
 	if locations then
-		table.sort(locations, function(a,b)
+		sort(locations, function(a,b)
 			local itemA, itemB = BG.cheapestItems[a], BG.cheapestItems[b]
 			local cacheA, cacheB = BG.GetCached(itemA.itemID), BG.GetCached(itemB.itemID)
 			local bagTypeA = select(2, GetContainerNumFreeSlots(itemA.bag))
@@ -196,11 +211,10 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 	end
 end
 
--- [TODO] FIXME!
 function BG.UpdateAllDynamicItems()
 	BG.ClearCache()
 	wipe(BG.cheapestItems)
-	BG.ScanInventory() --]]
+	BG.ScanInventory()
 	return
 end
 
@@ -236,7 +250,7 @@ function BG.UpdateItemLocations()
 			if not locations then	-- new item
 				BG.itemLocations[itemID] = { tableIndex }
 			else -- if not BG.Find(locations, tableIndex) then	-- item is known, slot is not
-				table.insert(locations, tableIndex)
+				tinsert(locations, tableIndex)
 			end
 
 			if item.sell and item.value and item.value ~= 0 and item.count then
@@ -248,7 +262,7 @@ end
 
 -- sort item list and updates LDB accordingly
 function BG.SortItemList()
-	table.sort(BG.cheapestItems, BG.SortCheapestItemsList)
+	sort(BG.cheapestItems, BG.SortCheapestItemsList)
 	BG.UpdateItemLocations()
 	BG.UpdateLDB()
 end
@@ -268,7 +282,7 @@ end
 local currentItem = { locations = nil, limit = nil }
 function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCheckOtherSlots)
 	if not (container and slot) then return end
-	local maxValue, insert, reason
+	local maxValue, insert, reason, classificationReason
 	local _, count, _, _, _, canOpen, itemLink = GetContainerItemInfo(container, slot)
 	local itemID = itemLink and BG.GetItemID(itemLink)
 	local item = itemID and BG.GetCached(itemID)
@@ -312,7 +326,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 			-- inverse logic: KEEP items over limit are handled like regular items
 			value, classification, classificationReason = BG.GetSingleItemValue(item, classification)
 			insert = true
-			reason = string.join(", ", item.reason.." (over limit)", classificationReason)
+			reason = join(", ", item.reason.." (over limit)", classificationReason)
 		else -- regular list behaviour: no limit or non-keep over limit
 			if classification == BG.EXCLUDE then
 				insert = nil
@@ -361,18 +375,22 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 				end
 				local itemsForSlot = {}
 				for _, itemID in pairs(itemsForInvType) do
-					table.insert(itemsForSlot, itemID)
+					tinsert(itemsForSlot, itemID)
 				end
-				table.sort(itemsForSlot, function(a, b) -- sort by itemLevel, descending
+				sort(itemsForSlot, function(a, b) -- sort by itemLevel, descending
 					local itemNameA, _, _, itemLevelA = GetItemInfo(a)
 					local itemNameB, _, _, itemLevelB = GetItemInfo(b)
 					if itemLevelA == itemLevelB then
-						return itemNameA < itemNameB
+						if IsEquippedItem(itemNameA) or IsEquippedItem(itemNameB) then
+							-- equipped item has priority
+							return IsEquippedItem(itemNameA)
+						else
+							return itemNameA < itemNameB
+						end
 					else
 						return itemLevelA > itemLevelB
 					end
 				end)
-				-- [TODO] fix situation where item is kept even though same ilvl item is equipped
 				for i = 1, keepItems do
 					if itemsForSlot[i] and itemsForSlot[i] == itemID then
 						insert = false
@@ -406,7 +424,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 
 				if classification == BG.OUTDATED or classification == BG.UNUSABLE then
 					if BG_GlobalDB.reportDisenchantOutdated then
-						BG.Print(string.format(BG.locale.disenchantOutdated, itemLink))
+						BG.Print(format(BG.locale.disenchantOutdated, itemLink))
 					end
 					reason = reason and reason.."(DE)" or nil
 				end
@@ -444,7 +462,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 			sellItem = true
 		end
 
-		-- special bag? [TODO] do some thinking
+		-- ignore things that are in special bags
 		if isSpecialBag and insert and not sellItem then
 			insert = nil
 		end
@@ -489,7 +507,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 			currentItem.locations = otherLocations
 			currentItem.limit = maxLimit
 
-			BG.Debug("Also check other indices: "..table.concat(otherLocations, ", "))
+			BG.Debug("Also check other indices: "..concat(otherLocations, ", "))
 			local otherItem
 			for _, otherIndex in pairs(otherLocations) do
 				if otherIndex ~= itemIndex then

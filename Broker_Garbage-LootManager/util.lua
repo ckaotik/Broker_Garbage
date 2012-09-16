@@ -1,19 +1,21 @@
-local _, BGLM = ...
-BGLM.name = "|cffee6622Broker_Garbage LootManager|r"
+local addonName, BGLM = ...
+local _
+BGLM.name = "|cffee6622"..addonName.."|r"
+
+-- GLOBALS: BGLM_GlobalDB, BGLM_LocalDB, BG_GlobalDB, Broker_Garbage, TopFit, GameTooltip, DEFAULT_CHAT_FRAME
+-- GLOBALS: IsInGroup, IsInRaid, GetLootMethod, GetLootThreshold, GetTime, UnitIsUnit, UnitLevel, UnitCreatureType, UnitIsDead, UnitExists, IsFishingLoot, IsStealthed, GetItemInfo, IsAddOnLoaded
+local select = select
+local pairs = pairs
+local floor = math.floor
+local join = string.join
+local tostringall = tostringall
 
 BGLM.PT = LibStub("LibPeriodicTable-3.1", true)
--- [TODO] Pandaria!
-BGLM.privateLootSpells = { 51005, 13262, 31252, 73979,	-- milling, disenchanting, prospecting, archaeology
-	2575, 2576, 3564, 10248, 29354, 50310, 74517, 		-- mining
-	2366, 2368, 3570, 11993, 28695, 60300, 74519, 		-- herbalism
-	8613, 8617, 8618, 10768, 32678, 50305, 74522, 		-- skinning
-	49383, -- engineering
+BGLM.privateLootSpells = { 51005, 13262, 31252, 73979, 49383,		-- milling, disenchanting, prospecting, archaeology, engineering
+	2575, 2576, 3564, 10248, 29354, 50310, 74517, 102161, 	-- mining
+	2366, 2368, 3570, 11993, 28695, 60300, 74519, 110413, 		-- herbalism
+	8613, 8617, 8618, 10768, 32678, 50305, 74522, 102216, 		-- skinning
 }
-
-BGLM.LOOT_ACTION_NONE = 0
-BGLM.LOOT_ACTION_SPLIT = 1
-BGLM.LOOT_ACTION_DELETE = 2
-BGLM.LOOT_ACTION_TAKE = 3
 
 function BGLM:Print(text, trigger)
 	if trigger == nil or trigger == true then
@@ -23,13 +25,12 @@ end
 
 function BGLM:Debug(...)
   if BGLM_GlobalDB and BGLM_GlobalDB.debug then
-	BGLM:Print("! "..string.join(", ", tostringall(...)))
+	BGLM:Print("! "..join(", ", tostringall(...)))
   end
 end
 
 -- default saved variables
 BGLM.defaultGlobalSettings = {
-	-- behavior
 	autoLoot = false,
 	autoLootSkinning = true,
 	autoLootFishing = true,
@@ -51,11 +52,10 @@ BGLM.defaultGlobalSettings = {
 	printSpace = true,
 	printLocked = true,
 
-	privateLootTimer = 4, -- [TODO] config
+	privateLootTimer = 4, -- no config as this setting is very specific
 	keepPrivateLootOpen = true,
 }
 BGLM.defaultLocalSettings = {
-	-- behavior
 	itemMinValue = 0,
 	minItemQuality = 0,
 	autoDestroy = false,

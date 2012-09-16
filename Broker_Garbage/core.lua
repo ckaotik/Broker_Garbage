@@ -8,6 +8,14 @@ Neither the name of ckaotik nor the names of its contributors may be used to end
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. ]]--
 local addonName, BG = ...
+local _
+
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S
+-- GLOBALS: ContainerIDToInventoryID
+local pairs = pairs
+local ipairs = ipairs
+local format = string.format
+local match = string.match
 
 -- Libraries & setting up the LDB
 -- ---------------------------------------------------------
@@ -135,7 +143,7 @@ local function eventHandler(self, event, arg1, ...)
 
 	-- == Default List Updates ==
 	elseif event == "CHAT_MSG_SKILL" then
-		local skillName = string.match(arg1, BG.ReformatGlobalString(ERR_SKILL_GAINED_S))
+		local skillName = match(arg1, BG.ReformatGlobalString(ERR_SKILL_GAINED_S))
 		if skillName then
 			skillName = BG.GetTradeSkill(skillName)
 			if skillName then

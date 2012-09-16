@@ -1,5 +1,8 @@
 local _, BG = ...
 
+-- GLOBALS: Broker_Garbage, BG_GlobalDB, BG_LocalDB
+local tinsert = table.insert
+
 -- register as a plugin to gain acced to BG's options panel
 function BG:RegisterPlugin(name, init)
 	if not name or not init then
@@ -7,7 +10,7 @@ function BG:RegisterPlugin(name, init)
 		return
 	end
 
-	table.insert(BG.modules, {
+	tinsert(BG.modules, {
 		name = name,
 		init = init
 	})

@@ -1,5 +1,22 @@
 local _, BG = ...
 
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, Broker_Garbage, Broker_Garbage_Config, UIParentLoadAddOn, DEFAULT_CHAT_FRAME
+-- GLOBALS: GetContainerItemInfo, GetProfessions, GetProfessionInfo, GetSpellInfo, DevTools_Dump
+local getmetatable = getmetatable
+local setmetatable = setmetatable
+local type = type
+local pairs = pairs
+local ipairs = ipairs
+local tinsert = table.insert
+local select = select
+local unpack = unpack
+local gsub = string.gsub
+local upper = string.upper
+local lower = string.lower
+local tonumber = tonumber
+local tostringall = tostringall
+local join = string.join
+
 -- == Debugging Functions ==
 function BG.Print(text)
 	DEFAULT_CHAT_FRAME:AddMessage(BG.name.." "..text)
@@ -35,7 +52,7 @@ end)
 -- prints debug messages only when debug mode is active
 function BG.Debug(...)
 	if BG_GlobalDB and BG_GlobalDB.debug then
-		BG.Print("! "..string.join(", ", tostringall(...)))
+		BG.Print("! "..join(", ", tostringall(...)))
 	end
 end
 
@@ -66,12 +83,12 @@ end
 function BG.ReformatGlobalString(globalString)
 	if not globalString then return "" end
 	local returnString = globalString
-	returnString = string.gsub(returnString, "%(", "%%(")
-	returnString = string.gsub(returnString, "%)", "%%)")
-	returnString = string.gsub(returnString, "%.", "%%.")
-	returnString = string.gsub(returnString, "%%[1-9]?$?s", "(.+)")
-	returnString = string.gsub(returnString, "%%[1-9]?$?c", "([+-]?)")
-	returnString = string.gsub(returnString, "%%[1-9]?$?d", "(%%d+)")
+	returnString = gsub(returnString, "%(", "%%(")
+	returnString = gsub(returnString, "%)", "%%)")
+	returnString = gsub(returnString, "%.", "%%.")
+	returnString = gsub(returnString, "%%[1-9]?$?s", "(.+)")
+	returnString = gsub(returnString, "%%[1-9]?$?c", "([+-]?)")
+	returnString = gsub(returnString, "%%[1-9]?$?d", "(%%d+)")
 	return returnString
 end
 
@@ -189,7 +206,7 @@ function BG.CreateDefaultLists(global)
 	if BG.playerClass == "WARRIOR" or BG.playerClass == "ROGUE" or BG.playerClass == "DEATHKNIGHT" or BG.playerClass == "HUNTER" or BG.playerClass == "MONK" then
 		BG_LocalDB.autoSellList["Consumable.Water"] = 0
 	end
-	BG_LocalDB.exclude["Misc.Reagent.Class."..string.gsub(string.lower(BG.playerClass), "^.", string.upper)] = 0
+	BG_LocalDB.exclude["Misc.Reagent.Class."..gsub(lower(BG.playerClass), "^.", upper)] = 0
 
 	BG.Print(BG.locale.listsUpdatedPleaseCheck)
 

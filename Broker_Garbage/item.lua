@@ -1,10 +1,26 @@
 local _, BG = ...
 
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, UIParent, ITEM_STARTS_QUEST, ITEM_BIND_QUEST, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, TopFit, Enchantrix, Wowecon, AuctionLite, AucAdvanced, _G
+-- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetAuctionItemSubClasses, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, IsAddOnLoaded, GetAuctionBuyout, GetDisenchantValue, Atr_GetAuctionBuyout, Atr_GetDisenchantValue, IsUsableSpell
+local type = type
+local select = select
+local tonumber = tonumber
+local pairs = pairs
+local ipairs = ipairs
+local tinsert = table.insert
+local format = string.format
+local gsub = string.gsub
+local match = string.match
+local find = string.find
+local floor = math.floor
+local ceil = math.ceil
+local max = math.max
+
 local Unfit = LibStub("Unfit-1.0")	-- library to determine unusable items
 
 function BG.GetItemID(itemLink)
 	if not itemLink or type(itemLink) ~= "string" then return end
-	local itemID = string.gsub(itemLink, ".-Hitem:([0-9]*):.*", "%1")
+	local itemID = gsub(itemLink, ".-Hitem:([0-9]*):.*", "%1")
 	return tonumber(itemID)
 end
 
@@ -23,7 +39,7 @@ function BG.GetItemListCategories(item)
 		if currentList then
 			for listItem, limit in pairs(currentList) do
 				if type(listItem) == "string" and BG.IsItemInCategory(item.itemID, listItem) then
-					table.insert(itemCategories, listItem)
+					tinsert(itemCategories, listItem)
 					if limit > maxLimit then
 						maxLimit = limit
 					end
@@ -34,7 +50,7 @@ function BG.GetItemListCategories(item)
 		if currentList then
 			for listItem, limit in pairs(currentList) do
 				if type(listItem) == "string" and not BG.Find(itemCategories, listItem) and BG.IsItemInCategory(item.itemID, listItem) then
-					table.insert(itemCategories, listItem)
+					tinsert(itemCategories, listItem)
 					if limit > maxLimit then
 						maxLimit = limit
 					end
@@ -69,7 +85,7 @@ function BG.IsItemInCategory(item, category)	-- itemID/itemLink/itemTable, categ
 	end
 
 	local searchResult, itemName
-	local categoryType, index = string.match(category, "^(.-)_(.+)")
+	local categoryType, index = match(category, "^(.-)_(.+)")
 	if categoryType and index then -- not a LPT category
 		if categoryType == "BEQ" then	-- equipment set
 			index = tonumber(index)
@@ -84,9 +100,9 @@ function BG.IsItemInCategory(item, category)	-- itemID/itemLink/itemTable, categ
 		elseif categoryType == "NAME" then 	-- item name
 			itemName = GetItemInfo(itemID)
 			-- create pattern
-			index = string.gsub(index, "%*", ".-")
+			index = gsub(index, "%*", ".-")
 			index = "^" .. index .. "$"
-			searchResult = string.match(itemName, index)
+			searchResult = match(itemName, index)
 			-- searchResult = itemName == index
 		end
 	elseif BG.PT then	-- LPT category
@@ -150,10 +166,10 @@ end
 function BG.IsItemEquipment(invType)	-- itemLink/itemID/invType
 	if not invType or invType == "" then
 		return nil
-	elseif (type(invType) == "string" and not string.find(invType, "INVTYPE")) or type(invType) == "number" then
+	elseif (type(invType) == "string" and not find(invType, "INVTYPE")) or type(invType) == "number" then
 		invType = select(9, GetItemInfo(invType))
 	end
-	return invType ~= "" and not string.find(invType, "BAG") and not string.find(invType, "TRINKET")
+	return invType ~= "" and not find(invType, "BAG") and not find(invType, "TRINKET")
 end
 
 
@@ -231,22 +247,22 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 
 	if IsAddOnLoaded("Auc-Advanced") then	-- uses Market Value in any case
 		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "Auc-Advanced"
-		auctionPrice = math.max(auctionPrice, AucAdvanced.API.GetMarketValue(itemLink))
+		auctionPrice = max(auctionPrice, AucAdvanced.API.GetMarketValue(itemLink))
 
 		if IsAddOnLoaded("Enchantrix") then
-			disenchantPrice = canDE and math.max(disenchantPrice or 0, select(3, Enchantrix.Storage.GetItemDisenchantTotals(itemLink)) or 0)
+			disenchantPrice = canDE and max(disenchantPrice or 0, select(3, Enchantrix.Storage.GetItemDisenchantTotals(itemLink)) or 0)
 		end
 	end
 
 	if IsAddOnLoaded("AuctionLite") then
 		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "AuctionLite"
-		auctionPrice = math.max(auctionPrice, AuctionLite:GetAuctionValue(itemLink) or 0)
-		disenchantPrice = canDE and math.max(disenchantPrice or 0, AuctionLite:GetDisenchantValue(itemLink) or 0)
+		auctionPrice = max(auctionPrice, AuctionLite:GetAuctionValue(itemLink) or 0)
+		disenchantPrice = canDE and max(disenchantPrice or 0, AuctionLite:GetDisenchantValue(itemLink) or 0)
 	end
 
 	if IsAddOnLoaded("WOWEcon_PriceMod") then
 		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "WoWecon"
-		auctionPrice = math.max(auctionPrice, Wowecon.API.GetAuctionPrice_ByLink(itemLink) or 0)
+		auctionPrice = max(auctionPrice, Wowecon.API.GetAuctionPrice_ByLink(itemLink) or 0)
 
 		if canDE and not disenchantPrice then
 			local tmpPrice = 0
@@ -254,19 +270,19 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 			for i, data in pairs(DEData) do	-- [1] = item link, [2] = quantity, [3] = chance
 				tmpPrice = tmpPrice + ((Wowecon.API.GetAuctionPrice_ByLink(data[1] or 0)) * data[2] * data[3])
 			end
-			disenchantPrice = math.max(disenchantPrice or 0, math.floor(tmpPrice or 0))
+			disenchantPrice = max(disenchantPrice or 0, floor(tmpPrice or 0))
 		end
 	end
 
 	-- last chance to get auction values
 	if GetAuctionBuyout then
 		BG.auctionAddon = BG.auctionAddon or BG.locale.unknown
-		auctionPrice = math.max(auctionPrice, GetAuctionBuyout(itemLink) or 0)
+		auctionPrice = max(auctionPrice, GetAuctionBuyout(itemLink) or 0)
 	else
 		BG.auctionAddon = BG.auctionAddon or BG.locale.na
 	end
 	if GetDisenchantValue then
-		disenchantPrice = canDE and math.max(disenchantPrice or 0, GetDisenchantValue(itemLink) or 0)
+		disenchantPrice = canDE and max(disenchantPrice or 0, GetDisenchantValue(itemLink) or 0)
 	end
 
 	if label == BG.AUCTION then
@@ -276,7 +292,7 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 	end
 
 	-- simply return the highest value price
-	local maximum = math.max((disenchantPrice or 0), (auctionPrice or 0), (vendorPrice or 0))
+	local maximum = max((disenchantPrice or 0), (auctionPrice or 0), (vendorPrice or 0))
 	if disenchantPrice and disenchantPrice ~= 0 and maximum == disenchantPrice then
 		return disenchantPrice, BG.DISENCHANT, reason
 	elseif vendorPrice and vendorPrice ~= 0 and maximum == vendorPrice then
@@ -316,7 +332,7 @@ function BG.FindInTooltip(searchString, scanRightText, filterFunc)
 		rightLine = _G["Broker_Garbage_ItemScanTooltipTextRight"..i]
 		rightLineText = rightLine and rightLine:GetText()
 
-		if (string.find(leftLineText, searchString) or (scanRightText and string.find(rightLineText, searchString)))
+		if (find(leftLineText, searchString) or (scanRightText and find(rightLineText, searchString)))
 			and (not filterFunc or filterFunc(leftLineText, rightLineText)) then
 			return leftLineText, rightLineText
 		end
@@ -364,7 +380,7 @@ function BG.CanDisenchant(itemLink, onlyMe)
 
 			if skillRank > 0 then
 				if level <= 20 then required = 1
-				elseif level <= 60 then required = 5*5*math.ceil(level/5)-100
+				elseif level <= 60 then required = 5*5*ceil(level/5)-100
 				elseif level <= 89 or (level <=  99 and quality <= 3) then required = 225
 				elseif level <= 120 then required = 275
 				else
@@ -491,8 +507,8 @@ function BG.Delete(item, position)
 	_, itemCount = GetContainerItemInfo(bag, slot)
 
 	-- actual deleting happening after this
-	securecall(PickupContainerItem, bag, slot)
-	securecall(DeleteCursorItem)					-- comment this line to prevent item deletion
+	PickupContainerItem(bag, slot)
+	DeleteCursorItem()					-- comment this line to prevent item deletion
 
 	local itemValue = (BG.GetCached(itemID).value or 0) * itemCount	-- if an item is unknown to the cache, statistics will not change
 	-- statistics

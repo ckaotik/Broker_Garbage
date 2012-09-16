@@ -1,5 +1,16 @@
 local _, BG = ...
 
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, _G
+-- GLOBALS: GameTooltip, MerchantFrameInset, MerchantRepairAllButton, MerchantRepairText, CreateFrame, MerchantFrame
+-- GLOBALS: SetItemButtonTexture, SetItemButtonDesaturated, MerchantFrame_UpdateRepairButtons, RepairAllItems, GetMoney, GetGuildBankWithdrawMoney, GetRepairAllCost, CanMerchantRepair, CanGuildBankRepair, GetContainerItemInfo, ClearCursor, UseContainerItem
+local wipe = wipe
+local pairs = pairs
+local ipairs = ipairs
+local select = select
+local tinsert = table.insert
+local tremove = table.remove
+local format = string.format
+
 function BG.ManualAutoSell()
 	local sellValue, numItems = BG.AutoSell(true)
 
@@ -12,7 +23,7 @@ function BG.AutoSell(manualSell)
 	if not BG.isAtVendor or (not manualSell and not BG_GlobalDB.autoSellToVendor) then return 0, 0 end
 	wipe(BG.sellLog)    -- reset data for refilling
 
-	sellValue = 0
+	local sellValue = 0
 	local cachedItem
 	for tableIndex, item in ipairs(BG.cheapestItems) do
 		if item.sell and not item.invalid then
@@ -26,7 +37,7 @@ function BG.AutoSell(manualSell)
 
 			ClearCursor()
 			UseContainerItem(item.bag, item.slot)
-			table.insert(BG.sellLog, tableIndex)
+			tinsert(BG.sellLog, tableIndex)
 		end
 	end
 
@@ -87,7 +98,7 @@ function BG.CheckSoldItems()
 			numItemsSold = numItemsSold + item.count
 
 			if BG_GlobalDB.showSellLog then
-				BG.Print(string.format(BG.locale.sellItem, item.itemLink, item.count, BG.FormatMoney(item.value)))
+				BG.Print(format(BG.locale.sellItem, item.itemLink, item.count, BG.FormatMoney(item.value)))
 			end
 		end
 	end

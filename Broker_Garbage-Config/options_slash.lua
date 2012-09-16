@@ -1,5 +1,12 @@
 local _, BGC = ...
 
+-- GLOBALS: SLASH_Broker_Garbage1. SLASH_Broker_Garbage2, SLASH_Broker_Garbage3, Broker_Garbage, Broker_Garbage_LootManager
+-- GLOBALS: InterfaceOptionsFrame_OpenToCategory, GetItemInfo, IsAddOnLoaded
+local type = type
+local select = select
+local tonumber = tonumber
+local ipairs = ipairs
+local format = string.format
 
 SLASH_Broker_Garbage1 = "/garbage"
 SLASH_Broker_Garbage2 = "/garb"
@@ -36,7 +43,7 @@ local COMMAND_ALIAS = {
 	forceprice 	= 'forceVendorPrice',
 	forcevendorprice = 'forceVendorPrice',
 }
--- * = TODO; + = documented, implemented; - = not documented, implemented
+-- + = documented, implemented; - = not documented, implemented
 local COMMAND_PARAMS = {
 	-- + open config UI
 	config = function(param)
@@ -95,7 +102,7 @@ local COMMAND_PARAMS = {
 		BGC:ListOptionsUpdate("include")
 	end,
 
-	-- - set number of displayed LDB tooltip lines
+	-- + set number of displayed LDB tooltip lines
 	tooltiplines = function(param)
 		param = tonumber(param)
 		if not param then
@@ -109,7 +116,7 @@ local COMMAND_PARAMS = {
 		end
 	end,
 
-	-- - set pixel height of LDB tooltip
+	-- + set pixel height of LDB tooltip
 	tooltipheight = function(param)
 		param = tonumber(param)
 		if not param then
@@ -125,7 +132,7 @@ local COMMAND_PARAMS = {
 	-- + set minimum item value for looting
 	minvalue = function(param)
 		if not IsAddOnLoaded('Broker_Garbage-LootManager') then
-			print("This command requires Broker_Garbage-LootManager")
+			Broker_Garbage.Print("This command requires Broker_Garbage-LootManager")
 			return
 		end
 
@@ -142,7 +149,7 @@ local COMMAND_PARAMS = {
 	-- + set minimum available bag slots for auto destroying
 	minfreeslots = function(param)
 		if not IsAddOnLoaded('Broker_Garbage-LootManager') then
-			print("This command requires Broker_Garbage-LootManager")
+			Broker_Garbage.Print("This command requires Broker_Garbage-LootManager")
 			return
 		end
 
@@ -156,7 +163,7 @@ local COMMAND_PARAMS = {
 		BGC.Print(format(BGC.locale.minSlotsSet, Broker_Garbage:GetOption("tooFewSlots", false)))
 	end,
 
-	-- * list all listed categories an item belongs to
+	-- + list all listed categories an item belongs to
 	categories = function(param)
 		param = Broker_Garbage.GetItemID(param) or param
 		if not param then
@@ -167,15 +174,15 @@ local COMMAND_PARAMS = {
 		local itemLink = select(2, GetItemInfo(param))
 		local result = Broker_Garbage.GetItemListCategories(Broker_Garbage.GetCached(param))
 		if not result or #result < 1 then
-			BGC:Print(string.format("%s is in no used category.", itemLink))
+			BGC:Print(format("%s is in no used category.", itemLink))
 		else
 			for _, listName in ipairs(result) do
-				BGC:Print(string.format("%s is in category %s.", itemLink, listName))
+				BGC:Print(format("%s is in category %s.", itemLink, listName))
 			end
 		end
 	end,
 
-	-- add an <itemID/itemLink/category/...> to a <list>
+	-- + add an <itemID/itemLink/category/...> to a <list>
 	add = function(param)
 		local list, item = param:match("^(%S*)%s*(.-)%s*$")
 		if not (list and item) then
@@ -191,7 +198,7 @@ local COMMAND_PARAMS = {
 			itemID = item
 		end
 
-		local itemList = COMMAND_ALIAS[list] or itemList
+		local itemList = COMMAND_ALIAS[list] or list
 		local resetRequired = BGC.RemoteAddItemToList(item, itemList)
 		if resetRequired then
 			BGC:Print(BGC.locale.updateCache)
@@ -212,7 +219,7 @@ local COMMAND_PARAMS = {
 			itemID = item
 		end
 
-		local itemList = COMMAND_ALIAS[list] or itemList
+		local itemList = COMMAND_ALIAS[list] or list
 		local resetRequired = BGC.RemoteRemoveItemFromList(item, itemList)
 		if resetRequired then
 			BGC:Print(BGC.locale.updateCache)

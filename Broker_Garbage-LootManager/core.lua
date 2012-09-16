@@ -1,4 +1,20 @@
 local addonName, BGLM = ...
+local _
+
+-- GLOBALS: BGLM_GlobalDB, BGLM_LocalDB, Broker_Garbage, ERR_INV_FULL, INVENTORY_FULL, coroutine, LOOTFRAME_NUMBUTTONS, NUM_BAG_SLOTS, LOOT_SLOT_ITEM
+-- GLOBALS: StaticPopup1, LootFrame
+-- GLOBALS: IsAddOnLoaded, GetTime, InCombatLockdown, IsFishingLoot, GetNumLootItems, GetLootSlotType, LootSlot, CloseLoot, CursorHasItem, GetItemInfo, GetContainerNumFreeSlots, GetContainerItemID, SplitContainerItem, GetLootSlotLink, GetLootSlotInfo, ConfirmLootSlot, GetItemCount
+local _G = _G
+local pairs = pairs
+local ipairs = ipairs
+local select = select
+local wipe = table.wipe
+local sort = table.sort
+local format = string.format
+local hooksecurefunc = hooksecurefunc
+local infinite = math.huge
+local abs = math.abs
+local mod = mod
 
 local function InitializePrivateLoot()
 	BGLM.privateLoot = GetTime()
@@ -119,7 +135,7 @@ function BGLM:DeletePartialStack(itemID, num)
 		return
 	end
 
-	securecall(SplitContainerItem, locations[1].bag, locations[1].slot, num)
+	SplitContainerItem(locations[1].bag, locations[1].slot, num)
 	if CursorHasItem() then
 		BGLM:Delete("cursor", num)
 		BGLM:Debug("DeletePartialStack", itemID, num, locations[1].bag, locations[1].slot)
@@ -184,11 +200,11 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 
 	local isPrivateLoot = BGLM:IsPrivateLoot()
 	if isPrivateLoot then BGLM:Debug("Currently dealing with private loot") end
-	local constraint = BGLM:GetLootConstraint() or math.huge
+	local constraint = BGLM:GetLootConstraint() or infinite
 
 	local closeLootWindow = BGLM_GlobalDB.closeLootWindow
 
-	local slotQuantity, slotQuality, isLocked, isQuest, slotItemLink, slotItemID, slotItem, slotItemBagType
+	local slotQuantity, slotQuality, isLocked, isQuest, slotItemLink, slotItemID, slotItem
 	local masterWarning = nil
 
 	for container = 1, NUM_BAG_SLOTS do
@@ -199,10 +215,11 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 	end
 
 	-- loot preprocessing
-	local goesIntoSpecialBag, dataIndex, addItem, needsConfirmation
+	local goesIntoSpecialBag, dataIndex
 	local numRequiredSlots, numSpecialSlots, numItems = 0, 0, 0
+	local isInteresting, alwaysLoot
 	for lootSlotID = 1, GetNumLootItems() do
-		addItem, needsConfirmation, isSpecial = nil, nil, nil
+		local addItem, needsConfirmation = nil, nil
 		if GetLootSlotType(lootSlotID) == LOOT_SLOT_ITEM then
 			_, _, slotQuantity, slotQuality, isLocked, isQuest = GetLootSlotInfo(lootSlotID)
 			slotItemLink = GetLootSlotLink(lootSlotID)
@@ -232,7 +249,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 					-- minimum loot value not reached; item is too cheap
 					BGLM:Print(format(BGLM.locale.couldNotLootValue, slotItemLink, slotQuantity), BGLM_GlobalDB.printValue)
 
-				elseif math.abs(constraint) > slotQuality then
+				elseif abs(constraint) > slotQuality then
 					BGLM:Debug("Unconstrained item:", slotItemLink)
 					addItem = true
 				else
@@ -259,6 +276,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 			BGLM.Loot(lootSlotID)
 		end
 
+		local itemMaxStack, itemInBags, itemStackOverflow, targetContainer, slotItemBagType
 		if addItem then
 			itemMaxStack = select(8, GetItemInfo(slotItemLink))
 			itemInBags = mod(GetItemCount(slotItemLink), itemMaxStack)
@@ -269,7 +287,6 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 				targetContainer, _, slotItemBagType = Broker_Garbage.FindBestContainerForItem(slotItemLink)
 				goesIntoSpecialBag = targetContainer and slotItemBagType ~= 0 and capacities[targetContainer] > 0
 				if goesIntoSpecialBag then
-					isSpecial = true
 					numSpecialSlots = numSpecialSlots + 1
 					capacities[targetContainer] = capacities[targetContainer] - 1
 				else
@@ -284,14 +301,14 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 			lootData[numItems].count = slotQuantity
 			lootData[numItems].value = isInteresting and ((slotItem.value or 0) * slotQuantity) or -1
 			lootData[numItems].stackOverflow = itemStackOverflow
-			lootData[numItems].isSpecial = isSpecial
+			lootData[numItems].isSpecial = goesIntoSpecialBag
 			lootData[numItems].confirm = needsConfirmation
 			lootData[numItems].clear = alwaysLoot or isQuest or clearAll
 			lootData[numItems].quest = isQuest
 		end
 	end
 
-	table.sort(lootData, function(a, b)
+	sort(lootData, function(a, b)
 		-- data available for both entries
 		if a.slotID and b.slotID then
 			if a.clear == b.clear then
@@ -370,7 +387,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 					takeItem = true
 				else
 					-- delete only if it's worth more, if it's an item we really need or if we want to skin the mob
-					BGLM:Debug("Deleting item to make room for", itemLink)
+					BGLM:Debug("Deleting item to make room for", slot.itemLink)
 					BGLM:DeleteCheapestItem()
 					BGLM:Debug("PAUSE: UNIT_INVENTORY_CHANGED")
 					coroutine.yield("UNIT_INVENTORY_CHANGED")
