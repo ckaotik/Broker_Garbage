@@ -67,7 +67,7 @@ local function eventHandler(self, event, arg1, ...)
 
 		local disable = BG.disableKey[BG_GlobalDB.disableKey]
 		if not (disable and disable()) then
-			local numSellItems
+			local numSellItems, guildRepair
 			BG.sellValue, numSellItems = BG.AutoSell()
 			BG.repairCost, guildRepair = BG.AutoRepair()
 

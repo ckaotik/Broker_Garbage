@@ -53,7 +53,7 @@ end
 
 function BG.RestackIteration()
 	local count, isLocked, targetCount, targetLocked, targetIndex
-	local success, stackSize
+	local failed, stackSize
 	local numMoves = 0
 
 	for itemID, locations in pairs(restackQueue) do
@@ -62,6 +62,7 @@ function BG.RestackIteration()
 		for currentIndex = 1, math.floor(#(locations)/2) do
 			targetIndex = #(locations) - currentIndex + 1
 			if currentIndex == targetIndex then break end
+			failed = nil
 
 			_, count, isLocked = GetContainerItemInfo(locations[currentIndex][1], locations[currentIndex][2])
 			_, targetCount, targetLocked = GetContainerItemInfo(locations[targetIndex][1], locations[targetIndex][2])
@@ -70,13 +71,15 @@ function BG.RestackIteration()
 				and BG.MoveItem(itemID, locations[currentIndex][1], locations[currentIndex][2],
 					locations[targetIndex][1], locations[targetIndex][2]) then
 				numMoves = numMoves + 2
+			else
+				failed = true
 			end
 
-			if count + targetCount <= stackSize then
+			if not failed and count + targetCount <= stackSize then
 				numMoves = numMoves - 1
 				table.insert(restackQueue[itemID][currentIndex], true)
 			end
-			if count + targetCount >= stackSize then
+			if not failed and count + targetCount >= stackSize then
 				table.insert(restackQueue[itemID][targetIndex], true)
 			end
 		end
