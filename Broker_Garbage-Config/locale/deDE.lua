@@ -17,11 +17,12 @@ if GetLocale() == "deDE" then
 
 	BGC.locale.slashCommandHelp = [[unterstützt |cffee6622/garbage|r, |cffee6622/garb|r, |cffee6622/junk|r mit diesen Befehlen:
     |cFF36BFA8config|r öffnet die Optionen.
+    |cFF36BFA8add|r |cFF2bff58<Liste>|r |cFF2bff58<Item>|r Item/Kategorie in eine Liste eintragen.
+    |cFF36BFA8remove|r |cFF2bff58<Liste>|r |cFF2bff58<Item>|r Item/Kategorie von einer Liste entfernen.
+        Mögliche Listen: |cFF2bff58keep|r (Behalten), |cFF2bff58junk|r (Müll), |cFF2bff58vendor|r (Verkaufen), |cFF2bff58forceprice|r (Festpreis)
+    |cFF36BFA8update|r |cFF2bff58<itemID>|r Aktualisiere gespeicherte Daten
     |cFF36BFA8format|r |cFF2bff58<Text>|r setzt das LDB-Anzeigeformat, |cFF2bff58reset|r setzt es zurück.
-    |cFF36BFA8limit|r |cFF2bff58<Item>|r |cFF2bff58<Anzahl>|r setzt ein Limit für dieses Item für diesen Charakter.
-    |cFF36BFA8globallimit|r |cFF2bff58<Item>|r |cFF2bff58<Anzahl>|r setzt ein Limit für alle Charaktere.
-    |cFF36BFA8value|r |cFF2bff58<WertInKupfer>|r setzt den Itemwert, ab dem Items gelootet werden. (Loot Manager)
-    |cFF36BFA8freeslots|r |cFF2bff58<Anzahl>|r setzt die Anzahl an Taschenplätzen, die frei bleiben sollen. (Loot Manager)]]
+    |cFF36BFA8categories|r |cFF2bff58<Item>|r Liste genutzter Kategorien mit diesem Item]]
 	BGC.locale.requiresLootManager = "Dieser Befehl benötigt den Loot Manager."
 	BGC.locale.updateCache = "Bitte aktualisiere die Item Caches via /garbage update"
 	BGC.locale.invalidArgument = "Ungültiges Argument. Bitte überprüfe deine Eingabe!"

@@ -17,11 +17,12 @@ BGC.locale = {
 
 	slashCommandHelp = [[supports |cffee6622/garbage|r, |cffee6622/garb|r, |cffee6622/junk|r with these commands:
     |cFF36BFA8config|r opens the options panel.
+    |cFF36BFA8add|r |cFF2bff58<list>|r |cFF2bff58<item>|r Add an item/category to a list.
+    |cFF36BFA8remove|r |cFF2bff58<list>|r |cFF2bff58<item>|r Remove item/category from a given list.
+        Possible list names: |cFF2bff58keep|r, |cFF2bff58junk|r, |cFF2bff58vendor|r, |cFF2bff58forceprice|r
+    |cFF36BFA8update|r |cFF2bff58<itemID>|r Refresh saved data
     |cFF36BFA8format|r |cFF2bff58<text>|r lets you customize the LDB display text, |cFF2bff58reset|r resets it.
-    |cFF36BFA8limit|r |cFF2bff58<item>|r |cFF2bff58<count>|r sets a limit for the given item on the current character.
-    |cFF36BFA8globallimit|r |cFF2bff58<item>|r |cFF2bff58<count>|r sets a limit for all characters.
-    |cFF36BFA8value|r |cFF2bff58<valueInCopper>|r sets the minimum value for items to be looted (Loot Manager).
-    |cFF36BFA8freeslots|r |cFF2bff58<count>|r sets the number of inventory slots to keep empty.]],
+    |cFF36BFA8categories|r |cFF2bff58<item>|r list of used categories with this item.]],
 	requiresLootManager = "This command requires the Loot Manager.",
 	updateCache = "Please update the item caches via /garbage update",
 	invalidArgument = "You supplied an invalid argument. Please check your input and try again.",

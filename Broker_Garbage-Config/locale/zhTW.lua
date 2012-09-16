@@ -17,11 +17,12 @@ if GetLocale() == "zhTW" then
 
 	BGC.locale.slashCommandHelp = [[以下命令是可行的:
     |cFF36BFA8config|r 開啟設定面板。
-    |cFF36BFA8format |cFF2bff58<text>|r 讓你自訂LDB顯示文字，|cFF2bff58reset|r 重置。
-    |cFF36BFA8limit|r |cFF2bff58<item>|r |cFF2bff58<count>|r 在目前的角色上設定給予物品限制。
-    |cFF36BFA8globallimit|r |cFF2bff58<item>|r |cFF2bff58<count>|r 設定所有角色限制。
-    |cFF36BFA8value|r |cFF2bff58<valueInCopper>|r 設定捨取物品的最小價值(捨取管理員需要)。
-    |cFF36BFA8freeslots|r |cFF2bff58<count>|r 設定保留背包槽為空的數量。]]
+    |cFF36BFA8add|r |cFF2bff58<list>|r |cFF2bff58<item>|r Add an item/category to a list.
+    |cFF36BFA8remove|r |cFF2bff58<list>|r |cFF2bff58<item>|r Remove item/category from a given list.
+        Possible list names: |cFF2bff58keep|r, |cFF2bff58junk|r, |cFF2bff58vendor|r, |cFF2bff58forceprice|r
+    |cFF36BFA8update|r |cFF2bff58<itemID>|r Refresh saved data
+    |cFF36BFA8format ||cFF2bff58<text>|r 讓你自訂LDB顯示文字，|cFF2bff58reset|r 重置。
+    |cFF36BFA8categories|r |cFF2bff58<item>|r list of used categories with this item.]]
 	-- BGC.locale.requiresLootManager = "This command requires the Loot Manager."
 	-- BGC.locale.updateCache = "Please update the item caches via /garbage update"
 	BGC.locale.invalidArgument = "你輸入無效的參數。請檢查你的輸入並再一次嘗試。"
