@@ -23,11 +23,7 @@ BG.LDB = LibDataBroker:NewDataObject("Broker_Garbage", {
 
 	OnClick = function(...) BG:OnClick(...) end,
 	OnEnter = function(...) BG:Tooltip(...) end,
-	OnLeave = function(...)
-		if LibQTip:IsAcquired("BrokerGarbage_LDB") then
-			LibQTip:Release(BG.tt)
-		end
-	end,
+	OnLeave = function() end, -- placeholder, required for e.g. ninja panel
 })
 
 function BG:UpdateLDB()

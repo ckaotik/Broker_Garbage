@@ -1,5 +1,17 @@
 local _, BGC = ...
 
+-- GLOBALS: LibStub, Broker_Garbage, Broker_Garbage_Config, UIDROPDOWNMENU_MENU_VALUE, GameTooltip, _G, DEFAULT_CHAT_FRAME
+-- GLOBALS: UIDropDownMenu_CreateInfo, UIDropDownMenu_AddButton, GetItemInfo, GetEquipmentSetInfo, GetAuctionItemSubClasses, ClearCursor, CreateFrame
+local type = type
+local select = select
+local pairs = pairs
+local tonumber = tonumber
+local match = string.match
+local format = string.format
+local gsub = string.gsub
+local find = string.find
+local strsplit = string.split
+
 BGC.modules = Broker_Garbage:GetVariable("modules")
 
 BGC.quality = {
@@ -44,15 +56,15 @@ function BGC.GetListEntryInfo(item)
 
 	elseif item and type(item) == "string" then
 		resetRequired = true
-		local specialType, identifier = string.match(item, "^(.-)_(.+)")
+		local specialType, identifier = match(item, "^(.-)_(.+)")
 		if specialType == "BEQ" then
 			-- equipment set
 			identifier = tonumber(identifier)
-			link = setID and GetEquipmentSetInfo(identifier) or "Invalid Set"
+			link = identifier and GetEquipmentSetInfo(identifier) or "Invalid Set"
 		elseif specialType == "AC" then
 			-- armor class
 			identifier = tonumber(identifier)
-			armorType = select(identifier, GetAuctionItemSubClasses(2))
+			local armorType = select(identifier, GetAuctionItemSubClasses(2))
 			link = BGC.locale.armorClass .. ": " .. (armorType or "Invalid Armor Class")
 		elseif specialType == "NAME" then
 			link = BGC.locale.anythingCalled .. " \"" .. identifier .. "\""
@@ -82,7 +94,7 @@ function BGC.RemoteAddItemToList(item, list)
 		BGC:ListOptionsUpdate()
 		ClearCursor()
 	else
-		BGC:Print(string.format(BGC.locale.itemAlreadyOnList, name))
+		BGC:Print(format(BGC.locale.itemAlreadyOnList, name))
 	end
 
 	-- post new data
@@ -131,7 +143,7 @@ function BGC.RemotePromoteItemInList(item, list)
 		localList[item] = nil
 	else
 		local name = BGC.GetListEntryInfo(item)
-		BGC:Print(string.format(BGC.locale.itemAlreadyOnList, name))
+		BGC:Print(format(BGC.locale.itemAlreadyOnList, name))
 	end
 end
 
@@ -159,7 +171,7 @@ function BGC.ShowTooltip(self)
 		end
 
 	elseif self.itemID and type(self.itemID) == "string" then
-		local specialType, identifier = string.match(self.itemID, "^(.-)_(.+)")
+		local specialType, identifier = match(self.itemID, "^(.-)_(.+)")
 		if specialType == "AC" then
 			-- armor class
 			GameTooltip:ClearLines()
@@ -179,7 +191,7 @@ function BGC.ShowTooltip(self)
 
 	elseif self.tiptext and self:GetParent() == _G["BG_ListOptions_ScrollFrame"] then
 		-- LibPeriodicTable category
-		local text = string.gsub(self.tiptext, "%.", " |cffffd200>|r ")
+		local text = gsub(self.tiptext, "%.", " |cffffd200>|r ")
 
 		GameTooltip:ClearLines()
 		GameTooltip:AddLine("LibPeriodicTable")
@@ -248,7 +260,7 @@ function BGC:CreateOptionsTab(id)
 		tab = topTab.new(BGC.options, plugin.name, "BOTTOMLEFT", BGC.modules[ id - 1 ].tab, "BOTTOMRIGHT", -15, 0)
 	end
 
-	panel = CreateFrame("Frame", nil, BGC.options.group)
+	local panel = CreateFrame("Frame", nil, BGC.options.group)
 	panel:SetAllPoints()
 	panel.tab = tab
 
@@ -296,7 +308,7 @@ function BGC:LPTDropDown(self, level, functionHandler, notChecked)
 		CreateLPTTable()
 	end
 	local dataTable = BGC.PTSets or {}
-	if UIDROPDOWNMENU_MENU_VALUE and string.find(UIDROPDOWNMENU_MENU_VALUE, ".") then
+	if UIDROPDOWNMENU_MENU_VALUE and find(UIDROPDOWNMENU_MENU_VALUE, ".") then
 		local parts = { strsplit(".", UIDROPDOWNMENU_MENU_VALUE) } or {}
 		for k = 1, #parts do
 			dataTable = dataTable[ parts[k] ] or {}

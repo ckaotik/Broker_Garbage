@@ -1,5 +1,10 @@
 local _, BGC = ...
 
+-- GLOBALS: LibStub, Broker_Garbage_Config
+-- GLOBALS:
+local ipairs = ipairs
+local sort = table.sort
+
 Broker_Garbage_Config = BGC	-- allow external access
 -- In case the addon is loaded from another condition, always call the remove interface options
 if AddonLoader and AddonLoader.RemoveInterfaceOptions then
@@ -24,13 +29,13 @@ function BGC.UpdateOptionsPanel(frame)
 end
 
 function BGC.ChangeView(pluginID)
-	table.sort(BGC.modules, function(a, b)
+	sort(BGC.modules, function(a, b)
 		return a.name < b.name
 	end)
 	for i, plugin in ipairs(BGC.modules) do
 		if not plugin.panel then
 			if not plugin.init then
-				BGC:Print("Error! Panel " .. (name or "nil") .. " doesn't have an init script!")
+				BGC:Print("Error! Panel for " .. (plugin.name or "nil") .. " doesn't have an init script!")
 				return
 			end
 			plugin.init(i)	-- supply the plugin's ID just in case

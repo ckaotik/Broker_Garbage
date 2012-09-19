@@ -1,5 +1,19 @@
 local _, BGC = ...
 
+-- GLOBALS: Broker_Garbage, LibStub, _G, UIDROPDOWNMENU_MENU_VALUE, UIParent, StaticPopupDialogs, BG_GlobalDB
+-- GLOBALS: IsShiftKeyDown, GetCursorInfo, StaticPopup_Show, ToggleDropDownMenu, UIDropDownMenu_AddButton, UIDropDownMenu_CreateInfo, GetAuctionItemSubClasses, GetEquipmentSetInfo, GetNumEquipmentSets, GetItemInfo, CreateFrame, MoneyInputFrame_GetCopper, IsModifiedClick, IsModifierKeyDown, HandleModifiedItemClick
+local tonumber = tonumber
+local select = select
+local type = type
+local pairs = pairs
+local ipairs = ipairs
+local tinsert = table.insert
+local sort = table.sort
+local wipe = table.wipe
+local floor = math.floor
+local mod = mod
+local match = string.match
+
 -- creates child options frame for setting up one's lists
 function BGC:ShowListOptions(frame)
 	local title = LibStub("tekKonfig-Heading").new(frame, "Broker_Garbage - " .. BGC.locale.LOTitle)
@@ -132,9 +146,9 @@ function BGC:ShowListOptions(frame)
 	end
 	StaticPopupDialogs["BROKERGARBAGE_SETITEMPRICE"] = {
 		text = BGC.locale.setPriceInfo,
-		button1 = OKAY,
-		button2 = CANCEL,
-		button3 = SELL_PRICE,
+		button1 = _G["OKAY"],
+		button2 = _G["CANCEL"],
+		button3 = _G["SELL_PRICE"],
 		hasMoneyInputFrame = true,
 		OnAccept = function(self)
 			local value = MoneyInputFrame_GetCopper(self.moneyInputFrame)
@@ -269,6 +283,7 @@ function BGC:ShowListOptions(frame)
 
 	-- function to set the drop treshold (limit) via the mousewheel
 	local function OnMouseWheel(self, dir)
+		local list
 		local text, limit = self.limit:GetText()
 		if self.isGlobal then
 			list = Broker_Garbage:GetOption(frame.current, true)
@@ -334,9 +349,9 @@ function BGC:ShowListOptions(frame)
 		-- make this table sortable
 		wipe(data)
 		for key, value in pairs(dataList) do
-			table.insert(data, key)
+			tinsert(data, key)
 		end
-		table.sort(data, function(a,b)
+		sort(data, function(a,b)
 			if type(a) == "string" and type(b) == "string" then
 				return a < b
 			elseif type(a) == "number" and type(b) == "number" then
@@ -346,7 +361,7 @@ function BGC:ShowListOptions(frame)
 			end
 		end)
 
-		local numCols = math.floor((scrollContent:GetWidth() - 20 - 2)/(36 + 2))	-- or is it panel's width we want?
+		local numCols = floor((scrollContent:GetWidth() - 20 - 2)/(36 + 2))	-- or is it panel's width we want?
 		for index, itemID in ipairs(data) do
 			local button = _G[scrollContent:GetName().."_Item"..index]
 			if not button then	-- create another button
@@ -406,16 +421,16 @@ function BGC:ShowListOptions(frame)
 			-- update this button with data
 			local itemLink, texture
 			if type(itemID) == "string" then
-				local specialType, identifier = string.match(itemID, "^(.-)_(.+)")
+				local specialType, identifier = match(itemID, "^(.-)_(.+)")
 				if specialType == "AC" then
 					-- this is an armor class
-					local identifier = tonumber(identifier)
-					identifier = select(index, GetAuctionItemSubClasses(2))
+					identifier = tonumber(identifier)
+					identifier = select(identifier, GetAuctionItemSubClasses(2))
 					texture = "Interface\\Icons\\INV_Misc_Toy_07"
 
 					button.itemLink = nil
 					button.itemID = itemID
-					button.tiptext = armorType or "Invalid Armor Type"
+					button.tiptext = identifier or "Invalid Armor Type"
 				elseif specialType == "BEQ" then
 					-- blizzard gear set
 					identifier = tonumber(identifier)
@@ -475,7 +490,7 @@ function BGC:ShowListOptions(frame)
 					end
 				end
 
-				if not itemLink and not BGC.PT then
+				if not itemLink and not button.itemID and not BGC.PT then
 					button:SetAlpha(0.2)
 					button.tiptext = button.tiptext .. "\n|cffff0000"..BGC.locale.LPTNotLoaded
 				else
@@ -531,7 +546,7 @@ function BGC:ShowListOptions(frame)
 			name = (button.itemID or "") .. " " .. (name or "")
 			name = name:lower()
 
-			if not searchString or string.match(name, searchString) then
+			if not searchString or match(name, searchString) then
 				button:SetAlpha(1)
 			else
 				button:SetAlpha(0.3)
@@ -559,8 +574,8 @@ function BGC:ShowListOptions(frame)
 
 		StaticPopupDialogs["BROKERGARBAGE_ADDITEMNAME"] = {
 			text = BGC.locale.namedItemsInfo,
-			button1 = OKAY,
-			button2 = CANCEL,
+			button1 = _G["OKAY"],
+			button2 = _G["CANCEL"],
 			hasEditBox = true,
 			OnAccept = function(self)
 				local name = self.editBox:GetText()
@@ -673,7 +688,7 @@ function BGC:ShowListOptions(frame)
 		local localList, globalList = Broker_Garbage:GetOption(frame.current)
 		-- add action
 		if self == plus then
-			cursorType, item, _ = GetCursorInfo()
+			local cursorType, item, _ = GetCursorInfo()
 			if not (cursorType == "item" and item) then return end
 			reset = BGC.RemoteAddItemToList(item, frame.current)
 		-- remove action
@@ -766,8 +781,8 @@ function BGC:ShowListOptions(frame)
 
 	-- support for add-mechanism
 	plus:RegisterForDrag("LeftButton")
-	plus:SetScript("OnReceiveDrag", ItemDrop)
-	plus:SetScript("OnMouseDown", ItemDrop)
+	plus:SetScript("OnReceiveDrag", OnClick)
+	-- plus:SetScript("OnMouseDown", OnClick)
 
 	BGC:ListOptionsUpdate()
 	BGC.listOptions:SetScript("OnShow", BGC.ListOptionsUpdate)

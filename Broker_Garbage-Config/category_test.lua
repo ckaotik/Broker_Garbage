@@ -1,6 +1,14 @@
 local _, BGC = ...
 if not BGC.PT then return end
 
+-- GLOBALS: Broker_Garbage, _G
+-- GLOBALS: SetItemButtonTexture, GetItemInfo, UIDropDownMenu_SetSelectedValue, UIDropDownMenu_SetText, GetCursorInfo, HandleModifiedItemClick, GetItemCount, CreateFrame, ClearCursor, UIDropDownMenu_SetWidth
+
+local select = select
+local ipairs = ipairs
+local mod = mod
+local format = string.format
+
 -- options panel
 local category
 local numCols = 8
@@ -27,10 +35,10 @@ local function Options_CategoryTest(pluginID)
 
 		if dataType == "item" then
 			local itemLink = select(2, GetItemInfo(data))
-			local output = string.format(BGC.locale.categoryTestItemTitle, itemLink)
+			local output = format(BGC.locale.categoryTestItemTitle, itemLink)
 			local itemCategories = Broker_Garbage.GetItemListCategories( Broker_Garbage.GetCached(data) )
 			if #itemCategories == 0 then
-				output = string.format(BGC.locale.categoryTestItemEntry, itemLink)
+				output = format(BGC.locale.categoryTestItemEntry, itemLink)
 			else
 				for _, listName in ipairs(itemCategories) do
 					output = output .. "\n    " .. listName
@@ -51,7 +59,7 @@ local function Options_CategoryTest(pluginID)
 			parent.outputText:SetText(output)
 
 			-- hide item buttons
-			index = 1
+			local index = 1
 			while _G["BG_PreviewIconButton"..index] do
 				_G["BG_PreviewIconButton"..index]:Hide()
 				index = index + 1
@@ -100,7 +108,7 @@ local function Options_CategoryTest(pluginID)
 			end
 
 			-- hide unnessessary buttons
-			index = index + 1
+			local index = index + 1
 			while _G["BG_PreviewIconButton"..index] do
 				_G["BG_PreviewIconButton"..index]:Hide()
 				index = index + 1
@@ -133,7 +141,7 @@ local function Options_CategoryTest(pluginID)
 	UIDropDownMenu_SetText(LPTDropDown, BGC.locale.PTCategoryTestDropdownText)
 	UIDropDownMenu_SetWidth(LPTDropDown, 300)
 
-	itemSlot = CreateFrame("Button", "BG_CategoryTestItemSlot", panel, "ItemButtonTemplate")
+	local itemSlot = CreateFrame("Button", "BG_CategoryTestItemSlot", panel, "ItemButtonTemplate")
 	itemSlot:SetPoint("BOTTOMLEFT", LPTDropDown, "BOTTOMRIGHT", -8, 8)
 	itemSlot:SetScript("OnClick", function(self)
 		local type, item = GetCursorInfo()

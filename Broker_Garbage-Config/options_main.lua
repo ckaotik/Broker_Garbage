@@ -1,5 +1,10 @@
 local _, BGC = ...
 
+-- GLOBALS: Broker_Garbage, LibStub, _G
+-- GLOBALS: UIDropDownMenu_CreateInfo, UIDropDownMenu_GetSelectedValue, UIDropDownMenu_AddButton, UIDropDownMenu_SetSelectedValue, UIDropDownMenu_SetText, UIDropDownMenu_SetWidth, UIDropDownMenu_JustifyText, CreateFrame, IsAddOnLoaded
+
+local pairs = pairs
+
 local function Options_BasicOptions(pluginID)
 	local panel, tab = BGC:CreateOptionsTab(pluginID)
 
@@ -460,7 +465,7 @@ local function Options_BasicOptions(pluginID)
 			info.text = formatString
 			info.value = index
 			info.func = MoneyFormatOnSelect
-			info.checked = i == selected
+			info.checked = (index == selected)
 			UIDropDownMenu_AddButton(info)
 
 			index = index + 1

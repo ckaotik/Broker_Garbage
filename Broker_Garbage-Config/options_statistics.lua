@@ -1,18 +1,22 @@
 local _, BGC = ...
 
+-- GLOBALS: Broker_Garbage, LibStub, _G
+-- GLOBALS: UpdateAddOnMemoryUsage, GetAddOnMemoryUsage, IsShiftKeyDown, collectgarbage, CreateFrame, UnitName
+
+local select = select
+local floor = math.floor
+local match = string.match
+local format = string.format
+
 local function Options_Statistics(pluginID)
 	local panel, tab = BGC:CreateOptionsTab(pluginID)
 
 	local function ResetStatistics(self)
 		if not self or not self.stat then return end
-		if self.isGlobal then
-			variable = Broker_Garbage:GetOption(self.stat, true)
-		else
-			variable = Broker_Garbage:GetOption(self.stat, false)
-		end
 
+		local variable = Broker_Garbage:GetOption(self.stat, self.isGlobal)
 		if variable then
-			variable = 0
+			Broker_Garbage:SetOption(self.stat, self.isGlobal, 0)
 		end
 	end
 
@@ -40,8 +44,8 @@ local function Options_Statistics(pluginID)
 			action:SetScript("OnLeave", BGC.HideTooltip)
 
 			if stat then
-				action.isGlobal = string.match(stat, "^_.*") and true or nil
-				action.stat = string.match(stat, "^_?(.*)")
+				action.isGlobal = match(stat, "^_.*") and true or nil
+				action.stat = match(stat, "^_?(.*)")
 				if stat == "collectgarbage" then
 					action:SetScript("OnClick", function() collectgarbage("collect"); BGC.UpdateOptionsPanel() end)
 				else
@@ -58,7 +62,7 @@ local function Options_Statistics(pluginID)
 	end
 
 	UpdateAddOnMemoryUsage()
-	local memoryUsage, memoryUsageText = AddStatistic("collectgarbage", BGC.locale.MemoryUsageTitle, math.floor(GetAddOnMemoryUsage("Broker_Garbage")), BGC.locale.CollectMemoryUsageTooltip, "TOPRIGHT", panel, "TOP", -2, -40)
+	local memoryUsage, memoryUsageText = AddStatistic("collectgarbage", BGC.locale.MemoryUsageTitle, floor(GetAddOnMemoryUsage("Broker_Garbage")), BGC.locale.CollectMemoryUsageTooltip, "TOPRIGHT", panel, "TOP", -2, -40)
 
 	local auctionAddon, auctionAddonText = AddStatistic(nil, BGC.locale.AuctionAddon, Broker_Garbage:GetVariable("auctionAddon") or BGC.locale.na, BGC.locale.AuctionAddonTooltip, "TOPLEFT", memoryUsage, "BOTTOMLEFT", 0, -6)
 
@@ -76,14 +80,14 @@ local function Options_Statistics(pluginID)
 		BGC.locale.ResetStatistic,
 		"TOPLEFT", globalStatistics, "BOTTOMLEFT", 0, -15)
 
-	var2 = Broker_Garbage:GetOption("itemsSold", true)
+	local var2 = Broker_Garbage:GetOption("itemsSold", true)
 	local itemsSold, itemsSoldText = AddStatistic("_itemsSold", BGC.locale.GlobalItemsSoldTitle,
 		var1,
 		BGC.locale.ResetStatistic,
 		"TOPLEFT", globalEarned, "BOTTOMLEFT", 0, -6)
 
 	local averageSellValue, averageSellValueText = AddStatistic(nil, BGC.locale.AverageSellValueTitle,
-	 	Broker_Garbage.FormatMoney(math.floor(var1 / (var2 ~= 0 and var2 or 1))),
+	 	Broker_Garbage.FormatMoney(floor(var1 / (var2 ~= 0 and var2 or 1))),
 		BGC.locale.AverageSellValueTooltip,
 		"TOPLEFT", itemsSold, "BOTTOMLEFT", 0, -6)
 
@@ -100,7 +104,7 @@ local function Options_Statistics(pluginID)
 		"TOPLEFT", globalLost, "BOTTOMLEFT", 0, -6)
 
 	local averageValueLost, averageValueLostText = AddStatistic(nil, BGC.locale.AverageDropValueTitle,
-		Broker_Garbage.FormatMoney(math.floor(var1 / (var2 ~= 0 and var2 or 1))),
+		Broker_Garbage.FormatMoney(floor(var1 / (var2 ~= 0 and var2 or 1))),
 		BGC.locale.AverageDropValueTooltip,
 		"TOPLEFT", itemsDropped, "BOTTOMLEFT", 0, -6)
 
@@ -110,7 +114,7 @@ local function Options_Statistics(pluginID)
 	localStatistics:SetNonSpaceWrap(true)
 	localStatistics:SetJustifyH("LEFT")
 	localStatistics:SetJustifyV("TOP")
-	localStatistics:SetText(format(BGC.locale.LocalStatisticsHeading, Broker_Garbage:Colorize(RAID_CLASS_COLORS[Broker_Garbage:GetVariable("playerClass")]) .. UnitName("player") .. "|r"))
+	localStatistics:SetText(format(BGC.locale.LocalStatisticsHeading, Broker_Garbage:Colorize(_G.RAID_CLASS_COLORS[Broker_Garbage:GetVariable("playerClass")]) .. UnitName("player") .. "|r"))
 
 	var1 = Broker_Garbage:GetOption("moneyEarned", false)
 	local localEarned, localEarnedText = AddStatistic("moneyEarned", BGC.locale.StatisticsLocalAmountEarned,
@@ -130,12 +134,12 @@ local function Options_Statistics(pluginID)
 	resetAll:SetWidth(150)
 	resetAll:SetScript("OnClick", function()
 		Broker_Garbage:ResetAll( IsShiftKeyDown() )
-		UpdateStats()
+		panel:Update()
 	end)
 
 	function panel:Update()
 		UpdateAddOnMemoryUsage()
-		memoryUsageText:SetText(math.floor(GetAddOnMemoryUsage("Broker_Garbage")))
+		memoryUsageText:SetText(floor(GetAddOnMemoryUsage("Broker_Garbage")))
 
 		globalEarnedText:SetText(Broker_Garbage.FormatMoney( Broker_Garbage:GetOption("moneyEarned", true) ))
 		itemsSoldText:SetText( Broker_Garbage:GetOption("itemsSold", true) )
@@ -143,10 +147,10 @@ local function Options_Statistics(pluginID)
 		itemsDroppedText:SetText( Broker_Garbage:GetOption("itemsDropped", true) )
 
 		averageSellValueText:SetText(Broker_Garbage.FormatMoney(
-			math.floor(Broker_Garbage:GetOption("moneyEarned", true) / (Broker_Garbage:GetOption("itemsSold", true) ~= 0 and Broker_Garbage:GetOption("itemsSold", true) or 1))
+			floor(Broker_Garbage:GetOption("moneyEarned", true) / (Broker_Garbage:GetOption("itemsSold", true) ~= 0 and Broker_Garbage:GetOption("itemsSold", true) or 1))
 		))
 		averageValueLostText:SetText(Broker_Garbage.FormatMoney(
-			math.floor(Broker_Garbage:GetOption("moneyLostByDeleting", true) / (Broker_Garbage:GetOption("itemsDropped", true) ~= 0 and Broker_Garbage:GetOption("itemsDropped", true) or 1))
+			floor(Broker_Garbage:GetOption("moneyLostByDeleting", true) / (Broker_Garbage:GetOption("itemsDropped", true) ~= 0 and Broker_Garbage:GetOption("itemsDropped", true) or 1))
 		))
 
 		localEarnedText:SetText(Broker_Garbage.FormatMoney( Broker_Garbage:GetOption("moneyEarned", false) ))
