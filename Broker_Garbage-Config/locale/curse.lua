@@ -7,21 +7,21 @@ local L = BGC.locale
 
 local current = GetLocale()
 if current == "zhTW" then
-	--@localization(locale="zhTW", format="lua_additive_table", namespace="Config")@
+	--@localization(locale="zhTW", format="lua_additive_table", namespace="Config", handle-unlocalized="ignore")@
 elseif current == "zhCN" then
-	--@localization(locale="zhCN", format="lua_additive_table", namespace="Config")@
+	--@localization(locale="zhCN", format="lua_additive_table", namespace="Config", handle-unlocalized="ignore")@
 elseif current == "ruRU" then
-	--@localization(locale="ruRU", format="lua_additive_table", namespace="Config")@
+	--@localization(locale="ruRU", format="lua_additive_table", namespace="Config", handle-unlocalized="ignore")@
 elseif current == "frFR" then
-	--@localization(locale="frFR", format="lua_additive_table", namespace="Config")@
+	--@localization(locale="frFR", format="lua_additive_table", namespace="Config", handle-unlocalized="ignore")@
 elseif current == "ptBR" then
-	--@localization(locale="ptBR", format="lua_additive_table", namespace="Config")@
+	--@localization(locale="ptBR", format="lua_additive_table", namespace="Config", handle-unlocalized="ignore")@
 elseif current == "itIT" then
-	--@localization(locale="itIT", format="lua_additive_table", namespace="Config")@
+	--@localization(locale="itIT", format="lua_additive_table", namespace="Config", handle-unlocalized="ignore")@
 elseif current == "koKR" then
-	--@localization(locale="koKR", format="lua_additive_table", namespace="Config")@
+	--@localization(locale="koKR", format="lua_additive_table", namespace="Config", handle-unlocalized="ignore")@
 elseif current == "esMX" then
-	--@localization(locale="esMX", format="lua_additive_table", namespace="Config")@
+	--@localization(locale="esMX", format="lua_additive_table", namespace="Config", handle-unlocalized="ignore")@
 elseif current == "esES" then
-	--@localization(locale="esES", format="lua_additive_table", namespace="Config")@
+	--@localization(locale="esES", format="lua_additive_table", namespace="Config", handle-unlocalized="ignore")@
 end

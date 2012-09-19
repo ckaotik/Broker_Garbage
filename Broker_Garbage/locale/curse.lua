@@ -7,21 +7,21 @@ local L = BG.locale
 
 local current = GetLocale()
 if current == "zhTW" then
-	--@localization(locale="zhTW", format="lua_additive_table", namespace="Core")@
+	--@localization(locale="zhTW", format="lua_additive_table", namespace="Core", handle-unlocalized="ignore")@
 elseif current == "zhCN" then
-	--@localization(locale="zhCN", format="lua_additive_table", namespace="Core")@
+	--@localization(locale="zhCN", format="lua_additive_table", namespace="Core", handle-unlocalized="ignore")@
 elseif current == "ruRU" then
-	--@localization(locale="ruRU", format="lua_additive_table", namespace="Core")@
+	--@localization(locale="ruRU", format="lua_additive_table", namespace="Core", handle-unlocalized="ignore")@
 elseif current == "frFR" then
-	--@localization(locale="frFR", format="lua_additive_table", namespace="Core")@
+	--@localization(locale="frFR", format="lua_additive_table", namespace="Core", handle-unlocalized="ignore")@
 elseif current == "ptBR" then
-	--@localization(locale="ptBR", format="lua_additive_table", namespace="Core")@
+	--@localization(locale="ptBR", format="lua_additive_table", namespace="Core", handle-unlocalized="ignore")@
 elseif current == "itIT" then
-	--@localization(locale="itIT", format="lua_additive_table", namespace="Core")@
+	--@localization(locale="itIT", format="lua_additive_table", namespace="Core", handle-unlocalized="ignore")@
 elseif current == "koKR" then
-	--@localization(locale="koKR", format="lua_additive_table", namespace="Core")@
+	--@localization(locale="koKR", format="lua_additive_table", namespace="Core", handle-unlocalized="ignore")@
 elseif current == "esMX" then
-	--@localization(locale="esMX", format="lua_additive_table", namespace="Core")@
+	--@localization(locale="esMX", format="lua_additive_table", namespace="Core", handle-unlocalized="ignore")@
 elseif current == "esES" then
-	--@localization(locale="esES", format="lua_additive_table", namespace="Core")@
+	--@localization(locale="esES", format="lua_additive_table", namespace="Core", handle-unlocalized="ignore")@
 end
