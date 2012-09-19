@@ -4,10 +4,10 @@ ignore:
     - readme.creole
 
 externals:
-    Broker_Garbage/libs/CallbackHandler-1.0
+    Broker_Garbage/libs/CallbackHandler-1.0:
         url: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
         tag: latest
-    Broker_Garbage/libs/LibStub
+    Broker_Garbage/libs/LibStub:
         url: svn://svn.wowace.com/wow/libstub/mainline/trunk
         tag: latest
     Broker_Garbage/libs/LibQTip-1.0:
