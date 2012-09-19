@@ -3,7 +3,7 @@ package-as: Broker_Garbage
 ignore:
     - readme.creole
 
-#externals:
+externals:
     Broker_Garbage/libs/CallbackHandler-1.0
         url: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
         tag: latest
