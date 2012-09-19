@@ -2,7 +2,10 @@ package-as: Broker_Garbage
 
 ignore:
     - readme.creole
-    - Broker_Garbage/libs
+    - Broker_Garbage/libs/CallbackHandler-1.0
+    - Broker_Garbage/libs/LibStub
+    - Broker_Garbage/libs/LibQTip-1.0
+    - Broker_Garbage/libs/Unfit-1.0
 
 externals:
     Broker_Garbage/libs/CallbackHandler-1.0:
