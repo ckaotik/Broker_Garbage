@@ -6,6 +6,19 @@
 ## Author: ckaotik
 ## Version: @project-version@
 
+## Notes: Configuration panels for Broker_Garbage and its plugins
+## Notes-deDE: Konfiguration für Broker_Garbage und seine Plugins
+
+## Notes-frFR: @localization(locale="frFR", key="TOC_Notes", namespace="Config")@
+## Notes-itIT: @localization(locale="itIT", key="TOC_Notes", namespace="Config")@
+## Notes-koKR: @localization(locale="koKR", key="TOC_Notes", namespace="Config")@
+## Notes-esMX: @localization(locale="esMX", key="TOC_Notes", namespace="Config")@
+## Notes-ruRU: @localization(locale="ruRU", key="TOC_Notes", namespace="Config")@
+## Notes-zhCN: @localization(locale="zhCN", key="TOC_Notes", namespace="Config")@
+## Notes-esES: @localization(locale="esES", key="TOC_Notes", namespace="Config")@
+## Notes-zhTW: @localization(locale="zhTW", key="TOC_Notes", namespace="Config")@
+## Notes-ptBR: @localization(locale="ptBR", key="TOC_Notes", namespace="Config")@
+
 ## LoadManagers: AddonLoader, Addon Control Panel
 ## X-LoadOn-InterfaceOptions: Broker_Garbage
 ## X-LoadOn-Slash: /garbage, /garb, /junk
@@ -23,7 +36,7 @@ libs\tekKonfig\tekKonfig.xml
 # locale
 locale\enUS.lua
 locale\deDE.lua
-locale\zhTW.lua
+locale\curse.lua
 
 # main files
 util.lua

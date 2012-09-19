@@ -1,184 +1,184 @@
 -- enUS / enGB / default localization file
 local _, BGC = ...
+BGC.locale = {}
+local L = BGC.locale
 
-BGC.locale = {
-	GlobalSetting = "\n|cffffff9aThis setting is global.",
+L["disableKey_None"] = "None"
+L["disableKey_SHIFT"] = "SHIFT"
+L["disableKey_ALT"] = "ALT"
+L["disableKey_CTRL"] = "CTRL"
 
-	-- Chat Messages
-	addedTo_exclude = "%s has been added to the Keep List.",
-	addedTo_forceVendorPrice = "%s will only have its vendor price considered.",
-	addedTo_include = "%s has been added to the Junk List.",
-	addedTo_autoSellList = "%s will be automatically sold when at a merchant.",
+L["GlobalSetting"] = "\n|cffffff9aThis setting is global."
 
-	itemAlreadyOnList = "%s is already on this list!",
-	limitSet = "%s has been assigned a limit of %d.",
-	minValueSet = "Items with a value less than %s will not be looted anymore.",
-	minSlotsSet = "The Loot Manager will try to keep at least %s slots free.",
+-- Chat Messages
+L["addedTo_exclude"] = "%s has been added to the Keep List."
+L["addedTo_forceVendorPrice"] = "%s will only have its vendor price considered."
+L["addedTo_include"] = "%s has been added to the Junk List."
+L["addedTo_autoSellList"] = "%s will be automatically sold when at a merchant."
 
-	slashCommandHelp = [[supports |cffee6622/garbage|r, |cffee6622/garb|r, |cffee6622/junk|r with these commands:
-    |cFF36BFA8config|r opens the options panel.
-    |cFF36BFA8add|r |cFF2bff58<list>|r |cFF2bff58<item>|r Add an item/category to a list.
-    |cFF36BFA8remove|r |cFF2bff58<list>|r |cFF2bff58<item>|r Remove item/category from a given list.
-        Possible list names: |cFF2bff58keep|r, |cFF2bff58junk|r, |cFF2bff58vendor|r, |cFF2bff58forceprice|r
-    |cFF36BFA8update|r |cFF2bff58<itemID>|r Refresh saved data
-    |cFF36BFA8format|r |cFF2bff58<text>|r lets you customize the LDB display text, |cFF2bff58reset|r resets it.
-    |cFF36BFA8categories|r |cFF2bff58<item>|r list of used categories with this item.]],
-	requiresLootManager = "This command requires the Loot Manager.",
-	updateCache = "Please update the item caches via /garbage update",
-	invalidArgument = "You supplied an invalid argument. Please check your input and try again.",
+L["itemAlreadyOnList"] = "%s is already on this list!"
+L["limitSet"] = "%s has been assigned a limit of %d."
+L["minValueSet"] = "Items with a value less than %s will not be looted anymore."
+L["minSlotsSet"] = "The Loot Manager will try to keep at least %s slots free."
 
-	-- Tooltip
-	categoriesHeading = "Categories",
-	LPTNotLoaded = "LibPeriodicTable not loaded",
+L["slashCommandHelp"] = [[supports |cffee6622/garbage|r, |cffee6622/garb|r, |cffee6622/junk|r with these commands:
+|cFF36BFA8config|r opens the options panel.
+|cFF36BFA8add|r |cFF2bff58<list>|r |cFF2bff58<item>|r Add an item/category to a list.
+|cFF36BFA8remove|r |cFF2bff58<list>|r |cFF2bff58<item>|r Remove item/category from a given list.
+    Possible list names: |cFF2bff58keep|r, |cFF2bff58junk|r, |cFF2bff58vendor|r, |cFF2bff58forceprice|r
+|cFF36BFA8update|r |cFF2bff58<itemID>|r Refresh saved data
+|cFF36BFA8format|r |cFF2bff58<text>|r lets you customize the LDB display text, |cFF2bff58reset|r resets it.
+|cFF36BFA8categories|r |cFF2bff58<item>|r list of used categories with this item.]]
+L["requiresLootManager"] = "This command requires the Loot Manager."
+L["updateCache"] = "Please update the item caches via /garbage update"
+L["invalidArgument"] = "You supplied an invalid argument. Please check your input and try again."
 
-	-- Special types
-	tooltipHeadingOther = "Other",
-	equipmentManager = "Equipment Manager",
-	armorClass = "Armor Class",
-	anythingCalled = "Items named",
+-- Tooltip
+L["categoriesHeading"] = "Categories"
+L["LPTNotLoaded"] = "LibPeriodicTable not loaded"
 
-	-- Statistics Frame
-	StatisticsHeading = "Statistics",
-	ResetStatistic = "|cffffffffClick|r to reset this statistic.\n|cFFff0000Warning: This cannot be undone.",
+-- Special types
+L["tooltipHeadingOther"] = "Other"
+L["equipmentManager"] = "Equipment Manager"
+L["armorClass"] = "Armor Class"
+L["anythingCalled"] = "Items named"
 
-	MemoryUsageTitle = "Memory Usage (kB)",
-	CollectMemoryUsageTooltip = "|cffffffffClick|r to start the Blizzard's garbage collection.",
+-- Statistics Frame
+L["StatisticsHeading"] = "Statistics"
+L["ResetStatistic"] = "|cffffffffClick|r to reset this statistic.\n|cFFff0000Warning: This cannot be undone."
 
-	GlobalStatisticsHeading = "Account wide statistics:",
-	AverageSellValueTitle = "Average sell value",
-	AverageSellValueTooltip = "The average value an item earned you. Calculated as Money Earned/Items Sold.",
-	AverageDropValueTitle = "Average drop value",
-	AverageDropValueTooltip = "The average value of dropped/deleted items. Calculated as Money Lost/Items Dropped.",
-	GlobalMoneyEarnedTitle = "Total amount earned",
-	GlobalMoneyLostTitle = "Total amount lost",
-	GlobalItemsSoldTitle = "Items sold",
-	ItemsDroppedTitle = "Items dropped",
+L["MemoryUsageTitle"] = "Memory Usage (kB)"
+L["CollectMemoryUsageTooltip"] = "|cffffffffClick|r to start the Blizzard's garbage collection."
 
-	LocalStatisticsHeading = "This character's (%s) statistics:",
-	StatisticsLocalAmountEarned = "Amount earned",
-	StatisticsLocalAmountLost = "Amount lost",
+L["GlobalStatisticsHeading"] = "Account wide statistics:"
+L["AverageSellValueTitle"] = "Average sell value"
+L["AverageSellValueTooltip"] = "The average value an item earned you. Calculated as Money Earned/Items Sold."
+L["AverageDropValueTitle"] = "Average drop value"
+L["AverageDropValueTooltip"] = "The average value of dropped/deleted items. Calculated as Money Lost/Items Dropped."
+L["GlobalMoneyEarnedTitle"] = "Total amount earned"
+L["GlobalMoneyLostTitle"] = "Total amount lost"
+L["GlobalItemsSoldTitle"] = "Items sold"
+L["ItemsDroppedTitle"] = "Items dropped"
 
-	ResetAllText = "Reset All",
-	ResetAllTooltip = "|cffffffffClick|r here to reset all character specific statistics. |cffffffffSHIFT-Click|r to clear all global statistics.",
+L["LocalStatisticsHeading"] = "This character's (%s) statistics:"
+L["StatisticsLocalAmountEarned"] = "Amount earned"
+L["StatisticsLocalAmountLost"] = "Amount lost"
 
-	AuctionAddon = "Auction addon",
-	AuctionAddonTooltip = "Broker_Garbage will take auction values from this addon. If none is listed, you may still have auction values available by an addon that Broker_Garbage doesn't know.",
-	unknown = "Unknown",	-- refers to auction addon
-	na = "Not Available",
+L["ResetAllText"] = "Reset All"
+L["ResetAllTooltip"] = "|cffffffffClick|r here to reset all character specific statistics. |cffffffffSHIFT-Click|r to clear all global statistics."
 
-	-- Basic Options Frame
-	BasicOptionsTitle = "Basic Options",
-	BasicOptionsText = "Don't want to auto-sell/repair? Hold Shift (depending on your settings) when adressing the merchant!",
+L["AuctionAddon"] = "Auction addon"
+L["AuctionAddonTooltip"] = "Broker_Garbage will take auction values from this addon. If none is listed, you may still have auction values available by an addon that Broker_Garbage doesn't know."
+L["unknown"] = "Unknown"	-- refers to auction addon
+L["na"] = "Not Available"
 
-	GroupBehavior = "Behavior",
-	GroupTresholds = "Tresholds",
-	GroupDisplay = "Display",
-	GroupTooltip = "Tooltip",
-	GroupOutput = "Text Output",
+-- Basic Options Frame
+L["BasicOptionsTitle"] = "Basic Options"
+L["BasicOptionsText"] = "Don't want to auto-sell/repair? Hold Shift (depending on your settings) when adressing the merchant!"
 
-	autoSellTitle = "Auto Sell",
-	autoSellText = "Check to have Broker_Garbage automatically sell your gray and junk items.",
+L["GroupBehavior"] = "Behavior"
+L["GroupTresholds"] = "Tresholds"
+L["GroupDisplay"] = "Display"
+L["GroupTooltip"] = "Tooltip"
+L["GroupOutput"] = "Text Output"
 
-	showAutoSellIconTitle = "Show Merchant Icon",
-	showAutoSellIconText = "Check to show an icon to manually auto-sell when at a vendor.",
+L["autoSellTitle"] = "Auto Sell"
+L["autoSellText"] = "Check to have Broker_Garbage automatically sell your gray and junk items."
 
-	showItemTooltipLabelTitle = "Show labels",
-	showItemTooltipLabelText = "Check to show the label assigned by Broker_Garbage in the item's tooltip.",
+L["showAutoSellIconTitle"] = "Show Merchant Icon"
+L["showAutoSellIconText"] = "Check to show an icon to manually auto-sell when at a vendor."
 
-	showItemTooltipDetailTitle = "Show reasoning",
-	showItemTooltipDetailText = "Check to show detailed information of Broker_Garbage's assigned label in the item's tooltip.",
+L["showItemTooltipLabelTitle"] = "Show labels"
+L["showItemTooltipLabelText"] = "Check to show the label assigned by Broker_Garbage in the item's tooltip."
 
-	showNothingToSellTitle = "'Nothing to sell'",
-	showNothingToSellText = "Check to get a chat message when at a merchant but there is nothing to sell.",
+L["showItemTooltipDetailTitle"] = "Show reasoning"
+L["showItemTooltipDetailText"] = "Check to show detailed information of Broker_Garbage's assigned label in the item's tooltip."
 
-	autoRepairTitle = "Auto Repair",
-	autoRepairText = "Check to automatically repair when at a vendor.",
+L["showNothingToSellTitle"] = "'Nothing to sell'"
+L["showNothingToSellText"] = "Check to get a chat message when at a merchant but there is nothing to sell."
 
-	autoRepairGuildTitle = "Use Guild Funds",
-	autoRepairGuildText = "Check to allow Broker_Garbage to repair using guild funds.",
+L["autoRepairTitle"] = "Auto Repair"
+L["autoRepairText"] = "Check to automatically repair when at a vendor."
 
-	showSourceTitle = "Source",
-	showSourceText = "Check to show the last column in the tooltip, displaying the item value source.",
+L["autoRepairGuildTitle"] = "Use Guild Funds"
+L["autoRepairGuildText"] = "Check to allow Broker_Garbage to repair using guild funds."
 
-	showIconTitle = "Icon",
-	showIconText = "Check to show the item's icon in front of the item link on the tooltip.",
+L["showSourceTitle"] = "Source"
+L["showSourceText"] = "Check to show the last column in the tooltip, displaying the item value source."
 
-	showEarnedTitle = "Earned",
-	showEarnedText = "Check to show the character's earned money (by selling junk items).",
+L["showIconTitle"] = "Icon"
+L["showIconText"] = "Check to show the item's icon in front of the item link on the tooltip."
 
-	showLostTitle = "Lost",
-	showLostText = "Check to show the character's lost money on the tooltip",
+L["showEarnedTitle"] = "Earned"
+L["showEarnedText"] = "Check to show the character's earned money (by selling junk items)."
 
-	warnContainersTitle = "Containers",
-	warnContainersText = "When checked, Broker_Garbage will warn you of unopened containers.",
+L["showLostTitle"] = "Lost"
+L["showLostText"] = "Check to show the character's lost money on the tooltip"
 
-	warnClamsTitle = "Clams",
-	warnClamsText = "When checked, Broker_Garbage will warn you when you have clams in your inventory.\nAs clams stack, you are not wasting any slots by unchecking this.",
+L["warnContainersTitle"] = "Containers"
+L["warnContainersText"] = "When checked, Broker_Garbage will warn you of unopened containers."
 
-	dropQualityTitle = "Drop Quality",
-	dropQualityText = "Select up to which treshold items may be listed as deletable. Default: Poor",
+L["warnClamsTitle"] = "Clams"
+L["warnClamsText"] = "When checked, Broker_Garbage will warn you when you have clams in your inventory.\nAs clams stack, you are not wasting any slots by unchecking this."
 
-	moneyFormatTitle = "Money Format",
-	moneyFormatText = "Change the way money is being displayed.",
+L["dropQualityTitle"] = "Drop Quality"
+L["dropQualityText"] = "Select up to which treshold items may be listed as deletable. Default: Poor"
 
-	maxItemsTitle = "Max. Items",
-	maxItemsText = "Set how many lines you would like to have displayed in the tooltip. Default: 9",
+L["moneyFormatTitle"] = "Money Format"
+L["moneyFormatText"] = "Change the way money is being displayed."
 
-	maxHeightTitle = "Max. Height",
-	maxHeightText = "Set the height of the tooltip. Default: 220",
+L["maxItemsTitle"] = "Max. Items"
+L["maxItemsText"] = "Set how many lines you would like to have displayed in the tooltip. Default: 9"
 
-	sellNotUsableTitle = "Sell Unusable Gear",
-	sellNotUsableText = "Check this to have Broker_Garbage sell all soulbound gear you cannot wear.\n(Only applies if not an enchanter)",
+L["maxHeightTitle"] = "Max. Height"
+L["maxHeightText"] = "Set the height of the tooltip. Default: 220"
 
-	TopFitOldItem = "Outdated Armor",
-	TopFitOldItemText = "If the addon TopFit is loaded, BG can ask for outdated gear and directly sell it.",
+L["sellNotUsableTitle"] = "Sell Unusable Gear"
+L["sellNotUsableText"] = "Check this to have Broker_Garbage sell all soulbound gear you cannot wear.\n(Only applies if not an enchanter)"
 
-	keepMaxItemLevelTitle = "Keep highest iLvl",
-	keepMaxItemLevelText = "Check to keep the highest item level gear when selling outdated gear.",
+L["TopFitOldItem"] = "Outdated Armor"
+L["TopFitOldItemText"] = "If the addon TopFit is loaded, BG can ask for outdated gear and directly sell it."
 
-	SNUMaxQualityTitle = "Sell Quality",
-	SNUMaxQualityText = "Select the maximum item quality to sell when 'Sell Unusable Gear' or 'Outdated Armor' is checked.",
+L["keepMaxItemLevelTitle"] = "Keep highest iLvl"
+L["keepMaxItemLevelText"] = "Check to keep the highest item level gear when selling outdated gear."
 
-	enchanterTitle = "Enchanter",
-	enchanterTooltip = "Check this if you have/know an enchanter.\nWhen checked disenchant values are considered, which are higher than vendor prices.",
+L["SNUMaxQualityTitle"] = "Sell Quality"
+L["SNUMaxQualityText"] = "Select the maximum item quality to sell when 'Sell Unusable Gear' or 'Outdated Armor' is checked."
 
-	restackTitle = "Automatic restack",
-	restackTooltip = "Check to automatically compress your inventory items after looting.",
+L["enchanterTitle"] = "Enchanter"
+L["enchanterTooltip"] = "Check this if you have/know an enchanter.\nWhen checked disenchant values are considered, which are higher than vendor prices."
 
-	inDev = "Under Development",
+L["restackTitle"] = "Automatic restack"
+L["restackTooltip"] = "Check to automatically compress your inventory items after looting."
 
-	sellLogTitle = "Print Sell Log",
-	sellLogTooltip = "Check to print any item that gets sold by Broker_Garbage into your chat.",
+L["inDev"] = "Under Development"
 
-	overrideLPTTitle = "Override LPT junk",
-	overrideLPTTooltip = "Check to ignore any LibPeriodicTable category data for grey items.\nSome items are no longer needed (grey) but still listed as e.g. reagents in LPT.",
+L["sellLogTitle"] = "Print Sell Log"
+L["sellLogTooltip"] = "Check to print any item that gets sold by Broker_Garbage into your chat."
 
-	hideZeroTitle = "Hide items worth 0c",
-	hideZeroTooltip = "Check to hide items that are not worth anything. Enabled by default.",
+L["overrideLPTTitle"] = "Override LPT junk"
+L["overrideLPTTooltip"] = "Check to ignore any LibPeriodicTable category data for grey items.\nSome items are no longer needed (grey) but still listed as e.g. reagents in LPT."
 
-	debugTitle = "Print debug output",
-	debugTooltip = "Check to display Broker_Garbage's debug information. Tends to spam your chat frame, you have been warned.",
+L["hideZeroTitle"] = "Hide items worth 0c"
+L["hideZeroTooltip"] = "Check to hide items that are not worth anything. Enabled by default."
 
-	reportDEGearTitle = "Report outdated gear for disenchanting",
-	reportDEGearTooltip = "Check to print a message when an item becomes outdated (by means of TopFit) so you may disenchant it.",
+L["debugTitle"] = "Print debug output"
+L["debugTooltip"] = "Check to display Broker_Garbage's debug information. Tends to spam your chat frame, you have been warned."
 
-	keepForLaterDETitle = "DE skill difference",
-	keepForLaterDETooltip = "Keep items that require at most <x> more skill points to be disenchanted by your character.",
+L["reportDEGearTitle"] = "Report outdated gear for disenchanting"
+L["reportDEGearTooltip"] = "Check to print a message when an item becomes outdated (by means of TopFit) so you may disenchant it."
 
-	DKTitle = "Temporary disable key",
-	DKTooltip = "Set a key to temporarily disable BrokerGarbage.",
-	disableKeys = {
-		["None"] = "None",
-		["SHIFT"] = "SHIFT",
-		["ALT"] = "ALT",
-		["CTRL"] = "CTRL",
-	},
+L["keepForLaterDETitle"] = "DE skill difference"
+L["keepForLaterDETooltip"] = "Keep items that require at most <x> more skill points to be disenchanted by your character."
 
-	LDBDisplayTextTitle = "LDB Display texts",
-	LDBDisplayTextTooltip = "Set the text to display in the LDB plugin.",
-	LDBNoJunkTextTooltip = "Set the text to display when no junk was found.",
-	ResetToDefault = "Reset to default value.",
-	LDBDisplayTextHelpTooltip = [[|cffffffffBasic tags:|r
+L["DKTitle"] = "Temporary disable key"
+L["DKTooltip"] = "Set a key to temporarily disable BrokerGarbage."
+
+L["LDBDisplayTextTitle"] = "LDB Display texts"
+L["LDBDisplayTextTooltip"] = "Set the text to display in the LDB plugin."
+L["LDBNoJunkTextTooltip"] = "Set the text to display when no junk was found."
+L["ResetToDefault"] = "Reset to default value."
+L["LDBDisplayTextHelpTooltip"] = [[|cffffffffBasic tags:|r
 [itemname] - item link
 [itemicon] - item icon
 [itemcount] - item count
@@ -195,35 +195,35 @@ BGC.locale = {
 [bagspacecolor]... - all bags
 [basicbagcolor]... - basic only
 [specialbagcolor]... - special only
-...[endcolor] ends a color section]],
+...[endcolor] ends a color section]]
 
-	-- List Options Panel
-	LOTitle = "Lists",
-	LOSubTitle = [[|cffffd200Junk|r: Items on this list can be thrown away if inventory space is needed.
+-- List Options Panel
+L["LOTitle"] = "Lists"
+L["LOSubTitle"] = [[|cffffd200Junk|r: Items on this list can be thrown away if inventory space is needed.
 |cffffd200Keep|r: Items on this list will never be deleted or sold.
 |cffffd200Vendor Price|r: Items on this list only use vendor values. (This list is always global)
 |cffffd200Sell|r: Items on this list will be sold when at a merchant. They also only use vendor prices.
 
-!! Always use the 'Rescan Inventory' button after you make changes !!]],
+!! Always use the 'Rescan Inventory' button after you make changes !!]]
 
-	defaultListsText = "Default Lists",
-	defaultListsTooltip = "|cffffffffClick|r to manually create default local list entries.\n |cffffffffShift-Click|r to also create default global lists.", -- changed
+L["defaultListsText"] = "Default Lists"
+L["defaultListsTooltip"] = "|cffffffffClick|r to manually create default local list entries.\n |cffffffffShift-Click|r to also create default global lists." -- changed
 
-	rescanInventoryText = "Update Inventory",
-	rescanInventoryTooltip = "|cffffffffClick|r to have Broker_Garbage rescan your inventory. Do this whenever you change list entries!",
+L["rescanInventoryText"] = "Update Inventory"
+L["rescanInventoryTooltip"] = "|cffffffffClick|r to have Broker_Garbage rescan your inventory. Do this whenever you change list entries!"
 
-	LOTabTitleInclude = "Junk",
-	LOTabTitleExclude = "Keep",
-	LOTabTitleVendorPrice = "Fixed Price",
-	LOTabTitleAutoSell = "Sell",
+L["LOTabTitleInclude"] = "Junk"
+L["LOTabTitleExclude"] = "Keep"
+L["LOTabTitleVendorPrice"] = "Fixed Price"
+L["LOTabTitleAutoSell"] = "Sell"
 
-	LOIncludeAutoSellText = "Sell Junk List items",
-	LOIncludeAutoSellTooltip = "Check this to automatically sell items on your include list when at a merchant. Items without a value will be ignored.",
+L["LOIncludeAutoSellText"] = "Sell Junk List items"
+L["LOIncludeAutoSellTooltip"] = "Check this to automatically sell items on your include list when at a merchant. Items without a value will be ignored."
 
-	LOUseRealValues = "Use actual value for junk items",
-	LOUseRealValuesTooltip = "Check this to have junk items considered with their actual value, rather than 0c.",
+L["LOUseRealValues"] = "Use actual value for junk items"
+L["LOUseRealValuesTooltip"] = "Check this to have junk items considered with their actual value, rather than 0c."
 
-	listsBestUse = [[|cffffd200List Examples|r
+L["listsBestUse"] = [[|cffffd200List Examples|r
 Don't forget to use the default lists! They provide a great example.
 First, put any items you don't want to lose on your |cffffd200Keep List|r. Make good use of categories (see below)! If the LootManager is active it will by default alwas try to loot these items (changable in LM settings).
 |cffAAAAAAe.g. class reagents, flasks|r
@@ -232,19 +232,19 @@ Items which may be thrown away any time belong on the |cffffd200Junk List|r.
 In case you encounter highly overvalued items, put them on your |cffffd200Fixed Price List|r. They will only have their vendor value used instead of auction or disenchant values. Alternatively, you can set a custom price by using |TInterface\Icons\INV_Misc_Coin_02:18|t.
 |cffAAAAAAe.g. fish oil (vendor price), Broiled Dragon Feast (custom price of e.g. 20g)|r
 Put items on your |cffffd200Sell List|r that should be sold when visiting a merchant.
-|cffAAAAAAe.g. water as a warrior, cheese|r]],
+|cffAAAAAAe.g. water as a warrior, cheese|r]]
 
-	listsSpecialOptions = [[|cffffd200Junk List special options|r
+L["listsSpecialOptions"] = [[|cffffd200Junk List special options|r
 |cffffd200Sell Junk List items|r: This setting is useful for those who do not want to distinguish between the Sell List and the Junk List. If you check this, any items on your Junk -or- Sell List will be sold when you visit a vendor.
-|cffffd200Use actual values|r: This setting changes the behavior of the Junk List. By default (disabled) Junk List items will get their value set to 0c (statistics will still work just fine!) and they will be shown first in the tooltip. If you enable this setting, these items will retain their regular value and will only show up in the tooltip once their value is reached.]],
+|cffffd200Use actual values|r: This setting changes the behavior of the Junk List. By default (disabled) Junk List items will get their value set to 0c (statistics will still work just fine!) and they will be shown first in the tooltip. If you enable this setting, these items will retain their regular value and will only show up in the tooltip once their value is reached.]]
 
-	iconButtonsUse = [[|cffffd200Item Buttons|r
+L["iconButtonsUse"] = [[|cffffd200Item Buttons|r
 For any item you'll either see its icon, a gear if it's a category or a question mark in case the server doesn't know this item.
 In the top left of each button you'll see a "G" (or not). If it's there, the item is on your |cffffd200global list|r meaning this rule is effective for every character.
 Items on your Junk List may also have a |cffffd200limit|r. This will be shown as a small number in the lower right corner. By using the |cffffd200mousewheel|r on this button you can change this number. For categories, the number of all corresponding items will be added up.
-If a limit is surpassed, items will be considered expendable, or in case of Keep-List limits regarded as regular items.]],
+If a limit is surpassed, items will be considered expendable, or in case of Keep-List limits regarded as regular items.]]
 
-	actionButtonsUse = [[|cffffd200Action Buttons|r
+L["actionButtonsUse"] = [[|cffffd200Action Buttons|r
 Below this window you'll see five buttons and a search bar.
 |TInterface\Icons\Spell_ChargePositive:18|t |cffffd200Plus|r: Use this to add items to the currently shown list. Simply drag/drop them onto the plus. To add a |cffffd200category|r, right-click the plus and then choose a category.
 |cffAAAAAAe.g. "Tradeskill > Recipe", "Misc > Key"|r
@@ -252,29 +252,27 @@ Below this window you'll see five buttons and a search bar.
 |TInterface\Icons\INV_Misc_GroupLooking:18|t |cffffd200Local|r: Marked items will be put on your local list, meaning the rule is only active for the current character.
 |TInterface\Icons\INV_Misc_GroupNeedMore:18|t |cffffd200Global|r: Same as local, only this time items will be put on your global list. Those rules are active for all your characters.
 |TInterface\Icons\INV_Misc_Coin_02:18|t |cffffd200Set Price|r: Marked items will get their value set to whatever is specified in the following popup dialogue.
-|TInterface\Buttons\UI-GroupLoot-Pass-UP:18|t |cffffd200Empty|r: Click this button to remove any character specific (local) items from it. Shift-click empties any account wide (global) rules. |cffff0000Use with caution!|r]],
+|TInterface\Buttons\UI-GroupLoot-Pass-UP:18|t |cffffd200Empty|r: Click this button to remove any character specific (local) items from it. Shift-click empties any account wide (global) rules. |cffff0000Use with caution!|r]]
 
-	LOPlus = "Add items to this list by |cffffffffdragging|r/ |cffffffffdropping|r them onto this button.\n|cffffffffRight-click|r to add categories!",
-	LOMinus = "Choose items to be removed from the list, then |cffffffffclick|r here.",
-	LODemote = "|cffffffffClick|r to have any marked items used as character specific rules.",
-	LOPromote = "|cffffffffClick|r to use any marked item as account wide rule.",
-	LOEmptyList = "|cffff0000Caution!|r\n|cffffffffClick|r to empty any local entries on this list.\n"..
-		"|cffffffffShift-Click|r to empty any global entries.",
+L["LOPlus"] = "Add items to this list by |cffffffffdragging|r/ |cffffffffdropping|r them onto this button.\n|cffffffffRight-click|r to add categories!"
+L["LOMinus"] = "Choose items to be removed from the list, then |cffffffffclick|r here."
+L["LODemote"] = "|cffffffffClick|r to have any marked items used as character specific rules."
+L["LOPromote"] = "|cffffffffClick|r to use any marked item as account wide rule."
+L["LOEmptyList"] = "|cffff0000Caution!|r\n|cffffffffClick|r to empty any local entries on this list.\n|cffffffffShift-Click|r to empty any global entries."
 
-	LOSetPrice = "|cffffffffClick|r to set a custom price for all selected entries.",
-	setPriceInfo = "|cffffd200Set custom price|r|nClick on vendor price to use merchant values.",
+L["LOSetPrice"] = "|cffffffffClick|r to set a custom price for all selected entries."
+L["setPriceInfo"] = "|cffffd200Set custom price|r|nClick on vendor price to use merchant values."
 
-	namedItems = "|TInterface\\Icons\\Spell_chargepositive:15:15|t item with name ...",
-	namedItemsInfo = "|cffffd200Add Item Name Rule|r|nInsert an item name or a pattern:|ne.g. \"|cFF36BFA8Scroll of *|r\" will match \"|cFF2bff58Scroll of Agility|r\" or \"|cFF2bff58Scroll of the Tiger|r\"",
-	search = "Search...",
+L["namedItems"] = "|TInterface\\Icons\\Spell_chargepositive:15:15|t item with name ..."
+L["namedItemsInfo"] = "|cffffd200Add Item Name Rule|r|nInsert an item name or a pattern:|ne.g. \"|cFF36BFA8Scroll of *|r\" will match \"|cFF2bff58Scroll of Agility|r\" or \"|cFF2bff58Scroll of the Tiger|r\""
+L["search"] = "Search..."
 
-	-- LibPeriodicTable category testing
-	PTCategoryTest = "Category Test",
-	PTCategoryTestExplanation = "Simply select a category below and it will display all items in your inventory that match this category.\nCategory information is provided by LibPeriodicTable.",
-	PTCategoryTestDropdownTitle = "Category to check",
-	PTCategoryTestDropdownText = "Choose a category string",
+-- LibPeriodicTable category testing
+L["PTCategoryTest"] = "Category Test"
+L["PTCategoryTestExplanation"] = "Simply select a category below and it will display all items in your inventory that match this category.\nCategory information is provided by LibPeriodicTable."
+L["PTCategoryTestDropdownTitle"] = "Category to check"
+L["PTCategoryTestDropdownText"] = "Choose a category string"
 
-	categoryTestItemSlot = "Drop an item into this slot to search for any used category containing it.",
-	categoryTestItemTitle = "%s is already in these categories...\n",
-	categoryTestItemEntry = "%s is not in any used category.",
-}
+L["categoryTestItemSlot"] = "Drop an item into this slot to search for any used category containing it."
+L["categoryTestItemTitle"] = "%s is already in these categories...\n"
+L["categoryTestItemEntry"] = "%s is not in any used category."

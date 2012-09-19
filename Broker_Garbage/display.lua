@@ -11,8 +11,11 @@ local fmod = math.fmod
 local floor = math.floor
 local _G = _G
 
+local LibQTip = LibStub("LibQTip-1.0")
+local LibDataBroker = LibStub("LibDataBroker-1.1")
+
 -- == LDB Display ==
-BG.LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
+BG.LDB = LibDataBroker:NewDataObject("Broker_Garbage", {
 	type	= "data source",
 	icon	= "Interface\\Icons\\achievement_bg_returnxflags_def_wsg",
 	label	= "Garbage",
@@ -20,7 +23,11 @@ BG.LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Broker_Garbage", {
 
 	OnClick = function(...) BG:OnClick(...) end,
 	OnEnter = function(...) BG:Tooltip(...) end,
-	OnLeave = function() end,	-- needed for e.g. NinjaPanel
+	OnLeave = function(...)
+		if LibQTip:IsAcquired("BrokerGarbage_LDB") then
+			LibQTip:Release(BG.tt)
+		end
+	end,
 })
 
 function BG:UpdateLDB()
@@ -36,7 +43,7 @@ function BG:UpdateLDB()
 	end
 end
 
-local disenchantButtonCell, disenchantCellPrototype = LibStub("LibQTip-1.0"):CreateCellProvider()
+local disenchantButtonCell, disenchantCellPrototype = LibQTip:CreateCellProvider()
 function disenchantCellPrototype:InitializeCell()
 	-- nothing
 end
@@ -70,7 +77,7 @@ end
 
 function BG:Tooltip(self)
 	local colNum = 1 + (BG_GlobalDB.showSource and 4 or 3)
-	BG.tt = LibStub("LibQTip-1.0"):Acquire("BG_TT", colNum, "LEFT", "RIGHT", "RIGHT", colNum == 4 and "CENTER" or nil)
+	BG.tt = LibQTip:Acquire("BrokerGarbage_LDB", colNum, "LEFT", "RIGHT", "RIGHT", colNum == 4 and "CENTER" or nil)
 	BG.tt:Clear()
 
 	-- font settings

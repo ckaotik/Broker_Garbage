@@ -10,30 +10,40 @@
 ## Notes: Full bags no more! Distinguish between junk and treasure, find items to drop quickly.
 ## Notes-deDE: Unterscheide Trödel von Schätzen und finde billigen Müll zum Platzschaffen.
 
+## Notes-frFR: @localization(locale="frFR", key="TOC_Notes", namespace="Core")@
+## Notes-itIT: @localization(locale="itIT", key="TOC_Notes", namespace="Core")@
+## Notes-koKR: @localization(locale="koKR", key="TOC_Notes", namespace="Core")@
+## Notes-esMX: @localization(locale="esMX", key="TOC_Notes", namespace="Core")@
+## Notes-ruRU: @localization(locale="ruRU", key="TOC_Notes", namespace="Core")@
+## Notes-zhCN: @localization(locale="zhCN", key="TOC_Notes", namespace="Core")@
+## Notes-esES: @localization(locale="esES", key="TOC_Notes", namespace="Core")@
+## Notes-zhTW: @localization(locale="zhTW", key="TOC_Notes", namespace="Core")@
+## Notes-ptBR: @localization(locale="ptBR", key="TOC_Notes", namespace="Core")@
+
 ## LoadManagers: AddonLoader, Addon Control Panel
 ## X-LoadOn-Always: delayed
 ## X-Version: 2
 
-## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
+## X-Website: http://wow.curseforge.com/addons/broker_garbage/
 ## X-RelSite-WoWI: 15531
 ## X-Category: Inventory
-## X-Localizations: enUS, deDE, zhTW (a9012456), works in any language
+## X-Localizations: enUS, deDE, zhTW
 ## X-Credits: GarbageFu, tekkub, Mirroar
 ## X-License: BSD
 
 # libraries
-libs\LibStub.lua
-libs\CallbackHandler-1.0.lua
 libs\LibDataBroker-1.1.lua
-libs\LibQTip-1.0.lua
+#@no-lib-strip@
+libs\LibStub\LibStub.lua
+libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+libs\LibQTip-1.0\LibQTip-1.0.lua
 libs\Unfit-1.0\Unfit-1.0.lua
-libs\LibPeriodicTable-3.1\LibPeriodicTable-3.1\LibPeriodicTable-3.1.lua
-libs\LibPeriodicTable-3.1\modules.xml
+#@end-no-lib-strip@
 
 # localization files
 locale\enUS.lua
 locale\deDE.lua
-locale\zhTW.lua
+locale\curse.lua
 
 # main files
 constants.lua

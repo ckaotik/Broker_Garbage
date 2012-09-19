@@ -1,99 +1,100 @@
 -- German localisation file
 local _, BGLM = ...
+local L = BGLM.locale
 
 if GetLocale() == "deDE" then
-	BGLM.locale.CreatureTypeBeast = "Wildtier"
-	BGLM.locale.GlobalSetting = "\n|cffffff9aDiese Einstellung ist global."
+	L["CreatureTypeBeast"] = "Wildtier"
+	L["GlobalSetting"] = "\n|cffffff9aDiese Einstellung ist global."
 
 	-- Chat Messages
-	BGLM.locale.couldNotLootValue = "%sx%d wurde nicht geplündert, da es zu billig ist."
-	BGLM.locale.couldNotLootCompareValue = "%sx%d wurde nicht geplündert, da es zu billig ist. Inventar ist voll!"
-	BGLM.locale.couldNotLootBlacklist = "%sx%d wurde nicht geplündert, da es auf deiner Blacklist steht."
-	BGLM.locale.couldNotLootLocked = "Konnte %sx%d nicht plündern, da es gesperrt ist. Bitte plündere es manuell."
-	BGLM.locale.couldNotLootSpace = "Konnte %sx%d nicht plündern, da dein Inventar voll ist."
-	BGLM.locale.couldNotLootLM = "Du bist Plündermeister, bitte verteile %s manuell."
+	L["couldNotLootValue"] = "%sx%d wurde nicht geplündert, da es zu billig ist."
+	L["couldNotLootCompareValue"] = "%sx%d wurde nicht geplündert, da es zu billig ist. Inventar ist voll!"
+	L["couldNotLootBlacklist"] = "%sx%d wurde nicht geplündert, da es auf deiner Blacklist steht."
+	L["couldNotLootLocked"] = "Konnte %sx%d nicht plündern, da es gesperrt ist. Bitte plündere es manuell."
+	L["couldNotLootSpace"] = "Konnte %sx%d nicht plündern, da dein Inventar voll ist."
+	L["couldNotLootLM"] = "Du bist Plündermeister, bitte verteile %s manuell."
 
-	BGLM.locale.errorInventoryFull = "Etwas konnte nicht geplündert werden, da dein Inventar voll ist. Bitte manuell plündern!"
+	L["errorInventoryFull"] = "Etwas konnte nicht geplündert werden, da dein Inventar voll ist. Bitte manuell plündern!"
 
 	-- Loot Manager
-	BGLM.locale.LMTitle = "Loot Manager"
-	BGLM.locale.LMSubTitle = "Der Loot Manager kann den gesamten Lootvorgang sowie deinen Inventarplatz verwalten, wenn du ihn lässt."
+	L["LMTitle"] = "Loot Manager"
+	L["LMSubTitle"] = "Der Loot Manager kann den gesamten Lootvorgang sowie deinen Inventarplatz verwalten, wenn du ihn lässt."
 
-	BGLM.locale.GroupLooting = "Lootverhalten"
-	BGLM.locale.GroupInventory = "Inventar"
-	BGLM.locale.GroupNotices = " Benachrichtigungen"
-	BGLM.locale.GroupThreshold = "Grenzwerte"
+	L["GroupLooting"] = "Lootverhalten"
+	L["GroupInventory"] = "Inventar"
+	L["GroupNotices"] = " Benachrichtigungen"
+	L["GroupThreshold"] = "Grenzwerte"
 
-	BGLM.locale.LMEnableInCombatTitle = "Im Kampf aktivieren"
-	BGLM.locale.LMEnableInCombatTooltip = "Wenn ausgewählt wird der Loot Manager auch im Kampf versuchen, Beute zu plündern."
+	L["LMEnableInCombatTitle"] = "Im Kampf aktivieren"
+	L["LMEnableInCombatTooltip"] = "Wenn ausgewählt wird der Loot Manager auch im Kampf versuchen, Beute zu plündern."
 
-	BGLM.locale.LMAutoLootTitle = "Autoloot"
-	BGLM.locale.LMAutoLootTooltip = "Wenn nicht ausgewählt wird Broker_Garbage nur in bestimmten Situationen looten (s.u.)."
-	BGLM.locale.disableBlizzAutoLoot = "\n|cffff0000Warnung:|r Bitte deaktiviere Blizzards Schnell-Plündern."
+	L["LMAutoLootTitle"] = "Autoloot"
+	L["LMAutoLootTooltip"] = "Wenn nicht ausgewählt wird Broker_Garbage nur in bestimmten Situationen looten (s.u.)."
+	L["disableBlizzAutoLoot"] = "\n|cffff0000Warnung:|r Bitte deaktiviere Blizzards Schnell-Plündern."
 
-	BGLM.locale.LMAutoLootSkinningTitle = "Kürschnern"
-	BGLM.locale.LMAutoLootSkinningTooltip = "Wenn ausgewählt wird Broker_Garbage versuchen, von dir kürschnerbare Kreaturen zu plündern."
+	L["LMAutoLootSkinningTitle"] = "Kürschnern"
+	L["LMAutoLootSkinningTooltip"] = "Wenn ausgewählt wird Broker_Garbage versuchen, von dir kürschnerbare Kreaturen zu plündern."
 
-	BGLM.locale.LMAutoLootPickpocketTitle = "Taschendiebstahl"
-	BGLM.locale.LMAutoLootPickpocketTooltip = "Wenn ausgewählt wird Broker_Garbage automatisch plündern, wenn du ein Schurke in Verstohlenheit bist."
+	L["LMAutoLootPickpocketTitle"] = "Taschendiebstahl"
+	L["LMAutoLootPickpocketTooltip"] = "Wenn ausgewählt wird Broker_Garbage automatisch plündern, wenn du ein Schurke in Verstohlenheit bist."
 
-	BGLM.locale.LMAutoLootFishingTitle = "Angeln"
-	BGLM.locale.LMAutoLootFishingTooltip = "Wenn ausgewählt wird Broker_Garbage automatisch plündern, wenn du angelst."
+	L["LMAutoLootFishingTitle"] = "Angeln"
+	L["LMAutoLootFishingTooltip"] = "Wenn ausgewählt wird Broker_Garbage automatisch plündern, wenn du angelst."
 
-	BGLM.locale.LMAutoAcceptLootTitle = "BoP autom. annehmen"
-	BGLM.locale.LMAutoAcceptLootTooltip = "Auswählen, um beim Aufheben gebundene Gegestände anzunehmen."
+	L["LMAutoAcceptLootTitle"] = "BoP autom. annehmen"
+	L["LMAutoAcceptLootTooltip"] = "Auswählen, um beim Aufheben gebundene Gegestände anzunehmen."
 
-	BGLM.locale.LMCloseLootTitle = "Fenster schließen"
-	BGLM.locale.LMCloseLootTooltip = "Auswählen, um das Lootfenster automatisch zu schließen, sobald keine interessanten Items mehr enthalten sind.\n|cffff0000Achtung|r: Dies kann Probleme mit anderen Addons verursachen."
+	L["LMCloseLootTitle"] = "Fenster schließen"
+	L["LMCloseLootTooltip"] = "Auswählen, um das Lootfenster automatisch zu schließen, sobald keine interessanten Items mehr enthalten sind.\n|cffff0000Achtung|r: Dies kann Probleme mit anderen Addons verursachen."
 
-	BGLM.locale.LMKeepPLOpenTitle = "Eigenes offen lassen"
-	BGLM.locale.LMKeepPLOpenTooltip = "Auswählen, um das Lootfenster offen zu lassen, wenn ein relevantes Item nicht geplündert werden kann und es sich um persönliche Beute handelt (z.B. Item-Beutel aus den Taschen, Bergbau-Vorkommen)."
+	L["LMKeepPLOpenTitle"] = "Eigenes offen lassen"
+	L["LMKeepPLOpenTooltip"] = "Auswählen, um das Lootfenster offen zu lassen, wenn ein relevantes Item nicht geplündert werden kann und es sich um persönliche Beute handelt (z.B. Item-Beutel aus den Taschen, Bergbau-Vorkommen)."
 
-	BGLM.locale.LMForceClearTitle = "Immer alles leeren"
-	BGLM.locale.LMForceClearTooltip = "Wenn ausgewählt wird Broker_Garbage immer alle Items plündern, auch wenn du kein Kürschner bist. Diese Einstellung kann zu Verlusten führen!"
+	L["LMForceClearTitle"] = "Immer alles leeren"
+	L["LMForceClearTooltip"] = "Wenn ausgewählt wird Broker_Garbage immer alle Items plündern, auch wenn du kein Kürschner bist. Diese Einstellung kann zu Verlusten führen!"
 
-	BGLM.locale.lootJunkTitle = "'Müll' plündern"
-	BGLM.locale.lootJunkTooltip = "Wenn ausgewählt werden Items von der 'Müll'-Liste ganz regulär geplündert."
+	L["lootJunkTitle"] = "'Müll' plündern"
+	L["lootJunkTooltip"] = "Wenn ausgewählt werden Items von der 'Müll'-Liste ganz regulär geplündert."
 
-	BGLM.locale.lootKeepTitle = "'Behalten' plündern"
-	BGLM.locale.lootKeepTooltip = "Wenn ausgewählt werden Items von der 'Behalten'-Liste immer geplündert."
+	L["lootKeepTitle"] = "'Behalten' plündern"
+	L["lootKeepTooltip"] = "Wenn ausgewählt werden Items von der 'Behalten'-Liste immer geplündert."
 
-	BGLM.locale.LMAutoDestroyTitle = "Auto-Zerstören"
-	BGLM.locale.LMAutoDestroyTooltip = "Wenn ausgewählt wird Broker_Garbage bei zu wenig Platz versuchen, welchen zu schaffen."
+	L["LMAutoDestroyTitle"] = "Auto-Zerstören"
+	L["LMAutoDestroyTooltip"] = "Wenn ausgewählt wird Broker_Garbage bei zu wenig Platz versuchen, welchen zu schaffen."
 
-	BGLM.locale.LMAutoDestroyInstantTitle = "Platz Erzwingen"
-	BGLM.locale.LMAutoDestroyInstantTooltip = "Wenn ausgewählt können Items sofort gelöscht werden. Ansonsten erfolgt das Löschen erst, sobald du etwas besseres findest und keinen Platz hast."
-	BGLM.locale.LMAutoDestroy_ErrorNoItems = "Fehler! Es gibt keine Möglichkeit, durch Zerstören weiteren Platz zu schaffen."
+	L["LMAutoDestroyInstantTitle"] = "Platz Erzwingen"
+	L["LMAutoDestroyInstantTooltip"] = "Wenn ausgewählt können Items sofort gelöscht werden. Ansonsten erfolgt das Löschen erst, sobald du etwas besseres findest und keinen Platz hast."
+	L["LMAutoDestroy_ErrorNoItems"] = "Fehler! Es gibt keine Möglichkeit, durch Zerstören weiteren Platz zu schaffen."
 
-	BGLM.locale.printDebugTitle = "Debugausgabe zeigen"
-	BGLM.locale.printDebugTooltip = "Auswählen um LootManager Debug-Informationen im Chat auszugeben. Tendiert dazu, den Chat vollzuspammen."
+	L["printDebugTitle"] = "Debugausgabe zeigen"
+	L["printDebugTooltip"] = "Auswählen um LootManager Debug-Informationen im Chat auszugeben. Tendiert dazu, den Chat vollzuspammen."
 
-	BGLM.locale.LMFreeSlotsTitle = "Min. freier Inventarplatz"
-	BGLM.locale.LMFreeSlotsTooltip = "Setze das Minimum an freien Taschenplätzen, bei dem Broker_Garbage automatisch Platz schaffen soll."
+	L["LMFreeSlotsTitle"] = "Min. freier Inventarplatz"
+	L["LMFreeSlotsTooltip"] = "Setze das Minimum an freien Taschenplätzen, bei dem Broker_Garbage automatisch Platz schaffen soll."
 
-	BGLM.locale.LMWarnLMTitle = "Plündermeister"
-	BGLM.locale.LMWarnLMTooltip = "Wenn ausgewählt wird Broker_Garbage eine Meldung zeigen, die dich auffordert, die Beute zu verteilen."
+	L["LMWarnLMTitle"] = "Plündermeister"
+	L["LMWarnLMTooltip"] = "Wenn ausgewählt wird Broker_Garbage eine Meldung zeigen, die dich auffordert, die Beute zu verteilen."
 
-	BGLM.locale.LMWarnInventoryFullTitle = "Inventar ist voll"
-	BGLM.locale.LMWarnInventoryFullTooltip = "Auswählen um eine Chatnachricht zu erhalten, wann immer ein 'Inventar ist voll.'-Fehler erscheint."
+	L["LMWarnInventoryFullTitle"] = "Inventar ist voll"
+	L["LMWarnInventoryFullTooltip"] = "Auswählen um eine Chatnachricht zu erhalten, wann immer ein 'Inventar ist voll.'-Fehler erscheint."
 
-	BGLM.locale.printValueTitle = "Ist zu billig"
-	BGLM.locale.printValueText = "Wenn ausgewählt wird Broker_Garbage eine Meldung ausgeben wenn ein Item nicht geplündert wird, da es billiger als der Mindestwert zum Plündern ist (siehe unten)."
+	L["printValueTitle"] = "Ist zu billig"
+	L["printValueText"] = "Wenn ausgewählt wird Broker_Garbage eine Meldung ausgeben wenn ein Item nicht geplündert wird, da es billiger als der Mindestwert zum Plündern ist (siehe unten)."
 
-	BGLM.locale.printCompareValueTitle = "Ist billiger als alles"
-	BGLM.locale.printCompareValueText = "Wenn ausgewählt wird Broker_Garbage eine Meldung ausgeben wenn ein Item nicht geplündert wird, da es billiger ist als alles, was wir dafür wegwerfen könnten."
+	L["printCompareValueTitle"] = "Ist billiger als alles"
+	L["printCompareValueText"] = "Wenn ausgewählt wird Broker_Garbage eine Meldung ausgeben wenn ein Item nicht geplündert wird, da es billiger ist als alles, was wir dafür wegwerfen könnten."
 
-	BGLM.locale.printJunkTitle = "Ist Müll"
-	BGLM.locale.printJunkText = "Wenn ausgewählt wird Broker_Garbage eine Meldung ausgeben wenn ein Item nicht geplündert wird, da es auf der Müllliste steht."
+	L["printJunkTitle"] = "Ist Müll"
+	L["printJunkText"] = "Wenn ausgewählt wird Broker_Garbage eine Meldung ausgeben wenn ein Item nicht geplündert wird, da es auf der Müllliste steht."
 
-	BGLM.locale.printSpaceTitle = "Taschen sind voll"
-	BGLM.locale.printSpaceText = "Wenn ausgewählt wird Broker_Garbage eine Meldung ausgeben wenn ein Item nicht geplündert wird, da kein Platz mehr in deinen Taschen ist, autozerstören aber deaktiviert ist."
+	L["printSpaceTitle"] = "Taschen sind voll"
+	L["printSpaceText"] = "Wenn ausgewählt wird Broker_Garbage eine Meldung ausgeben wenn ein Item nicht geplündert wird, da kein Platz mehr in deinen Taschen ist, autozerstören aber deaktiviert ist."
 
-	BGLM.locale.printLockedTitle = "Ist gesperrt"
-	BGLM.locale.printLockedText = "Wenn ausgewählt wird Broker_Garbage eine Meldung ausgeben wenn ein Item nicht geplündert wird, da es gesperrt ist (z.B. wenn jemand anderes bereits plündert)."
+	L["printLockedTitle"] = "Ist gesperrt"
+	L["printLockedText"] = "Wenn ausgewählt wird Broker_Garbage eine Meldung ausgeben wenn ein Item nicht geplündert wird, da es gesperrt ist (z.B. wenn jemand anderes bereits plündert)."
 
-	BGLM.locale.LMItemMinValue = "Mindestwert zum Looten"
+	L["LMItemMinValue"] = "Mindestwert zum Looten"
 
-	BGLM.locale.minLootQualityTitle = "Mindestqualität"
-	BGLM.locale.minLootQualityTooltip = "Der LootManager wird keine Gegenstände unterhalb der hier angegebenen Qualität plündern."
+	L["minLootQualityTitle"] = "Mindestqualität"
+	L["minLootQualityTooltip"] = "Der LootManager wird keine Gegenstände unterhalb der hier angegebenen Qualität plündern."
 end

@@ -132,7 +132,7 @@ local function Options_BasicOptions(pluginID)
 	disableKeyLabel:SetText(BGC.locale.DKTitle)
 	_G[disableKey:GetName() .. "Button"]:SetPoint("LEFT", _G[disableKey:GetName().."Middle"])
 	UIDropDownMenu_SetSelectedValue(disableKey, Broker_Garbage:GetOption("disableKey", true))
-	UIDropDownMenu_SetText(disableKey, BGC.locale.disableKeys[Broker_Garbage:GetOption("disableKey", true)])
+	UIDropDownMenu_SetText(disableKey, BGC.locale["disableKey_"..Broker_Garbage:GetOption("disableKey", true)])
 	UIDropDownMenu_SetWidth(disableKey, 150, 0)
 	UIDropDownMenu_JustifyText(disableKey, "LEFT")
 
@@ -144,7 +144,7 @@ local function Options_BasicOptions(pluginID)
 		local selected, info = UIDropDownMenu_GetSelectedValue(disableKey), UIDropDownMenu_CreateInfo()
 		local keys = Broker_Garbage:GetVariable("disableKey")
 		for name in pairs(keys) do
-			info.text = BGC.locale.disableKeys[name]
+			info.text = BGC.locale["disableKey_"..name]
 			info.value = name
 			info.func = DisableKeyOnSelect
 			info.checked = name == selected

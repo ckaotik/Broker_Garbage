@@ -9,6 +9,16 @@
 ## Notes: Plugin for Broker_Garbage. Selective looting and more!
 ## Notes-deDE: Plugin für Broker_Garbage. Selektives Plündern und mehr!
 
+## Notes-frFR: @localization(locale="frFR", key="TOC_Notes", namespace="LootManager")@
+## Notes-itIT: @localization(locale="itIT", key="TOC_Notes", namespace="LootManager")@
+## Notes-koKR: @localization(locale="koKR", key="TOC_Notes", namespace="LootManager")@
+## Notes-esMX: @localization(locale="esMX", key="TOC_Notes", namespace="LootManager")@
+## Notes-ruRU: @localization(locale="ruRU", key="TOC_Notes", namespace="LootManager")@
+## Notes-zhCN: @localization(locale="zhCN", key="TOC_Notes", namespace="LootManager")@
+## Notes-esES: @localization(locale="esES", key="TOC_Notes", namespace="LootManager")@
+## Notes-zhTW: @localization(locale="zhTW", key="TOC_Notes", namespace="LootManager")@
+## Notes-ptBR: @localization(locale="ptBR", key="TOC_Notes", namespace="LootManager")@
+
 ## LoadManagers: AddonLoader, Addon Control Panel
 ## LoadWith: Broker_Garbage, Broker_Garbage-Config
 
@@ -18,7 +28,7 @@
 # localization files
 locale\enUS.lua
 locale\deDE.lua
-locale\zhTW.lua
+locale\curse.lua
 
 # code files
 util.lua
