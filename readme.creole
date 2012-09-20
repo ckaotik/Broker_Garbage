@@ -32,7 +32,7 @@ You can disable almost all of these in the options panel. Default values are non
 * limit items such as Light Feather (never keep more than X of these)
 * restack your inventory if needed
 * keeps statistics of gains & losses
-* localized in English, German and simple Chinese (partially), works in any language
+* localized in English, German and traditional Chinese, works in any language
 
 === Broker_Garbage - Loot Manager ===
 
@@ -42,7 +42,7 @@ You can disable almost all of these in the options panel. Default values are non
 * clear skinnable mobs, loot when pickpocketing or fishing
 * option to auto destroy cheaper items to loot more valuable ones
 * option to destroy items over their limit
-* localized in English, German and simple Chinese (partially), some features might not work in other locales
+* localized in English, German and traditional Chinese, some features might not work in other locales
 
 == Support ==
 
@@ -70,25 +70,25 @@ In your bug report (or feature suggestion) include any information I could need.
 * Is it connected to an action, item, character class? If so, which?
 * What is happening - and what would you expect to happen, instead?
 
-=== Further information, hints, etc ===
+== Further information, hints, etc ==
 
-==== How to disable it //temporarily//? ====
+=== How to disable it //temporarily//? ===
 Hold down your chosen disable key (SHIFT by default). If you want to prevent looting or selling, hold it until the corresponding frame shows up!
 
-==== Tooltip Shortcuts ====
+=== Tooltip Shortcuts ===
 * SHIFT + Click: Delete the item on that line
 * CTRL + Click: Add the item on that line to your Keep List
 * ALT + Click: Add the item on that line to your Fixed Price List
 
-==== How to add item categories? ====
+=== How to add item categories? ===
 Right-click on the blue "+" button on the options panel. Then choose your desired entry.
 
-==== How to limit an item? ====
+=== How to limit an item? ===
 This on any list except for Fixed Price List. Use your mouse wheel to increase/decrease the count, hold SHIFT while doing so to move 10 steps at a time.
 
-==== What of those question mark item icons? ====
+=== What of those question mark item icons? ===
 Those are items your client doesn't know yet. Hover them to update the display.
 
-==== Anything else? ====
+=== Anything else? ===
 Broker_Garbage uses the slash command /garbage (or /garb in short).
 For more detailed information on how things work, have a look at the readme.txt files in the addon folders.
