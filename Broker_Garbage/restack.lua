@@ -9,6 +9,7 @@ local ipairs = ipairs
 local floor = math.floor
 local tinsert = table.insert
 local tremove = table.remove
+local format = string.format
 
 local restackQueue = {}
 function BG.QueryRestackForItem(itemID)
@@ -62,8 +63,8 @@ function BG.Restack()
 end
 
 function BG.RestackIteration()
-	local count, isLocked, targetCount, targetLocked, targetIndex
-	local failed, stackSize
+	local sourceCount, sourceLocked, targetCount, targetLocked, targetIndex
+	local fromSlot, toSlot, fromBag, toBag, stackSize
 	local numMoves = 0
 
 	for itemID, locations in pairs(restackQueue) do
@@ -72,25 +73,34 @@ function BG.RestackIteration()
 		for currentIndex = 1, floor(#(locations)/2) do
 			targetIndex = #(locations) - currentIndex + 1
 			if currentIndex == targetIndex then break end
-			failed = nil
 
-			_, count, isLocked = GetContainerItemInfo(locations[currentIndex][1], locations[currentIndex][2])
-			_, targetCount, targetLocked = GetContainerItemInfo(locations[targetIndex][1], locations[targetIndex][2])
+			fromBag, fromSlot 	= locations[currentIndex][1], locations[currentIndex][2]
+			toBag, toSlot 		= locations[targetIndex][1], locations[targetIndex][2]
 
-			if not isLocked and not targetLocked
-				and BG.MoveItem(itemID, locations[currentIndex][1], locations[currentIndex][2],
-					locations[targetIndex][1], locations[targetIndex][2]) then
-				numMoves = numMoves + 2
+			_, sourceCount, sourceLocked = GetContainerItemInfo(fromBag, fromSlot)
+			_, targetCount, targetLocked = GetContainerItemInfo(toBag, toSlot)
+
+			if sourceCount and targetCount then
+				if not sourceLocked and not targetLocked and BG.MoveItem(itemID, fromBag, fromSlot, toBag, toSlot) then
+					numMoves = numMoves + 2
+
+					if sourceCount + targetCount <= stackSize then
+						numMoves = numMoves - 1
+						tinsert(restackQueue[itemID][currentIndex], true)
+					end
+					if sourceCount + targetCount >= stackSize then
+						tinsert(restackQueue[itemID][targetIndex], true)
+					end
+				end
 			else
-				failed = true
-			end
-
-			if not failed and count + targetCount <= stackSize then
-				numMoves = numMoves - 1
-				tinsert(restackQueue[itemID][currentIndex], true)
-			end
-			if not failed and count + targetCount >= stackSize then
-				tinsert(restackQueue[itemID][targetIndex], true)
+				if not sourceCount then
+					BG.Debug(format("source slot %d.%d is empty", fromBag, fromSlot))
+					tinsert(restackQueue[itemID][currentIndex], true)
+				end
+				if not targetCount then
+					BG.Debug(format("target slot %d.%d is empty", toBag, toSlot))
+					tinsert(restackQueue[itemID][targetIndex], true)
+				end
 			end
 		end
 		-- update locations: remove empty/full slots
