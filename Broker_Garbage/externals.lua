@@ -67,10 +67,10 @@ end
 
 -- resets statistics. global = true -> global, otherwise local
 function BG.ResetStatistics(isGlobal)
-	BG:ResetOption("moneyEarned", isGlobal)
-	BG:ResetOption("moneyLostByDeleting", isGlobal)
-	BG:ResetOption("itemsDropped", isGlobal)
-	BG:ResetOption("itemsSold", isGlobal)
+	BG.ResetOption("moneyEarned", isGlobal)
+	BG.ResetOption("moneyLostByDeleting", isGlobal)
+	BG.ResetOption("itemsDropped", isGlobal)
+	BG.ResetOption("itemsSold", isGlobal)
 end
 
 -- external access, for modules etc.

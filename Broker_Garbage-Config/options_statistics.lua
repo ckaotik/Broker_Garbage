@@ -13,11 +13,8 @@ local function Options_Statistics(pluginID)
 
 	local function ResetStatistics(self)
 		if not self or not self.stat then return end
-
-		local variable = Broker_Garbage:GetOption(self.stat, self.isGlobal)
-		if variable then
-			Broker_Garbage:SetOption(self.stat, self.isGlobal, 0)
-		end
+		Broker_Garbage.ResetOption(self.stat, self.isGlobal)
+		BGC.UpdateOptionsPanel()
 	end
 
 	local function AddStatistic(stat, label, value, tooltip, ...)
@@ -133,7 +130,7 @@ local function Options_Statistics(pluginID)
 	resetAll.tiptext = BGC.locale.ResetAllTooltip
 	resetAll:SetWidth(150)
 	resetAll:SetScript("OnClick", function()
-		Broker_Garbage:ResetAll( IsShiftKeyDown() )
+		Broker_Garbage.ResetStatistics( IsShiftKeyDown() )
 		panel:Update()
 	end)
 
