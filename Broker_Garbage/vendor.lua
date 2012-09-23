@@ -80,7 +80,7 @@ function BG.ReportSelling(repairCost, iteration, maxIteration, isGuildRepair)
 end
 
 function BG.CheckSoldItems()
-	local item, isLocked, curItem, itemLocked
+	local item, isLocked, curItem, itemLocked, vendorValue
 	local actualSellValue, numItemsSold = 0, 0
 	for sellIndex, tableIndex in ipairs(BG.sellLog) do
 		item = BG.cheapestItems[tableIndex]
@@ -94,7 +94,8 @@ function BG.CheckSoldItems()
 			BG.Debug("Can't sell item "..item.itemLink..", ("..item.bag..", "..item.slot..")")
 			tremove(BG.sellLog, sellIndex)
 		else
-			actualSellValue = actualSellValue + item.value
+			vendorValue = select(11, GetItemInfo(item.itemID))
+			actualSellValue = actualSellValue + (vendorValue * item.count)
 			numItemsSold = numItemsSold + item.count
 
 			if BG_GlobalDB.showSellLog then
