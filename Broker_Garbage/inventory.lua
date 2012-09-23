@@ -1,7 +1,7 @@
 local _, BG = ...
 
 -- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, TopFit
--- GLOBALS: GetContainerNumSlots, GetContainerNumFreeSlots, GetContainerItemLink, GetContainerItemID, GetContainerItemInfo, GetItemInfo, GetInventoryItemsForSlot, GetItemFamily
+-- GLOBALS: GetContainerNumSlots, GetContainerNumFreeSlots, GetContainerItemLink, GetContainerItemID, GetContainerItemInfo, GetItemInfo, GetInventoryItemsForSlot, GetItemFamily, IsEquippedItem
 local type = type
 local pairs = pairs
 local ipairs = ipairs
@@ -11,6 +11,7 @@ local band = bit.band
 local sort = table.sort
 local concat = table.concat
 local tinsert = table.insert
+local tContains = tContains
 local format = string.format
 local join = string.join
 local find = string.find
@@ -233,28 +234,26 @@ function BG.SortCheapestItemsList(a, b)
 	end
 end
 
-function BG.UpdateItemLocations()
-	for k, v in pairs(BG.itemLocations) do
-		wipe(v)
-	end
+function BG.SyncItemLocations()
+	wipe(BG.itemLocations)
 
 	local itemID, locations
 	local numEntries = #BG.cheapestItems
 
 	BG.junkValue = 0
-	for tableIndex, item in ipairs(BG.cheapestItems) do
-		itemID = item.itemID
-		locations = BG.itemLocations[itemID]
+	for tableIndex, cheapestItem in ipairs(BG.cheapestItems) do
+		if not cheapestItem.invalid then
+			itemID = cheapestItem.itemID
+			locations = BG.itemLocations[itemID]
 
-		if not item.invalid then
 			if not locations then	-- new item
 				BG.itemLocations[itemID] = { tableIndex }
 			else -- if not BG.Find(locations, tableIndex) then	-- item is known, slot is not
 				tinsert(locations, tableIndex)
 			end
 
-			if item.sell and item.value and item.value ~= 0 and item.count then
-				BG.junkValue = BG.junkValue + item.value
+			if cheapestItem.sell and cheapestItem.value and cheapestItem.value ~= 0 and cheapestItem.count then
+				BG.junkValue = BG.junkValue + cheapestItem.value
 			end
 		end
 	end
@@ -263,7 +262,7 @@ end
 -- sort item list and updates LDB accordingly
 function BG.SortItemList()
 	sort(BG.cheapestItems, BG.SortCheapestItemsList)
-	BG.UpdateItemLocations()
+	BG.SyncItemLocations()
 	BG.UpdateLDB()
 end
 
@@ -375,17 +374,23 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 				end
 				local itemsForSlot = {}
 				for _, itemID in pairs(itemsForInvType) do
-					tinsert(itemsForSlot, itemID)
+					if not tContains(itemsForSlot, itemID) then
+						tinsert(itemsForSlot, itemID)
+					end
 				end
 				sort(itemsForSlot, function(a, b) -- sort by itemLevel, descending
+					if not a or not GetItemInfo(a) then
+						BG.Dump(itemsForSlot, true)
+					end
 					local itemNameA, _, _, itemLevelA = GetItemInfo(a)
 					local itemNameB, _, _, itemLevelB = GetItemInfo(b)
+
 					if itemLevelA == itemLevelB then
-						if IsEquippedItem(itemNameA) or IsEquippedItem(itemNameB) then
+						if IsEquippedItem(itemNameA) == IsEquippedItem(itemNameB) then
+							return itemNameA < itemNameB
+						else
 							-- equipped item has priority
 							return IsEquippedItem(itemNameA)
-						else
-							return itemNameA < itemNameB
 						end
 					else
 						return itemLevelA > itemLevelB
