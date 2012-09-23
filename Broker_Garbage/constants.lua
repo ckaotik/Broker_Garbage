@@ -69,7 +69,7 @@ BG.defaultLocalSettings = {
 	autoSellList = {},
 
 	-- behavior
-	repairGuildBank = true,
+	repairGuildBank = nil,
 
 	-- default values
 	moneyLostByDeleting = 0,

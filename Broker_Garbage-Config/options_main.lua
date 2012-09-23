@@ -93,11 +93,11 @@ local function Options_BasicOptions(pluginID)
 
 	local guildrepair = BGC.CreateCheckBox(behavior, nil, BGC.locale.autoRepairGuildTitle, "TOPLEFT", repair, "BOTTOMLEFT", 14, 4)
 	guildrepair.tiptext = BGC.locale.autoRepairGuildText
-	guildrepair:SetChecked( Broker_Garbage:GetOption("repairGuildBank", true) )
+	guildrepair:SetChecked( Broker_Garbage:GetOption("repairGuildBank") )
 	local checksound = guildrepair:GetScript("OnClick")
 	guildrepair:SetScript("OnClick", function(self)
 		checksound(self)
-		Broker_Garbage:ToggleOption("repairGuildBank", true)
+		Broker_Garbage:ToggleOption("repairGuildBank")
 	end)
 
 	local enchanter = BGC.CreateCheckBox(behavior, nil, BGC.locale.enchanterTitle, "TOPLEFT", guildrepair, "BOTTOMLEFT", -14, 4)
