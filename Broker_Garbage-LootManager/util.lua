@@ -15,6 +15,7 @@ BGLM.privateLootSpells = { 51005, 13262, 31252, 73979, 49383,		-- milling, disen
 	2575, 2576, 3564, 10248, 29354, 50310, 74517, 102161, 	-- mining
 	2366, 2368, 3570, 11993, 28695, 60300, 74519, 110413, 		-- herbalism
 	8613, 8617, 8618, 10768, 32678, 50305, 74522, 102216, 		-- skinning
+	-- 3365, -- "opening"
 }
 
 function BGLM:Print(text, trigger)
@@ -224,8 +225,10 @@ function BGLM:GetLootConstraint()
 end
 
 function BGLM:DeleteCheapestItem()
-	local item = Broker_Garbage.cheapestItems and Broker_Garbage.cheapestItems
+	local item = Broker_Garbage.cheapestItems and Broker_Garbage.cheapestItems[1]
 	if item then
 		Broker_Garbage.Delete(item)
+	else
+		BGLM:Print(BGLM.locale.LMAutoDestroy_ErrorNoItems)
 	end
 end

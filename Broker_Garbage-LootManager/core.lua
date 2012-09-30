@@ -69,14 +69,25 @@ local function eventHandler(self, event, arg1, ...)
 		frame:UnregisterEvent(event)
 		BGLM:HandleLootCallback()
 
-	elseif event == "LOOT_BIND_CONFIRM" and BGLM_GlobalDB.autoConfirmBoP then
+	elseif event == "LOOT_BIND_CONFIRM" then
 		BGLM.confirm[arg1] = true
+		if not BGLM_GlobalDB.autoConfirmBoP then
+			BGLM.keepWindowOpen = true
+		end
 
 	elseif event == "LOOT_OPENED" then
 		if not Broker_Garbage:IsDisabled() and (not InCombatLockdown() or BGLM_GlobalDB.useInCombat) then
+			local index, popup = 1
 			for lootSlotID, confirm in pairs(BGLM.confirm) do
-				if confirm then
-					StaticPopup1:Hide()
+				if confirm and BGLM_GlobalDB.autoConfirmBoP then
+					popup = _G["StaticPopup"..index]
+					while popup do
+						if popup:IsVisible() and popup.which == "LOOT_BIND" then
+							popup:Hide()
+						end
+						index = index + 1
+						popup = _G["StaticPopup"..index]
+					end
 				end
 			end
 
@@ -183,7 +194,7 @@ function BGLM.Loot(lootSlotID)
 		BGLM:Debug("Trying to loot, but there is nothing left in slot", lootSlotID)
 	else
 		LootSlot(lootSlotID)
-		if BGLM.confirm[lootSlotID] then
+		if BGLM.confirm[lootSlotID] and BGLM_GlobalDB.autoConfirmBoP then
 			ConfirmLootSlot(lootSlotID)
 		end
 	end
@@ -280,8 +291,8 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 		if addItem then
 			itemMaxStack = select(8, GetItemInfo(slotItemLink))
 			itemInBags = mod(GetItemCount(slotItemLink), itemMaxStack)
-			itemInBags = itemInBags ~= 0 and itemInBags or itemMaxStack
-			itemStackOverflow = slotQuantity + itemInBags - itemMaxStack
+			-- itemInBags = itemInBags ~= 0 and itemInBags or itemMaxStack
+			itemStackOverflow = slotQuantity + (itemInBags ~= 0 and itemInBags or itemMaxStack) - itemMaxStack
 
 			if itemStackOverflow > 0 then
 				targetContainer, _, slotItemBagType = Broker_Garbage.FindBestContainerForItem(slotItemLink)
@@ -300,6 +311,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 			lootData[numItems].itemLink = slotItemLink
 			lootData[numItems].count = slotQuantity
 			lootData[numItems].value = isInteresting and ((slotItem.value or 0) * slotQuantity) or -1
+			lootData[numItems].currentStack = itemInBags
 			lootData[numItems].stackOverflow = itemStackOverflow
 			lootData[numItems].isSpecial = goesIntoSpecialBag
 			lootData[numItems].confirm = needsConfirmation
@@ -377,7 +389,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 					BGLM:Print(format(BGLM.locale.couldNotLootCompareValue, slot.itemLink, slot.count), BGLM_GlobalDB.printCompareValue)
 
 			elseif BGLM_LocalDB.autoDestroy then
-				if slot.stackOverflow > 0 then
+				if slot.stackOverflow > 0 and slot.currentStack ~= 0 then
 					-- delete partial stack. throw away partial stacks to squeeze in a little more
 					BGLM:Debug("Deleting partial stack of", slot.itemLink)
 					local itemID = Broker_Garbage.GetItemID(slot.itemLink)
@@ -418,7 +430,10 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 		end
 	end
 
-	if closeLootWindow and (not IsFishingLoot() or not IsAddOnLoaded("FishingBuddy")) then
+	if BGLM.keepWindowOpen then
+		BGLM:Debug("BoP awaits, keeping window open")
+		BGLM.keepWindowOpen = nil
+	elseif closeLootWindow and (not IsFishingLoot() or not IsAddOnLoaded("FishingBuddy")) then
 		BGLM:Debug("Closing loot window")
 		CloseLoot()
 	end

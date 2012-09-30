@@ -320,7 +320,7 @@ function BG.SetDynamicLabelBySlot(container, slot, itemIndex, isSpecialBag, noCh
 			-- limit exists, but is not yet reached
 			insert = nil
 			classification = BG.EXCLUDE
-			reason = item.reason.." (under limit)"
+			reason = (item.reason and item.reason.." " or "") .. "(under limit)"
 		elseif itemLimit > 0 and itemOverLimit and classification == BG.EXCLUDE then
 			-- inverse logic: KEEP items over limit are handled like regular items
 			value, classification, classificationReason = BG.GetSingleItemValue(item, classification)
