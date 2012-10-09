@@ -173,7 +173,6 @@ function BG:OnClick(itemTable, button)
 	-- handle LDB clicks seperately
 	local LDBclick = false
 	if not itemTable or not itemTable.itemID or type(itemTable.itemID) ~= "number" then
-		BG.Debug("Click on LDB")
 		if (BG.cheapestItems and BG.cheapestItems[1] and not BG.cheapestItems[1].invalid) then
 			itemTable = BG.cheapestItems[1]
 		end

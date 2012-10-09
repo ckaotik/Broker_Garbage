@@ -27,11 +27,10 @@ function BG.AutoSell(manualSell)
 	local cachedItem
 	for tableIndex, item in ipairs(BG.cheapestItems) do
 		if item.sell and not item.invalid then
-			if sellValue == 0 then -- nothing sold yet
+			if sellValue == 0 then
+				BG.Debug("Selling items, scans locked")
 				BG.locked = true
-				BG.Debug("Selling, Scans are now locked")
 			end
-
 			BG.Debug("Selling", item.itemID, item.bag, item.slot)
 			sellValue = sellValue + item.value
 
@@ -51,6 +50,7 @@ end
 function BG.ReportSelling(repairCost, iteration, maxIteration, isGuildRepair)
 	BG.Debug("ReportSelling", repairCost, iteration)
 	local sellValue, numItems, isLocked = BG.CheckSoldItems()
+
 	if isLocked and iteration < (maxIteration or 10)+5 then
 		BG.CallWithDelay(BG.ReportSelling, 0.3, repairCost, iteration+1, maxIteration, isGuildRepair)
 	elseif isLocked then
@@ -72,6 +72,7 @@ function BG.ReportSelling(repairCost, iteration, maxIteration, isGuildRepair)
 
 		BG.locked = nil
 		BG.Debug("Scanning unlocked")
+
 		BG.sellValue, BG.repairCost = 0, 0
 		BG.ScanInventory()
 
@@ -80,18 +81,20 @@ function BG.ReportSelling(repairCost, iteration, maxIteration, isGuildRepair)
 end
 
 function BG.CheckSoldItems()
-	local item, isLocked, curItem, itemLocked, vendorValue
+	local item, isLocked, itemLocked, itemLink, vendorValue, slotString
 	local actualSellValue, numItemsSold = 0, 0
+
 	for sellIndex, tableIndex in ipairs(BG.sellLog) do
 		item = BG.cheapestItems[tableIndex]
-		curItem, _, isLocked = GetContainerItemInfo(item.bag, item.slot)
+		_, _, isLocked, _, _, _, itemLink = GetContainerItemInfo(item.bag, item.slot)
+		slotString = item.bag + item.slot/100
 
-		if curItem and isLocked then
+		if itemLink and isLocked then
 			itemLocked = true
-			BG.Debug("Item not sold: "..item.itemLink..", ("..item.bag..", "..item.slot..")")
-		elseif curItem then
+			BG.Debug("Item not sold: "..itemLink..", "..slotString)
+		elseif itemLink then
 			-- can't sell this item (but tried to!)
-			BG.Debug("Can't sell item "..item.itemLink..", ("..item.bag..", "..item.slot..")")
+			BG.Debug("Can't sell item "..itemLink..", "..slotString)
 			tremove(BG.sellLog, sellIndex)
 		else
 			vendorValue = select(11, GetItemInfo(item.itemID))
@@ -99,7 +102,7 @@ function BG.CheckSoldItems()
 			numItemsSold = numItemsSold + item.count
 
 			if BG_GlobalDB.showSellLog then
-				BG.Print(format(BG.locale.sellItem, item.itemLink, item.count, BG.FormatMoney(item.value)))
+				BG.Print(format(BG.locale.sellItem, itemLink, item.count, BG.FormatMoney(item.value)))
 			end
 		end
 	end

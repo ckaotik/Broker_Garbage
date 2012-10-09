@@ -25,15 +25,15 @@ function BG.GetItemID(itemLink)
 end
 
 -- /dump Broker_Garbage.GetItemListCategories(Broker_Garbage.GetCached(8766))
--- returns a list of (LPT) categories from the user's lists that an item belongs to
+-- returns a list of (LPT or other) categories from the user's lists that an item belongs to
 function BG.GetItemListCategories(item)
 	if not item or type(item) ~= "table" then return end
-	if item.bag then
+	if item.count then
 		-- this is a cheapestList item, but we need cache data
 		item = BG.GetCached(item.itemID)
 	end
 
-	local itemList, itemCategories, maxLimit = BG.lists[item.classification], {}, 0
+	local itemList, itemCategories, maxLimit, maxCategory = BG.lists[item.classification], {}, 0
 	if itemList then
 		local currentList = BG_GlobalDB[itemList]
 		if currentList then
@@ -41,6 +41,7 @@ function BG.GetItemListCategories(item)
 				if type(listItem) == "string" and BG.IsItemInCategory(item.itemID, listItem) then
 					tinsert(itemCategories, listItem)
 					if limit > maxLimit then
+						maxCategory = listItem
 						maxLimit = limit
 					end
 				end
@@ -52,13 +53,14 @@ function BG.GetItemListCategories(item)
 				if type(listItem) == "string" and not BG.Find(itemCategories, listItem) and BG.IsItemInCategory(item.itemID, listItem) then
 					tinsert(itemCategories, listItem)
 					if limit > maxLimit then
+						maxCategory = listItem
 						maxLimit = limit
 					end
 				end
 			end
 		end
 	end
-	return itemCategories, maxLimit
+	return itemCategories, maxLimit, maxCategory
 end
 
 -- checks multiple category strings at once
@@ -134,16 +136,30 @@ function BG.IsItemInBGList(item, itemList, onlyLocal)	-- itemID/itemLink/itemTab
 	return onLocalList or onGlobalList
 end
 
--- supply either <bag, slot, itemTable> or <bag, slot, itemTable/limit, locationsTable>
-function BG.IsItemOverLimit(bag, slot, item, locations)
-	-- BG.IsItemOverLimit(container, slot, itemLimit, itemLocations)
-	if not (bag and slot) then return end
-
-	local limit = (type(item) == "table" and item.limit or item)
-	if not (locations and limit) then
-		locations, limit = BG.GetItemLocations(item, nil, true, true)
+-- bag, slot, limit -or- itemTable, limit -or- itemTable, if .limit is vailable
+function BG.IsItemOverLimit(bag, slot, limit)
+	local item
+	if bag and type(bag) == "number" and slot and type(slot) == "number" then
+		item = GetContainerItemID(bag, slot)
+	elseif bag and type(bag) == "table" then
+		item = bag.itemID
+		limit = slot or bag.limit
+		slot = bag.slot
+		bag  = bag.bag
+	else
+		return nil
 	end
-	if not (locations and limit) or limit < 1 then return end
+
+	local cachedItem = BG.GetCached(item)
+	limit = limit or (cachedItem and cachedItem.limit) or 0
+	if limit < 1 then
+		return false
+	end
+
+	local locations = BG.GetItemLocations(cachedItem.limiter or item)
+	if not locations or #locations <= 1 then
+		return false
+	end
 
 	local itemCount, currentItem = 0, nil
 	for i = #locations, 1, -1 do
@@ -153,7 +169,7 @@ function BG.IsItemOverLimit(bag, slot, item, locations)
 			-- keep this amount
 			itemCount = itemCount + currentItem.count
 			if currentItem.bag == bag and currentItem.slot == slot then
-				return nil
+				return false
 			end
 		else
 			return true
@@ -388,15 +404,16 @@ function BG.CanDisenchant(itemLink, onlyMe)
 						if     level <= 150 then required = 325
 						elseif level <= 182 then required = 350
 						elseif level <= 333 then required = 425
-						else required = nil	end
+						else required = 475	end
 					elseif quality == 3 then	-- blue
 						if     level <= 200 then required = 325
 						elseif level <= 346 then required = 450
-						else required = 450 end
+						elseif level <= 424 then required = 525
+						else required = 550 end
 					elseif quality == 4 then	-- purple
 						if     level <= 199 then required = 300
 						elseif level <= 277 then required = 375
-						elseif level <= 379 then required = 525
+						elseif level <= 416 then required = 475
 						else required = 525	end
 					end
 				end
@@ -445,7 +462,12 @@ function BG.IsTopFitOutdatedItem(item)
 	if not item then
 		return nil
 	elseif type(item) == "table" then
-		itemLink = GetContainerItemLink(BG.FindItemInBags(item.itemID))
+		-- use container item link to include gems and enchants
+		if item.bag and item.slot then
+			itemLink = GetContainerItemLink(item.bag, item.slot)
+		else
+			itemLink = GetContainerItemLink(BG.FindItemInBags(item.itemID))
+		end
 	else
 		_, itemLink = GetItemInfo(item)
 	end
@@ -476,7 +498,7 @@ function BG.Delete(item, position)
 
 	elseif type(item) == "table" then
 		-- item given as an itemTable
-		itemID = item.itemID or BG.GetItemID(item.itemLink)
+		itemID = item.itemID
 
 	elseif type(item) == "number" then
 		-- item given via its itemID
@@ -559,7 +581,7 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 	end
 	BG.Debug("|cffffd700> Updating cache for "..itemID.."|r ", itemLink)
 
-	local itemLimit = 0
+	local itemLimit, itemLimitation = 0, nil
 	local label, reason = nil, nil
 	local priceLabel, priceReason = nil, nil
 
@@ -568,16 +590,19 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 		label = BG.EXCLUDE
 		reason = "ItemID is KEEP"
 		itemLimit = BG_LocalDB.exclude[itemID] or BG_GlobalDB.exclude[itemID] or 0
+		itemLimitation = itemLimit > 0 and itemID or nil
 	end
 	if not label and BG.IsItemInBGList(itemID, "autoSellList") then
 		label = BG.AUTOSELL
 		reason = "ItemID is SELL"
 		itemLimit = BG_LocalDB.autoSellList[itemID] or BG_GlobalDB.autoSellList[itemID] or 0
+		itemLimitation = itemLimit > 0 and itemID or nil
 	end
 	if not label and BG.IsItemInBGList(itemID, "include") then
 		label = BG.INCLUDE
 		reason = "ItemID is JUNK"
 		itemLimit = BG_LocalDB.include[itemID] or BG_GlobalDB.include[itemID] or 0
+		itemLimitation = itemLimit > 0 and itemID or nil
 	end
 
 	if BG.IsItemInBGList(itemID, "forceVendorPrice") then
@@ -602,6 +627,7 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 					label = BG.EXCLUDE
 					reason = "Category is KEEP"
 					itemLimit = BG_LocalDB.exclude[category] or BG_GlobalDB.exclude[category] or 0
+					itemLimitation = itemLimit > 0 and category or nil
 					break
 				end
 			end
@@ -614,6 +640,7 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 				label = BG.AUTOSELL
 				reason = "Category is SELL"
 				itemLimit = BG_LocalDB.autoSellList[category] or BG_GlobalDB.autoSellList[category] or 0
+				itemLimitation = itemLimit > 0 and category or nil
 				break
 			end
 		end
@@ -625,6 +652,7 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 				label = BG.INCLUDE
 				reason = "Category is JUNK"
 				itemLimit = BG_LocalDB.include[category] or BG_GlobalDB.include[category] or 0
+				itemLimitation = itemLimit > 0 and category or nil
 				break
 			end
 		end
@@ -659,8 +687,6 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 
 	-- unusable gear
 	if not label and Unfit:IsItemUnusable(itemLink) and BG.IsItemSoulbound(itemLink) then
-		-- and BG_GlobalDB.sellNotWearable and quality <= BG_GlobalDB.sellNWQualityTreshold
-		-- and (quality < 2 or not IsUsableSpell(BG.enchanting)) then
 		label = BG.UNUSABLE
 		reason = "Item is UNUSABLE"
 	end
@@ -703,6 +729,7 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 	itemCache.quality = quality
 	itemCache.stackSize = stackSize or 1
 	itemCache.limit = itemLimit -- as configured in user lists
+	itemCache.limiter = itemLimitation
 	itemCache.level = itemLevel -- used for sorting, e.g. when using limits
 
 	return itemCache

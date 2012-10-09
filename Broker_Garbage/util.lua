@@ -92,10 +92,13 @@ function BG.ReformatGlobalString(globalString)
 	return returnString
 end
 
-function BG.GetListIndex(bag, slot)
+function BG.GetListIndex(bag, slot, includeInvalid)
 	for tableIndex, tableItem in pairs(BG.cheapestItems) do
-		if tableItem.bag == bag and tableItem.slot == slot and not tableItem.invalid then
-			return tableIndex
+		if tableItem.bag == bag and tableItem.slot == slot then
+			if includeInvalid or not tableItem.invalid then
+				return tableIndex
+			end
+			break
 		end
 	end
 end

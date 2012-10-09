@@ -24,9 +24,6 @@ BG.callbacks = BG.callbacks or LibStub("CallbackHandler-1.0"):New(BG)
 
 -- internal variables
 BG.version = tonumber(GetAddOnMetadata(addonName, "X-Version"))
-BG.locked = nil						-- is set to true while selling stuff
-BG.sellValue = 0					-- represents the actual value that we sold stuff for
-BG.repairCost = 0					-- the amount of money that we repaired for
 
 -- Event Handler
 -- ---------------------------------------------------------
@@ -40,8 +37,12 @@ local function eventHandler(self, event, arg1, ...)
 		BG.containerInInventory = nil
 
 		BG.itemsCache = {}		-- contains static item data, e.g. price, stack size
-		BG.itemLocations = {}	-- itemID = { cheapestItems-ListIndex }
+		BG.locationsCache = {}	-- itemID = { cheapestItems-ListIndex }
 		BG.cheapestItems = {}	-- contains up-to-date labeled data
+
+		BG.locked = nil
+		BG.sellValue = 0		-- represents the actual value that we sold stuff for
+		BG.repairCost = 0		-- the amount of money that we repaired for
 		BG.sellLog = {}
 
 		BG.updateAvailable = {}
@@ -51,7 +52,21 @@ local function eventHandler(self, event, arg1, ...)
 
 		BG.CheckSettings()
 
-		BG.ScanInventory()	-- initializes and fills caches
+		BG.ScanInventory(true)	-- initializes and fills caches
+
+		-- one time rescan as limit data is not available beforehand
+		local isSpecialBag, numItemSlots, listIndex
+		for container = 0, NUM_BAG_SLOTS do
+			isSpecialBag = select(2, GetContainerNumFreeSlots(container)) ~= 0
+			numItemSlots = GetContainerNumSlots(container)
+			if numItemSlots then
+				for slot = 1, numItemSlots do
+					listIndex = BG.GetListIndex(container, slot)
+					BG.SetDynamicLabelBySlot(container, slot, listIndex, isSpecialBag)
+				end
+			end
+		end
+		BG.SortItemList()
 
 		local events = {
 			"ITEM_PUSH", "BAG_UPDATE", "BAG_UPDATE_DELAYED",
@@ -63,7 +78,9 @@ local function eventHandler(self, event, arg1, ...)
 			frame:RegisterEvent(event)
 		end
 		frame:UnregisterEvent("ADDON_LOADED")
+
 	elseif event == "GET_ITEM_INFO_RECEIVED" then
+		BG.Debug("Received item data ...")
 		BG.UpdateCache(BG.requestedItemID)
 		BG.requestedItemID = nil
 		frame:UnregisterEvent("GET_ITEM_INFO_RECEIVED")
@@ -87,14 +104,13 @@ local function eventHandler(self, event, arg1, ...)
 		end
 	elseif event == "MERCHANT_CLOSED" then
 		BG.isAtVendor = nil
-		-- fallback unlock
 		if BG.locked then
-			BG.Debug("Fallback Unlock: Merchant window closed, scan lock released.")
+			BG.Debug("Fallback unlock: Merchant window closed, scan lock released.")
 			if BG.sellValue > 0 then
 				BG.ReportSelling(BG.repairCost, 0, 10)
 			else
-				BG.locked = nil
 				BG.sellValue, BG.repairCost = 0, 0
+				BG.locked = nil
 			end
 		end
 
@@ -104,8 +120,7 @@ local function eventHandler(self, event, arg1, ...)
 		BG.Debug("Bag Update", arg1, ...)
 		BG.updateAvailable[arg1] = true
 
-	elseif event == "BAG_UPDATE_DELAYED" then
-		-- no locking required, aye?
+	elseif not BG.locked and event == "BAG_UPDATE_DELAYED" then
 		for container, needsUpdate in pairs(BG.updateAvailable) do
 			if needsUpdate then
 				BG.ScanInventoryContainer(container)
@@ -116,6 +131,7 @@ local function eventHandler(self, event, arg1, ...)
 				end
 			end
 		end
+		BG.SortItemList()
 		BG.checkRestack = nil
 
 	elseif event == "AUCTION_HOUSE_CLOSED" then
