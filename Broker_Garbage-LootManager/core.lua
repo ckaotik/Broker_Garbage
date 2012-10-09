@@ -98,7 +98,6 @@ local function eventHandler(self, event, arg1, ...)
 		end
 
 	elseif event == "LOOT_CLOSED" then
-		StaticPopup1:Hide()
 		for lootSlotID, looted in pairs(BGLM.looted) do
 			BGLM.looted[lootSlotID] = nil
 		end
