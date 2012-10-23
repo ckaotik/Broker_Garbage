@@ -120,7 +120,15 @@ local function eventHandler(self, event, arg1, ...)
 		BG.Debug("Bag Update", arg1, ...)
 		BG.updateAvailable[arg1] = true
 
-	elseif not BG.locked and event == "BAG_UPDATE_DELAYED" then
+	elseif not BG.locked and (event == "BAG_UPDATE_DELAYED" or event == "PLAYER_REGEN_ENABLED") then
+		-- inventory scanning while in combat causes issues, postpone
+		if InCombatLockdown() then
+			frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+			return
+		elseif event == "PLAYER_REGEN_ENABLED" then
+			frame:UnregisterEvent("PLAYER_REGEN_ENABLED")
+		end
+
 		for container, needsUpdate in pairs(BG.updateAvailable) do
 			if needsUpdate then
 				BG.ScanInventoryContainer(container)

@@ -19,12 +19,16 @@ local find = string.find
 -- == Finding things in your inventory ==
 -- returns the first occurrence of a given item; item :: <itemID>|<itemLink>
 function BG.FindItemInBags(item)
+	if not item then return
+	elseif type(item) == "number" then
+		_, item = GetItemInfo(item)
+	end
 	for container = 0, NUM_BAG_SLOTS do
 		local numSlots = GetContainerNumSlots(container)
 		if numSlots then
 			for slot = 0, numSlots do
 				for slot = 1, numSlots do
-					if item == GetContainerItemLink(container, slot) or item == GetContainerItemID(container, slot) then
+					if item == GetContainerItemLink(container, slot) then
 						return container, slot
 					end
 				end
@@ -68,18 +72,22 @@ local function SortItemLocations(a, b)
 		local cacheA = BG.GetCached(itemA.itemID)
 		local cacheB = BG.GetCached(itemB.itemID)
 
-		if cacheA.level == cacheB.level then
-			if cacheA.vendorValue == cacheB.vendorValue then
-				if itemA.count == itemB.count then
-					return itemA.itemID < itemB.itemID
-				else
-					return itemA.count < itemB.count
-				end
-			else
-				return cacheA.vendorValue < cacheB.vendorValue
-			end
-		else
+		if cacheA.level ~= cacheB.level then
 			return cacheA.level < cacheB.level
+		else
+			if cacheA.vendorValue ~= cacheB.vendorValue then
+				return cacheA.vendorValue < cacheB.vendorValue
+			else
+				if itemA.count ~= itemB.count then
+					return itemA.count < itemB.count
+				else
+					if itemA.itemID ~= itemB.itemID then
+						return itemA.itemID < itemB.itemID
+					else
+						return (itemA.bag*100 + itemA.slot) < (itemB.bag*100 + itemB.slot)
+					end
+				end
+			end
 		end
 	end
 end
@@ -187,7 +195,7 @@ function BG.ScanInventoryContainer(container, firstScan)
 			for _, location in ipairs(otherLocations) do
 				otherLocation = BG.cheapestItems[location]
 				if otherLocation.bag ~= container and otherLocation.slot ~= slot then
-					BG.Debug(container+slot/100, "changed, also update", location, (select(2, GetItemInfo(otherLocation.itemID))), "at", otherLocation.bag+otherLocation.slot/100)
+					BG.Debug(container*100+slot, "changed, also update", location, (select(2, GetItemInfo(otherLocation.itemID))), "at", otherLocation.bag*100+otherLocation.slot)
 					BG.SetDynamicLabelBySlot(otherLocation.bag, otherLocation.slot, location)
 				end
 			end
@@ -204,7 +212,7 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 	local newItemID = newItemLink and BG.GetItemID(newItemLink)
 
 	local listIndex = BG.GetListIndex(container, slot, true)
-	local slotString = container + slot/100
+	local slotString = container*100 + slot
 
 	if listIndex then
 		item = BG.cheapestItems[listIndex]
