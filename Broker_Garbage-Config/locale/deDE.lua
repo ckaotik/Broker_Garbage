@@ -276,4 +276,5 @@ Unterhalb dieses Fensters siehst du 5 Buttons und eine Suchleiste.
 	L["categoryTestItemSlot"] = "Lege ein Item hier ab um alle genutzten Kategorien zu suchen, die es enthalten."
 	L["categoryTestItemTitle"] = "%s ist bereits in diesen Kategorien...\n"
 	L["categoryTestItemEntry"] = "%s ist bisher in keiner Kategorie."
+	L["categoryTestOthersTitle"] = "Insgesamt enthalten in Kategorien der LibPeriodicTable:\n"
 end

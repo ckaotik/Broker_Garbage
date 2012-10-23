@@ -37,11 +37,20 @@ local function Options_CategoryTest(pluginID)
 			local itemLink = select(2, GetItemInfo(data))
 			local output = format(BGC.locale.categoryTestItemTitle, itemLink)
 			local itemCategories = Broker_Garbage.GetItemListCategories( Broker_Garbage.GetCached(data) )
+
 			if #itemCategories == 0 then
 				output = format(BGC.locale.categoryTestItemEntry, itemLink)
 			else
 				for _, listName in ipairs(itemCategories) do
 					output = output .. "\n    " .. listName
+				end
+			end
+
+			local searchResults = BGC.PT:ItemSearch(data)
+			if searchResults and #(searchResults) > 0 then
+				output = output .. "\n\n" .. BGC.locale.categoryTestOthersTitle
+				for _, category in ipairs(searchResults) do
+					output = output .. "\n    " .. category
 				end
 			end
 
