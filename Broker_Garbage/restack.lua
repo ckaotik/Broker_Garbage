@@ -12,10 +12,13 @@ local tremove = table.remove
 local format = string.format
 
 local restackQueue = {}
+BG.restackQueue = restackQueue
+
 function BG.QueryRestackForItem(itemID)
 	local tableItem
 	if itemID and type(itemID) == "number" and restackQueue[itemID] == nil then
-		--[[local locations = BG.GetItemLocations(itemID, true)
+		--[[-- locations code moved to a later point
+		local locations = BG.GetItemLocations(itemID, true)
 		if locations and #(locations) > 1 then
 			-- fetch proper location data
 			for index, tableIndex in ipairs(locations) do
@@ -52,9 +55,9 @@ function BG.Restack()
 		restackRoutine = BG.RestackIteration
 	end
 	local event, eventCounter = restackRoutine()
-	BG.restackEventCounter = eventCounter
+	BG.restackEventCounter = eventCounter or 0
 
-	if event == nil then
+	if event == nil or BG.restackEventCounter == 0 then
 		restackRoutine = nil
 		BG.callbacks:Fire("RESTACK_COMPLETE")
 	else
@@ -160,7 +163,7 @@ function BG.MoveItem(itemID, fromBag, fromSlot, toBag, toSlot)
 	BG.Debug("From", fromBag.."."..fromSlot, "to", toBag.."."..toSlot)
 
 	if GetContainerItemID(fromBag, fromSlot) ~= itemID then
-		BG.Print(BG.locale.couldNotMoveItem)
+		BG.Debug(BG.locale.couldNotMoveItem)
 		return nil
 	end
 
