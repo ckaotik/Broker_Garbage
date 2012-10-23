@@ -87,7 +87,7 @@ function BG.CheckSoldItems()
 	for sellIndex, tableIndex in ipairs(BG.sellLog) do
 		item = BG.cheapestItems[tableIndex]
 		_, _, isLocked, _, _, _, itemLink = GetContainerItemInfo(item.bag, item.slot)
-		slotString = item.bag + item.slot/100
+		slotString = item.bag*100 + item.slot
 
 		if itemLink and isLocked then
 			itemLocked = true
@@ -97,7 +97,7 @@ function BG.CheckSoldItems()
 			BG.Debug("Can't sell item "..itemLink..", "..slotString)
 			tremove(BG.sellLog, sellIndex)
 		else
-			vendorValue = select(11, GetItemInfo(item.itemID))
+			_, itemLink, _, _, _, _, _, _, _, _, vendorValue = GetItemInfo(item.itemID)
 			actualSellValue = actualSellValue + (vendorValue * item.count)
 			numItemsSold = numItemsSold + item.count
 
