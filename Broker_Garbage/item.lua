@@ -276,6 +276,12 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 		disenchantPrice = canDE and max(disenchantPrice or 0, AuctionLite:GetDisenchantValue(itemLink) or 0)
 	end
 
+	if IsAddOnLoaded("AuctionMaster") then
+		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "AuctionMaster"
+		auctionPrice = AucMasGetCurrentAuctionInfo(itemLink) or 0
+		disenchantPrice = canDE and max(disenchantPrice or 0, vendor.Disenchant:GetDisenchantValue(itemLink) or 0)
+	end
+
 	if IsAddOnLoaded("WOWEcon_PriceMod") then
 		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "WoWecon"
 		auctionPrice = max(auctionPrice, Wowecon.API.GetAuctionPrice_ByLink(itemLink) or 0)
@@ -283,21 +289,23 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 		if canDE and not disenchantPrice then
 			local tmpPrice = 0
 			local DEData = Wowecon.API.GetDisenchant_ByLink(itemLink)
-			for i, data in pairs(DEData) do	-- [1] = item link, [2] = quantity, [3] = chance
-				tmpPrice = tmpPrice + ((Wowecon.API.GetAuctionPrice_ByLink(data[1] or 0)) * data[2] * data[3])
+			local link, quantity, change
+			for i, data in pairs(DEData) do
+				link, quantity, chance = unpack(data)
+				tmpPrice = tmpPrice + ((Wowecon.API.GetAuctionPrice_ByLink(link or "")) * quantity * chance)
 			end
 			disenchantPrice = max(disenchantPrice or 0, floor(tmpPrice or 0))
 		end
 	end
 
 	-- last chance to get auction values
-	if GetAuctionBuyout then
+	if (not auctionPrice or auctionPrice == 0) and GetAuctionBuyout then
 		BG.auctionAddon = BG.auctionAddon or BG.locale.unknown
 		auctionPrice = max(auctionPrice, GetAuctionBuyout(itemLink) or 0)
 	else
 		BG.auctionAddon = BG.auctionAddon or BG.locale.na
 	end
-	if GetDisenchantValue then
+	if (not disenchantPrice or disenchantPrice == 0) and GetDisenchantValue then
 		disenchantPrice = canDE and max(disenchantPrice or 0, GetDisenchantValue(itemLink) or 0)
 	end
 
