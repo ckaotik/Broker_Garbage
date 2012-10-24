@@ -179,12 +179,8 @@ hooksecurefunc("LootFrame_UpdateButton", BGLM.UpdateLootFrame)
 function BGLM.TrimInventory(emptySlotNum)
 	if not emptySlotNum then return end
 	for i = 1, emptySlotNum do
-		local deleteThis = select(i, Broker_Garbage:GetVariable("cheapestItems"))
-		if not deleteThis then
-			BGLM:Print(BGLM.locale.LMAutoDestroy_ErrorNoItems)
-			return
-		end
-		Broker_Garbage.Delete(deleteThis)
+		success = BGLM:DeleteCheapestItem(i)
+		if not success then return end
 	end
 end
 

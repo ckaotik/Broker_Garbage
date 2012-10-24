@@ -11,8 +11,8 @@ local join = string.join
 local tostringall = tostringall
 
 BGLM.PT = LibStub("LibPeriodicTable-3.1", true)
-BGLM.privateLootSpells = { 51005, 13262, 31252, 73979, 49383,		-- milling, disenchanting, prospecting, archaeology, engineering
-	2575, 2576, 3564, 10248, 29354, 50310, 74517, 102161, 	-- mining
+BGLM.privateLootSpells = { 51005, 13262, 31252, 73979, 49383,	-- milling, disenchanting, prospecting, archaeology, engineering
+	2575, 2576, 3564, 10248, 29354, 50310, 74517, 102161, 		-- mining
 	2366, 2368, 3570, 11993, 28695, 60300, 74519, 110413, 		-- herbalism
 	8613, 8617, 8618, 10768, 32678, 50305, 74522, 102216, 		-- skinning
 	-- 3365, -- "opening"
@@ -224,11 +224,13 @@ function BGLM:GetLootConstraint()
 	end
 end
 
-function BGLM:DeleteCheapestItem()
-	local item = Broker_Garbage.cheapestItems and Broker_Garbage.cheapestItems[1]
-	if item then
+function BGLM:DeleteCheapestItem(index)
+	local item = Broker_Garbage.cheapestItems and Broker_Garbage.cheapestItems[index or 1]
+	if item and not item.invalid then
 		Broker_Garbage.Delete(item)
+		return true
 	else
 		BGLM:Print(BGLM.locale.LMAutoDestroy_ErrorNoItems)
+		return nil
 	end
 end
