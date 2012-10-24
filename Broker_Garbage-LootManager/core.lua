@@ -179,7 +179,7 @@ hooksecurefunc("LootFrame_UpdateButton", BGLM.UpdateLootFrame)
 function BGLM.TrimInventory(emptySlotNum)
 	if not emptySlotNum then return end
 	for i = 1, emptySlotNum do
-		success = BGLM:DeleteCheapestItem(i)
+		local success = BGLM:DeleteCheapestItem(i)
 		if not success then return end
 	end
 end
