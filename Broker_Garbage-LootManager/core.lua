@@ -149,6 +149,7 @@ function BGLM:DeletePartialStack(itemID, num)
 	if CursorHasItem() then
 		BGLM:Delete("cursor", num)
 		BGLM:Debug("DeletePartialStack", itemID, num, locations[1].bag, locations[1].slot)
+		return true
 	end
 end
 
@@ -356,11 +357,13 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 		step = -1
 	end
 
-	local slot, takeItem, compareTo
+	local slot, takeItem, compareTo, success
 	local numBasic, numSpecial = Broker_Garbage.totalFreeSlots, Broker_Garbage.freeSpecialSlots
 	for i = start, finish, step do
 		slot = lootData[i]
 		takeItem = nil
+
+		success = true
 
 		if slot.stackOverflow <= 0 then
 			-- item stacks somehow, no actions nessessary
@@ -388,17 +391,21 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 					-- delete partial stack. throw away partial stacks to squeeze in a little more
 					BGLM:Debug("Deleting partial stack of", slot.itemLink)
 					local itemID = Broker_Garbage.GetItemID(slot.itemLink)
-					BGLM:DeletePartialStack(itemID, slot.stackOverflow)
-					BGLM:Debug("PAUSE: BAG_UPDATE")
-					coroutine.yield("BAG_UPDATE")
-					takeItem = true
+					success = BGLM:DeletePartialStack(itemID, slot.stackOverflow)
+					if success then
+						BGLM:Debug("PAUSE: BAG_UPDATE")
+						coroutine.yield("BAG_UPDATE")
+						takeItem = true
+					end
 				else
 					-- delete only if it's worth more, if it's an item we really need or if we want to skin the mob
 					BGLM:Debug("Deleting item to make room for", slot.itemLink)
-					BGLM:DeleteCheapestItem()
-					BGLM:Debug("PAUSE: UNIT_INVENTORY_CHANGED")
-					coroutine.yield("UNIT_INVENTORY_CHANGED")
-					takeItem = true
+					success = BGLM:DeleteCheapestItem()
+					if success then
+						BGLM:Debug("PAUSE: UNIT_INVENTORY_CHANGED")
+						coroutine.yield("UNIT_INVENTORY_CHANGED")
+						takeItem = true
+					end
 				end
 			else
 				BGLM:Print(format(BGLM.locale.couldNotLootSpace, slot.itemLink, slot.count), BGLM_GlobalDB.printSpace)
@@ -409,6 +416,11 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 		else
 			BGLM:Debug("Item is fine.", slot.itemLink)
 			takeItem = true
+		end
+
+		if not success then
+			BGLM:Debug("Item doesn't fit and deletion won't work!", slot.itemLink)
+			closeLootWindow = false
 		end
 
 		-- A little less conversation, a little more action please!
