@@ -204,7 +204,7 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 
 			item.invalid = true
 			item.reason = nil
-			item.itemID = nil
+			item.itemID = 0
 
 		elseif oldItemID and newItemID then
 			if oldItemID ~= newItemID then

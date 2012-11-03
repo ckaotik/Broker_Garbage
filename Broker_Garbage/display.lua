@@ -298,19 +298,15 @@ end
 
 -- easier syntax for LDB display strings
 function BG:FormatString(text)
-	local item
-	if not BG.cheapestItems or not BG.cheapestItems[1] then
-		item = { itemID = 0, count = 0, value = 0 }
-	else
-		item = BG.cheapestItems[1]
-	end
+	local item = BG.cheapestItems and BG.cheapestItems[1] or { itemID = 0, count = 0, value = 0 }
+	local _, itemLink, _, _, _, _, _, _, _, texture = GetItemInfo(item.itemID)
 
 	-- [junkvalue]
 	text = gsub(text, "%[junkvalue%]", BG.FormatMoney(BG.junkValue))
 
 	-- [itemname][itemcount][itemvalue]
-	text = gsub(text, "%[itemname%]", (select(2,GetItemInfo(item.itemID)) or ""))
-	text = gsub(text, "%[itemicon%]", "|T"..(select(10,GetItemInfo(item.itemID)) or "")..":0|t")
+	text = gsub(text, "%[itemname%]", (itemLink or ""))
+	text = gsub(text, "%[itemicon%]", "|T"..(texture or "")..":0|t")
 	text = gsub(text, "%[itemcount%]", item.count)
 	text = gsub(text, "%[itemvalue%]", BG.FormatMoney(item.value))
 
