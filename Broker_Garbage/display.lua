@@ -29,6 +29,13 @@ BG.LDB = LibDataBroker:NewDataObject("Broker_Garbage", {
 function BG:UpdateLDB()
 	BG.totalBagSpace, BG.totalFreeSlots, BG.specialSlots, BG.freeSpecialSlots = BG:GetBagSlots()
 
+	BG.junkValue = 0
+	for _, item in ipairs(BG.cheapestItems) do
+		if not item.invalid and item.sell and item.value > 0 then
+			BG.junkValue = BG.junkValue + item.value
+		end
+	end
+
 	local cheapestItem = BG.cheapestItems[1]
 	if cheapestItem and cheapestItem.source ~= BG.IGNORE and not cheapestItem.invalid then
 		BG.LDB.text = BG:FormatString(BG_GlobalDB.LDBformat)

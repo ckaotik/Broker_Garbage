@@ -17,16 +17,6 @@ BG.restackQueue = restackQueue
 function BG.QueryRestackForItem(itemID)
 	local tableItem
 	if itemID and type(itemID) == "number" and restackQueue[itemID] == nil then
-		--[[-- locations code moved to a later point
-		local locations = BG.GetItemLocations(itemID, true)
-		if locations and #(locations) > 1 then
-			-- fetch proper location data
-			for index, tableIndex in ipairs(locations) do
-				tableItem = BG.cheapestItems[tableIndex]
-				locations[index] = {tableItem.bag, tableItem.slot}
-			end
-			restackQueue[itemID] = locations
-		end--]]
 		restackQueue[itemID] = true
 	end
 end

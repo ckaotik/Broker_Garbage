@@ -136,13 +136,13 @@ function BG.IsItemInBGList(item, itemList, onlyLocal)	-- itemID/itemLink/itemTab
 	return onLocalList or onGlobalList
 end
 
--- bag, slot, limit -or- itemTable, limit -or- itemTable, if .limit is vailable
+-- bag, slot, limit -or- itemTable, limit -or- itemTable, if .limit is available
 function BG.IsItemOverLimit(bag, slot, limit)
-	local item
+	local itemID
 	if bag and type(bag) == "number" and slot and type(slot) == "number" then
-		item = GetContainerItemID(bag, slot)
+		itemID = GetContainerItemID(bag, slot)
 	elseif bag and type(bag) == "table" then
-		item = bag.itemID
+		itemID = bag.itemID
 		limit = slot or bag.limit
 		slot = bag.slot
 		bag  = bag.bag
@@ -150,13 +150,13 @@ function BG.IsItemOverLimit(bag, slot, limit)
 		return nil
 	end
 
-	local cachedItem = BG.GetCached(item)
+	local cachedItem = BG.GetCached(itemID)
 	limit = limit or (cachedItem and cachedItem.limit) or 0
 	if limit < 1 then
 		return false
 	end
 
-	local locations = BG.GetItemLocations(cachedItem.limiter or item)
+	local locations = BG.GetItemLocations(cachedItem.limiter or itemID)
 	if not locations or #locations <= 1 then
 		return false
 	end

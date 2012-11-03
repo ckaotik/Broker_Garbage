@@ -52,21 +52,7 @@ local function eventHandler(self, event, arg1, ...)
 
 		BG.CheckSettings()
 
-		BG.ScanInventory(true)	-- initializes and fills caches
-
-		-- one time rescan as limit data is not available beforehand
-		local isSpecialBag, numItemSlots, listIndex
-		for container = 0, NUM_BAG_SLOTS do
-			isSpecialBag = select(2, GetContainerNumFreeSlots(container)) ~= 0
-			numItemSlots = GetContainerNumSlots(container)
-			if numItemSlots then
-				for slot = 1, numItemSlots do
-					listIndex = BG.GetListIndex(container, slot)
-					BG.SetDynamicLabelBySlot(container, slot, listIndex, isSpecialBag)
-				end
-			end
-		end
-		BG.SortItemList()
+		BG.ScanInventory()
 
 		local events = {
 			"ITEM_PUSH", "BAG_UPDATE", "BAG_UPDATE_DELAYED",
@@ -131,16 +117,12 @@ local function eventHandler(self, event, arg1, ...)
 
 		for container, needsUpdate in pairs(BG.updateAvailable) do
 			if needsUpdate then
-				BG.ScanInventoryContainer(container)
 				BG.updateAvailable[container] = false
-
-				if BG_GlobalDB.restackInventory and BG.checkRestack then
-					BG.DoContainerRestack(container)
-				end
+				BG.ScanInventoryContainer(container)
 			end
 		end
+		BG.ScanInventoryLimits()
 		BG.SortItemList()
-		BG.checkRestack = nil
 
 	elseif event == "AUCTION_HOUSE_CLOSED" then
 		-- Update cached auction values in case anything changed
@@ -185,7 +167,10 @@ local function eventHandler(self, event, arg1, ...)
 		end
 
 	elseif event == "ITEM_PUSH" and arg1 then
-		BG.checkRestack = true
+		local container = arg1 - INVSLOT_LAST_EQUIPPED
+		if BG_GlobalDB.restackInventory and container >= 0 then
+			BG.DoContainerRestack(container)
+		end
 	end
 end
 frame:RegisterEvent("ADDON_LOADED")
