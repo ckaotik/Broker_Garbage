@@ -1,12 +1,13 @@
 local _, BG = ...
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, UIParent, ITEM_STARTS_QUEST, ITEM_BIND_QUEST, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, TopFit, Enchantrix, Wowecon, AuctionLite, AucAdvanced, _G
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, UIParent, ITEM_STARTS_QUEST, ITEM_BIND_QUEST, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, TopFit, PawnIsItemIDAnUpgrade, Enchantrix, Wowecon, AuctionLite, AucAdvanced, AucMasGetCurrentAuctionInfo, _G
 -- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetAuctionItemSubClasses, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, IsAddOnLoaded, GetAuctionBuyout, GetDisenchantValue, Atr_GetAuctionBuyout, Atr_GetDisenchantValue, IsUsableSpell
 local type = type
 local select = select
 local tonumber = tonumber
 local pairs = pairs
 local ipairs = ipairs
+local unpack = unpack
 local tinsert = table.insert
 local format = string.format
 local gsub = string.gsub
@@ -15,6 +16,9 @@ local find = string.find
 local floor = math.floor
 local ceil = math.ceil
 local max = math.max
+
+-- some addon authors haven't heard of compatible namespacing :(
+local AuctionMaster = vendor
 
 local Unfit = LibStub("Unfit-1.0")	-- library to determine unusable items
 
@@ -279,7 +283,7 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 	if IsAddOnLoaded("AuctionMaster") then
 		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "AuctionMaster"
 		auctionPrice = AucMasGetCurrentAuctionInfo(itemLink) or 0
-		disenchantPrice = canDE and max(disenchantPrice or 0, vendor.Disenchant:GetDisenchantValue(itemLink) or 0)
+		disenchantPrice = canDE and max(disenchantPrice or 0, AuctionMaster.Disenchant:GetDisenchantValue(itemLink) or 0)
 	end
 
 	if IsAddOnLoaded("WOWEcon_PriceMod") then
@@ -289,7 +293,7 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 		if canDE and not disenchantPrice then
 			local tmpPrice = 0
 			local DEData = Wowecon.API.GetDisenchant_ByLink(itemLink)
-			local link, quantity, change
+			local link, quantity, chance
 			for i, data in pairs(DEData) do
 				link, quantity, chance = unpack(data)
 				tmpPrice = tmpPrice + ((Wowecon.API.GetAuctionPrice_ByLink(link or "")) * quantity * chance)
@@ -448,47 +452,45 @@ function BG.CanDisenchant(itemLink, onlyMe)
 end
 
 function BG.IsOutdatedItem(item)	-- itemID/itemLink/itemTable
-	local _, itemLink, quality
-	if not item then
-		return nil
-	elseif type(item) == "table" then
-		itemLink = select(2, GetItemInfo(item.itemID))
+	local itemID, itemLink, quality, outdated
+	if not item then return nil end
+
+	if type(item) == "table" then
+		itemID = item.itemID
 		quality = item.quality
-	else
-		_, itemLink, quality = GetItemInfo(item)
-	end
 
-	if BG_GlobalDB.sellOldGear and quality <= BG_GlobalDB.sellNWQualityTreshold
-		and BG.IsItemSoulbound(itemLink, true) and BG.IsTopFitOutdatedItem(itemLink) then
-		return true
-	end
-end
-
--- returns true if, by TopFit's standards, the given item is "outdated"
-function BG.IsTopFitOutdatedItem(item)
-	local _, itemLink
-	if not item then
-		return nil
-	elseif type(item) == "table" then
-		-- use container item link to include gems and enchants
+		-- get itemlinks that include gems & enchants, if possible
 		if item.bag and item.slot then
 			itemLink = GetContainerItemLink(item.bag, item.slot)
 		else
-			itemLink = GetContainerItemLink(BG.FindItemInBags(item.itemID))
+			local bag, slot = BG.FindItemInBags(item.itemID)
+			if bag and slot then
+				itemLink = GetContainerItemLink(bag, slot)
+			else
+				_, itemLink = GetItemInfo(item.itemID)
+			end
 		end
 	else
-		_, itemLink = GetItemInfo(item)
+		_, itemLink, quality = GetItemInfo(item)
+		itemID = BG.GetItemID(itemLink)
 	end
 
-	if IsAddOnLoaded("TopFit") and TopFit.IsInterestingItem then
-		local invType = select(9, GetItemInfo(itemLink))
-		if BG.IsItemEquipment(invType) and not TopFit:IsInterestingItem(itemLink) then
-			return true
+	-- check if this is even an item we can make decisions for
+	if not BG_GlobalDB.sellOldGear or quality > BG_GlobalDB.sellNWQualityTreshold then return end
+	if not BG.IsItemEquipment( (select(9, GetItemInfo(itemLink))) ) then return end
+
+	if BG.IsItemSoulbound(itemLink, true) then
+		-- handle different source of outdated data
+		if IsAddOnLoaded("TopFit") and TopFit.IsInterestingItem then
+			outdated = not TopFit:IsInterestingItem(itemLink)
 		end
-	else
-		BG.Debug("TopFit is not loaded or too old.")
-		return nil
+		if PawnIsItemIDAnUpgrade then
+			local upgrade, best, secondBest = PawnIsItemIDAnUpgrade(itemID)
+			outdated = not (upgrade or best or secondBest)
+		end
 	end
+
+	return outdated
 end
 
 -- deletes the item in a given location of your bags
@@ -571,7 +573,7 @@ end
 
 -- gets an item's static information and saves it to the BG.itemsCache
 function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
-	if itemID and type(itemID) == table then itemID = itemID.itemID
+	if itemID and type(itemID) == "table" then itemID = itemID.itemID
 	elseif itemID and type(itemID) == "number" then itemID = itemID
 	elseif itemID and type(itemID) == "string" then itemID = BG.GetItemID(itemID)
 	else return nil
