@@ -9,6 +9,7 @@ local ipairs = ipairs
 local floor = math.floor
 local tinsert = table.insert
 local tremove = table.remove
+local wipe = table.wipe
 local format = string.format
 
 local restackQueue = {}
@@ -111,7 +112,7 @@ function BG.RestackIteration()
 	end
 	for itemID, locations in pairs(restackQueue) do
 		if #(locations) < 2 then
-			table.wipe(restackQueue[itemID])
+			wipe(restackQueue[itemID])
 			restackQueue[itemID] = nil
 		end
 	end

@@ -4,6 +4,7 @@ local _, BG = ...
 -- GLOBALS: GetItemInfo, GetContainerNumSlots, GetContainerNumFreeSlots, InterfaceOptionsFrame_OpenToCategory, IsAddOnLoaded, LoadAddOn, IsAltKeyDown, IsShiftKeyDown, IsControlKeyDown, UseContainerItem, CreateFrame, CreateFont, ClearCursor
 local select = select
 local type = type
+local ipairs = ipairs
 local format = string.format
 local gsub = string.gsub
 local abs = math.abs

@@ -10,8 +10,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 local addonName, BG = ...
 local _
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S
--- GLOBALS: ContainerIDToInventoryID
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S, INVSLOT_LAST_EQUIPPED
+-- GLOBALS: ContainerIDToInventoryID, InCombatLockdown
 local pairs = pairs
 local ipairs = ipairs
 local format = string.format
@@ -66,7 +66,6 @@ local function eventHandler(self, event, arg1, ...)
 		frame:UnregisterEvent("ADDON_LOADED")
 
 	elseif event == "GET_ITEM_INFO_RECEIVED" then
-		BG.Debug("Received item data ...")
 		BG.UpdateCache(BG.requestedItemID)
 		BG.requestedItemID = nil
 		frame:UnregisterEvent("GET_ITEM_INFO_RECEIVED")

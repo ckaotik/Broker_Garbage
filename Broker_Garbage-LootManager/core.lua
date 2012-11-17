@@ -80,6 +80,7 @@ local function eventHandler(self, event, arg1, ...)
 			local index, popup = 1
 			for lootSlotID, confirm in pairs(BGLM.confirm) do
 				if confirm and BGLM_GlobalDB.autoConfirmBoP then
+					-- StaticPopup_Hide("LOOT_BIND") -- [TODO]
 					popup = _G["StaticPopup"..index]
 					while popup do
 						if popup:IsVisible() and popup.which == "LOOT_BIND" then

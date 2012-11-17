@@ -485,7 +485,7 @@ function BG.IsOutdatedItem(item)	-- itemID/itemLink/itemTable
 			outdated = not TopFit:IsInterestingItem(itemLink)
 		end
 		if PawnIsItemIDAnUpgrade then
-			local upgrade, best, secondBest = PawnIsItemIDAnUpgrade(itemID)
+			local upgrade, best, secondBest = PawnIsItemIDAnUpgrade(itemID, true)
 			outdated = not (upgrade or best or secondBest)
 		end
 	end
