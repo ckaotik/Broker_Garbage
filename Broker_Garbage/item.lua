@@ -9,6 +9,7 @@ local pairs = pairs
 local ipairs = ipairs
 local unpack = unpack
 local tinsert = table.insert
+local wipe = table.wipe
 local format = string.format
 local gsub = string.gsub
 local match = string.match
@@ -302,6 +303,12 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 		end
 	end
 
+	if IsAddOnLoaded("Auctional") then
+		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "Auctional"
+		auctionPrice = max(auctionPrice, Auctional:GetAuctionValue(itemLink) or 0)
+		disenchantPrice = canDE and max(disenchantPrice or 0, Auctional:GetDisenchantValue(itemLink) or 0)
+	end
+
 	-- last chance to get auction values
 	if (not auctionPrice or auctionPrice == 0) and GetAuctionBuyout then
 		BG.auctionAddon = BG.auctionAddon or BG.locale.unknown
@@ -553,10 +560,6 @@ function BG.Delete(item, position)
 end
 
 -- == Items Cache Management ==
-function BG.ClearCache()
-	BG.itemsCache = {}
-end
-
 -- fetch an item from the item cache, or insert if it doesn't exist yet
 function BG.GetCached(item)	-- itemID/itemLink
 	if not item then
@@ -569,6 +572,14 @@ function BG.GetCached(item)	-- itemID/itemLink
 		return BG.UpdateCache(item)
 	end
 	return BG.itemsCache[item]
+end
+
+function BG.ClearCache(itemID)
+	if itemID then
+		wipe(BG.itemsCache[itemID])
+	else
+		wipe(BG.itemsCache)
+	end
 end
 
 -- gets an item's static information and saves it to the BG.itemsCache

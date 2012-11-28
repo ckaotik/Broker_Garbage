@@ -134,26 +134,33 @@ function BG.UpdateAllCaches(itemID)
 		return
 	end
 	BG.UpdateCache(itemID)
+	BG.ScanInventory(true)
+end
+
+function BG.UpdateAllDynamicItems()
+	BG.ClearCache()
+	wipe(BG.cheapestItems)
 	BG.ScanInventory()
+	return
 end
 
 -- == Inventory Scanning ==
-function BG.ScanInventory(firstScan)
+function BG.ScanInventory(forceUpdate)
 	for container = 0, NUM_BAG_SLOTS do
-		BG.ScanInventoryContainer(container, firstScan)
+		BG.ScanInventoryContainer(container, forceUpdate)
 	end
 	BG.ScanInventoryLimits()
 	BG.SortItemList()
 end
 
-function BG.ScanInventoryContainer(container)
+function BG.ScanInventoryContainer(container, forceUpdate)
 	local isSpecialBag = select(2, GetContainerNumFreeSlots(container)) ~= 0
 	local newItemCount, newItemLink, needsUpdate, listIndex
 
 	for slot = 1, GetContainerNumSlots(container) or 0 do
 		_, newItemCount, _, _, _, _, newItemLink = GetContainerItemInfo(container, slot)
 		needsUpdate, listIndex = BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
-		if needsUpdate then
+		if needsUpdate or forceUpdate then
 			BG.SetDynamicLabelBySlot(container, slot, listIndex, isSpecialBag)
 		end
 	end
@@ -230,13 +237,6 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 	end
 
 	return needsUpdate, listIndex
-end
-
-function BG.UpdateAllDynamicItems()
-	BG.ClearCache()
-	wipe(BG.cheapestItems)
-	BG.ScanInventory()
-	return
 end
 
 -- == Pure Logic Ahead ==

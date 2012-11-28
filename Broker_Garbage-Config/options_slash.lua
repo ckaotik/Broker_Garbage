@@ -227,6 +227,7 @@ local COMMAND_PARAMS = {
 	end,
 
 	cache = function(item)
+		local item = item and tonumber(item) or item
 		if item and type(item) == "number" then
 			Broker_Garbage.UpdateAllCaches(item)
 		else
