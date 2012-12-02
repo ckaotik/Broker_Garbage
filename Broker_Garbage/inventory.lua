@@ -319,6 +319,22 @@ function BG.UpdateInventorySlotLimit(container, slot, itemID)
 	BG.cheapestItems[listIndex] = cheapestItem
 end
 
+local function SortEquipItems(a, b)
+	-- sorts by itemLevel, descending
+	local itemNameA, _, _, itemLevelA = GetItemInfo(a)
+	local itemNameB, _, _, itemLevelB = GetItemInfo(b)
+
+	if itemLevelA ~= itemLevelB then
+		return itemLevelA > itemLevelB
+	else
+		if IsEquippedItem(itemNameA) ~= IsEquippedItem(itemNameB) then
+			-- equipped item has priority
+			return IsEquippedItem(itemNameA)
+		else
+			return itemNameA < itemNameB
+		end
+	end
+end
 -- checks current inventory state and assigns labels depending on limits, binding etc.
 function BG.SetDynamicLabelBySlot(container, slot, listIndex, isSpecialBag)
 	if not (container and slot) then return end
@@ -377,11 +393,11 @@ function BG.SetDynamicLabelBySlot(container, slot, listIndex, isSpecialBag)
 		sellItem = true
 		classification = BG.UNUSABLE
 	elseif item.classification ~= BG.EXCLUDE and BG_GlobalDB.sellOldGear and item.quality <= BG_GlobalDB.sellNWQualityTreshold and BG.IsOutdatedItem(itemLink) then
-		insert = item.quality <= BG_GlobalDB.dropQuality -- still obey to global threshold, if true might be overridden later
+		insert = item.quality <= BG_GlobalDB.dropQuality -- still obey to global threshold; if true might be overridden later
 
-		if BG_GlobalDB.keepHighestItemLevel then
+		if insert and BG_GlobalDB.keepHighestItemLevel then
 			local invType = select(9, GetItemInfo(itemLink))
-			local slots = (TopFit.GetEquipLocationsByInvType and TopFit:GetEquipLocationsByInvType(invType))
+			local slots = (TopFit and TopFit.GetEquipLocationsByInvType and TopFit:GetEquipLocationsByInvType(invType))
 				or (PawnGetSlotsForItemType and { PawnGetSlotsForItemType(invType) }) or {}
 
 			local keepItems = 1
@@ -402,21 +418,7 @@ function BG.SetDynamicLabelBySlot(container, slot, listIndex, isSpecialBag)
 					tinsert(itemsForSlot, inventoryItemID)
 				end
 			end
-			sort(itemsForSlot, function(a, b) -- sort by itemLevel, descending
-				local itemNameA, _, _, itemLevelA = GetItemInfo(a)
-				local itemNameB, _, _, itemLevelB = GetItemInfo(b)
-
-				if itemLevelA ~= itemLevelB then
-					return itemLevelA > itemLevelB
-				else
-					if IsEquippedItem(itemNameA) ~= IsEquippedItem(itemNameB) then
-						-- equipped item has priority
-						return IsEquippedItem(itemNameA)
-					else
-						return itemNameA < itemNameB
-					end
-				end
-			end)
+			sort(itemsForSlot, SortEquipItems)
 			for i = 1, keepItems do
 				if itemsForSlot[i] and itemsForSlot[i] == itemID then
 					insert = nil -- we need nil (itemLevel) to differenciate from false (itemQuality)
