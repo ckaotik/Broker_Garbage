@@ -1,6 +1,6 @@
 local _, BG = ...
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, UIParent, ITEM_STARTS_QUEST, ITEM_BIND_QUEST, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, TopFit, PawnIsItemIDAnUpgrade, Enchantrix, Wowecon, AuctionLite, AucAdvanced, AucMasGetCurrentAuctionInfo, _G
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, UIParent, ITEM_STARTS_QUEST, ITEM_BIND_QUEST, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, TopFit, PawnIsItemIDAnUpgrade, Enchantrix, Wowecon, AuctionLite, AucAdvanced, AucMasGetCurrentAuctionInfo, Auctional, _G
 -- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetAuctionItemSubClasses, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, IsAddOnLoaded, GetAuctionBuyout, GetDisenchantValue, Atr_GetAuctionBuyout, Atr_GetDisenchantValue, IsUsableSpell
 local type = type
 local select = select
@@ -378,8 +378,16 @@ end
 function BG.IsItemSoulbound(itemLink, bag, slot)	-- itemLink/itemID, bag, slot -OR- itemLink/itemID, checkMine -OR- itemTable
 	if not itemLink then
 		return nil
-	elseif type(itemLink) == "number" or type(itemLink) == "table" then
+	elseif type(itemLink) == "number" then
 		itemLink = select(2, GetItemInfo(itemLink))
+	elseif type(itemLink) == "table" then
+		if itemLink.itemLink then
+			itemLink = itemLink.itemLink
+		elseif itemLink.itemID then
+			itemLink = select(2, GetItemInfo(itemLink.itemID))
+		else
+			return nil
+		end
 	end
 
 	local searchString
@@ -400,7 +408,7 @@ end
 -- updated data taken from tekkub's Panda
 -- player can disenchant this item: [true/false]; skill difference until DE is possible [nil/number]
 function BG.CanDisenchant(itemLink, onlyMe)
-	if not itemLink then return end
+	if not itemLink or itemLink:find("battlepet") then return end
 
 	local required, skillRank
 	if IsAddOnLoaded("Enchantrix") then
@@ -479,8 +487,9 @@ function BG.IsOutdatedItem(item)	-- itemID/itemLink/itemTable
 		end
 	else
 		_, itemLink, quality = GetItemInfo(item)
-		itemID = BG.GetItemID(itemLink)
+		itemID = itemLink and BG.GetItemID(itemLink)
 	end
+	if not itemID then return end
 
 	-- check if this is even an item we can make decisions for
 	if not BG_GlobalDB.sellOldGear or quality > BG_GlobalDB.sellNWQualityTreshold then return end

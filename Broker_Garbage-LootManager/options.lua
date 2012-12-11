@@ -140,16 +140,16 @@ local function Options_LootManager(pluginID)
 
 	local lootJunk = LibStub("tekKonfig-Checkbox").new(looting, nil, BGLM.locale.lootJunkTitle, "TOPLEFT", autoAcceptLoot, "BOTTOMLEFT", 0, -8)
 	lootJunk.tiptext = BGLM.locale.lootJunkTooltip .. BGLM.locale.GlobalSetting
-	lootJunk.stat = "lootExcludeItems"
+	lootJunk.stat = "lootIncludeItems"
 	lootJunk.global = true
-	lootJunk:SetChecked(BGLM_GlobalDB.lootExcludeItems)
+	lootJunk:SetChecked(BGLM_GlobalDB.lootIncludeItems)
 	lootJunk:SetScript("OnClick", Toggle)
 
 	local lootKeep = LibStub("tekKonfig-Checkbox").new(looting, nil, BGLM.locale.lootKeepTitle, "TOPLEFT", lootJunk, "BOTTOMLEFT", 0, 4)
 	lootKeep.tiptext = BGLM.locale.lootKeepTooltip .. BGLM.locale.GlobalSetting
-	lootKeep.stat = "lootIncludeItems"
+	lootKeep.stat = "lootExcludeItems"
 	lootKeep.global = true
-	lootKeep:SetChecked(BGLM_GlobalDB.lootIncludeItems)
+	lootKeep:SetChecked(BGLM_GlobalDB.lootExcludeItems)
 	lootKeep:SetScript("OnClick", Toggle)
 
 	--[[ Inventory Group ]]--
