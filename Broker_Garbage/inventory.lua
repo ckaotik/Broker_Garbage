@@ -111,7 +111,7 @@ function BG.GetItemLocations(item, ignoreFullStacks)
 	local isCategoryScan = type(item) ~= "number"
 
 	for tableIndex, tableItem in pairs(BG.cheapestItems) do
-		if not tableItem.invalid then
+		if not tableItem.invalid and tableItem.itemID ~= 0 then
 			cachedItem = BG.GetCached(tableItem.itemID)
 			if (isCategoryScan and BG.IsItemInCategory(tableItem.itemID, item)) or (tableItem.itemID == item) then
 				if not ignoreFullStacks or tableItem.count < cachedItem.stackSize then
