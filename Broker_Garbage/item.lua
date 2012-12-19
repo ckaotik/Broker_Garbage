@@ -25,8 +25,10 @@ local Unfit = LibStub("Unfit-1.0")	-- library to determine unusable items
 
 function BG.GetItemID(itemLink)
 	if not itemLink or type(itemLink) ~= "string" then return end
-	local itemID = gsub(itemLink, ".-Hitem:([0-9]*):.*", "%1")
-	return tonumber(itemID)
+	local linkType, id, data = itemLink:match("^.-H([^:]+):?([^:]*):?([^|]*)")
+	if linkType == "item" then
+		return tonumber(id)
+	end
 end
 
 -- /dump Broker_Garbage.GetItemListCategories(Broker_Garbage.GetCached(8766))
@@ -230,7 +232,7 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 		itemID = BG.GetItemID(item)
 		if not itemID then return end
 	end
-	local _, itemLink, itemQuality, itemLevel, _, _, _, _, itemType, _, vendorPrice = GetItemInfo(itemID)
+	local _, itemLink, itemQuality, _, _, _, _, _, _, _, vendorPrice = GetItemInfo(itemID)
 
 	if not itemQuality then		-- invalid argument
 	   	BG.Debug("Error! GetSingleItemValue: Failed on "..(itemLink or itemID or "<unknown>").."."..(itemQuality or "no quality"))
@@ -362,9 +364,9 @@ function BG.FindInTooltip(searchString, scanRightText, filterFunc)
 	local numLines = scanTooltip:NumLines()
 	local leftLine, leftLineText, rightLine, rightLineText
 	for i = 1, numLines do
-		leftLine = _G["BrokerGarbage_ItemScanTooltipTextLeft"..i]
+		leftLine = _G[scanTooltip:GetName().."TextLeft"..i]
 		leftLineText = leftLine and leftLine:GetText()
-		rightLine = _G["Broker_Garbage_ItemScanTooltipTextRight"..i]
+		rightLine = _G[scanTooltip:GetName().."TextRight"..i]
 		rightLineText = rightLine and rightLine:GetText()
 
 		if (find(leftLineText, searchString) or (scanRightText and find(rightLineText, searchString)))
