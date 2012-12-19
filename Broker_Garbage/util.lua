@@ -213,7 +213,7 @@ function BG.CreateDefaultLists(global)
 
 	BG.Print(BG.locale.listsUpdatedPleaseCheck)
 
-	Broker_Garbage.UpdateAllCaches()
+	-- Broker_Garbage.UpdateAllCaches()
 	Broker_Garbage.UpdateAllDynamicItems()
 	Broker_Garbage:UpdateLDB()
 
