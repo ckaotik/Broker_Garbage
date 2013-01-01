@@ -45,6 +45,7 @@ BG.defaultGlobalSettings = {
 	showAutoSellIcon = true,
 	showItemTooltipLabel = true,
 	showLabelReason = nil,
+	showBagnonSellIcons = nil, -- [TODO] settings
 
 	-- LibDataBroker Display
 	LDBformat = "[itemname]x[itemcount] ([itemvalue])",
@@ -84,7 +85,7 @@ BG.INCLUDE = 1
 BG.AUTOSELL = 2
 -- dynamic list types
 BG.UNUSABLE = 4		-- unusable gear, e.g. mail for a priest
-BG.OUTDATED = 5		-- item is gear but irrelevant (TopFit)
+BG.OUTDATED = 5		-- item is gear but irrelevant (TopFit/Pawn)
 -- price types
 BG.AUCTION = 6
 BG.VENDOR = 7

@@ -78,15 +78,20 @@ function BG.ResetStatistics(isGlobal)
 end
 
 function BG.GetContainerItemClassification(bag, slot)
-	local listIndex = Broker_Garbage.GetListIndex(bag, slot)
-	if not listIndex then return BG.INVALID end
+	local listIndex = BG.GetListIndex(bag, slot)
+	if not listIndex then return BG.IGNORE end
 
-	local cheapestItem = Broker_Garbage.cheapestItems[listIndex]
-	if not cheapestItem then return BG.INVALID end
+	local cheapestItem = BG.cheapestItems[listIndex]
+	if not cheapestItem then return BG.IGNORE end
 
-	return cheapestItem.source
+	if cheapestItem.source == BG.IGNORE then
+		return cheapestItem.origin or BG.IGNORE
+	else
+		return cheapestItem.source
+	end
 end
 
+--[[ Interaction with other addons ]]--
 function BG.ArkInventoryFilter(label)
 	if not ArkInventoryRules.Object.h or ArkInventoryRules.Object.class ~= "item" then
 		return false
@@ -95,7 +100,7 @@ function BG.ArkInventoryFilter(label)
 	local slot = ArkInventoryRules.Object.slot_id
 	label = label and string.upper(label)
 
-	return Broker_Garbage.GetContainerItemClassification(bag, slot) == Broker_Garbage[label]
+	return BG.GetContainerItemClassification(bag, slot) == BG[label]
 end
 function BG.InitArkInvFilter()
 	if not IsAddOnLoaded("ArkInventoryRules") then return end
@@ -106,6 +111,43 @@ function BG.InitArkInvFilter()
 	else
 		ArkInventoryRules.Register(BG, "brokergarbage", BG.ArkInventoryFilter, false)
 	end
+end
+
+local Addon = Bagnon
+local ItemSlot = Addon.ItemSlot
+local SetQuality = ItemSlot.SetBorderQuality
+local r, g, b  = GetItemQualityColor(0)
+
+local function CreateIcon(slot)
+	local icon = slot:CreateTexture(nil, 'OVERLAY')
+	icon:SetTexture('Interface\\Buttons\\UI-GroupLoot-Coin-Up')
+	icon:SetPoint('TOPLEFT', 2, -2)
+	icon:SetSize(15, 15)
+
+  	slot.scrapIcon = icon
+	return icon
+end
+function UpdateJunkIcon(self)
+	if not BG_GlobalDB.showBagnonSellIcons then
+		if self.scrapIcon and self.scrapIcon:IsShown() then self.scrapIcon:Hide() end
+		return
+	end
+	local icon = self.scrapIcon or CreateIcon(self)
+	local index = BG.GetListIndex(self:GetBag(), self:GetID())
+	local item = index and BG.cheapestItems[index]
+	if item and not item.invalid and item.sell then
+		icon:Show()
+	else
+		icon:Hide()
+	end
+end
+if IsAddOnLoaded("Bagnon") then -- [TODO] improve this code
+	hooksecurefunc(Bagnon.ItemSlot, "SetBorderQuality", function(self, ...)
+		UpdateJunkIcon(self)
+	end)
+	hooksecurefunc(BG, "ScanInventoryContainer", function()
+		Bagnon:UpdateFrames()
+	end)
 end
 
 -- external access, for modules etc.

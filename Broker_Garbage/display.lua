@@ -123,7 +123,7 @@ function BG:Tooltip(self)
 		if not itemEntry or itemEntry.source == BG.IGNORE or itemEntry.invalid then
 			-- not enough items to display
 			numLinesShown = i - 1
-			break;
+			break
 		end
 
 		-- adds lines: itemLink, count, itemPrice, source

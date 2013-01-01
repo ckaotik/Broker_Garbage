@@ -28,10 +28,12 @@ hooksecurefunc(GameTooltip, "SetBagItem", function(tip, bag, slot)
 	local cacheData = item and BG.GetCached(item.itemID)
 	local sell = (item and item.sell) and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or ""
 
+	local classification = BG.GetContainerItemClassification(bag, slot)
+
 	if GetContainerItemInfo(bag, slot) and item and cacheData then
-		if BG_GlobalDB and BG_GlobalDB.showItemTooltipLabel and item.source then
-			if item.source and item.source >= 0 then
-				tip:AddDoubleLine(BG.name, sell .. BG.colors[item.source] .. BG.labels[item.source] .. "|r")
+		if BG_GlobalDB and BG_GlobalDB.showItemTooltipLabel and classification then
+			if classification and classification >= 0 then
+				tip:AddDoubleLine(BG.name, sell .. BG.colors[classification] .. BG.labels[classification] .. "|r")
 			end
 			if item.reason and BG_GlobalDB.showLabelReason then
 				tip:AddDoubleLine(BG.name, item.reason)
@@ -42,7 +44,7 @@ hooksecurefunc(GameTooltip, "SetBagItem", function(tip, bag, slot)
 		if BG_GlobalDB and BG_GlobalDB.debug then
 			tip:AddDoubleLine(BG.name, "Index "..index..
 				(cacheData and ", label "..cacheData.classification or "")..
-				(item and ", source "..item.source or "")
+				(item and ", source "..classification or "")
 			)
 			tip:Show()
 		end
