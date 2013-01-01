@@ -113,11 +113,6 @@ function BG.InitArkInvFilter()
 	end
 end
 
-local Addon = Bagnon
-local ItemSlot = Addon.ItemSlot
-local SetQuality = ItemSlot.SetBorderQuality
-local r, g, b  = GetItemQualityColor(0)
-
 local function CreateIcon(slot)
 	local icon = slot:CreateTexture(nil, 'OVERLAY')
 	icon:SetTexture('Interface\\Buttons\\UI-GroupLoot-Coin-Up')
