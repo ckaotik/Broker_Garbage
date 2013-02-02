@@ -222,7 +222,7 @@ local function Options_LootManager(pluginID)
 		self:SetText(BGLM_LocalDB.itemMinValue)
 	end
 	local function SubmitEditBox()
-		BGLM_LocalDB.itemMinValue = tonumber(editbox:GetText())
+		BGLM_LocalDB.itemMinValue = tonumber(editbox:GetText()) or 0
 		editbox:SetText(Broker_Garbage.FormatMoney(BGLM_LocalDB.itemMinValue))
 		editbox:ClearFocus()
 	end

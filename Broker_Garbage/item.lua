@@ -241,7 +241,7 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 
 	-- == handle special cases ========
 	-- handle custom pricing
-	if type(item) == "table" and item.priceLabel then
+	if type(item) == "table" and item.priceLabel and item.priceLabel > 0 then
 		if label and label == BG.EXCLUDE then
 			-- fallback for over-limit keep items
 			return item.priceLabel, BG.VENDOR, item.priceReason
