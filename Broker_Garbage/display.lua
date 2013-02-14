@@ -178,19 +178,31 @@ end
 
 -- OnClick function - works for both, the LDB plugin -and- tooltip lines
 function BG:OnClick(itemTable, button)
-	-- handle LDB clicks seperately
-	local LDBclick = false
-	if not itemTable or not itemTable.itemID or type(itemTable.itemID) ~= "number" then
-		if (BG.cheapestItems and BG.cheapestItems[1] and not BG.cheapestItems[1].invalid) then
-			itemTable = BG.cheapestItems[1]
-		end
-		LDBclick = true
+	-- itemTable is present = tooltip line clicked
+	local isLDBclick = nil
+	if not itemTable or not itemTable.itemID then
+		itemTable = BG.cheapestItems[1]
+		isLDBclick = true
+	end
+
+	-- don't touch invalid/outdated items
+	if itemTable and (itemTable.invalid or itemTable.itemID == 0 or itemTable.source == BG.IGNORE) then
+		itemTable = nil
 	end
 
 	-- handle different clicks
-	if itemTable and IsShiftKeyDown() then
+	if button == "RightButton" then
+		if not IsAddOnLoaded("Broker_Garbage-Config") then
+			LoadAddOn("Broker_Garbage-Config")
+		end
+		InterfaceOptionsFrame_OpenToCategory("Broker_Garbage")
+		return
+
+	elseif IsShiftKeyDown() then
 		-- delete or sell item, depending on if we're at a vendor or not
-		if BG.isAtVendor and itemTable.value > 0 then
+		if not itemTable then
+			BG.Print(BG.locale.noItems)
+		elseif BG.isAtVendor and itemTable.value > 0 then
 			BG.Debug("At vendor, selling "..itemTable.itemID)
 			BG_GlobalDB.moneyEarned	= BG_GlobalDB.moneyEarned + itemTable.value
 			BG_LocalDB.moneyEarned 	= BG_LocalDB.moneyEarned + itemTable.value
@@ -203,7 +215,7 @@ function BG:OnClick(itemTable, button)
 			BG.Delete(itemTable)
 		end
 
-	elseif itemTable and IsControlKeyDown() then
+	elseif IsControlKeyDown() and itemTable then
 		-- add to exclude list
 		if not BG_LocalDB.exclude[itemTable.itemID] then
 			BG_LocalDB.exclude[itemTable.itemID] = 0
@@ -215,7 +227,7 @@ function BG:OnClick(itemTable, button)
 		end
 		BG.UpdateAllCaches(itemTable.itemID)
 
-	elseif itemTable and IsAltKeyDown() then
+	elseif IsAltKeyDown() and itemTable then
 		-- add to force vendor price list
 		BG_GlobalDB.forceVendorPrice[itemTable.itemID] = -1
 		BG.Print(format(BG.locale.addedTo_forceVendorPrice, select(2,GetItemInfo(itemTable.itemID))))
@@ -225,15 +237,9 @@ function BG:OnClick(itemTable, button)
 		end
 		BG.UpdateAllCaches(itemTable.itemID)
 
-	elseif button == "RightButton" then
-		if not IsAddOnLoaded("Broker_Garbage-Config") then
-			LoadAddOn("Broker_Garbage-Config")
-		end
-		-- open config
-		InterfaceOptionsFrame_OpenToCategory("Broker_Garbage")
-
-	elseif LDBclick then
+	elseif isLDBclick then
 		-- click on the LDB to rescan
+		-- see below
 	else
 		-- no scanning in any other case
 		return
