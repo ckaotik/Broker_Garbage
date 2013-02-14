@@ -460,13 +460,18 @@ function BG.SetDynamicLabelBySlot(container, slot, listIndex, isSpecialBag)
 	-- sell flag
 	local sellItem = nil
 	if (classification ~= BG.EXCLUDE and item.quality == 0)
-		or (classification == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems)
-		or (classification == BG.OUTDATED and item.quality <= BG_GlobalDB.sellNWQualityTreshold)
-		or (classification == BG.UNUSABLE and item.quality <= BG_GlobalDB.sellNWQualityTreshold)
-		or (classification == BG.AUTOSELL and item.quality <= BG_GlobalDB.sellNWQualityTreshold) then
+		or (classification == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems) then
 
 		value = BG.GetSingleItemValue(item, BG.VENDOR)
 		sellItem = value and count and (value*count) > 0
+	elseif classification == BG.OUTDATED or classification == BG.UNUSABLE or classification == BG.AUTOSELL then
+
+		if item.quality <= BG_GlobalDB.sellNWQualityTreshold then
+			value = BG.GetSingleItemValue(item, BG.VENDOR)
+			sellItem = value and count and (value*count) > 0
+		else
+			item.reason = (item.reason or "") .. " (over threshold)"
+		end
 	end
 
 	-- visibility in tooltip
