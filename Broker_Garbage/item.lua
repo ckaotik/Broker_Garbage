@@ -1,6 +1,6 @@
 local _, BG = ...
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, UIParent, ITEM_STARTS_QUEST, ITEM_BIND_QUEST, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, TopFit, PawnIsItemIDAnUpgrade, Enchantrix, Wowecon, AuctionLite, AucAdvanced, AucMasGetCurrentAuctionInfo, Auctional, _G
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, UIParent, ITEM_STARTS_QUEST, ITEM_BIND_QUEST, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, TopFit, PawnIsItemIDAnUpgrade, Enchantrix, Wowecon, AuctionLite, AucAdvanced, AucMasGetCurrentAuctionInfo, Auctional, _G, PROFESSION_RANKS
 -- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetAuctionItemSubClasses, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, IsAddOnLoaded, GetAuctionBuyout, GetDisenchantValue, Atr_GetAuctionBuyout, Atr_GetDisenchantValue, IsUsableSpell
 local type = type
 local select = select
@@ -417,37 +417,36 @@ function BG.CanDisenchant(itemLink, onlyMe)
 		required = Enchantrix.Util.DisenchantSkillRequiredForItem(itemLink)	-- might be more accurate/up to date in case I miss something
 		skillRank = Enchantrix.Util.GetUserEnchantingSkill()	-- Enchantrix caches this. So let's use it!
 	else
-		local _, _, quality, level, _, _, _, stackSize, invType = GetItemInfo(itemLink)
+		local _, _, quality, ilvl, _, _, _, stackSize, invType = GetItemInfo(itemLink)
 
 		-- stackables are not DE-able, legendary/heirlooms are not DE-able
-		if quality > 1 and quality < 5 and stackSize == 1 and BG.IsItemEquipment(invType) then
-			skillRank = BG.GetProfessionSkill(BG.enchanting) or 0
+		if quality <= 1 or quality > 5 or stackSize > 1 or not BG.IsItemEquipment(invType) then return end
+		skillRank = BG.GetProfessionSkill(BG.enchanting) or 0
 
-			if skillRank > 0 then
-				if level <= 20 then required = 1
-				elseif level <= 60 then required = 5*5*ceil(level/5)-100
-				elseif level <= 89 or (level <=  99 and quality <= 3) then required = 225
-				elseif level <= 120 then required = 275
-				else
-					if quality == 2 then		-- green
-						if     level <= 150 then required = 325
-						elseif level <= 182 then required = 350
-						elseif level <= 333 then required = 425
-						else required = 475	end
-					elseif quality == 3 then	-- blue
-						if     level <= 200 then required = 325
-						elseif level <= 346 then required = 450
-						elseif level <= 424 then required = 525
-						else required = 550 end
-					elseif quality == 4 then	-- purple
-						if     level <= 199 then required = 300
-						elseif level <= 277 then required = 375
-						elseif level <= 416 then required = 475
-						else required = 525	end
-					end
-				end
+		if 	   ilvl <= 20 then required = 1
+		elseif ilvl <= 60 then required = (floor(ilvl/5) - 3) * 25
+		elseif ilvl <= 89 or (quality <= 3 and ilvl <= 99) then required = 225
+		else
+			if quality == 2 then -- uncommon
+				if ilvl <= 120 then required = 275 end
+				if ilvl <= 150 then required = 325 end
+				if ilvl <= 182 then required = 350 end
+				if ilvl <= 333 then required = 425 end
+				if ilvl <= 437 then required = 475 end
+			elseif quality == 3 then -- rare
+				if ilvl <= 120 then required = 275 end
+				if ilvl <= 200 then required = 325 end
+				if ilvl <= 377 then required = 450 end
+				if ilvl <= 424 then required = 525 end
+				if ilvl <= 463 then required = 550 end
+			elseif quality == 4 then -- epic
+				if ilvl <= 151 then required = 300 end
+				if ilvl <= 277 then required = 375 end
+				if ilvl <= 416 then required = 475 end
+				if ilvl <= 516 then required = 575 end
 			end
 		end
+		if not required then required = PROFESSION_RANKS[#PROFESSION_RANKS][1] end
 	end
 
 	if not skillRank or not required then
@@ -457,12 +456,7 @@ function BG.CanDisenchant(itemLink, onlyMe)
 	elseif skillRank < required then
 		return false, (required - skillRank)
 	elseif BG_GlobalDB.hasEnchanter then
-		if onlyMe then
-			return false
-		else
-			-- check whether we can mail this item
-			return not BG.IsItemSoulbound(itemLink, true)
-		end
+		return not onlyMe and not BG.IsItemSoulbound(itemLink, true)
 	else
 		return false
 	end
