@@ -13,7 +13,7 @@ local tostringall = tostringall
 BGLM.PT = LibStub("LibPeriodicTable-3.1", true)
 BGLM.privateLootSpells = { 51005, 13262, 31252, 73979, 49383, 	-- milling, disenchanting, prospecting, archaeology, engineering
 	2575, 2576, 3564, 10248, 29354, 50310, 74517, 102161, 		-- mining
-	2366, 2368, 3570, 11993, 28695, 60300, 74519, 110413, 		-- herbalism
+	2366, 2368, 3570, 11993, 28695, 50300, 74519, 110413, 		-- herbalism
 	8613, 8617, 8618, 10768, 32678, 50305, 74522, 102216, 		-- skinning
 	-- 3365, -- "opening"
 }
