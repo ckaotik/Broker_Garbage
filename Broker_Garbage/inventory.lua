@@ -464,7 +464,7 @@ function BG.SetDynamicLabelBySlot(container, slot, listIndex, isSpecialBag)
 
 		value = BG.GetSingleItemValue(item, BG.VENDOR)
 		sellItem = value and count and (value*count) > 0
-	elseif classification == BG.OUTDATED or classification == BG.UNUSABLE or classification == BG.AUTOSELL then
+	elseif classification == BG.OUTDATED or classification == BG.UNUSABLE then
 
 		if item.quality <= BG_GlobalDB.sellNWQualityTreshold then
 			value = BG.GetSingleItemValue(item, BG.VENDOR)
