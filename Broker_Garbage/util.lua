@@ -208,7 +208,7 @@ function BG.CreateDefaultLists(global)
 	end
 
 	-- class specific
-	if BG.playerClass == "WARRIOR" or BG.playerClass == "ROGUE" or BG.playerClass == "DEATHKNIGHT" or BG.playerClass == "HUNTER" or BG.playerClass == "MONK" then
+	if BG.playerClass == "WARRIOR" or BG.playerClass == "ROGUE" or BG.playerClass == "DEATHKNIGHT" or BG.playerClass == "HUNTER" then
 		BG_LocalDB.autoSellList["Consumable.Water"] = 0
 	end
 	BG_LocalDB.exclude["Misc.Reagent.Class."..gsub(lower(BG.playerClass), "^.", upper)] = 0
@@ -253,23 +253,22 @@ function BG.GetTradeSkill(skill)
 end
 
 -- returns the current and maximum rank of a given skill
-function BG.GetProfessionSkill(skill)
-	if not skill or (type(skill) ~= "number" and type(skill) ~= "string") then return end
-	if type(skill) == "number" then
-		skill = GetSpellInfo(skill)
+function BG.GetProfessionSkill(requested)
+	if not requested then
+		return
+	elseif type(requested) == "number" then
+		requested = GetSpellInfo(requested) or requested
 	end
 
-	local rank, maxRank
-	local professions = { GetProfessions() }
-	for _, profession in ipairs(professions) do
-		local pName, _, pRank, pMaxRank = GetProfessionInfo(profession)
-		if pName and pName == skill then
-			rank = pRank
-			maxRank = pMaxRank
-			break
-		end
-	end
-	return rank, maxRank
+	local skillName, skill, skillMax, skillLine
+    for _, profession in ipairs({ GetProfessions() }) do
+    	if profession then
+    		skillName, _, skill, skillMax, _, _, skillLine = GetProfessionInfo(profession)
+			if requested == skillLine or requested == skillName then
+				return skill, skillMax
+			end
+    	end
+    end
 end
 
 -- == Table Functions ==
