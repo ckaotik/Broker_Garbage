@@ -44,14 +44,18 @@ local function eventHandler(self, event, arg1, ...)
 		BG.repairCost = 0		-- the amount of money that we repaired for
 		BG.sellLog = {}
 
-		BG.updateAvailable = {}
-		for i=0, NUM_BAG_SLOTS do
-			BG.updateAvailable[i] = false
-		end
-
 		BG.CheckSettings()
 		BG.InitArkInvFilter()
-		BG.ScanInventory()
+
+		BG.updateAvailable = {}
+		if InCombatLockdown() then
+			for i=0, NUM_BAG_SLOTS do
+				BG.updateAvailable[i] = true
+			end
+			frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+		else
+			BG.ScanInventory()
+		end
 
 		local events = {
 			"ITEM_PUSH", "BAG_UPDATE", "BAG_UPDATE_DELAYED",
