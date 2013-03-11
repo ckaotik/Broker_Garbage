@@ -459,7 +459,9 @@ function BG.SetDynamicLabelBySlot(container, slot, listIndex, isSpecialBag)
 
 	-- sell flag
 	local sellItem = nil
-	if (classification ~= BG.EXCLUDE and item.quality == 0)
+	if classification == BG.AUTOSELL then
+		sellItem = true
+	elseif (classification ~= BG.EXCLUDE and item.quality == 0)
 		or (classification == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems) then
 
 		value = BG.GetSingleItemValue(item, BG.VENDOR)
