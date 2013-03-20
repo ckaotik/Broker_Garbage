@@ -46,6 +46,7 @@ local function eventHandler(self, event, arg1, ...)
 
 		BG.CheckSettings()
 		BG.InitArkInvFilter()
+		BG.InitPriceHandlers()
 
 		BG.updateAvailable = {}
 		if InCombatLockdown() then

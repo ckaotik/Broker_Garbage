@@ -43,6 +43,13 @@ if GetLocale() == "deDE" then
 	L["armorClass"] = "Rüstungsklasse"
 	L["anythingCalled"] = "Items mit Namen"
 
+	-- Auction Addons
+	L["AuctionAddonsHeading"] = "Auktionsaddons"
+	L["AuctionAddonsExplanation"] = "Diese Tabellen zeigen welche Auktionsaddons Broker_Garbage anfragen kann, und in welcher Reihenfolge dies passiert. Um die Reihenfolge zu ändern, nutze die Hoch- und Runter-Knöpfe neben dem Addonnamen. Zum Deaktivieren einer Preisquelle, entferne das Häkchen aus dessen Reihe."
+	L["AuctionAddonsBuyout"] = "Auktionspreise"
+	L["AuctionAddonsDisenchant"] = "Entzauberpreise"
+	L["AuctionAddonsEnableTT"] = "Wenn ausgewählt, darf Broker_Garbage Preise von diesem Addon anfragen."
+
 	-- Statistics Frame
 	L["StatisticsHeading"] = "Statistiken"
 	L["ResetStatistic"] = "|cffffffffKlicke|r um diese Statistik zurückzusetzen.\n|cFFff0000Warnung: Dies lässt sich nicht rückgängig machen!."

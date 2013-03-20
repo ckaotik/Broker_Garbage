@@ -255,71 +255,27 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 		return vendorPrice, vendorPrice and BG.VENDOR, reason
 	end
 
+	local auctionAddon, auctionPrice, disenchantPrice
+	local canDisenchant, missingSkillPoints = BG.CanDisenchant(itemLink)
+	canDisenchant = canDisenchant or (missingSkillPoints and missingSkillPoints <= BG_GlobalDB.keepItemsForLaterDE)
+
 	-- check auction data
-	BG.auctionAddon = nil	-- forcefully reset this!
-	local disenchantPrice, auctionPrice, source = 0, 0, nil
-	local canDE, missingSkillPoints = BG.CanDisenchant(itemLink)
-	canDE = canDE or (missingSkillPoints and missingSkillPoints <= BG_GlobalDB.keepItemsForLaterDE)
-
-	-- calculate auction value: choose the highest auction/disenchant value
-	if IsAddOnLoaded("Auctionator") then
-		BG.auctionAddon = "Auctionator"
-		auctionPrice = Atr_GetAuctionBuyout(itemLink) or 0
-		disenchantPrice = canDE and Atr_GetDisenchantValue(itemLink)
-	end
-
-	if IsAddOnLoaded("Auc-Advanced") then	-- uses Market Value in any case
-		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "Auc-Advanced"
-		auctionPrice = max(auctionPrice, AucAdvanced.API.GetMarketValue(itemLink))
-
-		if IsAddOnLoaded("Enchantrix") then
-			disenchantPrice = canDE and max(disenchantPrice or 0, select(3, Enchantrix.Storage.GetItemDisenchantTotals(itemLink)) or 0)
+	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.buyout) do
+		auctionAddon = BG.auctionAddons[addonKey]
+		if not auctionPrice
+			and auctionAddon.buyoutEnabled and auctionAddon.buyout then
+			auctionPrice = auctionAddon.buyout(itemLink)
 		end
+		if auctionPrice then break end
 	end
-
-	if IsAddOnLoaded("AuctionLite") then
-		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "AuctionLite"
-		auctionPrice = max(auctionPrice, AuctionLite:GetAuctionValue(itemLink) or 0)
-		disenchantPrice = canDE and max(disenchantPrice or 0, AuctionLite:GetDisenchantValue(itemLink) or 0)
-	end
-
-	if IsAddOnLoaded("AuctionMaster") then
-		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "AuctionMaster"
-		auctionPrice = AucMasGetCurrentAuctionInfo(itemLink) or 0
-		disenchantPrice = canDE and max(disenchantPrice or 0, AuctionMaster.Disenchant:GetDisenchantValue(itemLink) or 0)
-	end
-
-	if IsAddOnLoaded("WOWEcon_PriceMod") then
-		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "WoWecon"
-		auctionPrice = max(auctionPrice, Wowecon.API.GetAuctionPrice_ByLink(itemLink) or 0)
-
-		if canDE and not disenchantPrice then
-			local tmpPrice = 0
-			local DEData = Wowecon.API.GetDisenchant_ByLink(itemLink)
-			local link, quantity, chance
-			for i, data in pairs(DEData) do
-				link, quantity, chance = unpack(data)
-				tmpPrice = tmpPrice + ((Wowecon.API.GetAuctionPrice_ByLink(link or "")) * quantity * chance)
-			end
-			disenchantPrice = max(disenchantPrice or 0, floor(tmpPrice or 0))
+	-- check disenchant data
+	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.disenchant) do
+		auctionAddon = BG.auctionAddons[addonKey]
+		if not disenchantPrice and canDisenchant
+			and auctionAddon.disenchantEnabled and auctionAddon.disenchant then
+			disenchantPrice = auctionAddon.disenchant(itemLink)
 		end
-	end
-
-	if IsAddOnLoaded("Auctional") then
-		BG.auctionAddon = (BG.auctionAddon and BG.auctionAddon..", " or "") .. "Auctional"
-		auctionPrice = max(auctionPrice, Auctional:GetAuctionValue(itemLink) or 0)
-		disenchantPrice = canDE and max(disenchantPrice or 0, Auctional:GetDisenchantValue(itemLink) or 0)
-	end
-
-	-- last chance to get auction values
-	if (not auctionPrice or auctionPrice == 0) and GetAuctionBuyout then
-		BG.auctionAddon = BG.auctionAddon or BG.locale.unknown
-		auctionPrice = max(auctionPrice, GetAuctionBuyout(itemLink) or 0)
-	else
-		BG.auctionAddon = BG.auctionAddon or BG.locale.na
-	end
-	if (not disenchantPrice or disenchantPrice == 0) and GetDisenchantValue then
-		disenchantPrice = canDE and max(disenchantPrice or 0, GetDisenchantValue(itemLink) or 0)
+		if disenchantPrice then break end
 	end
 
 	if label == BG.AUCTION then
@@ -612,7 +568,7 @@ function BG.UpdateCache(itemID) -- itemID/itemLink/itemTable
 	local priceLabel, priceReason = nil, nil
 
 	-- check if item is classified by its itemID
-	if not label and BG.IsItemInBGList(itemID, "exclude") then
+	if BG.IsItemInBGList(itemID, "exclude") then
 		label = BG.EXCLUDE
 		reason = "ItemID is KEEP"
 		itemLimit = BG_LocalDB.exclude[itemID] or BG_GlobalDB.exclude[itemID] or 0

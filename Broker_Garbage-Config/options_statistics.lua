@@ -61,10 +61,10 @@ local function Options_Statistics(pluginID)
 	UpdateAddOnMemoryUsage()
 	local memoryUsage, memoryUsageText = AddStatistic("collectgarbage", BGC.locale.MemoryUsageTitle, floor(GetAddOnMemoryUsage("Broker_Garbage")), BGC.locale.CollectMemoryUsageTooltip, "TOPRIGHT", panel, "TOP", -2, -40)
 
-	local auctionAddon, auctionAddonText = AddStatistic(nil, BGC.locale.AuctionAddon, Broker_Garbage:GetVariable("auctionAddon") or BGC.locale.na, BGC.locale.AuctionAddonTooltip, "TOPLEFT", memoryUsage, "BOTTOMLEFT", 0, -6)
+	-- local auctionAddon, auctionAddonText = AddStatistic(nil, BGC.locale.AuctionAddon, Broker_Garbage:GetVariable("auctionAddon") or BGC.locale.na, BGC.locale.AuctionAddonTooltip, "TOPLEFT", memoryUsage, "BOTTOMLEFT", 0, -6)
 
 	local globalStatistics = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	globalStatistics:SetPoint("TOPLEFT", auctionAddon, "BOTTOMLEFT", 0, -12)
+	globalStatistics:SetPoint("TOPLEFT", memoryUsage, "BOTTOMLEFT", 0, -12)
 	globalStatistics:SetPoint("RIGHT", panel, -32, 0)
 	globalStatistics:SetNonSpaceWrap(true)
 	globalStatistics:SetJustifyH("LEFT")

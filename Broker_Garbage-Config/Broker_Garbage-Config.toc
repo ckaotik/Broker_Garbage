@@ -41,6 +41,7 @@ locale\curse.lua
 # main files
 util.lua
 options_main.lua
+options_sources.lua
 options_statistics.lua
 options_lists.lua
 options_slash.lua

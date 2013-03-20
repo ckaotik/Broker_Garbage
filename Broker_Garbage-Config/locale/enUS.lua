@@ -43,6 +43,13 @@ L["equipmentManager"] = "Equipment Manager"
 L["armorClass"] = "Armor Class"
 L["anythingCalled"] = "Items named"
 
+-- Auction Addons
+L["AuctionAddonsHeading"] = "Auction Addons"
+L["AuctionAddonsExplanation"] = "These tables show which auction addons are known to Broker_Garbage. It also shows the order in which these will be asked for values. To adjust the order, use the up and down buttons next to the addon's name, to disable it completely, remove the check mark in its row."
+L["AuctionAddonsBuyout"] = "Buyout Prices"
+L["AuctionAddonsDisenchant"] = "Disenchant Prices"
+L["AuctionAddonsEnableTT"] = "If checked, this addon's supplied values may be used by Broker_Garbage."
+
 -- Statistics Frame
 L["StatisticsHeading"] = "Statistics"
 L["ResetStatistic"] = "|cffffffffClick|r to reset this statistic.\n|cFFff0000Warning: This cannot be undone."
@@ -67,8 +74,8 @@ L["StatisticsLocalAmountLost"] = "Amount lost"
 L["ResetAllText"] = "Reset All"
 L["ResetAllTooltip"] = "|cffffffffClick|r here to reset all character specific statistics. |cffffffffSHIFT-Click|r to clear all global statistics."
 
-L["AuctionAddon"] = "Auction addon"
-L["AuctionAddonTooltip"] = "Broker_Garbage will take auction values from this addon. If none is listed, you may still have auction values available by an addon that Broker_Garbage doesn't know."
+L["AuctionAddon"] = "Auction addon" -- unused
+L["AuctionAddonTooltip"] = "Broker_Garbage will take auction values from this addon. If none is listed, you may still have auction values available by an addon that Broker_Garbage doesn't know." -- unused
 L["unknown"] = "Unknown"	-- refers to auction addon
 L["na"] = "Not Available"
 
