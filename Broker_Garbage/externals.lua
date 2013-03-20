@@ -92,6 +92,7 @@ function BG.GetContainerItemClassification(bag, slot)
 end
 
 --[[ Interaction with other addons ]]--
+-- ArkInventory + ArkInventoryRules
 function BG.ArkInventoryFilter(label)
 	if not ArkInventoryRules.Object.h or ArkInventoryRules.Object.class ~= "item" then
 		return false
@@ -113,6 +114,7 @@ function BG.InitArkInvFilter()
 	end
 end
 
+-- Bagnon
 local function CreateIcon(slot)
 	local icon = slot:CreateTexture(nil, 'OVERLAY')
 	icon:SetTexture('Interface\\Buttons\\UI-GroupLoot-Coin-Up')

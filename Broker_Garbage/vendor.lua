@@ -26,7 +26,7 @@ function BG.AutoSell(manualSell)
 	local sellValue = 0
 	local cachedItem
 	for tableIndex, item in ipairs(BG.cheapestItems) do
-		if item.sell and not item.invalid then
+		if item.sell and not item.invalid and item.itemID ~= 0 then
 			if sellValue == 0 then
 				BG.Debug("Selling items, scans locked")
 				BG.locked = true

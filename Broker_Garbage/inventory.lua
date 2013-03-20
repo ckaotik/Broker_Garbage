@@ -134,14 +134,13 @@ function BG.UpdateAllCaches(itemID)
 		return
 	end
 	BG.UpdateCache(itemID)
-	BG.ScanInventory(true)
+	BG.ScanInventory()
 end
 
 function BG.UpdateAllDynamicItems()
 	BG.ClearCache()
 	wipe(BG.cheapestItems)
 	BG.ScanInventory()
-	return
 end
 
 -- == Inventory Scanning ==
@@ -309,7 +308,7 @@ function BG.UpdateInventorySlotLimit(container, slot, itemID)
 		myReason = " (over limit)"
 	end
 
-	BG.Debug("Checking item limit", container*100+slot, itemID, myReason)
+	BG.Debug("Checking item limit", container*100+slot, itemID, myReason, sell)
 
 	-- override pre-determined values
 	cheapestItem.value = value
@@ -459,15 +458,14 @@ function BG.SetDynamicLabelBySlot(container, slot, listIndex, isSpecialBag)
 
 	-- sell flag
 	local sellItem = nil
-	if classification == BG.AUTOSELL then
+	if classification == BG.IGNORE or classification == BG.EXCLUDE then
+		-- do nothing
+	elseif classification == BG.AUTOSELL then
 		sellItem = true
-	elseif (classification ~= BG.EXCLUDE and item.quality == 0)
-		or (classification == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems) then
-
+	elseif item.quality == 0 or (classification == BG.INCLUDE and BG_GlobalDB.autoSellIncludeItems) then
 		value = BG.GetSingleItemValue(item, BG.VENDOR)
 		sellItem = value and count and (value*count) > 0
 	elseif classification == BG.OUTDATED or classification == BG.UNUSABLE then
-
 		if item.quality <= BG_GlobalDB.sellNWQualityTreshold then
 			value = BG.GetSingleItemValue(item, BG.VENDOR)
 			sellItem = value and count and (value*count) > 0
