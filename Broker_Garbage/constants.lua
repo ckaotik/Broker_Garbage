@@ -23,7 +23,11 @@ BG.defaultGlobalSettings = {
 	autoSellIncludeItems = nil,	-- toggle include list being sell list as well
 	keepItemsForLaterDE = 0,
 
-	-- tresholds
+	auctionAddonOrder = { buyout = {}, disenchant = {} },
+	buyoutDisabledSources = {},
+	disenchantDisabledSources = {},
+
+	-- thresholds
 	dropQuality = 0,
 	sellNWQualityTreshold = 3,
 
