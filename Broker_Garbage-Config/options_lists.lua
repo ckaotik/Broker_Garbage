@@ -87,9 +87,7 @@ function BGC:ShowListOptions(frame)
 	rescan:SetWidth(150)
 	rescan:RegisterForClicks("LeftButtonUp")
 	rescan:SetScript("OnClick", function(self, button)
-		-- Broker_Garbage.UpdateAllCaches()
-		Broker_Garbage.UpdateAllDynamicItems()
-		Broker_Garbage:UpdateLDB()
+		Broker_Garbage.ScanInventory()
 	end)
 
 	-- action buttons
@@ -137,10 +135,10 @@ function BGC:ShowListOptions(frame)
 		end
 
 		if resetRequired then
-			Broker_Garbage.UpdateAllDynamicItems()
+			Broker_Garbage.ScanInventory()
+		else
+			Broker_Garbage:UpdateLDB()
 		end
-
-		Broker_Garbage:UpdateLDB()
 		Broker_Garbage:UpdateMerchantButton()
 		BGC:ListOptionsUpdate()
 	end
@@ -156,6 +154,9 @@ function BGC:ShowListOptions(frame)
 		end,
 		OnAlt = function(self)
 			savePriceSetting(-1)
+		end,
+		OnShow = function(self)
+			-- MoneyFrame_Update(self.moneyFrame, currentPrice)
 		end,
 		EditBoxOnEscapePressed = function(self)
 			self:GetParent():GetParent().button2:Click()
@@ -317,9 +318,7 @@ function BGC:ShowListOptions(frame)
 		if self.itemID then
 			Broker_Garbage.UpdateCache(self.itemID)
 		else -- commented because of huuuuge memory/CPU requirements
-			-- Broker_Garbage.UpdateAllCaches()
-			-- Broker_Garbage.UpdateAllDynamicItems()
-			-- Broker_Garbage:UpdateLDB()
+			-- Broker_Garbage.ScanInventory()
 		end
 	end
 
@@ -365,26 +364,9 @@ function BGC:ShowListOptions(frame)
 		for index, itemID in ipairs(data) do
 			local button = _G[scrollContent:GetName().."_Item"..index]
 			if not button then	-- create another button
-				button = CreateFrame("CheckButton", scrollContent:GetName().."_Item"..index, scrollContent)
+				button = CreateFrame("CheckButton", scrollContent:GetName().."_Item"..index, scrollContent, 'ItemButtonTemplate')
 				button:SetWidth(36)
 				button:SetHeight(36)
-
-				button.limit = button:CreateFontString(nil, "ARTWORK", "NumberFontNormal")
-				button.limit:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 2, 2)
-				button.limit:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 2)
-				button.limit:SetPoint("TOP", button, 0, 4)
-				-- button.limit:SetHeight(20)
-				button.limit:SetJustifyH("RIGHT")
-				button.limit:SetJustifyV("BOTTOM")
-				button.limit:SetText("")
-
-				button.global = button:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-				button.global:SetPoint("TOPLEFT", button, "TOPLEFT", 2, -2)
-				button.global:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -3, 1)
-				button.global:SetJustifyH("LEFT")
-				button.global:SetJustifyV("TOP")
-				button.global:SetText("")
-
 				button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 				button:SetCheckedTexture("Interface\\Buttons\\UI-Button-Outline")
 				button:SetChecked(false)
@@ -419,7 +401,8 @@ function BGC:ShowListOptions(frame)
 			end
 
 			-- update this button with data
-			local itemLink, texture
+			local itemLink, texture, quality
+			button.extraTipLine = nil
 			if type(itemID) == "string" then
 				local specialType, identifier = match(itemID, "^(.-)_(.+)")
 				if specialType == "AC" then
@@ -434,11 +417,13 @@ function BGC:ShowListOptions(frame)
 				elseif specialType == "BEQ" then
 					-- blizzard gear set
 					identifier = tonumber(identifier)
-					identifier, texture = identifier and GetEquipmentSetInfo(identifier)
+					if identifier then
+						itemLink, texture = GetEquipmentSetInfo(identifier)
+					end
 
 					button.itemLink = nil
 					button.itemID = itemID
-					button.tiptext = identifier
+					button.tiptext = itemLink
 				elseif specialType == "NAME" then
 					-- item name filter
 					texture = "Interface\\Icons\\Ability_Hunter_Pathfinding"
@@ -456,48 +441,54 @@ function BGC:ShowListOptions(frame)
 				end
 			else
 				-- this is an explicit item
-				_, itemLink, _, _, _, _, _, _, _, texture, _ = GetItemInfo(itemID)
+				_, itemLink, quality, _, _, _, _, _, _, texture, _ = GetItemInfo(itemID)
 				button.itemLink = itemLink
 				button.itemID = itemID
 				button.tiptext = nil
 			end
 
-			if texture then	-- everything's fine
-				button.global.tiptext = ""
-				if globalList[itemID] then
-					button.global:SetText("G")
-					button.isGlobal = true
-				else
-					button.global:SetText("")
-					button.isGlobal = false
-				end
+			if globalList[itemID] then
+				_G[button:GetName().."Stock"]:SetText('G')
+				_G[button:GetName().."Stock"]:Show()
+				button.isGlobal = true
+			else
+				SetItemButtonStock(button, 0)
+				button.isGlobal = false
+			end
 
-				if frame.current == "forceVendorPrice" then
-					button.limit:SetFontObject("ReputationDetailFont")
-					if globalList[itemID] >= 0 then
-						button.limit:SetText( Broker_Garbage.FormatMoney(globalList[itemID]) )
-					else
-						button.limit:SetText("")
-					end
+			if frame.current == "forceVendorPrice" then
+				SetItemButtonCount(button, 0)
+				if globalList[itemID] >= 0 then
+					_G[button:GetName().."Stock"]:SetText('*')
+					_G[button:GetName().."Stock"]:Show()
+					button.extraTipLine = Broker_Garbage.FormatMoney(globalList[itemID])
 				else
-					button.limit:SetFontObject("NumberFontNormal")
-					if button.isGlobal and globalList[itemID] ~= true then
-						button.limit:SetText(globalList[itemID] > 0 and globalList[itemID] or "")
-					elseif localList and localList[itemID] ~= true then
-						button.limit:SetText(localList[itemID] > 0 and localList[itemID] or "")
-					else
-						button.limit:SetText("")
-					end
+					SetItemButtonStock(button, 0)
 				end
-
-				if not itemLink and not button.itemID and not BGC.PT then
-					button:SetAlpha(0.2)
-					button.tiptext = button.tiptext .. "\n|cffff0000"..BGC.locale.LPTNotLoaded
+			else
+				if button.isGlobal and globalList[itemID] ~= true then
+					SetItemButtonCount(button, globalList[itemID] > 0 and globalList[itemID] or 0)
+				elseif localList and localList[itemID] ~= true then
+					SetItemButtonCount(button, localList[itemID] > 0 and localList[itemID] or 0)
 				else
-					button:SetAlpha(1)
+					SetItemButtonCount(button, 0)
 				end
 			end
-			button:SetNormalTexture(texture or "Interface\\Icons\\Inv_misc_questionmark")
+
+			if not itemLink and not button.itemID and not BGC.PT then
+				button:SetAlpha(0.2)
+				button.tiptext = button.tiptext .. "\n|cffff0000"..BGC.locale.LPTNotLoaded
+			else
+				button:SetAlpha(1)
+			end
+			SetItemButtonTexture(button, texture or "Interface\\Icons\\INV_MISC_Questionmark")
+			if quality and ITEM_QUALITY_COLORS[quality] then
+				SetItemButtonNormalTextureVertexColor(button,
+					ITEM_QUALITY_COLORS[quality].r, ITEM_QUALITY_COLORS[quality].g, ITEM_QUALITY_COLORS[quality].b)
+			else
+				SetItemButtonNormalTextureVertexColor(button, 1, 1, 1)
+			end
+
 
 			if BGC.listOptions.current ~= "forceVendorPrice" then
 				button:EnableMouseWheel(true)
@@ -565,9 +556,10 @@ function BGC:ShowListOptions(frame)
 
 			local reset = BGC.RemoteAddItemToList(value, frame.current)
 			if reset then
-				Broker_Garbage.UpdateAllDynamicItems()
+				Broker_Garbage.ScanInventory()
+			else
+				Broker_Garbage:UpdateLDB()
 			end
-			Broker_Garbage:UpdateLDB()
 			Broker_Garbage.UpdateMerchantButton()
 			BGC:ListOptionsUpdate()
 		end
@@ -753,9 +745,10 @@ function BGC:ShowListOptions(frame)
 		Broker_Garbage:SetOption(frame.current, true, globalList)
 
 		if reset then
-			Broker_Garbage.UpdateAllDynamicItems()
+			Broker_Garbage.ScanInventory()
+		else
+			Broker_Garbage:UpdateLDB()
 		end
-		Broker_Garbage:UpdateLDB()
 		Broker_Garbage:UpdateMerchantButton()
 		BGC:ListOptionsUpdate()
 	end

@@ -165,6 +165,10 @@ function BGC.ShowTooltip(self)
 				-- we just got new data for this tooltip!
 				BGC:ListOptionsUpdate()
 			end
+
+			if self.extraTipLine and self.extraTipLine ~= "" then
+				GameTooltip:AddLine(self.extraTipLine)
+			end
 		elseif self.tiptext then
 			-- fallback, in case GetItemInfo() wasn't available
 			GameTooltip:SetText(self.tiptext or BGC.locale.unknown, nil, nil, nil, nil, true)

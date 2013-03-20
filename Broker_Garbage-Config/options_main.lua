@@ -30,7 +30,6 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("overrideLPT", true)
 		Broker_Garbage.ClearCache()
 		Broker_Garbage.ScanInventory()
-		Broker_Garbage:UpdateLDB()
 	end)
 
 	local sellGear = BGC.CreateCheckBox(behavior, nil, BGC.locale.sellNotUsableTitle, "TOPLEFT", overrideLPT, "BOTTOMLEFT", 0, 4)
@@ -51,7 +50,7 @@ local function Options_BasicOptions(pluginID)
 	sellOutdatedGear:SetScript("OnClick", function(self)
 		checksound(self)
 		Broker_Garbage:ToggleOption("sellOldGear", true)
-		Broker_Garbage.UpdateAllDynamicItems()
+		Broker_Garbage.UpdateAllDynamicItems() -- TODO: test!
 		Broker_Garbage:UpdateLDB()
 	end)
 	if not IsAddOnLoaded("TopFit") then
@@ -117,7 +116,6 @@ local function Options_BasicOptions(pluginID)
 		checksound(self)
 		Broker_Garbage:ToggleOption("hideZeroValue", true)
 		Broker_Garbage.ScanInventory()
-		Broker_Garbage:UpdateLDB()
 	end)
 
 	-- -----------------------------------------------------------------
@@ -514,7 +512,8 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("reportDisenchantOutdated", true)
 	end)
 
-	local laterDE, laterDEText, container, low, high = LibStub("tekKonfig-Slider").new(output, BGC.locale.keepForLaterDETitle .. ": " .. Broker_Garbage:GetOption("keepItemsForLaterDE", true), 0, 525, "TOPLEFT", reportDE, "BOTTOMLEFT", 24, -12)
+	local maxSkillRank = PROFESSION_RANKS[#PROFESSION_RANKS][1]
+	local laterDE, laterDEText, container, low, high = LibStub("tekKonfig-Slider").new(output, BGC.locale.keepForLaterDETitle .. ": " .. Broker_Garbage:GetOption("keepItemsForLaterDE", true), 0, maxSkillRank, "TOPLEFT", reportDE, "BOTTOMLEFT", 24, -12)
 	laterDE.tiptext = BGC.locale.keepForLaterDETooltip .. BGC.locale.GlobalSetting
 	laterDE:SetWidth(130); container:SetWidth(140);
 	laterDEText:SetPoint("BOTTOMLEFT", laterDE, "TOPLEFT", 2, 0)
