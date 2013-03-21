@@ -44,7 +44,7 @@ L["armorClass"] = "Armor Class"
 L["anythingCalled"] = "Items named"
 
 -- Auction Addons
-L["AuctionAddonsHeading"] = "Auction Addons"
+L["AuctionAddonsHeading"] = "Price Sources"
 L["AuctionAddonsExplanation"] = "These tables show which auction addons are known to Broker_Garbage. It also shows the order in which these will be asked for values. To adjust the order, use the up and down buttons next to the addon's name, to disable it completely, remove the check mark in its row."
 L["AuctionAddonsBuyout"] = "Buyout Prices"
 L["AuctionAddonsDisenchant"] = "Disenchant Prices"

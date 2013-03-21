@@ -44,7 +44,7 @@ if GetLocale() == "deDE" then
 	L["anythingCalled"] = "Items mit Namen"
 
 	-- Auction Addons
-	L["AuctionAddonsHeading"] = "Auktionsaddons"
+	L["AuctionAddonsHeading"] = "Preisquellen"
 	L["AuctionAddonsExplanation"] = "Diese Tabellen zeigen welche Auktionsaddons Broker_Garbage anfragen kann, und in welcher Reihenfolge dies passiert. Um die Reihenfolge zu ändern, nutze die Hoch- und Runter-Knöpfe neben dem Addonnamen. Zum Deaktivieren einer Preisquelle, entferne das Häkchen aus dessen Reihe."
 	L["AuctionAddonsBuyout"] = "Auktionspreise"
 	L["AuctionAddonsDisenchant"] = "Entzauberpreise"
