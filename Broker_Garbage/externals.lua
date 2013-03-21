@@ -142,7 +142,8 @@ if IsAddOnLoaded("Bagnon") then -- [TODO] improve this code
 	hooksecurefunc(Bagnon.ItemSlot, "SetBorderQuality", function(self, ...)
 		UpdateJunkIcon(self)
 	end)
-	hooksecurefunc(BG, "ScanInventoryContainer", function()
+	-- ScanInventoryContainer
+	hooksecurefunc(BG, "UpdateLDB", function()
 		Bagnon:UpdateFrames()
 	end)
 end

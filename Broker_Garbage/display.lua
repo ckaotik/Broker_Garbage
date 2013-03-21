@@ -218,6 +218,7 @@ function BG:OnClick(itemTable, button)
 	elseif IsControlKeyDown() and itemTable then
 		-- add to exclude list
 		if not BG_LocalDB.exclude[itemTable.itemID] then
+			-- TODO: add public wrapper function!
 			BG_LocalDB.exclude[itemTable.itemID] = 0
 		end
 		BG.Print(format(BG.locale.addedTo_exclude, select(2,GetItemInfo(itemTable.itemID))))
@@ -246,12 +247,11 @@ function BG:OnClick(itemTable, button)
 	end
 
 	BG.ScanInventory()
-	BG:UpdateLDB()
 end
 
 -- == Misc. stuff ==
 -- tiny launcher for manual restacking! yay!
-local rescanButton = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Broker_Garbage-Restack", {
+local restackButton = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Broker_Garbage-Restack", {
 	type = "launcher",
 	icon = "Interface\\Icons\\achievement_bg_returnxflags_def_wsg",
 	OnClick = function(self, button)
