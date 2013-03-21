@@ -91,26 +91,26 @@ function BGC:ShowListOptions(frame)
 	end)
 
 	-- action buttons
-	local plus = CreateFrame("Button", "Broker_Garbage_AddButton", frame)
+	local plus = CreateFrame("Button", "$parentAddEntryButton", frame)
 	plus:SetPoint("TOPLEFT", panel, "BOTTOMLEFT", 4, -2)
 	plus:SetWidth(25); plus:SetHeight(25)
 	plus:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	plus:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
 	plus.tiptext = BGC.locale.LOPlus
 	plus:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-	local minus = CreateFrame("Button", "Broker_Garbage_RemoveButton", frame)
+	local minus = CreateFrame("Button", "$parentRemoveEntryButton", frame)
 	minus:SetPoint("LEFT", plus, "RIGHT", 4, 0)
 	minus:SetWidth(25);	minus:SetHeight(25)
 	minus:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	minus:SetNormalTexture("Interface\\Icons\\Spell_chargenegative")
 	minus.tiptext = BGC.locale.LOMinus
-	local demote = CreateFrame("Button", "Broker_Garbage_DemoteButton", frame)
+	local demote = CreateFrame("Button", "$parentDemoteButton", frame)
 	demote:SetPoint("LEFT", minus, "RIGHT", 14, 0)
 	demote:SetWidth(25) demote:SetHeight(25)
 	demote:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 	demote:SetNormalTexture("Interface\\Icons\\INV_Misc_GroupLooking")
 	demote.tiptext = BGC.locale.LODemote
-	local promote = CreateFrame("Button", "Broker_Garbage_PromoteButton", frame)
+	local promote = CreateFrame("Button", "$parentPromoteButton", frame)
 	promote:SetPoint("LEFT", demote, "RIGHT", 4, 0)
 	promote:SetWidth(25) promote:SetHeight(25)
 	promote:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
@@ -170,113 +170,107 @@ function BGC:ShowListOptions(frame)
 		hideOnEscape = true,
 		preferredIndex = 3,
 	}
-	local setPrice = CreateFrame("Button", "Broker_Garbage_SetPriceButton", frame)
+	local setPrice = CreateFrame("Button", "$parentSetPriceButton", frame)
 	setPrice:SetPoint("LEFT", promote, "RIGHT", 14, 0)
 	setPrice:SetWidth(25); setPrice:SetHeight(25)
 	setPrice:SetNormalTexture("Interface\\Icons\\INV_Misc_Coin_02") -- Coin_06
 	setPrice.tiptext = BGC.locale.LOSetPrice
 	setPrice:Disable(); setPrice:GetNormalTexture():SetDesaturated(true)
 
-	local emptyList = CreateFrame("Button", "Broker_Garbage_EmptyListButton", frame)
+	local emptyList = CreateFrame("Button", "$parentClearListButton", frame)
 	emptyList:SetPoint("LEFT", setPrice, "RIGHT", 14, 0)
 	emptyList:SetWidth(25); emptyList:SetHeight(25)
 	emptyList:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-UP")
 	emptyList.tiptext = BGC.locale.LOEmptyList
 
-	local searchbox = CreateFrame("EditBox", frame:GetName().."SearchBox", frame)
-	searchbox:SetAutoFocus(false)
+	local searchbox = CreateFrame("EditBox", "$parentSearchBox", frame, "SearchBoxTemplate")
 	searchbox:SetPoint("TOPRIGHT", panel, "BOTTOMRIGHT", -4, 2)
-	searchbox:SetWidth(160)
-	searchbox:SetHeight(32)
-	searchbox:SetFontObject("GameFontHighlightSmall")
-	BGC.CreateFrameBorders(searchbox)
-	searchbox:SetTextColor(0.75, 0.75, 0.75, 1)
-	searchbox:SetText(BGC.locale.search)
-	searchbox:SetCursorPosition(0)
-
-	searchbox:SetScript("OnEscapePressed", searchbox.ClearFocus)
-	searchbox:SetScript("OnEnterPressed", searchbox.ClearFocus)
-
+	searchbox:SetSize(160, 32)
+	searchbox:SetText(SEARCH) -- TODO why won't it show :()
+	searchbox:SetScript("OnEnterPressed", EditBox_ClearFocus)
+	searchbox:SetScript("OnEscapePressed", function(self)
+		self:SetText(SEARCH)
+		PlaySound("igMainMenuOptionCheckBoxOn")
+		EditBox_ClearFocus(self)
+	end)
 	searchbox:SetScript("OnTextChanged", function(self)
-		local t = self:GetText()
-		self.searchString = t ~= "" and t ~= BGC.locale.search and t:lower() or nil
+		local text = self:GetText()
+		local oldText = self.searchString
+		self.searchString = (text ~= "" and text ~= SEARCH) and string.lower(text) or nil
+		if oldText ~= self.searchString then
+			BGC:UpdateSearch(self.searchString)
+		end
+	end)
+	searchbox.clearFunc = function(self)
 		BGC:UpdateSearch(self.searchString)
-	end)
-	searchbox:SetScript("OnEditFocusGained", function(self)
-		if not self.searchString then
-			self:SetText("")
-			self:SetTextColor(1,1,1,1)
-		end
-	end)
-	searchbox:SetScript("OnEditFocusLost", function(self)
-		if self:GetText() == "" then
-			self:SetText(BGC.locale.search)
-			self:SetTextColor(0.75, 0.75, 0.75, 1)
-		end
-	end)
+	end
 
 	-- tab changing actions
+	local tabs = { include, exclude, vendorPrice, autoSell, help }
+	local function ToggleTab(activated)
+		for _, tab in ipairs(tabs) do
+			if tab == activated then
+				tab:Activate()
+			else
+				tab:Deactivate()
+			end
+		end
+	end
+	local function ToggleButton(button, enabled)
+		if enabled then
+			button:Enable()
+			button:GetNormalTexture():SetDesaturated(false)
+		else
+			button:Disable()
+			button:GetNormalTexture():SetDesaturated(true)
+		end
+	end
 	include:SetScript("OnClick", function(self)
-		self:Activate()
-		exclude:Deactivate()
-		vendorPrice:Deactivate()
-		autoSell:Deactivate()
-		help:Deactivate()
-		promote:Enable();   promote:GetNormalTexture():SetDesaturated(false)
-		demote:Enable();    demote:GetNormalTexture():SetDesaturated(false)
-		setPrice:Disable(); setPrice:GetNormalTexture():SetDesaturated(true)
+		ToggleTab(self)
+		ToggleButton(promote, true)
+		ToggleButton(demote, true)
+		ToggleButton(setPrice, false)
+
 		frame.current = "include"
 		scrollFrame:SetVerticalScroll(0)
 		BGC:ListOptionsUpdate()
 	end)
 	exclude:SetScript("OnClick", function(self)
-		self:Activate()
-		include:Deactivate()
-		vendorPrice:Deactivate()
-		autoSell:Deactivate()
-		help:Deactivate()
-		promote:Enable();   promote:GetNormalTexture():SetDesaturated(false)
-		demote:Enable();    demote:GetNormalTexture():SetDesaturated(false)
-		setPrice:Disable(); setPrice:GetNormalTexture():SetDesaturated(true)
+		ToggleTab(self)
+		ToggleButton(promote, true)
+		ToggleButton(demote, true)
+		ToggleButton(setPrice, false)
+
 		frame.current = "exclude"
 		scrollFrame:SetVerticalScroll(0)
 		BGC:ListOptionsUpdate()
 	end)
 	vendorPrice:SetScript("OnClick", function(self)
-		self:Activate()
-		include:Deactivate()
-		exclude:Deactivate()
-		autoSell:Deactivate()
-		help:Deactivate()
-		promote:Disable(); promote:GetNormalTexture():SetDesaturated(true)
-		demote:Disable();  demote:GetNormalTexture():SetDesaturated(true)
-		setPrice:Enable(); setPrice:GetNormalTexture():SetDesaturated(false)
+		ToggleTab(self)
+		ToggleButton(promote, false)
+		ToggleButton(demote, false)
+		ToggleButton(setPrice, true)
+
 		frame.current = "forceVendorPrice"
 		scrollFrame:SetVerticalScroll(0)
 		BGC:ListOptionsUpdate()
 	end)
 	autoSell:SetScript("OnClick", function(self)
-		self:Activate()
-		include:Deactivate()
-		exclude:Deactivate()
-		vendorPrice:Deactivate()
-		help:Deactivate()
-		promote:Enable();   promote:GetNormalTexture():SetDesaturated(false)
-		demote:Enable();    demote:GetNormalTexture():SetDesaturated(false)
-		setPrice:Disable(); setPrice:GetNormalTexture():SetDesaturated(true)
+		ToggleTab(self)
+		ToggleButton(promote, true)
+		ToggleButton(demote, true)
+		ToggleButton(setPrice, false)
+
 		frame.current = "autoSellList"
 		scrollFrame:SetVerticalScroll(0)
 		BGC:ListOptionsUpdate()
 	end)
 	help:SetScript("OnClick", function(self)
-		self:Activate()
-		include:Deactivate()
-		exclude:Deactivate()
-		autoSell:Deactivate()
-		vendorPrice:Deactivate()
-		promote:Enable();   promote:GetNormalTexture():SetDesaturated(false)
-		demote:Enable();    demote:GetNormalTexture():SetDesaturated(false)
-		setPrice:Disable(); setPrice:GetNormalTexture():SetDesaturated(true)
+		ToggleTab(self)
+		ToggleButton(promote, true)
+		ToggleButton(demote, true)
+		ToggleButton(setPrice, false)
+
 		frame.current = nil
 		scrollFrame:SetVerticalScroll(0)
 		BGC:ListOptionsUpdate()
@@ -284,40 +278,27 @@ function BGC:ShowListOptions(frame)
 
 	-- function to set the drop treshold (limit) via the mousewheel
 	local function OnMouseWheel(self, dir)
-		local list
-		local text, limit = self.limit:GetText()
-		if self.isGlobal then
-			list = Broker_Garbage:GetOption(frame.current, true)
-		else
-			list = Broker_Garbage:GetOption(frame.current, false)
-		end
+		local list = Broker_Garbage:GetOption(frame.current, self.isGlobal)
+		local key = self.itemID or self.tiptext
 
+		local countText = _G[self:GetName()..'Count']
 		local change = IsShiftKeyDown() and 10 or 1
-		local item = self.itemID or self.tiptext
-		if dir == 1 then	-- up
-			if list[item] == 0 then
-				list[item] = change
-			else
-				list[item] = list[item] + change
-			end
-			text = list[item]
-		else				-- down
-			if list[item] == 0 then	-- no change
-				text = ""
-			else
-				list[item] = list[item] - change
-				text = list[item]
-			end
+			  change = (dir == 1) and change or change * -1
+		local value = tonumber(list[key]) or 0
+			  value = value + change
+			  value = value > 0 and value or 0
 
-			if type(list[item]) == "number" and list[item] <= 0 then
-				list[item] = 0
-				text = ""
-			end
+		list[key] = value
+		SetItemButtonCount(self, value)
+		if value == 1 then
+			countText:SetText(value)
+			countText:Show()
 		end
-		self.limit:SetText(text)
+
 		if self.itemID then
 			Broker_Garbage.UpdateCache(self.itemID)
-		else -- commented because of huuuuge memory/CPU requirements
+		else
+			-- commented because of huuuuge memory/CPU requirements
 			-- Broker_Garbage.ScanInventory()
 		end
 	end
@@ -466,12 +447,13 @@ function BGC:ShowListOptions(frame)
 					SetItemButtonStock(button, 0)
 				end
 			else
-				if button.isGlobal and globalList[itemID] ~= true then
-					SetItemButtonCount(button, globalList[itemID] > 0 and globalList[itemID] or 0)
-				elseif localList and localList[itemID] ~= true then
-					SetItemButtonCount(button, localList[itemID] > 0 and localList[itemID] or 0)
-				else
-					SetItemButtonCount(button, 0)
+				local listValue = (button.isGlobal and type(globalList[itemID]) == "number") and globalList[itemID]
+					or  (not button.isGlobal and type( localList[itemID]) == "number") and localList[itemID]
+					or 0
+
+				SetItemButtonCount(button, listValue)
+				if listValue == 1 then
+					_G[button:GetName()..'Count']:Show()
 				end
 			end
 
