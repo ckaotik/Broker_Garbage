@@ -267,6 +267,8 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 			if auctionPrice then break end
 		end
 	end
+	if not auctionPrice then auctionPrice = 0 end
+
 	-- check disenchant data
 	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.disenchant) do
 		auctionAddon = BG.auctionAddons[addonKey]

@@ -6,10 +6,13 @@ BG.auctionAddons = {}
 -- TODO: checkbox to use highest price
 
 function BG.AddPriceHandler(name, buyoutPriceHandler, disenchantPriceHandler, overwrite)
-	if name ~= 'Default' and not (buyoutPriceHandler or disenchantPriceHandler) then
-		error('Name and at least one handler are required for registration')
+	if name ~= 'Default' then
+		if not (buyoutPriceHandler or disenchantPriceHandler) then
+			error('Name and at least one handler are required for registration')
+		elseif type(buyoutPriceHandler) ~= 'function' and type(disenchantPriceHandler) ~= 'function' then
+			error('Supplied handlers are no functions')
+		end
 	end
-	assert(type(buyoutPriceHandler) == 'function' or type(disenchantPriceHandler) == 'function', 'Supplied handlers are no functions')
 	assert(overwrite or not BG.auctionAddons[name], 'Auction handler with this name already exists')
 
 	BG.auctionAddons[name] = {
