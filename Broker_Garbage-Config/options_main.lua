@@ -9,7 +9,7 @@ local function Options_BasicOptions(pluginID)
 	local panel, tab = BGC:CreateOptionsTab(pluginID)
 
 	local behavior = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupBehavior, "TOPLEFT", 21, -16)
-	behavior:SetHeight(290); behavior:SetWidth(180)
+	behavior:SetHeight(333); behavior:SetWidth(180)
 	behavior:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
 	local sell = BGC.CreateCheckBox(behavior, nil, BGC.locale.autoSellTitle, "TOPLEFT", behavior, "TOPLEFT", 4, -2)
@@ -50,7 +50,7 @@ local function Options_BasicOptions(pluginID)
 	sellOutdatedGear:SetScript("OnClick", function(self)
 		checksound(self)
 		Broker_Garbage:ToggleOption("sellOldGear", true)
-		Broker_Garbage.UpdateAllDynamicItems() -- TODO: test!
+		Broker_Garbage.UpdateAllDynamicItems()
 		Broker_Garbage:UpdateLDB()
 	end)
 	if not IsAddOnLoaded("TopFit") then
@@ -108,7 +108,20 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("hasEnchanter", true)
 	end)
 
-	local hideZero = BGC.CreateCheckBox(behavior, nil, BGC.locale.hideZeroTitle, "TOPLEFT", enchanter, "BOTTOMLEFT", 0, 4)
+	local maxSkillRank = PROFESSION_RANKS[#PROFESSION_RANKS][1]
+	local laterDE, laterDEText, container, low, high = LibStub("tekKonfig-Slider").new(behavior, BGC.locale.keepForLaterDETitle .. ": " .. Broker_Garbage:GetOption("keepItemsForLaterDE", true), 0, maxSkillRank, "TOPLEFT", enchanter, "BOTTOMLEFT", 26, -2)
+	laterDE.tiptext = BGC.locale.keepForLaterDETooltip .. BGC.locale.GlobalSetting
+	laterDE:SetWidth(130); container:SetWidth(140);
+	laterDEText:SetPoint("BOTTOMLEFT", laterDE, "TOPLEFT", 2, 0)
+	laterDE:SetValueStep(5)
+	laterDE:SetValue(Broker_Garbage:GetOption("keepItemsForLaterDE", true))
+	laterDE:SetScript("OnValueChanged", function(self)
+		Broker_Garbage:SetOption("keepItemsForLaterDE", true, self:GetValue())
+		laterDEText:SetText(BGC.locale.keepForLaterDETitle .. ": " .. Broker_Garbage:GetOption("keepItemsForLaterDE", true))
+		Broker_Garbage.ScanInventory()
+	end)
+
+	local hideZero = BGC.CreateCheckBox(behavior, nil, BGC.locale.hideZeroTitle, "TOPLEFT", enchanter, "BOTTOMLEFT", 0, -40)
 	hideZero.tiptext = BGC.locale.hideZeroTooltip .. BGC.locale.GlobalSetting
 	hideZero:SetChecked( Broker_Garbage:GetOption("hideZeroValue", true) )
 	local checksound = hideZero:GetScript("OnClick")
@@ -472,7 +485,7 @@ local function Options_BasicOptions(pluginID)
 	end
 
 	local output = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupOutput, "TOPLEFT", display, "BOTTOMLEFT", 0, -14)
-	output:SetHeight(148); output:SetWidth(180)
+	output:SetHeight(108); output:SetWidth(180)
 	output:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
 	local debugMode = BGC.CreateCheckBox(output, nil, BGC.locale.debugTitle, "TOPLEFT", output, "TOPLEFT", 4, -2)
@@ -510,19 +523,6 @@ local function Options_BasicOptions(pluginID)
 	reportDE:SetScript("OnClick", function(self)
 		checksound(self)
 		Broker_Garbage:ToggleOption("reportDisenchantOutdated", true)
-	end)
-
-	local maxSkillRank = PROFESSION_RANKS[#PROFESSION_RANKS][1]
-	local laterDE, laterDEText, container, low, high = LibStub("tekKonfig-Slider").new(output, BGC.locale.keepForLaterDETitle .. ": " .. Broker_Garbage:GetOption("keepItemsForLaterDE", true), 0, maxSkillRank, "TOPLEFT", reportDE, "BOTTOMLEFT", 24, -12)
-	laterDE.tiptext = BGC.locale.keepForLaterDETooltip .. BGC.locale.GlobalSetting
-	laterDE:SetWidth(130); container:SetWidth(140);
-	laterDEText:SetPoint("BOTTOMLEFT", laterDE, "TOPLEFT", 2, 0)
-	laterDE:SetValueStep(5)
-	laterDE:SetValue(Broker_Garbage:GetOption("keepItemsForLaterDE", true))
-	laterDE:SetScript("OnValueChanged", function(self)
-		Broker_Garbage:SetOption("keepItemsForLaterDE", true, self:GetValue())
-		laterDEText:SetText(BGC.locale.keepForLaterDETitle .. ": " .. Broker_Garbage:GetOption("keepItemsForLaterDE", true))
-		Broker_Garbage.ScanInventory()
 	end)
 
 	function panel:Update()
