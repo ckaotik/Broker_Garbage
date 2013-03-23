@@ -23,7 +23,7 @@ BG.LDB = LibDataBroker:NewDataObject("Broker_Garbage", {
 	text 	= "",
 
 	OnClick = function(...) BG:OnClick(...) end,
-	OnEnter = function(...) BG:Tooltip(...) end,
+	OnEnter = function(...) BG:ShowTooltip(...) end,
 	OnLeave = function() end, -- placeholder, required for e.g. ninja panel
 })
 
@@ -58,66 +58,55 @@ function disenchantCellPrototype:getContentHeight()
 	return 10
 end
 function disenchantCellPrototype:SetupCell(tooltip, value, justification, font, r, g, b)
-	local index, bag, slot = value[1], value[2], value[3]
-	local button = _G["BG_TT_DisenchantBtn"..index]
+	if value then
+		local index, bag, slot = value[1], value[2], value[3]
 
-	if not button then
-		button = CreateFrame("Button", "BG_TT_DisenchantBtn"..index, UIParent, "SecureActionButtonTemplate")
-		button:SetNormalTexture("Interface\\ICONS\\INV_Enchant_Disenchant")
+		local button = _G["BG_TT_DisenchantBtn"..index]
+		if not button then
+			button = CreateFrame("Button", "BG_TT_DisenchantBtn"..index, UIParent, "SecureActionButtonTemplate")
+			button:SetNormalTexture("Interface\\ICONS\\INV_Enchant_Disenchant")
+		end
+		button:SetParent(self)
+		button:SetPoint("TOPLEFT", self)
+
+		button:SetAttribute("type", "spell")
+		button:SetAttribute("spell", BG.disenchant)
+		button:SetAttribute("target-bag", bag)
+		button:SetAttribute("target-slot", slot)
+
+		button:SetSize(12, 12)
+		button:Show()
+	else
+		button:SetSize(0, 0)
+		button:Hide()
 	end
-
-	button:SetAttribute("type", "spell")
-	button:SetAttribute("spell", BG.disenchant)
-	button:SetAttribute("target-bag", bag)
-	button:SetAttribute("target-slot", slot)
-
-	button:SetParent(self)
-	button:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0)
-	button:SetWidth(12)
-	button:SetHeight(12)
-	button:Show()
-	return 10, 10
+	return value and 10 or 0, 10
 end
 
-function BG:Tooltip(self)
-	local colNum = 1 + (BG_GlobalDB.showSource and 4 or 3)
-	BG.tt = LibQTip:Acquire("BrokerGarbage_LDB", colNum, "LEFT", "RIGHT", "RIGHT", colNum == 4 and "CENTER" or nil)
-	BG.tt:Clear()
+function BG:ShowTooltip(self)
+	local numColumns, lineNum = (BG_GlobalDB.showSource and 4 or 3) + 1, 0
+	local tooltip = LibQTip:Acquire("Broker_Garbage", numColumns, "LEFT", "RIGHT", "RIGHT", numColumns >= 4 and "CENTER" or nil)
+	BG.tooltip = tooltip
 
-	-- font settings
-	local tooltipHFont = CreateFont("TooltipHeaderFont")
-	tooltipHFont:SetFont(GameTooltipText:GetFont(), 14)
-	tooltipHFont:SetTextColor(1,1,1)
+	tooltip:Clear()
+	tooltip:GetFont():SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
 
-	local tooltipFont = CreateFont("TooltipFont")
-	tooltipFont:SetFont(GameTooltipText:GetFont(), 11)
-	tooltipFont:SetTextColor(255/255,176/255,25/255)
-
-	local lineNum
-	-- add header lines
-	lineNum = BG.tt:AddLine("Broker_Garbage", "", BG.locale.headerRightClick, colNum == 4 and "" or nil)
-	BG.tt:SetCell(lineNum, 1, "Broker_Garbage", tooltipHFont, 2)
-	BG.tt:SetCell(lineNum, 3, BG.locale.headerAltClick, tooltipFont, colNum - 2)
-
-	-- add info lines
-	BG.tt:SetFont(tooltipFont)
-	lineNum = BG.tt:AddLine()
-	BG.tt:SetCell(lineNum, 1, BG.locale.headerShiftClick, tooltipFont, "LEFT", 2)
-	BG.tt:SetCell(lineNum, 3, BG.locale.headerCtrlClick, tooltipFont, "RIGHT", colNum - 2)
-
-	lineNum = BG.tt:AddSeparator(2)
+	-- add header lines: these don't span across disenchant column!
+	lineNum = tooltip:AddHeader('Broker_Garbage')
+			  tooltip:SetCell(lineNum, 2, BG.locale.headerAltClick, tooltip.regularFont, numColumns - 1 -1)
+	lineNum = tooltip:AddLine(BG.locale.headerShiftClick)
+			  tooltip:SetCell(lineNum, 2, BG.locale.headerCtrlClick, nil, 'RIGHT', numColumns - 1 -1)
+	tooltip:AddSeparator(2)
 
 	-- add clam information
 	if BG_GlobalDB.openContainers and BG.containerInInventory then
-		lineNum = BG.tt:AddLine()
-		BG.tt:SetCell(lineNum, 1, BG.locale.openPlease, tooltipFont, "CENTER", colNum)
-	end
-	if BG.tt:GetLineCount() > lineNum then
-		BG.tt:AddSeperator(2)
+		lineNum = tooltip:AddLine()
+				  tooltip:SetCell(lineNum, 1, BG.locale.openPlease, nil, 'CENTER', numColumns)
+		tooltip:AddSeperator(2)
 	end
 
 	-- shows up to n lines of deletable items
-	local itemEntry, numLinesShown
+	local itemEntry, numLinesShown, link, icon, text, source, canDisenchant
 	for i = 1, BG_GlobalDB.tooltipNumItems do
 		itemEntry = BG.cheapestItems and BG.cheapestItems[i]
 		if not itemEntry or itemEntry.source == BG.IGNORE or itemEntry.invalid then
@@ -127,53 +116,43 @@ function BG:Tooltip(self)
 		end
 
 		-- adds lines: itemLink, count, itemPrice, source
-		local _, link, _, _, _, _, _, _, _, icon, _ = GetItemInfo(itemEntry.itemID)
-		lineNum = BG.tt:AddLine(
-			(BG_GlobalDB.showIcon and "|T"..icon..":0|t " or "")..link,
-			itemEntry.count,
-			BG.FormatMoney(itemEntry.value))
+		_, link, _, _, _, _, _, _, _, icon, _ = GetItemInfo(itemEntry.itemID)
+		text = (BG_GlobalDB.showIcon and "|T"..icon..":0|t " or "") .. link
+		source = BG.colors[itemEntry.source] .. BG.tag[itemEntry.source] .. "|r"
+		canDisenchant = BG.CanDisenchant(link)
 
-		if colNum > 4 then
-			BG.tt:SetCell(lineNum, 4, BG.colors[itemEntry.source] .. BG.tag[itemEntry.source] .. "|r", "RIGHT", 1, 5, 0, 50, 10)
-		end
-
-		if BG.CanDisenchant(link) then
-			BG.tt:SetCell(lineNum, colNum, {lineNum, itemEntry.bag, itemEntry.slot}, disenchantButtonCell)
-		end
-
-		BG.tt:SetLineScript(lineNum, "OnMouseDown", BG.OnClick, itemEntry)
+		lineNum = tooltip:AddLine(text, itemEntry.count, BG.FormatMoney(itemEntry.value), BG_GlobalDB.showSource and source or nil)
+				  tooltip:SetLineScript(lineNum, "OnMouseDown", BG.OnClick, itemEntry)
+				  tooltip:SetCell(lineNum, numColumns, canDisenchant and {lineNum, itemEntry.bag, itemEntry.slot} or nil, disenchantButtonCell)
 	end
 	if numLinesShown == 0 then
-		lineNum = BG.tt:AddLine(BG.locale.noItems, "", BG.locale.increaseTreshold, colNum == 4 and "" or nil)
-		BG.tt:SetCell(lineNum, 1, BG.locale.noItems, tooltipFont, "CENTER", colNum)
-		lineNum = BG.tt:AddLine("", "", "", colNum == 4 and "" or nil)
-		BG.tt:SetCell(lineNum, 1, BG.locale.increaseTreshold, tooltipFont, "CENTER", colNum)
+		text = BG.locale.noItems .. "\n" .. BG.locale.increaseTreshold
+		lineNum = tooltip:AddLine()
+				  tooltip:SetCell(lineNum, 1, text, nil, "CENTER", numColumns)
 	end
 
 	-- add statistics information
 	if (BG_GlobalDB.showLost and BG_LocalDB.moneyLostByDeleting ~= 0)
 		or (BG_GlobalDB.showEarned and BG_LocalDB.moneyEarned ~= 0) then
-		lineNum = BG.tt:AddSeparator(2)
 
+		tooltip:AddSeparator(2)
 		if BG_GlobalDB.showLost and BG_LocalDB.moneyLostByDeleting ~= 0 then
-			lineNum = BG.tt:AddLine(BG.locale.moneyLost, "", BG.FormatMoney(BG_LocalDB.moneyLostByDeleting), colNum == 4 and "" or nil)
-			BG.tt:SetCell(lineNum, 1, BG.locale.moneyLost, tooltipFont, "LEFT", 2)
-			BG.tt:SetCell(lineNum, 3, BG.FormatMoney(BG_LocalDB.moneyLostByDeleting), tooltipFont, "RIGHT", colNum - 2)
+			lineNum = tooltip:AddLine(BG.locale.moneyLost)
+					  tooltip:SetCell(lineNum, 2, BG.FormatMoney(BG_LocalDB.moneyLostByDeleting), nil, "RIGHT", numColumns - 1)
 		end
 		if BG_GlobalDB.showEarned and BG_LocalDB.moneyEarned ~= 0 then
-			lineNum = BG.tt:AddLine(BG.locale.moneyEarned, "", BG.FormatMoney(BG_LocalDB.moneyEarned), colNum == 4 and "" or nil)
-			BG.tt:SetCell(lineNum, 1, BG.locale.moneyEarned, tooltipFont, "LEFT", 2)
-			BG.tt:SetCell(lineNum, 3, BG.FormatMoney(BG_LocalDB.moneyEarned), tooltipFont, "RIGHT", colNum - 2)
+			lineNum = tooltip:AddLine(BG.locale.moneyEarned)
+					  tooltip:SetCell(lineNum, 2, BG.FormatMoney(BG_LocalDB.moneyEarned), nil, "RIGHT", numColumns - 1)
 		end
 	end
 
-	-- Use smart anchoring code to anchor the tooltip to our frame
-	BG.tt:SmartAnchorTo(self)
-	BG.tt:SetAutoHideDelay(0.25, self)
+	-- Use smart anchoring code to anchor the tooltip to our LDB frame
+	tooltip:SmartAnchorTo(self)
+	tooltip:SetAutoHideDelay(0.25, self)
 
 	-- Show it, et voilà !
-	BG.tt:Show()
-	BG.tt:UpdateScrolling(BG_GlobalDB.tooltipMaxHeight)
+	tooltip:Show()
+	tooltip:UpdateScrolling(BG_GlobalDB.tooltipMaxHeight)
 end
 
 -- OnClick function - works for both, the LDB plugin -and- tooltip lines

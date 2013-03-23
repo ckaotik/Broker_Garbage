@@ -23,7 +23,7 @@ if GetLocale() == "deDE" then
 	L["couldNotMoveItem"] = "Fehler! Der zu bewegende Gegenstand ist nicht der erwartete."
 
 	-- Tooltip
-	L["headerAltClick"] = "Alt-Klick: Händlerpreis nutzen"
+	L["headerAltClick"] = "ALT-Klick: Händlerpreis nutzen"
 	L["headerRightClick"] = "Rechts-Klick: Optionen" -- unused
 	L["headerShiftClick"] = "SHIFT-Klick: Zerstören"
 	L["headerCtrlClick"] = "STRG-Klick: Behalten"
