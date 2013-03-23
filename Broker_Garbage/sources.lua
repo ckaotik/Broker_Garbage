@@ -6,7 +6,9 @@ BG.auctionAddons = {}
 -- TODO: checkbox to use highest price
 
 function BG.AddPriceHandler(name, buyoutPriceHandler, disenchantPriceHandler, overwrite)
-	assert(name and (buyoutPriceHandler or disenchantPriceHandler), 'AddPriceHandler requires a name and at least one price handler')
+	if name ~= 'Default' and not (buyoutPriceHandler or disenchantPriceHandler) then
+		error('Name and at least one handler are required for registration')
+	end
 	assert(type(buyoutPriceHandler) == 'function' or type(disenchantPriceHandler) == 'function', 'Supplied handlers are no functions')
 	assert(overwrite or not BG.auctionAddons[name], 'Auction handler with this name already exists')
 
@@ -27,7 +29,7 @@ function BG.AddPriceHandler(name, buyoutPriceHandler, disenchantPriceHandler, ov
 	end
 end
 function BG.EnablePriceHandler(name, buyout, disenchant)
-	assert(name and BG.auctionAddons[name], 'Price handler with this name not found')
+	assert(name and BG.auctionAddons[name], 'No price handler with this name was found')
 	if buyout ~= nil then
 		BG.auctionAddons[name].buyoutEnabled = buyout
 		BG_GlobalDB.buyoutDisabledSources[name] = not buyout and true or nil
@@ -49,10 +51,11 @@ end
 function BG.GetPriceHandlerOrder(displayType)
 	return BG_GlobalDB.auctionAddonOrder[displayType]
 end
-function BG.GetPriceHandler(name)
+function BG.GetPriceHandler(name, noFallback)
 	if name and BG.auctionAddons[name] then
 		return BG.auctionAddons[name]
 	end
+	if noFallback then return end
 	for name, data in pairs(BG.auctionAddons) do
 		return data
 	end
@@ -63,53 +66,41 @@ end
 -- add your own by calling Broker_Garbage.AddPriceHandler(addonIdentifier, buyoutHandler, disenchantHandler)
 -- ----------------------------------------------------
 function BG.InitPriceHandlers()
-	BG.AddPriceHandler('Auctionator', function(itemLink)
-		if IsAddOnLoaded('Auctionator') then
-			return Atr_GetAuctionBuyout(itemLink)
-		end
-	end, function(itemLink)
-		if IsAddOnLoaded('Auctionator') then
-			return Atr_GetDisenchantValue(itemLink)
-		end
-	end)
+	local disenchantHandler
 
-	BG.AddPriceHandler('Auc-Advanced', function(itemLink)
-		if IsAddOnLoaded('Auc-Advanced') then
-			return AucAdvanced.API.GetMarketValue
-		end
-	end, function(itemLink)
+	if IsAddOnLoaded('Auctionator') then
+		BG.AddPriceHandler('Auctionator', Atr_GetAuctionBuyout, Atr_GetDisenchantValue)
+	end
+
+	if IsAddOnLoaded('Auc-Advanced') then
 		if IsAddOnLoaded('Enchantrix') then
-			local disenchantPrice = select(3, Enchantrix.Storage.GetItemDisenchantTotals(itemLink))
-			return disenchantPrice
+			disenchantHandler = function(itemLink)
+				local disenchantPrice = select(3, Enchantrix.Storage.GetItemDisenchantTotals(itemLink))
+				return disenchantPrice
+			end
 		end
-	end)
+		BG.AddPriceHandler('Auc-Advanced', AucAdvanced.API.GetMarketValue, disenchantHandler)
+	end
 
-	BG.AddPriceHandler('AuctionLite', function(itemLink)
-		if IsAddOnLoaded('AuctionLite') then
+	if IsAddOnLoaded('AuctionLite') then
+		BG.AddPriceHandler('AuctionLite', function(itemLink)
 			return AuctionLite:GetAuctionValue(itemLink)
-		end
-	end, function(itemLink)
-		if IsAddOnLoaded('AuctionLite') then
+		end, function(itemLink)
 			return AuctionLite:GetDisenchantValue(itemLink)
-		end
-	end)
+		end)
+	end
 
-	BG.AddPriceHandler('AuctionMaster', function(itemLink)
-		if IsAddOnLoaded('AuctionMaster') then
-			return AucMasGetCurrentAuctionInfo(itemLink)
-		end
-	end, function(itemLink)
-		if IsAddOnLoaded('AuctionMaster') then
+	if IsAddOnLoaded('AuctionMaster') then
+		-- some addon authors haven't heard of compatible namespacing :(
+		local AuctionMaster = vendor
+		disenchantHandler = function(itemLink)
 			return AuctionMaster.Disenchant:GetDisenchantValue(itemLink)
 		end
-	end)
+		BG.AddPriceHandler('AuctionMaster', AucMasGetCurrentAuctionInfo, disenchantHandler)
+	end
 
-	BG.AddPriceHandler('WOWEcon_PriceMod', function(itemLink)
-		if IsAddOnLoaded('WOWEcon_PriceMod') then
-			return Wowecon.API.GetAuctionPrice_ByLink
-		end
-	end, function(itemLink)
-		if IsAddOnLoaded('WOWEcon_PriceMod') then
+	if IsAddOnLoaded('WOWEcon_PriceMod') then
+		disenchantHandler = function(itemLink)
 			local tmpPrice = 0
 			local DEData = Wowecon.API.GetDisenchant_ByLink(itemLink)
 			local link, quantity, chance
@@ -119,17 +110,32 @@ function BG.InitPriceHandlers()
 			end
 			return floor(tmpPrice or 0)
 		end
-	end)
+		BG.AddPriceHandler('WOWEcon_PriceMod', Wowecon.API.GetAuctionPrice_ByLink, disenchantHandler)
+	end
 
-	BG.AddPriceHandler('Auctional', function(itemLink)
-		if IsAddOnLoaded('Auctional') then
-			return Auctional:GetAuctionValue(itemLink)
-		end
-	end, function(itemLink)
-		if IsAddOnLoaded('Auctional') then
+	if IsAddOnLoaded('Auctional') then
+		BG.AddPriceHandler('Auctional', function(itemLink)
+			return Auctional:GetAuctionBuyout(itemLink)
+		end, function(itemLink)
 			return Auctional:GetDisenchantValue(itemLink)
-		end
-	end)
+		end)
+	end
 
 	BG.AddPriceHandler('Default', GetAuctionBuyout, GetDisenchantValue)
+
+	-- remove stray entries so we can reorder without troubles
+	local addons, addonKey = BG_GlobalDB.auctionAddonOrder.buyout
+	for i = #(addons), 1, -1 do
+		addonKey = addons[i]
+		if not BG.auctionAddons[addonKey] then
+			table.remove(addons, i)
+		end
+	end
+	addons, addonKey = BG_GlobalDB.auctionAddonOrder.disenchant
+	for i = #(addons), 1, -1 do
+		addonKey = addons[i]
+		if not BG.auctionAddons[addonKey] then
+			table.remove(addons, i)
+		end
+	end
 end

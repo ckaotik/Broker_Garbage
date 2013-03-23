@@ -18,9 +18,6 @@ local floor = math.floor
 local ceil = math.ceil
 local max = math.max
 
--- some addon authors haven't heard of compatible namespacing :(
-local AuctionMaster = vendor
-
 local Unfit = LibStub("Unfit-1.0")	-- library to determine unusable items
 
 function BG.GetItemID(itemLink)
@@ -262,20 +259,24 @@ function BG.GetSingleItemValue(item, label)	-- itemID/itemLink/itemTable
 	-- check auction data
 	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.buyout) do
 		auctionAddon = BG.auctionAddons[addonKey]
-		if not auctionPrice
-			and auctionAddon.buyoutEnabled and auctionAddon.buyout then
-			auctionPrice = auctionAddon.buyout(itemLink)
+		if auctionAddon and auctionAddon.buyout then
+			if not auctionPrice
+				and auctionAddon.buyoutEnabled and auctionAddon.buyout then
+				auctionPrice = auctionAddon.buyout(itemLink)
+			end
+			if auctionPrice then break end
 		end
-		if auctionPrice then break end
 	end
 	-- check disenchant data
 	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.disenchant) do
 		auctionAddon = BG.auctionAddons[addonKey]
-		if not disenchantPrice and canDisenchant
-			and auctionAddon.disenchantEnabled and auctionAddon.disenchant then
-			disenchantPrice = auctionAddon.disenchant(itemLink)
+		if auctionAddon and auctionAddon.disenchant then
+			if not disenchantPrice and canDisenchant
+				and auctionAddon.disenchantEnabled and auctionAddon.disenchant then
+				disenchantPrice = auctionAddon.disenchant(itemLink)
+			end
+			if disenchantPrice then break end
 		end
-		if disenchantPrice then break end
 	end
 
 	if label == BG.AUCTION then
