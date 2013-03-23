@@ -105,7 +105,7 @@ function BGC.RemoteAddItemToList(item, list)
 		Broker_Garbage.UpdateAllCaches(item)
 	end
 
-	return resetRequired
+	return resetRequired or true -- TODO: temporary
 end
 function BGC.RemoteRemoveItemFromList(item, list)
 	if not item then return end
@@ -121,7 +121,7 @@ function BGC.RemoteRemoveItemFromList(item, list)
 	else							-- category string
 		resetRequired = true
 	end
-	return resetRequired
+	return resetRequired or true -- TODO: temporary
 end
 function BGC.RemoteDemoteItemInList(item, list)
 	if not item then return end

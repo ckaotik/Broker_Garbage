@@ -34,7 +34,8 @@ function BGC:ShowListOptions(frame)
 	autoSellIncludeItems:SetScript("OnClick", function(autoSellIncludeItems)
 		checksound(autoSellIncludeItems)
 		Broker_Garbage:ToggleOption("autoSellIncludeItems", true)
-		Broker_Garbage.ScanInventory(true)
+		-- Broker_Garbage.ScanInventory(true)
+		Broker_Garbage.UpdateAllDynamicItems()
 	end)
 
 	local includeMode = LibStub("tekKonfig-Checkbox").new(frame, nil, BGC.locale.LOUseRealValues, "TOPLEFT", autoSellIncludeItems, "BOTTOMLEFT", 0, 8)
@@ -53,11 +54,11 @@ function BGC:ShowListOptions(frame)
 	panel:SetPoint("BOTTOMRIGHT", -8 -4, 34)
 
 	local topTab = LibStub("tekKonfig-TopTab")
-	local include = topTab.new(frame, BGC.locale.LOTabTitleInclude, "BOTTOMLEFT", panel, "TOPLEFT", 0, -4)
-	frame.current = "include"
-	local exclude = topTab.new(frame, BGC.locale.LOTabTitleExclude, "LEFT", include, "RIGHT", -15, 0)
-	exclude:Deactivate()
-	local autoSell = topTab.new(frame, BGC.locale.LOTabTitleAutoSell, "LEFT", exclude, "RIGHT", -15, 0)
+	local exclude = topTab.new(frame, BGC.locale.LOTabTitleExclude, "BOTTOMLEFT", panel, "TOPLEFT", 0, -4)
+	frame.current = "exclude"
+	local include = topTab.new(frame, BGC.locale.LOTabTitleInclude, "LEFT", exclude, "RIGHT", -15, 0)
+	include:Deactivate()
+	local autoSell = topTab.new(frame, BGC.locale.LOTabTitleAutoSell, "LEFT", include, "RIGHT", -15, 0)
 	autoSell:Deactivate()
 	local vendorPrice = topTab.new(frame, BGC.locale.LOTabTitleVendorPrice, "LEFT", autoSell, "RIGHT", -15, 0)
 	vendorPrice:Deactivate()
@@ -65,11 +66,12 @@ function BGC:ShowListOptions(frame)
 	help:Deactivate()
 
 	local scrollFrame = CreateFrame("ScrollFrame", frame:GetName().."_Scroll", panel, "UIPanelScrollFrameTemplate")
+	scrollFrame:SetSize(600, 300)
 	scrollFrame:SetPoint("TOPLEFT", panel, "TOPLEFT", 0, -4)
 	scrollFrame:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -26, 3)
 	local scrollContent = CreateFrame("Frame", scrollFrame:GetName().."Frame", scrollFrame)
 	scrollFrame:SetScrollChild(scrollContent)
-	scrollContent:SetHeight(300); scrollContent:SetWidth(400)	-- will be replaced when used
+	scrollContent:SetSize(600, 300)
 	scrollContent:SetAllPoints()
 
 	local default = LibStub("tekKonfig-Button").new(frame, "BOTTOMRIGHT", panel, "TOPRIGHT", 0, 30)
@@ -87,7 +89,8 @@ function BGC:ShowListOptions(frame)
 	rescan:SetWidth(150)
 	rescan:RegisterForClicks("LeftButtonUp")
 	rescan:SetScript("OnClick", function(self, button)
-		Broker_Garbage.ScanInventory()
+		-- Broker_Garbage.ScanInventory()
+		Broker_Garbage.UpdateAllDynamicItems()
 	end)
 
 	-- action buttons
@@ -120,8 +123,8 @@ function BGC:ShowListOptions(frame)
 	local savePriceSetting = function(value)
 		if not value then return end
 		local index, button, item, resetRequired = 1, nil, nil, nil
-		while _G["BG_ListOptions_ScrollFrame_Item"..index] do
-			button = _G["BG_ListOptions_ScrollFrame_Item"..index]
+		while _G["BG_ListOptions_ScrollFrameItem"..index] do
+			button = _G["BG_ListOptions_ScrollFrameItem"..index]
 			if button:IsVisible() and button:GetChecked() then
 				item = button.itemID or button.tiptext
 				BG_GlobalDB.forceVendorPrice[item] = value
@@ -135,10 +138,9 @@ function BGC:ShowListOptions(frame)
 		end
 
 		if resetRequired then
-			Broker_Garbage.ScanInventory()
-		else
-			Broker_Garbage:UpdateLDB()
+			Broker_Garbage.UpdateAllDynamicItems()
 		end
+		Broker_Garbage:UpdateLDB()
 		Broker_Garbage:UpdateMerchantButton()
 		BGC:ListOptionsUpdate()
 	end
@@ -299,7 +301,7 @@ function BGC:ShowListOptions(frame)
 			Broker_Garbage.UpdateCache(self.itemID)
 		else
 			-- commented because of huuuuge memory/CPU requirements
-			-- Broker_Garbage.ScanInventory()
+			-- Broker_Garbage.ScanInventory() -or- Broker_Garbage.UpdateAllDynamicItems()
 		end
 	end
 
@@ -310,11 +312,10 @@ function BGC:ShowListOptions(frame)
 			return
 		end
 
-		scrollContent:SetWidth(scrollFrame:GetWidth())	-- update scrollframe content to full width
 		if frame.current == nil then
 			local index = 1
-			while _G["BG_ListOptions_ScrollFrame_Item"..index] do
-				_G["BG_ListOptions_ScrollFrame_Item"..index]:Hide()
+			while _G["BG_ListOptions_ScrollFrameItem"..index] do
+				_G["BG_ListOptions_ScrollFrameItem"..index]:Hide()
 				index = index + 1
 			end
 			BGC:ShowHelp()
@@ -341,11 +342,13 @@ function BGC:ShowListOptions(frame)
 			end
 		end)
 
-		local numCols = floor((scrollContent:GetWidth() - 20 - 2)/(36 + 2))	-- or is it panel's width we want?
+		local currentWidth = scrollFrame:GetWidth()
+		scrollContent:SetWidth(currentWidth)					-- update scrollframe content to full width
+		local numCols = floor((currentWidth - 20 - 2)/(36 + 2))	-- or is it panel's width we want?
 		for index, itemID in ipairs(data) do
-			local button = _G[scrollContent:GetName().."_Item"..index]
+			local button = _G[scrollContent:GetName().."Item"..index]
 			if not button then	-- create another button
-				button = CreateFrame("CheckButton", scrollContent:GetName().."_Item"..index, scrollContent, 'ItemButtonTemplate')
+				button = CreateFrame("CheckButton", "$parentItem"..index, scrollContent, 'ItemButtonTemplate')
 				button:SetWidth(36)
 				button:SetHeight(36)
 				button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
@@ -376,9 +379,9 @@ function BGC:ShowListOptions(frame)
 			if index == 1 then		-- place first icon
 				button:SetPoint("TOPLEFT", scrollContent, "TOPLEFT", 6, -6)
 			elseif mod(index, numCols) == 1 then	-- new row
-				button:SetPoint("TOPLEFT", _G[scrollContent:GetName().."_Item" .. index - numCols], "BOTTOMLEFT", 0, -6)
+				button:SetPoint("TOPLEFT", "$parentItem" .. (index - numCols), "BOTTOMLEFT", 0, -6)
 			else					-- new button next to the old one
-				button:SetPoint("LEFT", _G[scrollContent:GetName().."_Item" .. index - 1], "RIGHT", 4, 0)
+				button:SetPoint("LEFT", "$parentItem" .. (index - 1), "RIGHT", 4, 0)
 			end
 
 			-- update this button with data
@@ -483,8 +486,8 @@ function BGC:ShowListOptions(frame)
 		end
 		-- hide unnessessary buttons
 		local index = #data + 1
-		while _G[scrollContent:GetName().."_Item"..index] do
-			_G[scrollContent:GetName().."_Item"..index]:Hide()
+		while _G[scrollContent:GetName().."Item"..index] do
+			_G[scrollContent:GetName().."Item"..index]:Hide()
 			index = index + 1
 		end
 	end
@@ -513,7 +516,7 @@ function BGC:ShowListOptions(frame)
 	-- when a search string is passed, suitable items will be shown while the rest is grayed out
 	function BGC:UpdateSearch(searchString)
 		local index = 1
-		local button = _G[scrollContent:GetName().."_Item"..index]
+		local button = _G[scrollContent:GetName().."Item"..index]
 		while button and button:IsVisible() do
 			local name = button.itemID and GetItemInfo(button.itemID) or button.tiptext
 			name = (button.itemID or "") .. " " .. (name or "")
@@ -525,7 +528,7 @@ function BGC:ShowListOptions(frame)
 				button:SetAlpha(0.3)
 			end
 			index = index + 1
-			button = _G[scrollContent:GetName().."_Item"..index]
+			button = _G[scrollContent:GetName().."Item"..index]
 		end
 	end
 
@@ -538,10 +541,9 @@ function BGC:ShowListOptions(frame)
 
 			local reset = BGC.RemoteAddItemToList(value, frame.current)
 			if reset then
-				Broker_Garbage.ScanInventory()
-			else
-				Broker_Garbage:UpdateLDB()
+				Broker_Garbage.UpdateAllDynamicItems()
 			end
+			Broker_Garbage:UpdateLDB()
 			Broker_Garbage.UpdateMerchantButton()
 			BGC:ListOptionsUpdate()
 		end
@@ -668,8 +670,8 @@ function BGC:ShowListOptions(frame)
 		-- remove action
 		elseif self == minus then
 			local index, newReset = 1, nil
-			while _G["BG_ListOptions_ScrollFrame_Item"..index] do
-				local button = _G["BG_ListOptions_ScrollFrame_Item"..index]
+			while _G["BG_ListOptions_ScrollFrameItem"..index] do
+				local button = _G["BG_ListOptions_ScrollFrameItem"..index]
 				if button:IsVisible() and button:GetChecked() then
 					local item = button.itemID or button.tiptext
 					newReset = BGC.RemoteRemoveItemFromList(item, frame.current)
@@ -680,8 +682,8 @@ function BGC:ShowListOptions(frame)
 		-- demote action
 		elseif self == demote then
 			local index = 1
-			while _G["BG_ListOptions_ScrollFrame_Item"..index] do
-				local button = _G["BG_ListOptions_ScrollFrame_Item"..index]
+			while _G["BG_ListOptions_ScrollFrameItem"..index] do
+				local button = _G["BG_ListOptions_ScrollFrameItem"..index]
 				if button:IsVisible() and button:GetChecked() then
 					local item = button.itemID or button.tiptext
 					BGC.RemoteDemoteItemInList(item, frame.current)
@@ -691,8 +693,8 @@ function BGC:ShowListOptions(frame)
 		-- promote action
 		elseif self == promote then
 			local index = 1
-			while _G["BG_ListOptions_ScrollFrame_Item"..index] do
-				local button = _G["BG_ListOptions_ScrollFrame_Item"..index]
+			while _G["BG_ListOptions_ScrollFrameItem"..index] do
+				local button = _G["BG_ListOptions_ScrollFrameItem"..index]
 				if button:IsVisible() and button:GetChecked() then
 					local item = button.itemID or button.tiptext
 					BGC.RemotePromoteItemInList(item, frame.current)
@@ -702,8 +704,8 @@ function BGC:ShowListOptions(frame)
 		-- setPrice action
 		elseif self == setPrice then
 			local index = 1
-			while _G["BG_ListOptions_ScrollFrame_Item"..index] do
-				local button = _G["BG_ListOptions_ScrollFrame_Item"..index]
+			while _G["BG_ListOptions_ScrollFrameItem"..index] do
+				local button = _G["BG_ListOptions_ScrollFrameItem"..index]
 				if button:IsVisible() and button:GetChecked() then
 					StaticPopup_Show("BROKERGARBAGE_SETITEMPRICE")
 					break
@@ -727,10 +729,9 @@ function BGC:ShowListOptions(frame)
 		Broker_Garbage:SetOption(frame.current, true, globalList)
 
 		if reset then
-			Broker_Garbage.ScanInventory()
-		else
-			Broker_Garbage:UpdateLDB()
+			Broker_Garbage.UpdateAllDynamicItems()
 		end
+		Broker_Garbage:UpdateLDB()
 		Broker_Garbage:UpdateMerchantButton()
 		BGC:ListOptionsUpdate()
 	end

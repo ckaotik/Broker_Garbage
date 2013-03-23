@@ -201,7 +201,9 @@ local COMMAND_PARAMS = {
 		local itemList = COMMAND_ALIAS[list] or list
 		local resetRequired = BGC.RemoteAddItemToList(item, itemList)
 		if resetRequired then
-			BGC:Print(BGC.locale.updateCache)
+			-- BGC:Print(BGC.locale.updateCache)
+			Broker_Garbage.UpdateAllDynamicItems()
+			Broker_Garbage:UpdateLDB()
 		end
 	end,
 	remove = function(param)
@@ -222,7 +224,9 @@ local COMMAND_PARAMS = {
 		local itemList = COMMAND_ALIAS[list] or list
 		local resetRequired = BGC.RemoteRemoveItemFromList(item, itemList)
 		if resetRequired then
-			BGC:Print(BGC.locale.updateCache)
+			-- BGC:Print(BGC.locale.updateCache)
+			Broker_Garbage.UpdateAllDynamicItems()
+			Broker_Garbage:UpdateLDB()
 		end
 	end,
 
