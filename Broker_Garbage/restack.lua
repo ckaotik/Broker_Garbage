@@ -80,7 +80,7 @@ function BG.RestackIteration()
 			_, sourceCount, sourceLocked = GetContainerItemInfo(fromBag, fromSlot)
 			_, targetCount, targetLocked = GetContainerItemInfo(toBag, toSlot)
 
-			if not source.invalid and not target.invalid then
+			if not source.invalid and not target.invalid and sourceCount and targetCount then
 				if not sourceLocked and not targetLocked and BG.MoveItem(itemID, fromBag, fromSlot, toBag, toSlot) then
 					numMoves = numMoves + 2
 

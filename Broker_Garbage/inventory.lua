@@ -240,8 +240,8 @@ end
 
 -- == Pure Logic Ahead ==
 function BG.SortCheapestItemsList(a, b)
-	local a_sortStatus = (a.source == BG.IGNORE or a.hide or a.invalid) and 1 or -1
-	local b_sortStatus = (b.source == BG.IGNORE or b.hide or b.invalid) and 1 or -1
+	local a_sortStatus = (a.source == BG.IGNORE or a.hide or a.invalid or a.itemID == 0) and 1 or -1
+	local b_sortStatus = (b.source == BG.IGNORE or b.hide or b.invalid or b.itemID == 0) and 1 or -1
 
 	if a_sortStatus ~= b_sortStatus then
 		-- move non-invalid to front
