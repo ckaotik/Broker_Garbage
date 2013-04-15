@@ -240,8 +240,8 @@ end
 
 -- == Pure Logic Ahead ==
 function BG.SortCheapestItemsList(a, b)
-	local a_sortStatus = (a.source == BG.IGNORE or a.hide or a.invalid or a.itemID == 0) and 1 or -1
-	local b_sortStatus = (b.source == BG.IGNORE or b.hide or b.invalid or b.itemID == 0) and 1 or -1
+	local a_sortStatus = (a.source == BG.IGNORE or a.invalid or a.itemID == 0) and 1 or -1
+	local b_sortStatus = (b.source == BG.IGNORE or b.invalid or b.itemID == 0) and 1 or -1
 
 	if a_sortStatus ~= b_sortStatus then
 		-- move non-invalid to front
@@ -371,12 +371,6 @@ function BG.SetDynamicLabelBySlot(container, slot, listIndex, isSpecialBag)
 		value = item.vendorValue
 	end
 
-	-- ignore things that are in special bags
-	if isSpecialBag == nil then
-		isSpecialBag = select(2, GetContainerNumFreeSlots(container)) ~= 0
-	end
-	classification = isSpecialBag and BG.IGNORE or classification
-
 	-- update: unusable / outdated gear
 	if item.classification == BG.UNUSABLE and BG_GlobalDB.sellNotWearable then
 		classification = BG.UNUSABLE
@@ -479,6 +473,15 @@ function BG.SetDynamicLabelBySlot(container, slot, listIndex, isSpecialBag)
 		-- not allowed, treshold surpassed
 		BG.Debug("quality too high and not junk listed")
 		origin = classification
+		classification = BG.IGNORE
+	end
+
+	-- ignore things that are in special bags
+	if isSpecialBag == nil then
+		isSpecialBag = select(2, GetContainerNumFreeSlots(container)) ~= 0
+	end
+	if isSpecialBag and not (classification == BG.INCLUDE or classification == BG.CUSTOM or classification == BG.DISENCHANT
+		or classification == BG.AUTOSELL or classification == BG.UNUSABLE) then
 		classification = BG.IGNORE
 	end
 

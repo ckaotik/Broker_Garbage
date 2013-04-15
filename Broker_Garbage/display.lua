@@ -201,20 +201,22 @@ function BG:OnClick(itemTable, button)
 		end
 		BG.Print(format(BG.locale.addedTo_exclude, select(2,GetItemInfo(itemTable.itemID))))
 
-		if _G["BG_Options"] and _G["BG_Options"]:IsVisible() then
+		if _G["BG_ListOptions"] and _G["BG_ListOptions"]:IsVisible() then
 			Broker_Garbage_Config:ListOptionsUpdate("exclude")
 		end
 		BG.UpdateAllCaches(itemTable.itemID)
+		BG.UpdateAllDynamicItems()
 
 	elseif IsAltKeyDown() and itemTable then
 		-- add to force vendor price list
 		BG_GlobalDB.forceVendorPrice[itemTable.itemID] = -1
 		BG.Print(format(BG.locale.addedTo_forceVendorPrice, select(2,GetItemInfo(itemTable.itemID))))
 
-		if _G["BG_Options"] and _G["BG_Options"]:IsVisible() then
+		if _G["BG_ListOptions"] and _G["BG_ListOptions"]:IsVisible() then
 			Broker_Garbage_Config:ListOptionsUpdate("forceprice")
 		end
 		BG.UpdateAllCaches(itemTable.itemID)
+		BG.UpdateAllDynamicItems()
 
 	elseif isLDBclick then
 		-- click on the LDB to rescan
