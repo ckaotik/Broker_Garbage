@@ -219,6 +219,9 @@ if GetLocale() == "deDE" then
 	L["rescanInventoryText"] = "Inventar aktualisieren"
 	L["rescanInventoryTooltip"] = "|cffffffffKlicke|r um Broker_Garbage dein Inventar neu scannen zu lassen. Wichtig nach jeder Änderung der Listen!"
 
+	L["detachConfigText"] = "Lösen"
+	L["detachConfigTooltip"] = "|cffffffffKlicke|r um diese Optionen in einem weiteren, beweglichen Fenster zu öffnen. Drücke |cffffffffESC|r oder klicke das rote x in der rechten oberen Ecke zum wieder anheften."
+
 	L["LOTabTitleInclude"] = "Müll"
 	L["LOTabTitleExclude"] = "Behalten"
 	L["LOTabTitleVendorPrice"] = "Festpreis"

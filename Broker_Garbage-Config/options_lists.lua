@@ -14,8 +14,81 @@ local floor = math.floor
 local mod = mod
 local match = string.match
 
+-- allow detaching the config frame so it can be used on smaller screens
+local detachFrame, detachTrigger, attachPoint
+local function ReAttach()
+	BGC.listOptions:ClearAllPoints()
+	BGC.listOptions:SetParent(InterfaceOptionsFramePanelContainer)
+	BGC.listOptions:SetPoint(unpack(attachPoint))
+
+	detachFrame:SetPropagateKeyboardInput(false)
+	detachFrame:Hide()
+
+	if detachTrigger then
+		detachTrigger:Enable()
+	end
+end
+local function ToggleDetach(trigger, btn)
+	if not detachFrame then
+		detachTrigger = detachTrigger or trigger
+		attachPoint = { BGC.listOptions:GetPoint() }
+
+		detachFrame = CreateFrame("Frame", "BG_ListOptionsDetached", UIParent, "BasicFrameTemplate")
+		detachFrame:Hide()
+		detachFrame:SetFrameStrata("HIGH")
+		detachFrame:EnableKeyboard(true)
+		detachFrame:SetClampedToScreen(true)
+		detachFrame:EnableMouse(true)
+		detachFrame:SetMovable(true)
+		detachFrame:SetUserPlaced(true)
+		detachFrame:SetPoint("CENTER")
+
+		detachFrame:SetScript("OnMouseDown", function()
+			detachFrame:StartMoving()
+		end)
+		detachFrame:SetScript("OnMouseUp", function()
+			detachFrame:StopMovingOrSizing()
+		end)
+		detachFrame:SetScript("OnHide", function()
+			ReAttach()
+		end)
+		detachFrame:SetScript("OnShow", function()
+			local source = BGC.listOptions
+			local w, h = source:GetSize()
+			detachFrame:SetSize(w, h + 20)
+
+			source:SetParent(detachFrame)
+			source:ClearAllPoints()
+			source:SetPoint("TOPLEFT", 0, -20)
+			source:SetPoint("BOTTOMRIGHT")
+		end)
+		detachFrame:SetScript("OnKeyDown", function(self,key)
+			if key == "ESCAPE" then
+				ReAttach()
+			end
+		end)
+	end
+
+	if detachFrame:IsVisible() then
+		ReAttach()
+	else
+		detachFrame:SetPropagateKeyboardInput(true)
+		detachFrame:Show()
+		detachTrigger:Disable()
+	end
+	-- this is actually a toggle ...
+	InterfaceOptionsFrame_Show()
+end
+
 -- creates child options frame for setting up one's lists
 function BGC:ShowListOptions(frame)
+	local detach = LibStub("tekKonfig-Button").new(frame, "TOPRIGHT", frame, "TOPRIGHT", -16, -12)
+	detach:SetText(BGC.locale.detachConfigText)
+	detach.tiptext = BGC.locale.detachConfigTooltip
+	detach:SetWidth(100)
+	detach:RegisterForClicks("RightButtonUp", "LeftButtonUp")
+	detach:SetScript("OnClick", ToggleDetach)
+
 	local title = LibStub("tekKonfig-Heading").new(frame, "Broker_Garbage - " .. BGC.locale.LOTitle)
 
 	local explanation = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
@@ -50,8 +123,8 @@ function BGC:ShowListOptions(frame)
 	end)
 
 	local panel = LibStub("tekKonfig-Group").new(frame, nil, "TOPLEFT", includeMode, "BOTTOMLEFT", -10, -20)
-	panel:SetPoint("LEFT", 8 + 3, 0)
-	panel:SetPoint("BOTTOMRIGHT", -8 -4, 34)
+	panel:SetPoint("LEFT", 10, 0)
+	panel:SetPoint("BOTTOMRIGHT", -16, 34)
 
 	local topTab = LibStub("tekKonfig-TopTab")
 	local exclude = topTab.new(frame, BGC.locale.LOTabTitleExclude, "BOTTOMLEFT", panel, "TOPLEFT", 0, -4)

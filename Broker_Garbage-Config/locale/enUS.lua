@@ -219,6 +219,9 @@ L["defaultListsTooltip"] = "|cffffffffClick|r to manually create default local l
 L["rescanInventoryText"] = "Update Inventory"
 L["rescanInventoryTooltip"] = "|cffffffffClick|r to have Broker_Garbage rescan your inventory. Do this whenever you change list entries!"
 
+L["detachConfigText"] = "Detach"
+L["detachConfigTooltip"] = "|cffffffffClick|r to open these options in a separate movable frame. Press |cffffffffESC|r or click the red x at the top right corner to reattach."
+
 L["LOTabTitleInclude"] = "Junk"
 L["LOTabTitleExclude"] = "Keep"
 L["LOTabTitleVendorPrice"] = "Fixed Price"
