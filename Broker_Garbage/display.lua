@@ -1,6 +1,6 @@
 local _, BG = ...
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, Broker_Garbage_Config, UIParent, LibStub, GameTooltipText
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, Broker_Garbage_Config, UIParent, LibStub, GameTooltipText, NORMAL_FONT_COLOR
 -- GLOBALS: GetItemInfo, GetContainerNumSlots, GetContainerNumFreeSlots, InterfaceOptionsFrame_OpenToCategory, IsAddOnLoaded, LoadAddOn, IsAltKeyDown, IsShiftKeyDown, IsControlKeyDown, UseContainerItem, CreateFrame, CreateFont, ClearCursor
 local select = select
 local type = type
@@ -58,10 +58,9 @@ function disenchantCellPrototype:getContentHeight()
 	return 10
 end
 function disenchantCellPrototype:SetupCell(tooltip, value, justification, font, r, g, b)
+	local index, bag, slot = value[1], value[2], value[3]
+	local button = _G["BG_TT_DisenchantBtn"..index]
 	if value then
-		local index, bag, slot = value[1], value[2], value[3]
-
-		local button = _G["BG_TT_DisenchantBtn"..index]
 		if not button then
 			button = CreateFrame("Button", "BG_TT_DisenchantBtn"..index, UIParent, "SecureActionButtonTemplate")
 			button:SetNormalTexture("Interface\\ICONS\\INV_Enchant_Disenchant")
@@ -76,7 +75,7 @@ function disenchantCellPrototype:SetupCell(tooltip, value, justification, font, 
 
 		button:SetSize(12, 12)
 		button:Show()
-	else
+	elseif button then
 		button:SetSize(0, 0)
 		button:Hide()
 	end
@@ -202,20 +201,22 @@ function BG:OnClick(itemTable, button)
 		end
 		BG.Print(format(BG.locale.addedTo_exclude, select(2,GetItemInfo(itemTable.itemID))))
 
-		if _G["BG_Options"] and _G["BG_Options"]:IsVisible() then
+		if _G["BG_ListOptions"] and _G["BG_ListOptions"]:IsVisible() then
 			Broker_Garbage_Config:ListOptionsUpdate("exclude")
 		end
 		BG.UpdateAllCaches(itemTable.itemID)
+		BG.UpdateAllDynamicItems()
 
 	elseif IsAltKeyDown() and itemTable then
 		-- add to force vendor price list
 		BG_GlobalDB.forceVendorPrice[itemTable.itemID] = -1
 		BG.Print(format(BG.locale.addedTo_forceVendorPrice, select(2,GetItemInfo(itemTable.itemID))))
 
-		if _G["BG_Options"] and _G["BG_Options"]:IsVisible() then
+		if _G["BG_ListOptions"] and _G["BG_ListOptions"]:IsVisible() then
 			Broker_Garbage_Config:ListOptionsUpdate("forceprice")
 		end
 		BG.UpdateAllCaches(itemTable.itemID)
+		BG.UpdateAllDynamicItems()
 
 	elseif isLDBclick then
 		-- click on the LDB to rescan
@@ -264,21 +265,21 @@ end
 
 -- returns a red-to-green color depending on the given percentage
 function BG:Colorize(min, max)
-	local color
+	local color, r, g, b
 	if not min then
 		return ""
 	elseif type(min) == "table" then
-		color = { min.r*255, min.g*255, min.b*255}
+		r, g, b = min.r*255, min.g*255, min.b*255
 	else
 		local percentage = min/(max and max ~= 0 and max or 1)
 		if percentage <= 0.5 then
-			color =  {255, percentage*510, 0}
+			r, g, b = 255, percentage*510, 0
 		else
-			color =  {510 - percentage*510, 255, 0}
+			r, g, b = 510 - percentage*510, 255, 0
 		end
 	end
 
-	color = format("|cff%02x%02x%02x", color[1], color[2], color[3])
+	color = format("|cff%02x%02x%02x", r, g, b)
 	return color
 end
 

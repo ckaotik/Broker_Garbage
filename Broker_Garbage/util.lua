@@ -291,37 +291,29 @@ function BG.Count(table)
 end
 
 -- joins any number of non-basic index tables together, one after the other. elements within the input-tables _will_ get mixed
+local resultTable = {}
 function BG.JoinTables(...)
-	local result = {}
-	local tab
+	local joinTable, isNumeric
+	wipe(resultTable)
 
-	for i=1,select("#", ...) do
-		tab = select(i, ...)
-		if tab then
-			for index, value in pairs(tab) do
-				result[index] = value
+	for i = 1, select('#', ...) do
+		joinTable = select(i, ...)
+		isNumeric = #joinTable > 0
+
+		for key, value in pairs(joinTable) do
+			if isNumeric and type(key) == 'number' then
+				tinsert(resultTable, value)
+			else
+				resultTable[key] = value
 			end
 		end
 	end
-
-	return result
+	return resultTable
 end
 
 -- joins numerically indexed tables
 function BG.JoinSimpleTables(...)
-	local result = {}
-	local tab, i, j
-
-	for i=1,select("#", ...) do
-		tab = select(i, ...)
-		if tab then
-			for _, value in pairs(tab) do
-				tinsert(result, value)
-			end
-		end
-	end
-
-	return result
+	return BG.JoinTables(...)
 end
 
 function BG.GetTableCopy(t)
