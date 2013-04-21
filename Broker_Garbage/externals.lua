@@ -124,28 +124,49 @@ local function CreateIcon(slot)
   	slot.scrapIcon = icon
 	return icon
 end
-function UpdateJunkIcon(self)
+local function UpdateJunkIcon(self, listIndex)
 	if not BG_GlobalDB.showBagnonSellIcons then
 		if self.scrapIcon and self.scrapIcon:IsShown() then self.scrapIcon:Hide() end
 		return
 	end
 	local icon = self.scrapIcon or CreateIcon(self)
-	local index = BG.GetListIndex(self:GetBag(), self:GetID())
-	local item = index and BG.cheapestItems[index]
+	local item = listIndex and BG.cheapestItems[listIndex]
 	if item and not item.invalid and item.sell then
 		icon:Show()
 	else
 		icon:Hide()
 	end
 end
-if IsAddOnLoaded("Bagnon") then -- [TODO] improve this code
-	hooksecurefunc(Bagnon.ItemSlot, "SetBorderQuality", function(self, ...)
-		UpdateJunkIcon(self)
+-- these indicators need two handlers:
+-- 		1) the slot was changed by 'the addon', have BG react and update display if needed
+-- 		2) BG has changed labels for an item, have 'the addon' update its display
+if IsAddOnLoaded("Bagnon") then
+	hooksecurefunc(Bagnon.ItemSlot, "Update", function(self, ...)
+		local index = BG.GetListIndex(self:GetBag(), self:GetID())
+		UpdateJunkIcon(self, index)
 	end)
-	-- ScanInventoryContainer
 	hooksecurefunc(BG, "UpdateLDB", function()
 		Bagnon:UpdateFrames()
 	end)
+end
+if IsAddOnLoaded("ElvUI") then
+	local ElvUISetup = false
+	local bagsModule = ElvUI[1]:GetModule('Bags')
+	if bagsModule then
+		hooksecurefunc(bagsModule, "UpdateSlot", function(containerFrame, bagID, slotID)
+			local index = BG.GetListIndex(bagID, slotID)
+			local button = containerFrame.Bags and containerFrame.Bags[bagID] and containerFrame.Bags[bagID][slotID]
+			if not button then return end
+			UpdateJunkIcon(button, index)
+
+			if not ElvUISetup then
+				hooksecurefunc(BG, "UpdateLDB", function()
+					containerFrame:UpdateAllSlots()
+				end)
+				ElvUISetup = true
+			end
+		end)
+	end
 end
 
 -- external access, for modules etc.

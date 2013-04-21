@@ -1,6 +1,6 @@
 ## Interface: 50200
 ## Dependencies:
-## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auc-Advanced, Enchantrix, WOWEcon_PriceMod, Auctional, ArkInventoryRules, Bagnon
+## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auc-Advanced, Enchantrix, WOWEcon_PriceMod, Auctional, ArkInventoryRules, Bagnon, ElvUI
 ## SavedVariables: BG_GlobalDB
 ## SavedVariablesPerCharacter: BG_LocalDB
 
