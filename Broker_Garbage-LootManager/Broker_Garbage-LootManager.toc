@@ -1,4 +1,4 @@
-## Interface: 50200
+## Interface: 50300
 ## Dependencies: Broker_Garbage
 ## SavedVariables: BGLM_GlobalDB
 ## SavedVariablesPerCharacter: BGLM_LocalDB
