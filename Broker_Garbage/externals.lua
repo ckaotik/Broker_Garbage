@@ -119,7 +119,7 @@ local function CreateIcon(slot)
 	local icon = slot:CreateTexture(nil, 'OVERLAY')
 	icon:SetTexture('Interface\\Buttons\\UI-GroupLoot-Coin-Up')
 	icon:SetPoint('TOPLEFT', 2, -2)
-	icon:SetSize(15, 15)
+	icon:SetSize(16, 16)
 
   	slot.scrapIcon = icon
 	return icon
@@ -130,11 +130,19 @@ local function UpdateJunkIcon(self, listIndex)
 		return
 	end
 	local icon = self.scrapIcon or CreateIcon(self)
+	icon:Hide()
+
 	local item = listIndex and BG.cheapestItems[listIndex]
-	if item and not item.invalid and item.sell then
-		icon:Show()
-	else
-		icon:Hide()
+	if item and not item.invalid then
+		if item.sell then
+			icon:SetVertexColor(1, 1, 1)
+			icon:SetDesaturated(false)
+			icon:Show()
+		elseif item.origin == BG.DISENCHANT then
+			icon:SetVertexColor(1, 0.2, 1)
+			icon:SetDesaturated(true)
+			icon:Show()
+		end
 	end
 end
 -- these indicators need two handlers:
