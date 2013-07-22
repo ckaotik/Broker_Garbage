@@ -171,6 +171,7 @@ function BG:OnClick(itemTable, button)
 	-- handle different clicks
 	if button == "RightButton" then
 		if not IsAddOnLoaded("Broker_Garbage-Config") then
+			if InCombatLockdown() then BG.Print('Please try again after combat.'); return end -- TODO
 			LoadAddOn("Broker_Garbage-Config")
 		end
 		InterfaceOptionsFrame_OpenToCategory("Broker_Garbage")
