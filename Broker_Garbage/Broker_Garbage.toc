@@ -53,6 +53,7 @@ sources.lua
 display.lua
 item.lua
 inventory.lua
+containers.lua
 restack.lua
 vendor.lua
 core.lua

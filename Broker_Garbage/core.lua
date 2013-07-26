@@ -1,13 +1,5 @@
---[[ Copyright (c) 2010-2012, ckaotik
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-Neither the name of ckaotik nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. ]]--
-local addonName, BG, _ = ...
+local addonName, ns, _ = ...
+local BG = ns -- FIXME
 
 -- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S, INVSLOT_LAST_EQUIPPED
 -- GLOBALS: ContainerIDToInventoryID, InCombatLockdown
@@ -16,166 +8,278 @@ local ipairs = ipairs
 local format = string.format
 local match = string.match
 
--- Libraries & setting up the LDB
--- ---------------------------------------------------------
+-- --------------------------------------------------------
+--  Libraries & setting up the LDB
+-- --------------------------------------------------------
 BG.PT = LibStub("LibPeriodicTable-3.1", true)	-- don't scream if LPT isn't present
 BG.callbacks = BG.callbacks or LibStub("CallbackHandler-1.0"):New(BG)
 
 -- internal variables
 BG.version = tonumber(GetAddOnMetadata(addonName, "X-Version"))
 
--- Event Handler
--- ---------------------------------------------------------
-local frame = CreateFrame("frame")
-local function eventHandler(self, event, arg1, ...)
-	-- == Initialize ==
-	if event == "ADDON_LOADED" and arg1 == addonName then
-		BG.isAtVendor = nil
-		BG.totalBagSpace = 0
-		BG.totalFreeSlots = 0
-		BG.containerInInventory = nil
+-- --------------------------------------------------------
+--  Event Handler
+-- --------------------------------------------------------
+local events = CreateFrame("frame")
+events:RegisterEvent("ADDON_LOADED")
+events:SetScript("OnEvent", function(self, event, ...)
+   return self[event] and self[event](self, event, ...)
+end)
+ns.events = events
+ns.frame = events -- FIXME
 
-		BG.itemsCache = {}		-- contains static item data, e.g. price, stack size
-		BG.locationsCache = {}	-- itemID = { cheapestItems-ListIndex }
-		BG.cheapestItems = {}	-- contains up-to-date labeled data
+-- --------------------------------------------------------
+--  Initialize
+-- --------------------------------------------------------
+local function Merge(tableA, tableB)
+	local useTable = {}
+	for k, v in pairs(tableA) do
+		useTable[k] = v == true and 0 or v
+	end
+	for k, v in pairs(tableB) do
+		useTable[k] = true and 0 or v
+	end
+	return useTable
+end
 
-		BG.locked = nil
-		BG.sellValue = 0		-- represents the actual value that we sold stuff for
-		BG.repairCost = 0		-- the amount of money that we repaired for
-		BG.sellLog = {}
+function events:ADDON_LOADED(event, addon)
+	if addon ~= addonName then return end
 
-		BG.CheckSettings()
-		BG.InitArkInvFilter()
-		BG.InitPriceHandlers()
+	-- beware of <new!> things!
+	BG_GlobalDB.keep = BG_GlobalDB.keep or {}
+	BG_GlobalDB.toss = BG_GlobalDB.toss or {}
+	BG_LocalDB.keep  = BG_LocalDB.keep  or {}
+	BG_LocalDB.toss  = BG_LocalDB.toss  or {}
+	-- addon assumes lists are { <itemID/category> = <number>, ... } 0: unrestriced, else: restricted
+	ns.keep = Merge(BG_GlobalDB.keep, BG_LocalDB.keep)
+	ns.toss = Merge(BG_GlobalDB.toss, BG_LocalDB.toss)
 
-		BG.updateAvailable = {}
-		if InCombatLockdown() then
-			for i=0, NUM_BAG_SLOTS do
-				BG.updateAvailable[i] = true
-			end
-			frame:RegisterEvent("PLAYER_REGEN_ENABLED")
-		else
-			BG.ScanInventory()
+	ns.list = {} 								-- { <location>, <location>, ...} to reference ns.container[<location]
+	ns.locations = {} 							-- [<itemID|category>] = { <location>, ... }
+	-- contains dynamic data
+	ns.containers = setmetatable({}, { 			-- [<location>] = { ns.item[itemID], <count ~= 1> } --]]
+		__index = function(self, location)
+			self[location] = {
+				-- id = itemID,
+				-- c = count,
+				-- p = priority,
+				-- a = action,
+				-- v = value,
+				-- l = location,
+			}
+			return self[location]
 		end
-
-		local events = {
-			"ITEM_PUSH", "BAG_UPDATE", "BAG_UPDATE_DELAYED",
-			"MERCHANT_SHOW", "MERCHANT_CLOSED",
-			"UI_ERROR_MESSAGE", "CHAT_MSG_SKILL",
-			"EQUIPMENT_SETS_CHANGED", "PLAYER_EQUIPMENT_CHANGED"
-		}
-		for _, event in ipairs(events) do
-			frame:RegisterEvent(event)
+	})
+	-- contains static item data (no categories!)
+	ns.item = setmetatable({}, {
+		__mode = "kv",
+		__index = function(self, item)
+			-- item info should be available, as we only check items we own
+			local _, link, quality, iLevel, _, _, _, _, _, _, vendorPrice = GetItemInfo(item)
+			local limiters = {}
+			self[item] = {
+				id = tonumber(link:match('item:(%d+):') or ''),
+				q  = quality,
+				v  = vendorPrice,
+				il = iLevel,
+				l  = limiters,
+			}
+			return self[item]
 		end
-		frame:UnregisterEvent("ADDON_LOADED")
+	})
+	-- kay, stop <new!> now
 
-	elseif event == "GET_ITEM_INFO_RECEIVED" then
-		BG.UpdateCache(BG.requestedItemID)
-		BG.requestedItemID = nil
-		frame:UnregisterEvent("GET_ITEM_INFO_RECEIVED")
+	BG.isAtVendor = nil
+	BG.totalBagSpace = 0
+	BG.totalFreeSlots = 0
+	BG.containerInInventory = nil
 
-	-- == Auto Repair/Auto Sell ==
-	elseif event == "MERCHANT_SHOW" then
-		BG.isAtVendor = true
-		BG.UpdateMerchantButton()
+	BG.itemsCache = {}		-- contains static item data, e.g. price, stack size
+	BG.locationsCache = {}	-- itemID = { cheapestItems-ListIndex }
+	BG.cheapestItems = {}	-- contains up-to-date labeled data
 
-		local disable = BG.disableKey[BG_GlobalDB.disableKey]
-		if not (disable and disable()) then
-			local numSellItems, guildRepair
-			BG.sellValue, numSellItems = BG.AutoSell()
-			BG.repairCost, guildRepair = BG.AutoRepair()
+	BG.locked = nil
+	BG.sellValue = 0		-- represents the actual value that we sold stuff for
+	BG.repairCost = 0		-- the amount of money that we repaired for
+	BG.sellLog = {}
 
-			if BG.sellValue > 0 then
-				BG.CallWithDelay(BG.ReportSelling, 0.3, BG.repairCost, 0, numSellItems, guildRepair)
-			elseif BG.repairCost > 0 then
-				BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost), guildRepair and BG.locale.guildRepair or ""))
-			end
-		end
-	elseif event == "MERCHANT_CLOSED" then
-		BG.isAtVendor = nil
-		if BG.locked then
-			BG.Debug("Fallback unlock: Merchant window closed, scan lock released.")
-			if BG.sellValue > 0 then
-				BG.ReportSelling(BG.repairCost, 0, 10)
-			else
-				BG.sellValue, BG.repairCost = 0, 0
-				BG.locked = nil
-			end
-		end
+	BG.CheckSettings()
+	BG.InitArkInvFilter()
+	BG.InitPriceHandlers()
 
-	elseif not BG.locked and event == "BAG_UPDATE" then
-		if not arg1 or arg1 < 0 or arg1 > NUM_BAG_SLOTS then return end
+	BG.updateAvailable = {}
+	for i = 0, NUM_BAG_SLOTS do
+		BG.updateAvailable[i] = true
+	end
 
-		BG.Debug("Bag Update", arg1, ...)
-		BG.updateAvailable[arg1] = true
+	if not ns.DelayInCombat(ns.ScanInventory) then
+		ns.ScanInventory()
+	end
 
-	elseif not BG.locked and (event == "BAG_UPDATE_DELAYED" or event == "PLAYER_REGEN_ENABLED") then
-		-- inventory scanning while in combat causes issues, postpone
-		if InCombatLockdown() then
-			frame:RegisterEvent("PLAYER_REGEN_ENABLED")
-			return
-		elseif event == "PLAYER_REGEN_ENABLED" then
-			frame:UnregisterEvent("PLAYER_REGEN_ENABLED")
-		end
+	for _, event in pairs({ "ITEM_PUSH", "BAG_UPDATE", "BAG_UPDATE_DELAYED", "MERCHANT_SHOW", "MERCHANT_CLOSED", "UI_ERROR_MESSAGE", "CHAT_MSG_SKILL", "EQUIPMENT_SETS_CHANGED", "PLAYER_EQUIPMENT_CHANGED" }) do
+		self:RegisterEvent(event)
+	end
+	self:UnregisterEvent("ADDON_LOADED")
+end
 
-		for container, needsUpdate in pairs(BG.updateAvailable) do
-			if needsUpdate then
-				BG.updateAvailable[container] = false
-				BG.ScanInventoryContainer(container)
-			end
-		end
-		BG.ScanInventoryLimits()
-		BG.SortItemList()
+-- --------------------------------------------------------
+--  Merchant: auto sell, auto repair
+-- --------------------------------------------------------
+function events:MERCHANT_SHOW(event)
+	BG.isAtVendor = true
+	BG.UpdateMerchantButton()
 
-	elseif event == "AUCTION_HOUSE_CLOSED" then
-		-- Update cached auction values in case anything changed
-		BG.ClearCache()
-		BG.ScanInventory()
+	local disable = BG.disableKey[BG_GlobalDB.disableKey]
+	if not (disable and disable()) then
+		local numSellItems, guildRepair
+		BG.sellValue, numSellItems = BG.AutoSell()
+		BG.repairCost, guildRepair = BG.AutoRepair()
 
-	elseif event == "UI_ERROR_MESSAGE" and arg1 and arg1 == ERR_VENDOR_DOESNT_BUY then
-		if BG.repairCost > 0 then
-			BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost)))
-		end
-		BG.sellValue, BG.repairCost = 0, 0
-
-	-- == Equipment/Sets ==
-	elseif event == "PLAYER_EQUIPMENT_CHANGED" then
-		for i = 1, NUM_BAG_SLOTS do
-			if ContainerIDToInventoryID(i) and arg1 == ContainerIDToInventoryID(i) then
-				BG.Debug("One of the player's bags changed! "..arg1)
-				BG.ScanInventory()
-				return
-			end
-		end
-	elseif event == "EQUIPMENT_SETS_CHANGED" then
-		BG.RescanEquipmentInBags()
-
-	-- == Default List Updates ==
-	elseif event == "CHAT_MSG_SKILL" then
-		local skillName = match(arg1, BG.ReformatGlobalString(ERR_SKILL_GAINED_S))
-		if skillName then
-			skillName = BG.GetTradeSkill(skillName)
-			if skillName then
-				BG.ModifyList_ExcludeSkill(skillName)
-				BG.Print(BG.locale.listsUpdatedPleaseCheck)
-			end
-		end
-
-	-- == Restack ==
-	elseif event == "ITEM_UNLOCKED" then
-		BG.restackEventCounter = BG.restackEventCounter - 1
-		if BG.restackEventCounter < 1 then
-			frame:UnregisterEvent('ITEM_UNLOCKED')
-			BG.Restack()
-		end
-
-	elseif event == "ITEM_PUSH" and arg1 then
-		local container = arg1 - INVSLOT_LAST_EQUIPPED
-		if BG_GlobalDB.restackInventory and container >= 0 then
-			BG.DoContainerRestack(container)
+		if BG.sellValue > 0 then
+			BG.CallWithDelay(BG.ReportSelling, 0.3, BG.repairCost, 0, numSellItems, guildRepair)
+		elseif BG.repairCost > 0 then
+			BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost), guildRepair and BG.locale.guildRepair or ""))
 		end
 	end
 end
-frame:RegisterEvent("ADDON_LOADED")
-frame:SetScript("OnEvent", eventHandler)
-BG.frame = frame
+
+function events:MERCHANT_CLOSED(event)
+	BG.isAtVendor = nil
+	if BG.locked then
+		BG.Debug("Fallback unlock: Merchant window closed, scan lock released.")
+		if BG.sellValue > 0 then
+			BG.ReportSelling(BG.repairCost, 0, 10)
+		else
+			BG.sellValue, BG.repairCost = 0, 0
+			BG.locked = nil
+		end
+	end
+end
+
+function events:UI_ERROR_MESSAGE(event, msg)
+	if msg ~= ERR_VENDOR_DOESNT_BUY then return end
+	if BG.repairCost > 0 then
+		BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost)))
+	end
+	BG.sellValue, BG.repairCost = 0, 0
+end
+
+-- --------------------------------------------------------
+--  <stuff> update events
+-- --------------------------------------------------------
+function events:AUCTION_HOUSE_CLOSED()
+	-- Update cached auction values in case anything changed
+	BG.ClearCache()
+	BG.ScanInventory()
+end
+
+function events:PLAYER_EQUIPMENT_CHANGED(event, containerID)
+	for i = 1, NUM_BAG_SLOTS do
+		local location = ContainerIDToInventoryID(i)
+		if location and location == containerID then
+			-- TODO: remove itemslots we had before. rare situation, but possible (e.g. alt sending huge bag to main)
+			BG.Debug("One of the player's bags changed! "..containerID)
+			BG.ScanInventory()
+			return
+		end
+	end
+end
+
+function events:EQUIPMENT_SETS_CHANGED()
+	BG.RescanEquipmentInBags()
+end
+
+function events:CHAT_MSG_SKILL(event, msg)
+	local skillName = match(msg, BG.ReformatGlobalString(ERR_SKILL_GAINED_S))
+	if skillName then
+		skillName = BG.GetTradeSkill(skillName)
+		if skillName then
+			BG.ModifyList_ExcludeSkill(skillName)
+			BG.Print(BG.locale.listsUpdatedPleaseCheck)
+		end
+	end
+end
+
+function events:GET_ITEM_INFO_RECEIVED()
+	BG.UpdateCache(BG.requestedItemID)
+	BG.requestedItemID = nil
+	self:UnregisterEvent("GET_ITEM_INFO_RECEIVED")
+end
+
+-- --------------------------------------------------------
+--  Bag scanning
+-- --------------------------------------------------------
+function events:BAG_UPDATE(event, bagID)
+	if ns.locked then return end
+	if bagID < 0 or bagID > NUM_BAG_SLOTS then
+		return
+	end
+	BG.updateAvailable[bagID] = true
+end
+
+function events:BAG_UPDATE_DELAYED()
+	if ns.locked then return end
+
+	-- new! just testing for now
+	if not ns.DelayInCombat(ns._ScanInventory) then
+		ns._ScanInventory()
+	end
+
+	-- inventory scanning while in combat causes issues, postpone
+	if InCombatLockdown() then
+		self:RegisterEvent("PLAYER_REGEN_ENABLED")
+		return
+	end
+
+	for container, needsUpdate in pairs(BG.updateAvailable) do
+		if needsUpdate then
+			BG.ScanInventoryContainer(container)
+			BG.updateAvailable[container] = false
+		end
+	end
+	BG.ScanInventoryLimits()
+	BG.SortItemList()
+end
+
+function events:PLAYER_REGEN_ENABLED()
+	-- ns.RunAfterCombat()
+	self:UnregisterEvent("PLAYER_REGEN_ENABLED")
+	self:BAG_UPDATE_DELAYED()
+end
+
+-- --------------------------------------------------------
+--  Restacking
+-- --------------------------------------------------------
+function events:ITEM_UNLOCKED()
+	BG.restackEventCounter = BG.restackEventCounter - 1
+	if BG.restackEventCounter < 1 then
+		self:UnregisterEvent('ITEM_UNLOCKED')
+		BG.Restack()
+	end
+end
+
+function events:ITEM_PUSH(event, containerID)
+	local container = containerID - INVSLOT_LAST_EQUIPPED
+	if BG_GlobalDB.restackInventory and container >= 0 then
+		BG.DoContainerRestack(container)
+	end
+end
+
+-- --------------------------------------------------------
+--  FIXME: Some things shouldn't happen in combat!
+--  Usage: function myFunc(foo, bar) if ns.DelayInCombat(frame, myFunc) then return end --[[do stuff--]] end
+-- --------------------------------------------------------
+local afterCombat = {}
+function ns.RunAfterCombat()
+	for i = #afterCombat, 1, -1 do
+		afterCombat[i]()
+		afterCombat[i] = nil
+	end
+end
+function ns.DelayInCombat(func)
+	if InCombatLockdown() then
+		tinsert(afterCombat, func)
+		events:RegisterEvent("PLAYER_REGEN_ENABLED")
+		return true
+	end
+end

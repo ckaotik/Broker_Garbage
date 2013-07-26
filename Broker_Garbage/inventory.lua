@@ -239,7 +239,8 @@ function BG.UpdateInventorySlot(container, slot, newItemLink, newItemCount)
 end
 
 -- == Pure Logic Ahead ==
-function BG.SortCheapestItemsList(a, b)
+local sortOrder = {'value', 'count', 'bag', 'slot'}
+local function SortCheapestItemsList(a, b)
 	local a_sortStatus = (a.source == BG.IGNORE or a.invalid or a.itemID == 0) and 1 or -1
 	local b_sortStatus = (b.source == BG.IGNORE or b.invalid or b.itemID == 0) and 1 or -1
 
@@ -247,7 +248,7 @@ function BG.SortCheapestItemsList(a, b)
 		-- move non-invalid to front
 		return a_sortStatus < b_sortStatus
 	else
-		for _, attribute in ipairs({'value', 'count', 'bag', 'slot'}) do
+		for _, attribute in ipairs(sortOrder) do
 			if a[attribute] ~= b[attribute] then
 				return a[attribute] < b[attribute]
 			end
@@ -257,7 +258,7 @@ end
 
 -- sort item list and updates LDB accordingly
 function BG.SortItemList()
-	sort(BG.cheapestItems, BG.SortCheapestItemsList)
+	sort(BG.cheapestItems, SortCheapestItemsList)
 	BG.UpdateLDB()
 end
 
