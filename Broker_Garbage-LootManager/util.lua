@@ -154,18 +154,18 @@ end
 -- determines if an item should be looted
 function BGLM:IsInteresting(cachedItemTable)
 	local isInteresting, alwaysLoot
-	if cachedItemTable.classification == Broker_Garbage.EXCLUDE then
+	if cachedItemTable.label == Broker_Garbage.EXCLUDE then
 		isInteresting = true
 		alwaysLoot = BGLM_GlobalDB.lootExcludeItems
-	elseif cachedItemTable.classification == Broker_Garbage.INCLUDE and not BGLM_GlobalDB.lootIncludeItems then
+	elseif cachedItemTable.label == Broker_Garbage.INCLUDE and not BGLM_GlobalDB.lootIncludeItems then
 		isInteresting = false
-	elseif cachedItemTable.quality < BGLM_LocalDB.minItemQuality then
+	elseif cachedItemTable.q < BGLM_LocalDB.minItemQuality then
 		isInteresting = false
 	else
 		isInteresting = true
 	end
 
-	local isTopFitInteresting = IsAddOnLoaded("TopFit") and Broker_Garbage.IsItemEquipment(select(9, GetItemInfo(cachedItemTable.itemID))) and TopFit:IsInterestingItem(cachedItemTable.itemID)
+	local isTopFitInteresting = IsAddOnLoaded("TopFit") and Broker_Garbage.IsItemEquipment(select(9, GetItemInfo(cachedItemTable.id))) and TopFit:IsInterestingItem(cachedItemTable.itemID)
 
 	if isTopFitInteresting or BGLM_GlobalDB.forceClear or alwaysLoot then
 		return isInteresting, true

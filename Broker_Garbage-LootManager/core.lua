@@ -162,7 +162,7 @@ function BGLM.UpdateLootFrame(index)
 	local slot = (LOOTFRAME_NUMBUTTONS * (LootFrame.page - 1)) + index
 	local item = GetLootSlotLink(slot)
 		  item = item and Broker_Garbage.GetItemID(item)
-		  item = Broker_Garbage.item[item]
+		  item = item and Broker_Garbage.item[item]
 
 	if item then
 		local isInteresting, alwaysLoot = BGLM:IsInteresting(item)

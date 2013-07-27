@@ -390,7 +390,7 @@ function ns.GetBestPrice(itemID, itemLink)
 			if auctionPrice then break end
 		end
 	end
-	auctionPrice = auctionPrice or -2
+	auctionPrice = auctionPrice or -1
 
 	local canDisenchant, missingSkillPoints = false, math.huge -- ns.CanDisenchant(itemLink) -- TODO
 	canDisenchant = canDisenchant or (missingSkillPoints and missingSkillPoints <= BG_GlobalDB.keepItemsForLaterDE)

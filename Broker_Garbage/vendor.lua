@@ -19,7 +19,6 @@ events:RegisterEvent("MERCHANT_SHOW")
 events:RegisterEvent("MERCHANT_CLOSED")
 
 function events:MERCHANT_SHOW()
-	print("MERCHANT_SHOW")
 	BG.isAtVendor = true
 	BG.UpdateMerchantButton()
 
@@ -31,7 +30,6 @@ function events:MERCHANT_SHOW()
 end
 
 function events:MERCHANT_CLOSED(event)
-	print("MERCHANT_CLOSED")
 	BG.isAtVendor = nil
 end
 
@@ -39,12 +37,13 @@ end
 --  Merchant: auto sell, auto repair
 -- --------------------------------------------------------
 local sellLog = {}
+local sellValue, repairCost, guildRepair
 function BG.AutoSell(manualSell)
 	if not BG_GlobalDB.autoSellToVendor and not manualSell then
 		return
 	end
 
-	local sellValue = 0
+	sellValue = 0
 	wipe(sellLog)    -- reset data for refilling
 	for location, cacheData in pairs(BG.containers) do
 		if cacheData.sell then
@@ -95,11 +94,10 @@ function BG.CheckSoldItems()
 		_, _, isLocked, _, _, _, itemLink = GetContainerItemInfo( BG.GetBagSlot(location) )
 
 		if itemLink and isLocked then
-			itemLocked = true
-		elseif itemLink then
-			-- can't sell this item (but tried to!)
-			BG.Debug("Can't sell item "..itemLink..", "..location)
+			-- didn't sell item so far
+			itemLocked = isLocked
 			table.remove(sellLog, index)
+			actualSellValue = 0 -- beh.
 		else -- TODO: I broke it T.T
 			--[[ _, itemLink, _, _, _, _, _, _, _, _, vendorValue = GetItemInfo( cacheData.item.id )
 
@@ -111,6 +109,7 @@ function BG.CheckSoldItems()
 			if BG_GlobalDB.showSellLog then
 				BG.Print(format(BG.locale.sellItem, itemLink, cacheData.count or '0', BG.FormatMoney(cacheData.value or '0')))
 			end--]]
+			actualSellValue = sellValue
 		end
 	end
 	return actualSellValue, numItemsSold, itemLocked
@@ -125,7 +124,7 @@ end
 
 -- automatically repair at a vendor
 function BG.AutoRepair()
-	local repairCost, guildRepair = 0, nil
+	repairCost, guildRepair = 0, nil
 	if BG_GlobalDB.autoRepairAtVendor and CanMerchantRepair() then
 		local repairCost = GetRepairAllCost()
 		local guildRepairFunds = CanGuildBankRepair() and GetGuildBankWithdrawMoney()
@@ -164,7 +163,7 @@ function BG.UpdateMerchantButton()
 	else
 		if not sellIcon then
 			sellIcon = CreateFrame("Button", "BrokerGarbage_SellIcon", MerchantFrame, "ItemButtonTemplate")
-			sellIcon:SetScale(34/37)
+			sellIcon:SetScale(32/37)
 			sellIcon:SetScript("OnClick", BG.AutoSell)
 			sellIcon:SetScript("OnEnter", function(self)
 				GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -179,9 +178,9 @@ function BG.UpdateMerchantButton()
 
 		MerchantRepairAllButton:SetPoint("BOTTOMRIGHT", MerchantFrame, "BOTTOMLEFT", 100-18, 30)
 		if MerchantRepairAllButton:IsShown() then
-			sellIcon:SetPoint("BOTTOMRIGHT", MerchantFrameInset, "BOTTOM", -10, 4)
+			sellIcon:SetPoint("BOTTOMRIGHT", MerchantFrameInset, "BOTTOM", -12, 5)
 		else
-			sellIcon:SetPoint("BOTTOMRIGHT", MerchantFrameInset, "BOTTOM", -10, 8)
+			sellIcon:SetPoint("BOTTOMRIGHT", MerchantFrameInset, "BOTTOM", -12, 10)
 		end
 		sellIcon:Show()
 	end
