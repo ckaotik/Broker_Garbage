@@ -138,15 +138,17 @@ end
 -- ---------------------------------------------------------
 -- deletes as many items as needed
 function BGLM:DeletePartialStack(itemID, num)
-	local locations = Broker_Garbage.GetItemLocations(itemID)
+	local locations = Broker_Garbage.locations[itemID]
 	local maxStack = select(8, GetItemInfo(itemID))
 
-	if GetContainerItemID(locations[1].bag, locations[1].slot) ~= itemID then
+	local location = locations[ #locations ]
+	local container, slot = Broker_Garbage.GetBagSlot(location)
+	if GetContainerItemID(container, slot) ~= itemID then
 		BGLM:Print("Error! DeletePartialStack: This is not the item I expected.")
 		return
 	end
 
-	SplitContainerItem(locations[1].bag, locations[1].slot, num)
+	SplitContainerItem(container, slot, num)
 	if CursorHasItem() then
 		BGLM:Delete("cursor", num)
 		BGLM:Debug("DeletePartialStack", itemID, num, locations[1].bag, locations[1].slot)
@@ -160,7 +162,7 @@ function BGLM.UpdateLootFrame(index)
 	local slot = (LOOTFRAME_NUMBUTTONS * (LootFrame.page - 1)) + index
 	local item = GetLootSlotLink(slot)
 		  item = item and Broker_Garbage.GetItemID(item)
-		  item = Broker_Garbage.GetCached(item)
+		  item = Broker_Garbage.item[item]
 
 	if item then
 		local isInteresting, alwaysLoot = BGLM:IsInteresting(item)
@@ -232,14 +234,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 			_, _, slotQuantity, slotQuality, isLocked, isQuest = GetLootSlotInfo(lootSlotID)
 			slotItemLink = GetLootSlotLink(lootSlotID)
 			slotItemID = Broker_Garbage.GetItemID(slotItemLink)
-			slotItem = Broker_Garbage.GetCached(slotItemID)
-
-			if not slotItem then
-				BGLM:Debug("PAUSE: GET_ITEM_INFO_RECEIVED")
-				coroutine.yield("GET_ITEM_INFO_RECEIVED")
-				slotItem = Broker_Garbage.GetCached(slotItemID)
-				BGLM:Debug("GET_ITEM_INFO_RECEIVED: "..(slotItem and slotItem.itemLink or "nil"))
-			end
+			slotItem = Broker_Garbage.item[slotItemID]
 
 			BGLM:Debug("Checking item", slotItemLink)
 
@@ -292,7 +287,7 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 			itemStackOverflow = slotQuantity + (itemInBags ~= 0 and itemInBags or itemMaxStack) - itemMaxStack
 
 			if itemStackOverflow > 0 then
-				targetContainer, _, slotItemBagType = Broker_Garbage.FindBestContainerForItem(slotItemLink)
+				targetContainer, _, slotItemBagType = 0, _, 0 -- Broker_Garbage.FindBestContainerForItem(slotItemLink) TODO
 				goesIntoSpecialBag = targetContainer and slotItemBagType ~= 0 and capacities[targetContainer] > 0
 				if goesIntoSpecialBag then
 					numSpecialSlots = numSpecialSlots + 1

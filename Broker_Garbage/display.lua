@@ -16,7 +16,7 @@ local LibQTip = LibStub("LibQTip-1.0")
 local LibDataBroker = LibStub("LibDataBroker-1.1")
 
 -- == LDB Display ==
-BG.LDB = LibDataBroker:NewDataObject("Broker_Garbage", {
+local LDB = LibDataBroker:NewDataObject("Broker_Garbage", {
 	type	= "data source",
 	icon	= "Interface\\Icons\\achievement_bg_returnxflags_def_wsg",
 	label	= "Garbage",
@@ -28,58 +28,64 @@ BG.LDB = LibDataBroker:NewDataObject("Broker_Garbage", {
 })
 
 function BG:UpdateLDB()
-	BG.totalBagSpace, BG.totalFreeSlots, BG.specialSlots, BG.freeSpecialSlots = BG:GetBagSlots()
-
 	BG.junkValue = 0
-	for _, item in ipairs(BG.cheapestItems) do
-		if not item.invalid and item.sell and item.value > 0 then
-			BG.junkValue = BG.junkValue + item.value
+	BG.totalBagSpace, BG.totalFreeSlots = 0, 0
+	BG.specialSlots, BG.freeSpecialSlots = 0, 0 -- TODO
+
+	-- TODO: remember lootable items
+	-- canOpen = select(6, GetContainerItemInfo(container, slot))
+	-- BG.containerInInventory = BG.containerInInventory or canOpen
+
+	for location, cacheData in pairs(BG.containers) do
+		-- update slot stats
+		BG.totalBagSpace = BG.totalBagSpace + 1
+		if not cacheData.item then
+			BG.totalFreeSlots = BG.totalFreeSlots + 1
+		end
+		if cacheData.sell and cacheData.value > 0 then
+			-- update junk value
+			BG.junkValue = BG.junkValue + cacheData.value
 		end
 	end
 
-	local cheapestItem = BG.cheapestItems[1]
-	if cheapestItem and cheapestItem.source ~= BG.IGNORE and not cheapestItem.invalid then
-		BG.LDB.text = BG:FormatString(BG_GlobalDB.LDBformat)
-		BG.LDB.icon = select(10, GetItemInfo(cheapestItem.itemID))
+	-- once we've computed junkValue etc, update LDB text
+	local cheapestItem = BG.list[1]
+	local cacheData = cheapestItem and BG.containers[cheapestItem]
+	if cheapestItem and cacheData.item and cacheData.label ~= BG.IGNORE then
+		-- update LDB text
+		LDB.text = BG:FormatString(BG_GlobalDB.LDBformat)
+		LDB.icon = select(10, GetItemInfo(cacheData.item.id))
 	else
-		BG.LDB.text = BG:FormatString(BG_GlobalDB.LDBNoJunk)
-		BG.LDB.icon = "Interface\\Icons\\achievement_bg_returnxflags_def_wsg"
+		LDB.text = BG:FormatString(BG_GlobalDB.LDBNoJunk)
+		LDB.icon = "Interface\\Icons\\achievement_bg_returnxflags_def_wsg"
 	end
 end
 
 local disenchantButtonCell, disenchantCellPrototype = LibQTip:CreateCellProvider()
 function disenchantCellPrototype:InitializeCell()
-	-- nothing
+	local button = CreateFrame("Button", nil, self, "SecureActionButtonTemplate")
+	      button:SetSize(12, 12)
+	      button:SetNormalTexture("Interface\\ICONS\\INV_Enchant_Disenchant")
+	      button:SetPoint("TOPLEFT", self)
+
+	      button:SetAttribute("type", "spell")
+	      button:SetAttribute("spell", BG.disenchant)
+
+	self.disenchant = button
 end
-function disenchantCellPrototype:ReleaseCell()
-	-- nothing
-end
+function disenchantCellPrototype:ReleaseCell() end
 function disenchantCellPrototype:getContentHeight()
 	return 10
 end
-function disenchantCellPrototype:SetupCell(tooltip, value, justification, font, r, g, b)
-	local index, bag, slot = value[1], value[2], value[3]
-	local button = _G["BG_TT_DisenchantBtn"..index]
-	if value then
-		if not button then
-			button = CreateFrame("Button", "BG_TT_DisenchantBtn"..index, UIParent, "SecureActionButtonTemplate")
-			button:SetNormalTexture("Interface\\ICONS\\INV_Enchant_Disenchant")
-		end
-		button:SetParent(self)
-		button:SetPoint("TOPLEFT", self)
+function disenchantCellPrototype:SetupCell(tooltip, location, justification, font, r, g, b)
+	if not location then return 0, 0 end
+	local container = math.floor(location)
+	local slot = (location - container) * 100
+	local button = self.disenchant
+	button:SetAttribute("target-bag", container)
+	button:SetAttribute("target-slot", slot)
 
-		button:SetAttribute("type", "spell")
-		button:SetAttribute("spell", BG.disenchant)
-		button:SetAttribute("target-bag", bag)
-		button:SetAttribute("target-slot", slot)
-
-		button:SetSize(12, 12)
-		button:Show()
-	elseif button then
-		button:SetSize(0, 0)
-		button:Hide()
-	end
-	return value and 10 or 0, 10
+	return 10, 10
 end
 
 function BG:ShowTooltip(self)
@@ -100,34 +106,38 @@ function BG:ShowTooltip(self)
 	-- add clam information
 	if BG_GlobalDB.openContainers and BG.containerInInventory then
 		lineNum = tooltip:AddLine()
-				  tooltip:SetCell(lineNum, 1, BG.locale.openPlease, nil, 'CENTER', numColumns)
+		          tooltip:SetCell(lineNum, 1, BG.locale.openPlease, nil, 'CENTER', numColumns)
 		tooltip:AddSeperator(2)
 	end
 
 	-- shows up to n lines of deletable items
-	local itemEntry, numLinesShown, link, icon, text, source, canDisenchant
+	local numLinesShown, location, cacheData
 	for i = 1, BG_GlobalDB.tooltipNumItems do
-		itemEntry = BG.cheapestItems and BG.cheapestItems[i]
-		if not itemEntry or itemEntry.source == BG.IGNORE or itemEntry.invalid then
+		location = BG.list[i]
+		cacheData = BG.containers[location]
+		if not cacheData.item or cacheData.label == BG.IGNORE then
 			-- not enough items to display
 			numLinesShown = i - 1
 			break
 		end
 
 		-- adds lines: itemLink, count, itemPrice, source
-		_, link, _, _, _, _, _, _, _, icon, _ = GetItemInfo(itemEntry.itemID)
-		text = (BG_GlobalDB.showIcon and "|T"..icon..":0|t " or "") .. link
-		source = BG.colors[itemEntry.source] .. BG.tag[itemEntry.source] .. "|r"
-		canDisenchant = BG.CanDisenchant(link)
+		local _, link, _, _, _, _, _, _, _, icon, _ = GetItemInfo(cacheData.item.id)
+		local text = (BG_GlobalDB.showIcon and "|T"..icon..":0|t " or "") .. link
+		local source = BG.colors[cacheData.label] .. BG.tag[cacheData.label] .. "|r"
 
-		lineNum = tooltip:AddLine(text, itemEntry.count, BG.FormatMoney(itemEntry.value), BG_GlobalDB.showSource and source or nil)
-				  tooltip:SetLineScript(lineNum, "OnMouseDown", BG.OnClick, itemEntry)
-				  tooltip:SetCell(lineNum, numColumns, canDisenchant and {lineNum, itemEntry.bag, itemEntry.slot} or nil, disenchantButtonCell)
+		lineNum = tooltip:AddLine(text, cacheData.count, BG.FormatMoney(cacheData.value), BG_GlobalDB.showSource and source or nil)
+		          tooltip:SetLineScript(lineNum, "OnMouseDown", BG.OnClick, location)
+
+		if false and BG.CanDisenchant(link) then -- TODO: fixme
+			tooltip:SetCell(lineNum, numColumns, location, disenchantButtonCell)
+		else
+			tooltip:SetCell(lineNum, numColumns, nil, nil)
+		end
 	end
 	if numLinesShown == 0 then
-		text = BG.locale.noItems .. "\n" .. BG.locale.increaseTreshold
 		lineNum = tooltip:AddLine()
-				  tooltip:SetCell(lineNum, 1, text, nil, "CENTER", numColumns)
+				  tooltip:SetCell(lineNum, 1, BG.locale.noItems .. "\n" .. BG.locale.increaseTreshold, nil, "CENTER", numColumns)
 	end
 
 	-- add statistics information
@@ -137,11 +147,11 @@ function BG:ShowTooltip(self)
 		tooltip:AddSeparator(2)
 		if BG_GlobalDB.showLost and BG_LocalDB.moneyLostByDeleting ~= 0 then
 			lineNum = tooltip:AddLine(BG.locale.moneyLost)
-					  tooltip:SetCell(lineNum, 2, BG.FormatMoney(BG_LocalDB.moneyLostByDeleting), nil, "RIGHT", numColumns - 1)
+			          tooltip:SetCell(lineNum, 2, BG.FormatMoney(BG_LocalDB.moneyLostByDeleting), nil, "RIGHT", numColumns - 1)
 		end
 		if BG_GlobalDB.showEarned and BG_LocalDB.moneyEarned ~= 0 then
 			lineNum = tooltip:AddLine(BG.locale.moneyEarned)
-					  tooltip:SetCell(lineNum, 2, BG.FormatMoney(BG_LocalDB.moneyEarned), nil, "RIGHT", numColumns - 1)
+			          tooltip:SetCell(lineNum, 2, BG.FormatMoney(BG_LocalDB.moneyEarned), nil, "RIGHT", numColumns - 1)
 		end
 	end
 
@@ -155,23 +165,21 @@ function BG:ShowTooltip(self)
 end
 
 -- OnClick function - works for both, the LDB plugin -and- tooltip lines
-function BG:OnClick(itemTable, button)
-	-- itemTable is present = tooltip line clicked
-	local isLDBclick = nil
-	if not itemTable or not itemTable.itemID then
-		itemTable = BG.cheapestItems[1]
-		isLDBclick = true
-	end
+function BG:OnClick(location, button)
+	local isLDBclick = type(location) == "table" and true or false
+	location = isLDBclick and BG.list[1] or location
 
 	-- don't touch invalid/outdated items
-	if itemTable and (itemTable.invalid or itemTable.itemID == 0 or itemTable.source == BG.IGNORE) then
-		itemTable = nil
+	local cacheData = BG.containers[location]
+	if not cacheData.item or cacheData.label == BG.IGNORE then
+		BG.Print(BG.locale.noItems)
+		return
 	end
 
 	-- handle different clicks
 	if button == "RightButton" then
 		if not IsAddOnLoaded("Broker_Garbage-Config") then
-			if InCombatLockdown() then BG.Print('Please try again after combat.'); return end -- TODO
+			if InCombatLockdown() then BG.Print('Please try again after combat.'); return end -- TODO: locale
 			LoadAddOn("Broker_Garbage-Config")
 		end
 		InterfaceOptionsFrame_OpenToCategory("Broker_Garbage")
@@ -179,55 +187,43 @@ function BG:OnClick(itemTable, button)
 
 	elseif IsShiftKeyDown() then
 		-- delete or sell item, depending on if we're at a vendor or not
-		if not itemTable then
-			BG.Print(BG.locale.noItems)
-		elseif BG.isAtVendor and itemTable.value > 0 then
-			BG.Debug("At vendor, selling "..itemTable.itemID)
-			BG_GlobalDB.moneyEarned	= BG_GlobalDB.moneyEarned + itemTable.value
-			BG_LocalDB.moneyEarned 	= BG_LocalDB.moneyEarned + itemTable.value
-			BG_GlobalDB.itemsSold 	= BG_GlobalDB.itemsSold + itemTable.count
+		if BG.isAtVendor and cacheData.value > 0 then
+			BG.Debug("At vendor, selling "..cacheData.item.id)
+			BG_GlobalDB.moneyEarned	= BG_GlobalDB.moneyEarned + cacheData.value
+			BG_LocalDB.moneyEarned 	= BG_LocalDB.moneyEarned + cacheData.value
+			BG_GlobalDB.itemsSold 	= BG_GlobalDB.itemsSold + cacheData.count
 
 			ClearCursor()
-			UseContainerItem(itemTable.bag, itemTable.slot)
+			local container = math.floor(location)
+			local slot = (location - container) * 100
+			UseContainerItem(container, slot)
 		else
 			BG.Debug("Not at vendor", "Deleting")
-			BG.Delete(itemTable)
+			-- BG.Delete(itemTable) -- TODO
 		end
 
-	elseif IsControlKeyDown() and itemTable then
-		-- add to exclude list
-		if not BG_LocalDB.exclude[itemTable.itemID] then
-			-- TODO: add public wrapper function!
-			BG_LocalDB.exclude[itemTable.itemID] = 0
-		end
-		BG.Print(format(BG.locale.addedTo_exclude, select(2,GetItemInfo(itemTable.itemID))))
+	elseif IsControlKeyDown() then
+		BG.Add("keep", cacheData.item.id)
+		BG.Print(format(BG.locale.addedTo_exclude, select(2,GetItemInfo(cacheData.item.id))))
 
-		if _G["BG_ListOptions"] and _G["BG_ListOptions"]:IsVisible() then
+		-- TODO rescan + update UI
+		--[[ if _G["BG_ListOptions"] and _G["BG_ListOptions"]:IsVisible() then
 			Broker_Garbage_Config:ListOptionsUpdate("exclude")
 		end
 		BG.UpdateAllCaches(itemTable.itemID)
-		BG.UpdateAllDynamicItems()
+		BG.UpdateAllDynamicItems() --]]
 
-	elseif IsAltKeyDown() and itemTable then
-		-- add to force vendor price list
-		BG_GlobalDB.forceVendorPrice[itemTable.itemID] = -1
+	elseif IsAltKeyDown() then
+		-- TODO: add to force vendor price list
+		--[[ BG_GlobalDB.forceVendorPrice[itemTable.itemID] = -1
 		BG.Print(format(BG.locale.addedTo_forceVendorPrice, select(2,GetItemInfo(itemTable.itemID))))
 
 		if _G["BG_ListOptions"] and _G["BG_ListOptions"]:IsVisible() then
 			Broker_Garbage_Config:ListOptionsUpdate("forceprice")
 		end
 		BG.UpdateAllCaches(itemTable.itemID)
-		BG.UpdateAllDynamicItems()
-
-	elseif isLDBclick then
-		-- click on the LDB to rescan
-		-- see below
-	else
-		-- no scanning in any other case
-		return
+		BG.UpdateAllDynamicItems() --]]
 	end
-
-	BG.ScanInventory()
 end
 
 -- == Misc. stuff ==
@@ -286,8 +282,12 @@ end
 
 -- easier syntax for LDB display strings
 function BG:FormatString(text)
-	local item = BG.cheapestItems and BG.cheapestItems[1] or { itemID = 0, count = 0, value = 0 }
-	local _, itemLink, _, _, _, _, _, _, _, texture = GetItemInfo(item.itemID)
+	local cacheData = BG.containers[ BG.list[1] ]
+	if not cacheData.item then
+		return ""
+	end
+
+	local _, itemLink, _, _, _, _, _, _, _, texture = GetItemInfo(cacheData.item.id)
 
 	-- [junkvalue]
 	text = gsub(text, "%[junkvalue%]", BG.FormatMoney(BG.junkValue))
@@ -295,8 +295,8 @@ function BG:FormatString(text)
 	-- [itemname][itemcount][itemvalue]
 	text = gsub(text, "%[itemname%]", (itemLink or ""))
 	text = gsub(text, "%[itemicon%]", "|T"..(texture or "")..":0|t")
-	text = gsub(text, "%[itemcount%]", item.count)
-	text = gsub(text, "%[itemvalue%]", BG.FormatMoney(item.value))
+	text = gsub(text, "%[itemcount%]", cacheData.count)
+	text = gsub(text, "%[itemvalue%]", BG.FormatMoney(cacheData.value))
 
 	-- [freeslots][totalslots]
 	text = gsub(text, "%[freeslots%]", BG.totalFreeSlots + BG.freeSpecialSlots)
@@ -320,7 +320,6 @@ function BG:FormatString(text)
 	return text
 end
 
--- formats money int values, depending on settings
 function BG.FormatMoney(amount, displayMode)
 	if not amount then return "" end
 	displayMode = displayMode or BG_GlobalDB.showMoney
@@ -387,4 +386,6 @@ function BG.FormatMoney(amount, displayMode)
 	else
 		return format(signum .. formatCopper, copper)
 	end
+
+	-- return amount and GetCoinTextureString(amount) or ""
 end

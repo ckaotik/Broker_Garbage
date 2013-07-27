@@ -2,11 +2,10 @@ local addonName, ns, _ = ...
 local BG = ns -- FIXME
 
 -- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S, INVSLOT_LAST_EQUIPPED
--- GLOBALS: ContainerIDToInventoryID, InCombatLockdown
+-- GLOBALS: ContainerIDToInventoryID, InCombatLockdown, GetItemInfo
+-- GLOBALS: string, table, tonumber, setmetatable
 local pairs = pairs
-local ipairs = ipairs
 local format = string.format
-local match = string.match
 
 -- --------------------------------------------------------
 --  Libraries & setting up the LDB
@@ -46,11 +45,17 @@ function events:ADDON_LOADED(event, addon)
 	if addon ~= addonName then return end
 
 	-- beware of <new!> things!
+	-- /run for i,v in pairs(BG_GlobalDB.exclude) do BG_GlobalDB.keep[i] = v end
+	-- /run for i,v in pairs(BG_LocalDB.exclude) do BG_LocalDB.keep[i] = v end
+	-- TODO: convert non-keep limits to keep limits + non-keep entry
+	-- TODO: convert sell-list entries to toss w/ value = 1
+	-- TODO: when converting, check if categories exist
+	-- /run for i,v in pairs(BG_GlobalDB.include) do BG_GlobalDB.toss[i] = v end
+	-- /run for i,v in pairs(BG_LocalDB.include) do BG_LocalDB.toss[i] = v end
 	BG_GlobalDB.keep = BG_GlobalDB.keep or {}
 	BG_GlobalDB.toss = BG_GlobalDB.toss or {}
 	BG_LocalDB.keep  = BG_LocalDB.keep  or {}
 	BG_LocalDB.toss  = BG_LocalDB.toss  or {}
-	-- addon assumes lists are { <itemID/category> = <number>, ... } 0: unrestriced, else: restricted
 	ns.keep = Merge(BG_GlobalDB.keep, BG_LocalDB.keep)
 	ns.toss = Merge(BG_GlobalDB.toss, BG_LocalDB.toss)
 
@@ -60,12 +65,13 @@ function events:ADDON_LOADED(event, addon)
 	ns.containers = setmetatable({}, { 			-- [<location>] = { ns.item[itemID], <count ~= 1> } --]]
 		__index = function(self, location)
 			self[location] = {
-				-- id = itemID,
-				-- c = count,
-				-- p = priority,
-				-- a = action,
-				-- v = value,
-				-- l = location,
+				-- loc = location,
+				-- item = ns.item[itemID],
+				-- count = count,
+				-- priority = priority,
+				-- value = value,
+				-- label = label,
+				-- sell = sell,
 			}
 			return self[location]
 		end
@@ -75,93 +81,44 @@ function events:ADDON_LOADED(event, addon)
 		__mode = "kv",
 		__index = function(self, item)
 			-- item info should be available, as we only check items we own
-			local _, link, quality, iLevel, _, _, _, _, _, _, vendorPrice = GetItemInfo(item)
+			local _, link, quality, iLevel, _, itemClass, _, _, equipSlot, _, vendorPrice = GetItemInfo(item)
+			local itemID = tonumber(link:match('item:(%d+):') or '')
+			-- if self[itemID] then return self[itemID] end
+
 			local limiters = {}
-			self[item] = {
-				id = tonumber(link:match('item:(%d+):') or ''),
+			self[itemID] = {
+				id = itemID,
+				slot = equipSlot,
+				limit  = limiters, 		-- will grow with more limits, but who cares ;)
+				cl = itemClass,
+				l  = iLevel, 			-- TODO: fix upgraded items
 				q  = quality,
 				v  = vendorPrice,
-				il = iLevel,
-				l  = limiters,
 			}
-			return self[item]
+			return self[itemID]
 		end
 	})
 	-- kay, stop <new!> now
 
-	BG.isAtVendor = nil
 	BG.totalBagSpace = 0
 	BG.totalFreeSlots = 0
-	BG.containerInInventory = nil
-
-	BG.itemsCache = {}		-- contains static item data, e.g. price, stack size
-	BG.locationsCache = {}	-- itemID = { cheapestItems-ListIndex }
-	BG.cheapestItems = {}	-- contains up-to-date labeled data
-
-	BG.locked = nil
-	BG.sellValue = 0		-- represents the actual value that we sold stuff for
-	BG.repairCost = 0		-- the amount of money that we repaired for
-	BG.sellLog = {}
 
 	BG.CheckSettings()
 	BG.InitArkInvFilter()
 	BG.InitPriceHandlers()
 
+	-- initial scan
 	BG.updateAvailable = {}
 	for i = 0, NUM_BAG_SLOTS do
 		BG.updateAvailable[i] = true
 	end
+	self:BAG_UPDATE_DELAYED()
 
-	if not ns.DelayInCombat(ns.ScanInventory) then
-		ns.ScanInventory()
-	end
-
-	for _, event in pairs({ "ITEM_PUSH", "BAG_UPDATE", "BAG_UPDATE_DELAYED", "MERCHANT_SHOW", "MERCHANT_CLOSED", "UI_ERROR_MESSAGE", "CHAT_MSG_SKILL", "EQUIPMENT_SETS_CHANGED", "PLAYER_EQUIPMENT_CHANGED" }) do
+	for _, event in pairs({ "BAG_UPDATE", "BAG_UPDATE_DELAYED", "CHAT_MSG_SKILL", "EQUIPMENT_SETS_CHANGED" }) do
 		self:RegisterEvent(event)
 	end
+
 	self:UnregisterEvent("ADDON_LOADED")
-end
-
--- --------------------------------------------------------
---  Merchant: auto sell, auto repair
--- --------------------------------------------------------
-function events:MERCHANT_SHOW(event)
-	BG.isAtVendor = true
-	BG.UpdateMerchantButton()
-
-	local disable = BG.disableKey[BG_GlobalDB.disableKey]
-	if not (disable and disable()) then
-		local numSellItems, guildRepair
-		BG.sellValue, numSellItems = BG.AutoSell()
-		BG.repairCost, guildRepair = BG.AutoRepair()
-
-		if BG.sellValue > 0 then
-			BG.CallWithDelay(BG.ReportSelling, 0.3, BG.repairCost, 0, numSellItems, guildRepair)
-		elseif BG.repairCost > 0 then
-			BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost), guildRepair and BG.locale.guildRepair or ""))
-		end
-	end
-end
-
-function events:MERCHANT_CLOSED(event)
-	BG.isAtVendor = nil
-	if BG.locked then
-		BG.Debug("Fallback unlock: Merchant window closed, scan lock released.")
-		if BG.sellValue > 0 then
-			BG.ReportSelling(BG.repairCost, 0, 10)
-		else
-			BG.sellValue, BG.repairCost = 0, 0
-			BG.locked = nil
-		end
-	end
-end
-
-function events:UI_ERROR_MESSAGE(event, msg)
-	if msg ~= ERR_VENDOR_DOESNT_BUY then return end
-	if BG.repairCost > 0 then
-		BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost)))
-	end
-	BG.sellValue, BG.repairCost = 0, 0
 end
 
 -- --------------------------------------------------------
@@ -169,20 +126,7 @@ end
 -- --------------------------------------------------------
 function events:AUCTION_HOUSE_CLOSED()
 	-- Update cached auction values in case anything changed
-	BG.ClearCache()
-	BG.ScanInventory()
-end
-
-function events:PLAYER_EQUIPMENT_CHANGED(event, containerID)
-	for i = 1, NUM_BAG_SLOTS do
-		local location = ContainerIDToInventoryID(i)
-		if location and location == containerID then
-			-- TODO: remove itemslots we had before. rare situation, but possible (e.g. alt sending huge bag to main)
-			BG.Debug("One of the player's bags changed! "..containerID)
-			BG.ScanInventory()
-			return
-		end
-	end
+	BG.ScanInventory(true)
 end
 
 function events:EQUIPMENT_SETS_CHANGED()
@@ -190,7 +134,7 @@ function events:EQUIPMENT_SETS_CHANGED()
 end
 
 function events:CHAT_MSG_SKILL(event, msg)
-	local skillName = match(msg, BG.ReformatGlobalString(ERR_SKILL_GAINED_S))
+	local skillName = string.match(msg, BG.ReformatGlobalString(ERR_SKILL_GAINED_S))
 	if skillName then
 		skillName = BG.GetTradeSkill(skillName)
 		if skillName then
@@ -219,67 +163,16 @@ end
 
 function events:BAG_UPDATE_DELAYED()
 	if ns.locked then return end
-
-	-- new! just testing for now
-	if not ns.DelayInCombat(ns._ScanInventory) then
-		ns._ScanInventory()
-	end
-
-	-- inventory scanning while in combat causes issues, postpone
 	if InCombatLockdown() then
+		-- postpone ...
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 		return
 	end
 
-	for container, needsUpdate in pairs(BG.updateAvailable) do
-		if needsUpdate then
-			BG.ScanInventoryContainer(container)
-			BG.updateAvailable[container] = false
-		end
-	end
-	BG.ScanInventoryLimits()
-	BG.SortItemList()
+	ns.ScanInventory()
 end
 
 function events:PLAYER_REGEN_ENABLED()
-	-- ns.RunAfterCombat()
 	self:UnregisterEvent("PLAYER_REGEN_ENABLED")
 	self:BAG_UPDATE_DELAYED()
-end
-
--- --------------------------------------------------------
---  Restacking
--- --------------------------------------------------------
-function events:ITEM_UNLOCKED()
-	BG.restackEventCounter = BG.restackEventCounter - 1
-	if BG.restackEventCounter < 1 then
-		self:UnregisterEvent('ITEM_UNLOCKED')
-		BG.Restack()
-	end
-end
-
-function events:ITEM_PUSH(event, containerID)
-	local container = containerID - INVSLOT_LAST_EQUIPPED
-	if BG_GlobalDB.restackInventory and container >= 0 then
-		BG.DoContainerRestack(container)
-	end
-end
-
--- --------------------------------------------------------
---  FIXME: Some things shouldn't happen in combat!
---  Usage: function myFunc(foo, bar) if ns.DelayInCombat(frame, myFunc) then return end --[[do stuff--]] end
--- --------------------------------------------------------
-local afterCombat = {}
-function ns.RunAfterCombat()
-	for i = #afterCombat, 1, -1 do
-		afterCombat[i]()
-		afterCombat[i] = nil
-	end
-end
-function ns.DelayInCombat(func)
-	if InCombatLockdown() then
-		tinsert(afterCombat, func)
-		events:RegisterEvent("PLAYER_REGEN_ENABLED")
-		return true
-	end
 end

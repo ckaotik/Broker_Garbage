@@ -1,5 +1,4 @@
 local _, BG = ...
-BG.name = "|cffee6622Broker_Garbage|r"
 
 -- default saved variables
 BG.defaultGlobalSettings = {

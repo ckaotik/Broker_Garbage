@@ -54,7 +54,6 @@ display.lua
 item.lua
 inventory.lua
 containers.lua
-restack.lua
-vendor.lua
 core.lua
+vendor.lua
 externals.lua

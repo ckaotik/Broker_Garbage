@@ -1,6 +1,8 @@
 local addonName, BG, _ = ...
 
--- GLOBALS: Broker_Garbage, BG_GlobalDB, BG_LocalDB
+-- GLOBALS: Broker_Garbage, BG_GlobalDB, BG_LocalDB, ArkInventory, ArkInventoryRules, Bagnon
+-- GLOBALS: IsAddOnLoaded
+-- GLOBALS: string, tonumber, hooksecurefunc
 local tinsert = table.insert
 
 -- register as a plugin to gain acced to BG's options panel
@@ -77,17 +79,12 @@ function BG.ResetStatistics(isGlobal)
 	BG.ResetOption("itemsSold", isGlobal)
 end
 
-function BG.GetContainerItemClassification(bag, slot)
-	local listIndex = BG.GetListIndex(bag, slot)
-	if not listIndex then return BG.IGNORE end
+function BG.GetItemClassification(container, slot)
+	local location = BG.GetLocation(container, slot)
+	local cacheData = BG.containers[location]
 
-	local cheapestItem = BG.cheapestItems[listIndex]
-	if not cheapestItem then return BG.IGNORE end
-
-	if cheapestItem.source == BG.IGNORE then
-		return cheapestItem.origin or BG.IGNORE
-	else
-		return cheapestItem.source
+	if cacheData.item then
+		return cacheData.label or BG.IGNORE
 	end
 end
 
@@ -97,11 +94,11 @@ function BG.ArkInventoryFilter(label)
 	if not ArkInventoryRules.Object.h or ArkInventoryRules.Object.class ~= "item" then
 		return false
 	end
-	local bag = ArkInventory.BagID_Blizzard(ArkInventoryRules.Object.loc_id, ArkInventoryRules.Object.bag_id)
+	local container = ArkInventory.BagID_Blizzard(ArkInventoryRules.Object.loc_id, ArkInventoryRules.Object.bag_id)
 	local slot = ArkInventoryRules.Object.slot_id
 	label = label and string.upper(label)
 
-	return BG.GetContainerItemClassification(bag, slot) == BG[label]
+	return BG.GetItemClassification(container, slot) == BG[label]
 end
 function BG.InitArkInvFilter()
 	if not IsAddOnLoaded("ArkInventoryRules") then return end
@@ -124,21 +121,24 @@ local function CreateIcon(slot)
   	slot.scrapIcon = icon
 	return icon
 end
-local function UpdateJunkIcon(self, listIndex)
+local function UpdateJunkIcon(button, container, slot)
 	if not BG_GlobalDB.showBagnonSellIcons then
-		if self.scrapIcon and self.scrapIcon:IsShown() then self.scrapIcon:Hide() end
+		if button.scrapIcon and button.scrapIcon:IsShown() then
+			button.scrapIcon:Hide()
+		end
 		return
 	end
-	local icon = self.scrapIcon or CreateIcon(self)
+	local icon = button.scrapIcon or CreateIcon(button)
 	icon:Hide()
 
-	local item = listIndex and BG.cheapestItems[listIndex]
-	if item and not item.invalid then
-		if item.sell then
+	local location = BG.GetLocation(container, slot)
+	local cacheData = BG.containers[location]
+	if cacheData.item then
+		if cacheData.sell then
 			icon:SetVertexColor(1, 1, 1)
 			icon:SetDesaturated(false)
 			icon:Show()
-		elseif item.origin == BG.DISENCHANT then
+		elseif cacheData.label == BG.DISENCHANT then
 			icon:SetVertexColor(1, 0.2, 1)
 			icon:SetDesaturated(true)
 			icon:Show()
@@ -150,10 +150,9 @@ end
 -- 		2) BG has changed labels for an item, have 'the addon' update its display
 if IsAddOnLoaded("Bagnon") then
 	hooksecurefunc(Bagnon.ItemSlot, "Update", function(self, ...)
-		local index = BG.GetListIndex(self:GetBag(), self:GetID())
-		UpdateJunkIcon(self, index)
+		UpdateJunkIcon(self, self:GetBag(), self:GetID())
 	end)
-	hooksecurefunc(BG, "UpdateLDB", function()
+	hooksecurefunc(BG, "ScanInventory", function()
 		Bagnon:UpdateFrames()
 	end)
 end
@@ -162,13 +161,12 @@ if IsAddOnLoaded("ElvUI") then
 	local bagsModule = ElvUI[1]:GetModule('Bags')
 	if bagsModule then
 		hooksecurefunc(bagsModule, "UpdateSlot", function(containerFrame, bagID, slotID)
-			local index = BG.GetListIndex(bagID, slotID)
 			local button = containerFrame.Bags and containerFrame.Bags[bagID] and containerFrame.Bags[bagID][slotID]
 			if not button then return end
-			UpdateJunkIcon(button, index)
+			UpdateJunkIcon(button, bagID, slotID)
 
 			if not ElvUISetup then
-				hooksecurefunc(BG, "UpdateLDB", function()
+				hooksecurefunc(BG, "ScanInventory", function()
 					containerFrame:UpdateAllSlots()
 				end)
 				ElvUISetup = true

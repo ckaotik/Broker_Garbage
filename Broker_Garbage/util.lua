@@ -1,4 +1,4 @@
-local _, BG = ...
+local addonName, BG = ...
 
 -- GLOBALS: BG_GlobalDB, BG_LocalDB, Broker_Garbage, Broker_Garbage_Config, UIParentLoadAddOn, DEFAULT_CHAT_FRAME
 -- GLOBALS: GetContainerItemInfo, GetProfessions, GetProfessionInfo, GetSpellInfo, DevTools_Dump
@@ -19,35 +19,25 @@ local join = string.join
 
 -- == Debugging Functions ==
 function BG.Print(text)
-	DEFAULT_CHAT_FRAME:AddMessage(BG.name.." "..text)
+	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622"..addonName.."|r "..text)
 end
 
-hooksecurefunc(GameTooltip, "SetBagItem", function(tip, bag, slot)
-	local index = BG.GetListIndex(bag, slot)
-	local item = BG.cheapestItems[index]
-	local cacheData = item and BG.GetCached(item.itemID)
-	local sell = (item and item.sell) and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or ""
+hooksecurefunc(GameTooltip, "SetBagItem", function(tooltip, container, slot)
+	local location = BG.GetLocation(container, slot)
+	local cacheData = BG.containers[location]
 
-	local classification = BG.GetContainerItemClassification(bag, slot)
+	if cacheData.item then
+		-- TODO: reasons, priority
+		tooltip:AddDoubleLine("|cffee6622"..addonName.."|r", string.format("%s%s%s|r",
+			cacheData.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or "",
+			BG.colors[cacheData.label] or '',
+			BG.labels[cacheData.label] or '?'
+		))
 
-	if GetContainerItemInfo(bag, slot) and item and cacheData then
-		if BG_GlobalDB and BG_GlobalDB.showItemTooltipLabel and classification then
-			if classification and classification >= 0 then
-				tip:AddDoubleLine(BG.name, sell .. BG.colors[classification] .. BG.labels[classification] .. "|r")
-			end
-			if item.reason and BG_GlobalDB.showLabelReason then
-				tip:AddDoubleLine(BG.name, item.reason)
-			end
-			tip:Show()
+		if BG_GlobalDB.debug then
+			tooltip:AddDoubleLine("Location", location)
 		end
-
-		if BG_GlobalDB and BG_GlobalDB.debug then
-			tip:AddDoubleLine(BG.name, "Index "..index..
-				(cacheData and ", label "..cacheData.classification or "")..
-				(item and ", source "..classification or "")
-			)
-			tip:Show()
-		end
+		tooltip:Show()
 	end
 end)
 
@@ -56,30 +46,6 @@ function BG.Debug(...)
 	if BG_GlobalDB and BG_GlobalDB.debug then
 		BG.Print("! "..join(", ", tostringall(...)))
 	end
-end
-
-local dumpCount = 0
-function BG.Dump(arg, force)
-	if (BG_GlobalDB and BG_GlobalDB.debug) or force then
-		UIParentLoadAddOn("Blizzard_DebugTools")
-		DevTools_Dump(arg, "BrokerGarbage_"..dumpCount)
-		dumpCount = dumpCount + 1
-	end
-end
-
-local waitFrame = CreateFrame("Frame")
-function BG.CallWithDelay(callFunc, delay, ...)
-	if waitFrame:GetScript("OnUpdate") ~= nil then
-		BG.Debug("Ooopsie, already running a timer!")
-	end
-	local args = {...}
-	waitFrame:SetScript("OnUpdate", function(self, elapsed)
-		delay = delay - elapsed
-		if delay <= 0 then
-			waitFrame:SetScript("OnUpdate", nil)
-			callFunc( unpack(args) )
-		end
-	end)
 end
 
 function BG.ReformatGlobalString(globalString)
@@ -214,10 +180,6 @@ function BG.CreateDefaultLists(global)
 	BG_LocalDB.exclude["Misc.Reagent.Class."..gsub(lower(BG.playerClass), "^.", upper)] = 0
 
 	BG.Print(BG.locale.listsUpdatedPleaseCheck)
-
-	-- Broker_Garbage.UpdateAllCaches()
-	Broker_Garbage.UpdateAllDynamicItems()
-	Broker_Garbage:UpdateLDB()
 
 	if Broker_Garbage_Config and Broker_Garbage_Config.ListOptionsUpdate then
 		Broker_Garbage_Config:ListOptionsUpdate()
