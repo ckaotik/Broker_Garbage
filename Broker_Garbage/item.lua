@@ -1,40 +1,26 @@
 local _, BG = ...
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, UIParent, ITEM_STARTS_QUEST, ITEM_BIND_QUEST, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, TopFit, PawnIsItemIDAnUpgrade, Enchantrix, Wowecon, AuctionLite, AucAdvanced, AucMasGetCurrentAuctionInfo, Auctional, _G, PROFESSION_RANKS
--- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetAuctionItemSubClasses, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, IsAddOnLoaded, GetAuctionBuyout, GetDisenchantValue, Atr_GetAuctionBuyout, Atr_GetDisenchantValue, IsUsableSpell
-local format = string.format
-local gsub = string.gsub
-local match = string.match
-local find = string.find
-local floor = math.floor
-local ceil = math.ceil
-local max = math.max
-
-function BG.GetItemID(itemLink)
-	if not itemLink or type(itemLink) ~= "string" then return end
-	local linkType, id, data = itemLink:match("^.-H([^:]+):?([^:]*):?([^|]*)")
-	if linkType == "item" then
-		return tonumber(id)
-	end
-end
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, TopFit, PawnIsItemIDAnUpgrade, _G
+-- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink
+-- GLOBALS: type, select, string
 
 -- returns true if the item is equippable. **Trinkets don't count!**
 -- not using IsEquippableItem for this, as there bags would be equippable too
 function BG.IsItemEquipment(invType)	-- itemLink/itemID/invType
 	if not invType or invType == "" then
 		return nil
-	elseif (type(invType) == "string" and not find(invType, "INVTYPE")) or type(invType) == "number" then
+	elseif (type(invType) == "string" and not invType:find("INVTYPE")) or type(invType) == "number" then
 		invType = select(9, GetItemInfo(invType))
 	end
-	return invType ~= "" and not find(invType, "BAG") and not find(invType, "TRINKET")
+	return invType ~= "" and not invType:find("BAG") and not invType:find("TRINKET")
 end
 
 -- == Misc Item Information ==
-local scanTooltip = CreateFrame("GameTooltip", "BrokerGarbage_ItemScanTooltip", UIParent, "GameTooltipTemplate")
+local scanTooltip = _G["BrokerGarbageScanTooltip"]
 function BG.ScanTooltipFor(searchString, item, inBag, scanRightText, filterFunc)
 	-- (String) searchString, (String|Int) item:ItemLink|BagSlotID, [(Boolean|Int) inBag:true|ContainerID], [(Function) filterFunc]
 	if not item then return end
-	scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+	scanTooltip:SetOwner(BG, "ANCHOR_NONE")
 
 	local slot
 	if inBag and type(item) == "number" then
@@ -57,7 +43,7 @@ function BG.FindInTooltip(searchString, scanRightText, filterFunc)
 		rightLine = _G[scanTooltip:GetName().."TextRight"..i]
 		rightLineText = rightLine and rightLine:GetText()
 
-		if (find(leftLineText, searchString) or (scanRightText and find(rightLineText, searchString)))
+		if (leftLineText:find(searchString) or (scanRightText and rightLineText:find(searchString)))
 			and (not filterFunc or filterFunc(leftLineText, rightLineText)) then
 			return leftLineText, rightLineText
 		end
@@ -126,7 +112,7 @@ function BG.IsOutdatedItem(item)	-- itemID/itemLink/itemTable
 
 	if BG.IsItemSoulbound(itemLink, true) then
 		-- handle different source of outdated data
-		if IsAddOnLoaded("TopFit") and TopFit.IsInterestingItem then
+		if TopFit and TopFit.IsInterestingItem then
 			outdated = not TopFit:IsInterestingItem(itemLink)
 		end
 		if PawnIsItemIDAnUpgrade then
@@ -138,61 +124,54 @@ function BG.IsOutdatedItem(item)	-- itemID/itemLink/itemTable
 	return outdated
 end
 
--- deletes the item in a given location of your bags
-function BG.Delete(item, position)
-	local itemID, itemCount, cursorType
+function BG.IsItemBoP(item)
+	local itemData = BG.item[item]
+	return item.bop
+end
 
-	if type(item) == "string" and item == "cursor" then
-		-- item on the cursor
-		cursorType, itemID = GetCursorInfo()
-		if cursorType ~= "item" then
-			BG.Print("Error! Trying to delete an item from the cursor, but there is none.")
-			return
-		end
-		itemCount = position	-- second argument is the item count
+local function Deleted(item, count)
+	local _, link, _, _, _, _, _, _, _, _, vendorPrice = GetItemInfo(item)
+	local itemValue = count * vendorPrice
 
-	elseif type(item) == "table" then
-		-- item given as an itemTable
-		itemID = item.itemID
-
-	elseif type(item) == "number" then
-		-- item given via its itemID
-		itemID = item
-
-	elseif item then
-		-- item given via its itemLink
-		itemID = BG.GetItemID(item)
-	else
-		BG.Print("Error! BG:Delete() no argument supplied.")
-		return
-	end
-
-	-- security check
-	local bag = position and position[1] or item.bag
-	local slot = position and position[2] or item.slot
-	if not cursorType and (not (bag and slot) or GetContainerItemID(bag, slot) ~= itemID) then
-		BG.Print("Error! Item to be deleted is not the expected item.")
-		BG.Debug("I got these parameters:", itemID, bag, slot)
-		return
-	end
-
-	-- make sure there is nothing unwanted on the cursor
-	if not cursorType then
-		ClearCursor()
-	end
-
-	_, itemCount = GetContainerItemInfo(bag, slot)
-
-	-- actual deleting happening after this
-	PickupContainerItem(bag, slot)
-	DeleteCursorItem()					-- comment this line to prevent item deletion
-
-	local itemValue = (BG.GetCached(itemID).value or 0) * itemCount	-- if an item is unknown to the cache, statistics will not change
 	-- statistics
-	BG_GlobalDB.itemsDropped 		= BG_GlobalDB.itemsDropped + itemCount
+	BG_GlobalDB.itemsDropped 		= BG_GlobalDB.itemsDropped + count
 	BG_GlobalDB.moneyLostByDeleting	= BG_GlobalDB.moneyLostByDeleting + itemValue
 	BG_LocalDB.moneyLostByDeleting 	= BG_LocalDB.moneyLostByDeleting + itemValue
 
-	local _, itemLink = GetItemInfo(itemID)
-	BG.Print(format(BG.locale.itemDeleted, itemLink, itemCount))
+	BG.PrintFormat(BG.locale.itemDeleted, link, count)
+end
+-- deletes the item in a given location of your bags
+function BG.Delete(location, ...)
+	if not location then
+		BG.Print("Error! Broker_Garbage Delete: no argument supplied.")
+		return
+	elseif location == "cursor" then
+		-- item on the cursor
+		local cursorType, itemID = GetCursorInfo()
+		if cursorType ~= "item" then
+			-- TODO: localize
+			BG.Print("Error! Trying to delete an item from the cursor, but there is none.")
+			return
+		end
+		DeleteCursorItem()
+		Deleted(itemID, ...)
+	else
+		-- security check
+		local container, slot = BG.GetBagSlot(location)
+		local cacheData = BG.containers[location]
+
+		-- TODO: also check item count?
+		if cacheData.item and GetContainerItemID(container, slot) == cacheData.item.id then
+			-- actually delete the item
+			ClearCursor()
+			PickupContainerItem(container, slot)
+			DeleteCursorItem()
+			Deleted(cacheData.item.id, cacheData.count)
+		else
+			-- TODO: localize
+			BG.PrintFormat("Error! Item to be deleted is not the expected item (%s in %d)",
+				cacheData.item and cacheData.item.id or "?",
+				location)
+		end
+	end
 end

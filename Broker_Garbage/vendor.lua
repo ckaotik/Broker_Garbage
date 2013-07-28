@@ -1,37 +1,11 @@
 local _, BG = ...
 
 -- GLOBALS: BG_GlobalDB, BG_LocalDB, _G
--- GLOBALS: GameTooltip, MerchantFrameInset, MerchantRepairAllButton, MerchantRepairText, CreateFrame, MerchantFrame
+-- GLOBALS: GameTooltip, MerchantFrameInset, MerchantRepairAllButton, CreateFrame, MerchantFrame
 -- GLOBALS: SetItemButtonTexture, SetItemButtonDesaturated, MerchantFrame_UpdateRepairButtons, RepairAllItems, GetMoney, GetGuildBankWithdrawMoney, GetRepairAllCost, CanMerchantRepair, CanGuildBankRepair, GetContainerItemInfo, ClearCursor, UseContainerItem
-local wipe = wipe
-local pairs = pairs
-local ipairs = ipairs
-local select = select
-local format = string.format
+-- GLOBALS: wipe, pairs, table, string
 
 local AceTimer = LibStub("AceTimer-3.0")
-
--- --------------------------------------------------------
---  Merchant events
--- --------------------------------------------------------
-local events = BG.events
-events:RegisterEvent("MERCHANT_SHOW")
-events:RegisterEvent("MERCHANT_CLOSED")
-
-function events:MERCHANT_SHOW()
-	BG.isAtVendor = true
-	BG.UpdateMerchantButton()
-
-	local disable = BG.disableKey[BG_GlobalDB.disableKey]
-	if not (disable and disable()) then
-		BG.AutoSell()
-		BG.AutoRepair()
-	end
-end
-
-function events:MERCHANT_CLOSED(event)
-	BG.isAtVendor = nil
-end
 
 -- --------------------------------------------------------
 --  Merchant: auto sell, auto repair
@@ -69,14 +43,13 @@ function BG.ReportSelling(repairCost, iteration, maxIteration, isGuildRepair)
 	if isLocked and iteration < (maxIteration or 10)+5 then
 		AceTimer:ScheduleTimer(BG.ReportSelling, 0.3, repairCost, iteration+1, maxIteration, isGuildRepair)
 	elseif sellValue > 0 then
-		BG.Print(format(BG.locale.sell, BG.FormatMoney(sellValue)))
+		BG.Print(string.format(BG.locale.sell, BG.FormatMoney(sellValue)))
 
 		-- regular sell unlock
 		BG.UpdateStatistics(sellValue, numItems)
-		BG.UpdateMerchantButton()
 	end
 	--[[if sellValue > 0 and repairCost > 0 then
-		BG.Print(format(BG.locale.sellAndRepair,
+		BG.Print(string.format(BG.locale.sellAndRepair,
 			BG.FormatMoney(sellValue),
 			BG.FormatMoney(repairCost),
 			isGuildRepair and BG.locale.guildRepair or "",
@@ -107,7 +80,7 @@ function BG.CheckSoldItems()
 			actualSellValue = actualSellValue + sellValue
 			numItemsSold = numItemsSold + count
 			if BG_GlobalDB.showSellLog then
-				BG.Print(format(BG.locale.sellItem, itemLink, cacheData.count or '0', BG.FormatMoney(cacheData.value or '0')))
+				BG.Print(string.format(BG.locale.sellItem, itemLink, cacheData.count or '0', BG.FormatMoney(cacheData.value or '0')))
 			end--]]
 			actualSellValue = sellValue
 		end
@@ -139,35 +112,32 @@ function BG.AutoRepair()
 				RepairAllItems(0)
 			else
 				-- oops, guess we're broke
-				BG.Print(format(BG.locale.couldNotRepair, BG.FormatMoney(repairCost)))
+				BG.Print(string.format(BG.locale.couldNotRepair, BG.FormatMoney(repairCost)))
 				repairCost = 0
 			end
 
-			BG.Print(format(BG.locale.repair, BG.FormatMoney(BG.repairCost), guildRepair and BG.locale.guildRepair or ""))
+			BG.Print(string.format(BG.locale.repair, BG.FormatMoney(repairCost), guildRepair and BG.locale.guildRepair or ""))
 		end
 	end
 end
 
 
 -- == Merchant Sell Icon ==
-function BG.UpdateMerchantButton()
-	local sellIcon = _G["BrokerGarbage_SellIcon"]
+local function UpdateMerchantButton()
+	local sellIcon = _G["BrokerGarbageSellIcon"]
 
 	if MerchantFrame.selectedTab ~= 1 or not BG_GlobalDB.showAutoSellIcon then
 		if sellIcon and sellIcon:IsShown() then
 			sellIcon:Hide()
 		end
-		if not BG_GlobalDB.showAutoSellIcon then
-			MerchantFrame_UpdateRepairButtons()
-		end
 	else
 		if not sellIcon then
-			sellIcon = CreateFrame("Button", "BrokerGarbage_SellIcon", MerchantFrame, "ItemButtonTemplate")
+			sellIcon = CreateFrame("Button", "BrokerGarbageSellIcon", MerchantFrame, "ItemButtonTemplate")
 			sellIcon:SetScale(32/37)
 			sellIcon:SetScript("OnClick", BG.AutoSell)
 			sellIcon:SetScript("OnEnter", function(self)
 				GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-				GameTooltip:SetText(BG.junkValue ~= 0 and format(BG.locale.autoSellTooltip, BG.FormatMoney(BG.junkValue))
+				GameTooltip:SetText(BG.junkValue ~= 0 and string.format(BG.locale.autoSellTooltip, BG.FormatMoney(BG.junkValue))
 						or BG.locale.reportNothingToSell, nil, nil, nil, nil, true)
 			end)
 			sellIcon:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -185,4 +155,30 @@ function BG.UpdateMerchantButton()
 		sellIcon:Show()
 	end
 end
-hooksecurefunc("MerchantFrame_Update", BG.UpdateMerchantButton)
+hooksecurefunc("MerchantFrame_UpdateRepairButtons", UpdateMerchantButton)
+hooksecurefunc("MerchantFrame_UpdateBuybackInfo", function()
+	local sellIcon = _G["BrokerGarbageSellIcon"]
+	if sellIcon then
+		sellIcon:Hide()
+	end
+end)
+
+-- --------------------------------------------------------
+--  Merchant events
+-- --------------------------------------------------------
+local events = BG.events
+events:RegisterEvent("MERCHANT_SHOW")
+events:RegisterEvent("MERCHANT_CLOSED")
+
+function events:MERCHANT_SHOW()
+	BG.isAtVendor = true
+	local disable = BG.disableKey[BG_GlobalDB.disableKey]
+	if not (disable and disable()) then
+		BG.AutoSell()
+		BG.AutoRepair()
+	end
+end
+
+function events:MERCHANT_CLOSED(event)
+	BG.isAtVendor = nil
+end

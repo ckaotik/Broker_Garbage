@@ -41,8 +41,26 @@ local function Merge(tableA, tableB)
 	return useTable
 end
 
+local scanTooltip = CreateFrame("GameTooltip", "BrokerGarbageScanTooltip", UIParent, "GameTooltipTemplate")
+local GetItemBinding = setmetatable({}, {
+	__index = function(self, id)
+		scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+		scanTooltip:SetHyperlink("item:"..id)
+		local binding = BrokerGarbageScanTooltipTextLeft2:GetText()
+		scanTooltip:Hide()
+		if binding  then
+			self[id] = binding
+			return binding
+		end
+	end ,
+	__call = function(self, itemID)
+		return self[itemID]
+	end
+})
+
 function events:ADDON_LOADED(event, addon)
 	if addon ~= addonName then return end
+	BG.CheckSettings()
 
 	-- beware of <new!> things!
 	-- /run for i,v in pairs(BG_GlobalDB.exclude) do BG_GlobalDB.keep[i] = v end
@@ -82,18 +100,24 @@ function events:ADDON_LOADED(event, addon)
 		__index = function(self, item)
 			-- item info should be available, as we only check items we own
 			local _, link, quality, iLevel, _, itemClass, _, _, equipSlot, _, vendorPrice = GetItemInfo(item)
-			local itemID = tonumber(link:match('item:(%d+):') or '')
-			-- if self[itemID] then return self[itemID] end
+			local itemID = link and tonumber(link:match('item:(%d+):') or '')
+
+			if not itemID then
+				return {}
+			elseif itemID ~= item then
+				return self[itemID]
+			end
 
 			local limiters = {}
 			self[itemID] = {
-				id = itemID,
-				slot = equipSlot,
+				id     = itemID,
+				slot   = equipSlot,
 				limit  = limiters, 		-- will grow with more limits, but who cares ;)
-				cl = itemClass,
-				l  = iLevel, 			-- TODO: fix upgraded items
-				q  = quality,
-				v  = vendorPrice,
+				cl     = itemClass,
+				l      = iLevel, 			-- TODO: fix upgraded items
+				q      = quality,
+				v      = vendorPrice,
+				bop    = GetItemBinding(itemID) == ITEM_BIND_ON_PICKUP,
 			}
 			return self[itemID]
 		end
@@ -103,7 +127,6 @@ function events:ADDON_LOADED(event, addon)
 	BG.totalBagSpace = 0
 	BG.totalFreeSlots = 0
 
-	BG.CheckSettings()
 	BG.InitArkInvFilter()
 	BG.InitPriceHandlers()
 
@@ -134,7 +157,7 @@ function events:EQUIPMENT_SETS_CHANGED()
 end
 
 function events:CHAT_MSG_SKILL(event, msg)
-	local skillName = string.match(msg, BG.ReformatGlobalString(ERR_SKILL_GAINED_S))
+	local skillName = string.match(msg, BG.GetPatternFromFormat(ERR_SKILL_GAINED_S))
 	if skillName then
 		skillName = BG.GetTradeSkill(skillName)
 		if skillName then

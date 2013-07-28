@@ -420,7 +420,7 @@ local function Options_BasicOptions(pluginID)
 	sellIcon:SetScript("OnClick", function(self)
 		checksound(self)
 		Broker_Garbage:ToggleOption("showAutoSellIcon", true)
-		Broker_Garbage.UpdateMerchantButton(true)
+		MerchantFrame_UpdateRepairButtons()
 	end)
 
 	local itemTooltipLabel = BGC.CreateCheckBox(panel, nil, BGC.locale.showItemTooltipLabelTitle, "TOPLEFT", sellIcon, "BOTTOMLEFT", 0, 4)

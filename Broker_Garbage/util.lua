@@ -18,6 +18,9 @@ local tostringall = tostringall
 local join = string.join
 
 -- == Debugging Functions ==
+function BG.PrintFormat(formatString, ...)
+	BG.Print(string.format(formatString, ...))
+end
 function BG.Print(text)
 	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622"..addonName.."|r "..text)
 end
@@ -31,7 +34,7 @@ hooksecurefunc(GameTooltip, "SetBagItem", function(tooltip, container, slot)
 		tooltip:AddDoubleLine("|cffee6622"..addonName.."|r", string.format("%s%s%s|r",
 			cacheData.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or "",
 			BG.colors[cacheData.label] or '',
-			BG.labels[cacheData.label] or '?'
+			BG.labels[cacheData.label] or cacheData.label
 		))
 
 		if BG_GlobalDB.debug then
@@ -48,15 +51,20 @@ function BG.Debug(...)
 	end
 end
 
-function BG.ReformatGlobalString(globalString)
+function BG.GetItemID(itemLink)
+	if not itemLink or type(itemLink) ~= "string" then return end
+	local linkType, id, data = itemLink:find("\124H([^:]+):([^:\124]+)")
+	if linkType == "item" then
+		return tonumber(id)
+	end
+end
+
+function BG.GetPatternFromFormat(globalString)
 	if not globalString then return "" end
-	local returnString = globalString
-	returnString = gsub(returnString, "%(", "%%(")
-	returnString = gsub(returnString, "%)", "%%)")
-	returnString = gsub(returnString, "%.", "%%.")
-	returnString = gsub(returnString, "%%[1-9]?$?s", "(.+)")
-	returnString = gsub(returnString, "%%[1-9]?$?c", "([+-]?)")
-	returnString = gsub(returnString, "%%[1-9]?$?d", "(%%d+)")
+	local returnString = gsub(globalString, "%%[().]", "%%%1")
+	      returnString = gsub(returnString, "%%[1-9]?$?s", "(.+)")
+	      returnString = gsub(returnString, "%%[1-9]?$?c", "([+-]?)")
+	      returnString = gsub(returnString, "%%[1-9]?$?d", "(%%d+)")
 	return returnString
 end
 
@@ -151,10 +159,13 @@ function BG.AdjustLists_4_3(localOnly)
 	end
 	BG_GlobalDB.version = 2
 end
+function BG.AdjustLists_5_4(localOnly)
+	-- body
+end
 
 -- inserts some basic list settings
-function BG.CreateDefaultLists(global)
-	if global then
+function BG.CreateDefaultLists(includeGlobals)
+	if includeGlobals then
 		BG_GlobalDB.include[46069] = 0											-- argentum lance
 		BG_GlobalDB.include["Consumable.Water.Conjured"] = 20
 		BG_GlobalDB.include["Consumable.Food.Edible.Basic.Conjured"] = 0
@@ -177,7 +188,6 @@ function BG.CreateDefaultLists(global)
 	if BG.playerClass == "WARRIOR" or BG.playerClass == "ROGUE" or BG.playerClass == "DEATHKNIGHT" or BG.playerClass == "HUNTER" then
 		BG_LocalDB.autoSellList["Consumable.Water"] = 0
 	end
-	BG_LocalDB.exclude["Misc.Reagent.Class."..gsub(lower(BG.playerClass), "^.", upper)] = 0
 
 	BG.Print(BG.locale.listsUpdatedPleaseCheck)
 

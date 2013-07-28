@@ -7,21 +7,22 @@ local emptyTable = {}
 
 --[[--  TODO --
 	* fix item deletion!!!!
+	* fix custom categories: BEQ, NAME, AC https://github.com/ckaotik/Broker_Garbage/blob/79bcc70f66afe8a5d3517ee833dcf95b62cadb82/Broker_Garbage/item.lua#L95
 	* handle specialty bags
 	* handle outdated equipment
 	* fix statistics/assurance when selling items
 	* check thresholds
 	* display reasons in item/ldb tooltip?
 	* convert user settings, incl. default lists
-	* lootable items, clams?
 	* update Config addon
-	* local X for frequently used funcs
-	* fix updated items itemlevels?
-	* restack?
-	* move code to proper files
+	* fix upgraded items' itemlevels?
+	* update list presets
 	* update profession scanning + check if preset categories even exist
+	* local X for frequently used funcs
+	* move code to proper files
 	* constants clean up
 	* "fix" namespacing (BG. is dumb, use ns.)
+	- restack
 --]]
 
 -- --------------------------------------------------------
@@ -29,15 +30,22 @@ local emptyTable = {}
 -- --------------------------------------------------------
 -- add item or category to config lists. items may only ever live in local xor global list
 -- <list>: "toss" or "keep"
-function ns.Add(list, item, limit, isGlobal)
-	if isGlobal then
-		BG_LocalDB[list][item] = nil
-		BG_GlobalDB[list][item] = limit or 0
+function ns.Add(list, item, value, isGlobal, noUpdate)
+	if list == "price" then
+		BG_GlobalDB[list][item] = value or -1
 	else
-		BG_GlobalDB[list][item] = nil
-		BG_LocalDB[list][item] = limit or 0
+		if isGlobal then
+			BG_LocalDB[list][item] = nil
+			BG_GlobalDB[list][item] = value or 0
+		else
+			BG_GlobalDB[list][item] = nil
+			BG_LocalDB[list][item] = value or 0
+		end
+		ns[list][item] = value or 0
 	end
-	ns[list][item] = limit or 0
+	if not noUpdate then
+		ns.UpdateAll(ns.locations[item])
+	end
 end
 function ns.Remove(list, item)
 	BG_LocalDB[list][item] = nil
@@ -296,7 +304,42 @@ function ns.ScanInventory(forced)
 	-- TODO: this sucks!
 	wipe(ns.list)
 	for location, data in pairs(ns.containers) do
-		if data.item and data.p ~= PRIORITY_IGNORE then
+		if data.item and data.priority ~= PRIORITY_IGNORE then
+			-- only interested in slots with items
+			table.insert(ns.list, location)
+		end
+	end
+	table.sort(ns.list, ns.ItemSort)
+	ns:UpdateLDB()
+end
+
+-- updates all slots associated with item (itemID or category)
+function ns.UpdateAll(item)
+	-- TODO: too much copy-paste
+	wipe(changedLimits)
+	for _, location in pairs(ns.locations[itemID]) do
+		local container, slot = ns.GetBagSlot(location)
+		ns.UpdateBagSlot(container, slot)
+
+		local cacheData = ns.containers[location]
+		local limiters = cacheData.item and cacheData.item.limit
+		if limiters and #limiters > 0 then
+			-- limited items must be fully checked, in more than 1 slot
+			for limiter, _ in pairs(limiters) do
+				table.insert(changedLimits, limiter)
+			end
+		end
+	end
+
+	for _, limiter in pairs(changedLimits) do
+		for _, location in pairs( categoryLocations[limiter] ) do
+			ns.Classify(location)
+		end
+	end
+
+	wipe(ns.list)
+	for location, data in pairs(ns.containers) do
+		if data.item and data.priority ~= PRIORITY_IGNORE then
 			-- only interested in slots with items
 			table.insert(ns.list, location)
 		end
@@ -308,11 +351,10 @@ end
 local QUEST = select(10, GetAuctionItemClasses())
 local Unfit = LibStub("Unfit-1.0")
 
--- returns: priority, sell, reason
+-- returns: priority, autoSell, reason
 function ns.GetItemPriority(itemID, location)
 	local priority, reason
 	local item = ns.item[itemID]
-	-- local itemID = item.id
 
 	-- quest items
 	if item.cl == QUEST then -- FIXME: config
@@ -322,7 +364,7 @@ function ns.GetItemPriority(itemID, location)
 	end
 
 	-- unusable gear
-	if item.slot ~= "" and Unfit:IsItemUnusable(itemID) then -- TODO: and ns.IsItemSoulbound(itemLink) then
+	if item.slot ~= "" and item.bop and Unfit:IsItemUnusable(itemID) then
 		priority = PRIORITY_NEUTRAL -- FIXME: config
 		reason = REASON_UNUSABLE_ITEM
 		return priority, true, reason
