@@ -1,7 +1,7 @@
 local _, ns = ...
 
 -- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS
--- GLOBALS: GetContainerNumSlots, GetContainerItemID, GetContainerItemInfo, GetItemInfo, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetAuctionItemSubClasses
+-- GLOBALS: GetContainerNumSlots, GetContainerItemID, GetContainerItemInfo, GetItemInfo, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetAuctionItemSubClasses, IsEquippedItem, GetContainerItemEquipmentSetInfo
 -- GLOBALS: type, string, table, pairs, ipairs, wipe, print, tonumber, select, math
 
 local Unfit = LibStub("Unfit-1.0")
@@ -212,7 +212,7 @@ function ns.Classify(location)
 	-- TODO: do something with reasons?
 
 	local priority, doSell, priorityReason
-	if cacheData.label == ns.IGNORE then
+	if cacheData.value == 0 then
 		priority = PRIORITY_IGNORE
 		priorityReason = REASON_WORTHLESS
 	else
@@ -274,16 +274,6 @@ function ns.UpdateBagSlot(container, slot, forced)
 					ns.locations[ newItem ] = {}
 				end
 				table.insert(ns.locations[ newItem ], location)
-
-				-- update fields
-				local label, actionValue, actionReason = ns.GetItemAction(location)
-				cacheData.label = label or ns.IGNORE
-				cacheData.value = (actionValue or 0) * (newCount or 0)
-				cacheData.priority = PRIORITY_NEUTRAL
-			else
-				cacheData.label = ns.IGNORE
-				cacheData.value = 0
-				cacheData.priority = PRIORITY_IGNORE
 			end
 		end
 
@@ -292,6 +282,18 @@ function ns.UpdateBagSlot(container, slot, forced)
 		cacheData.item = newItem and ns.item[ newItem ] or nil
 		cacheData.count = newCount or 0
 		cacheData.sell = nil
+
+		if newItem then
+			-- update fields
+			local label, actionValue, actionReason = ns.GetItemAction(location)
+			cacheData.label = label or ns.IGNORE
+			cacheData.value = (actionValue or 0) * (newCount or 0)
+			cacheData.priority = PRIORITY_NEUTRAL
+		else
+			cacheData.label = ns.IGNORE
+			cacheData.value = 0
+			cacheData.priority = PRIORITY_IGNORE
+		end
 
 		return true
 	end
@@ -354,7 +356,9 @@ end
 function ns.GetItemPriority(location)
 	local priority, reason
 	local item = ns.containers[location].item
-	if not item then return PRIORITY_IGNORE, false, REASON_EMPTY_SLOT end
+	if not item then
+		return PRIORITY_IGNORE, false, REASON_EMPTY_SLOT
+	end
 
 	-- check list config by itemID
 	local listed = ns.keep[ item.id ]
@@ -425,8 +429,8 @@ function ns.GetBestPrice(itemID, itemLink)
 	local item = ns.item[itemID]
 	local itemLink = itemLink or select(2, GetItemInfo(itemID))
 
-	local auctionPrice = BG.GetAuctionValue(itemLink) or -1
-	local disenchantPrice = BG.GetDisenchantValue(itemLink) or -1
+	local auctionPrice = ns.GetAuctionValue(itemLink) or -1
+	local disenchantPrice = ns.GetDisenchantValue(itemLink) or -1
 
 	local maxPrice = math.max(disenchantPrice, auctionPrice, item.v or 0, 0)
 	local action = (maxPrice == 0 and BG_GlobalDB.hideZeroValue and ns.IGNORE) or
@@ -441,7 +445,9 @@ end
 -- returns: action, value
 function ns.GetItemAction(location)
 	local item = ns.containers[ location ].item
-	if not item then return ns.IGNORE, 0, REASON_EMPTY_SLOT end
+	if not item then
+		return ns.IGNORE, 0, REASON_EMPTY_SLOT
+	end
 
 	-- custom prices for either this item or one of its categories
 	local userPrice = BG_GlobalDB.prices[item.id]
@@ -457,93 +463,24 @@ function ns.GetItemAction(location)
 		end
 	end
 
-	-- FIXME: config, do we really want to ignore grays? Maybe check transmog sets ...
 	if item.q == 0 then
+		-- FIXME: config, do we really want to ignore grays? Maybe check transmog sets ...
 		return ns.VENDOR, item.v, REASON_GRAY_ITEM
 
 	elseif ns.IsItemSoulbound(location) then
-		-- TODO: outdated gear
-
-		if ns.CanDisenchant(item.id) then
-			local value = ns.GetDisenchantValue()
-		else
-			return ns.VENDOR, item.v, REASON_SOULBOUND
-		end
-	end
-
-	--[[-- TODO: outdated gear + threshold check
-	local function IsItemUsedInEquimentSet(itemID)
-		local setName
-		for setID = 1, GetNumEquipmentSets() do
-			setName = GetEquipmentSetInfo(setID)
-			if BG.Find(GetEquipmentSetItemIDs(setName), itemID) then
-				return true
-			end
-		end
-	end
-
-	local function SortEquipItems(a, b)
-		-- sorts by itemLevel, descending
-		local itemNameA, _, _, itemLevelA = GetItemInfo(a)
-		local itemNameB, _, _, itemLevelB = GetItemInfo(b)
-
-		if itemLevelA ~= itemLevelB then
-			return itemLevelA > itemLevelB
-		elseif IsEquippedItem(itemNameA) ~= IsEquippedItem(itemNameB) then
-			-- equipped item has priority
-			return IsEquippedItem(itemNameA)
-		elseif IsItemUsedInEquimentSet(a) ~= IsItemUsedInEquimentSet(b) then
-			return IsItemUsedInEquimentSet(a)
-		else
-			return itemNameA < itemNameB
-		end
-	end
-
-	if BG_GlobalDB.sellOldGear and item.q  <= BG_GlobalDB.sellNWQualityTreshold and ns.IsOutdatedItem(location) then
-		local saveItem = false
-
-		if BG_GlobalDB.keepHighestItemLevel then
-			local invType = select(9, GetItemInfo(itemLink))
-			local slots = (TopFit and TopFit.GetEquipLocationsByInvType and TopFit:GetEquipLocationsByInvType(invType))
-				or (PawnGetSlotsForItemType and { PawnGetSlotsForItemType(invType) }) or {}
-
-			local keepItems = 1
-			if #slots > 1 then
-				keepItems = 2
-				if slots[1] == 16 and slots[2] == 17 and TopFit.PlayerCanDualWield and not TopFit:PlayerCanDualWield() then
-					keepItems = 1
+		if ns.IsOutdatedItem(location) then
+			if ns.CanDisenchant(item.id) then
+				local value = ns.GetDisenchantValue()
+				if value >= item.v then
+					return ns.DISENCHANT, value, REASON_OUTDATED_ITEM
 				end
-			end
-
-			wipe(itemsForInvType)
-			wipe(itemsForSlot)
-			for _, slot in ipairs(slots) do
-				GetInventoryItemsForSlot(slot, itemsForInvType)
-			end
-			for _, inventoryItemID in pairs(itemsForInvType) do
-				if not BG.Find(itemsForSlot, inventoryItemID) then
-					tinsert(itemsForSlot, inventoryItemID)
-				end
-			end
-			sort(itemsForSlot, SortEquipItems)
-
-			for i = 1, keepItems do
-				if itemsForSlot[i] and itemsForSlot[i] == itemID then
-					saveItem = true
-					break
-				end
+			else
+				return ns.VENDOR, item.v, REASON_OUTDATED_ITEM
 			end
 		end
 
-		if saveItem then
-			BG.Debug("Item is OUTDATED but saved for its item level", itemID, itemLink)
-			classification = BG.EXCLUDE
-			reason = "OUTDATED but highest iLvl"
-		else
-			BG.Debug("Item is OUTDATED", itemID, itemLink)
-			classification = BG.OUTDATED
-		end
-	end --]]
+		return ns.VENDOR, item.v, REASON_SOULBOUND
+	end
 
 	local label, value = ns.GetBestPrice(item.id)
 	return label, value, REASON_HIGHEST_VALUE

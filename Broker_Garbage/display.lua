@@ -210,7 +210,7 @@ function BG.ShowTooltip(self)
 		lineNum = tooltip:AddLine(text, cacheData.count, BG.FormatMoney(cacheData.value), BG_GlobalDB.showSource and source or nil)
 		          tooltip:SetLineScript(lineNum, "OnMouseDown", BG.OnClick, location)
 
-		if BG.CanDisenchantItem(cacheData.item.id) then
+		if BG.CanDisenchant(cacheData.item.id) then
 			tooltip:SetCell(lineNum, numColumns, location, disenchantButtonCell)
 		else
 			tooltip:SetCell(lineNum, numColumns, nil, nil)

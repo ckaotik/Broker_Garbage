@@ -105,18 +105,19 @@ end
 -- --------------------------------------------------------
 --  <stuff> update events
 -- --------------------------------------------------------
-function events:EQUIPMENT_SETS_CHANGED()
-	ns.Scan(function()
-		for location, cacheData in pairs(ns.containers) do
-			if cacheData.item then
-				local invSlot = cacheData.item.slot
-				if invSlot ~= "" and not invSlot:find("BAG") and not invSlot:find("TRINKET") then
-					local container, slot = ns.GetBagSlot(location)
-					ns.UpdateBagSlot(container, slot)
-				end
+local function UpdateEquipment()
+	for location, cacheData in pairs(ns.containers) do
+		if cacheData.item then
+			local invSlot = cacheData.item.slot
+			if invSlot ~= "" and not invSlot:find("BAG") and not invSlot:find("TRINKET") then
+				local container, slot = ns.GetBagSlot(location)
+				ns.UpdateBagSlot(container, slot)
 			end
 		end
-	end)
+	end
+end
+function events:EQUIPMENT_SETS_CHANGED()
+	ns.Scan(UpdateEquipment)
 end
 
 function events:CHAT_MSG_SKILL(event, msg)

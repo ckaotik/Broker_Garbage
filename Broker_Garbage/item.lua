@@ -55,9 +55,9 @@ function BG.GetAuctionValue(itemLink)
 	return auctionPrice
 end
 
-function BG.GetDisenchantValue(itemLink)
-	local canDisenchant = BG.CanDisenchantItem(itemLink)
-	if not canDisenchant then return end
+function BG.GetDisenchantValue(itemLink, noSkillReq)
+	local canDisenchant = BG.CanDisenchant(itemLink)
+	if not canDisenchant and not noSkillReq then return end
 
 	local disenchantPrice, auctionAddon
 	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.disenchant) do
@@ -73,7 +73,7 @@ function BG.GetDisenchantValue(itemLink)
 end
 
 local WEAPON, ARMOR = GetAuctionItemClasses()
-local notDisenchantable = {}
+local notDisenchantable = {} -- TODO: fill with data
 function BG.CanDisenchant(item)
 	local item = BG.item[item]
 	if notDisenchantable[item.id] or (item.cl ~= WEAPON and item.cl ~= ARMOR) or item.q < 2 or item.q > 4 then
@@ -123,6 +123,49 @@ function BG.CanDisenchant(item)
 	end
 end
 
+local itemsForInvType = {}
+local itemsForSlot = {}
+local function SortEquipmentItems(locationA, locationB)
+	-- TODO: get upgraded item level
+	local itemA = BG.containers[ locationA ].item
+	local itemB = BG.containers[ locationB ].item
+	local isAInSet = GetContainerItemEquipmentSetInfo( BG.GetBagSlot(locationA) )
+	local isBInSet = GetContainerItemEquipmentSetInfo( BG.GetBagSlot(locationB) )
+
+	if itemA.l ~= itemB.l then
+		return itemA.l > itemB.l
+	elseif isAInSet ~= isBInSet then
+		return isAInSet
+	else
+		return locationA < locationB
+	end
+end
+local function IsHighestItemLevel(location)
+	local item = BG.containers[ location ].item
+	local slots = (TopFit and TopFit.GetEquipLocationsByInvType and TopFit:GetEquipLocationsByInvType(item.slot)) or
+		(PawnGetSlotsForItemType and { PawnGetSlotsForItemType(item.slot) }) or
+		{}
+
+	wipe(itemsForInvType)
+	for _, slot in ipairs(slots) do
+		GetInventoryItemsForSlot(slot, itemsForInvType)
+	end
+	wipe(itemsForSlot)
+	for location, inventoryItemID in pairs(itemsForInvType) do
+		local isEquipped, _, isInBags, _, slot, container = EquipmentManager_UnpackLocation(location)
+		if isInBags then
+			table.insert(itemsForSlot, BG.GetLocation(container, slot))
+		end
+	end
+	sort(itemsForSlot, SortEquipmentItems)
+
+	for i = 1, #slots do
+		if itemsForSlot[i] and itemsForSlot[i] == location then
+			return true
+		end
+	end
+end
+
 function BG.IsOutdatedItem(location)
 	local item = BG.containers[ location ].item
 	local invSlot = item and item.slot
@@ -131,15 +174,20 @@ function BG.IsOutdatedItem(location)
 		invSlot == "" or invSlot:find("BAG") or invSlot:find("TRINKET") then
 		return
 	else
-		local notOutdated = true
+		local isInteresting = true
 		if TopFit and TopFit.IsInterestingItem then
-			notOutdated = TopFit:IsInterestingItem(item.id)
+			isInteresting = TopFit:IsInterestingItem(item.id)
 		end
 		if PawnIsItemIDAnUpgrade then
 			local upgrade, best, secondBest = PawnIsItemIDAnUpgrade(item.id, true)
-			notOutdated = notOutdated or upgrade or best or secondBest
+			isInteresting = isInteresting or upgrade or best or secondBest
 		end
-		return not notOutdated
+
+		if not isInteresting and BG_GlobalDB.keepHighestItemLevel then
+			isInteresting = IsHighestItemLevel(location, item)
+		end
+
+		return not isInteresting
 	end
 end
 
