@@ -372,16 +372,19 @@ hooksecurefunc(GameTooltip, "SetBagItem", function(tooltip, container, slot)
 	local location = BG.GetLocation(container, slot)
 	local cacheData = BG.containers[location]
 
-	if cacheData.item then
-		-- TODO: reasons, priority
-		tooltip:AddDoubleLine("|cffee6622"..addonName.."|r", string.format("%s%s%s|r",
-			cacheData.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or "",
-			BG.colors[cacheData.label] or '',
-			BG.labels[cacheData.label] or cacheData.label or ''
-		))
+	if BG_GlobalDB.showItemTooltipLabel and cacheData.item then
+		tooltip:AddDoubleLine(
+			string.format("|cffee6622%s|r%s", addonName, BG_LocalDB.debug and " "..location or ""),
+			string.format("%s%s%s|r",
+				cacheData.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or "",
+				BG.colors[cacheData.label] or '',
+				BG.labels[cacheData.label] or cacheData.label or ''
+			)
+		)
 
-		if BG_GlobalDB.debug then
-			tooltip:AddDoubleLine("Location", location)
+		if BG_GlobalDB.showLabelReason then
+			-- TODO: prettify
+			tooltip:AddDoubleLine(cacheData.priority, cacheData.reason)
 		end
 		tooltip:Show()
 	end

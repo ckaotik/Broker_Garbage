@@ -30,17 +30,17 @@ function BG.AutoSell(manualSell)
 	end
 
 	if #sellLog > 0 then
-		AceTimer:ScheduleTimer(BG.ReportSelling, 0.3, 0, 0, #sellLog)
+		AceTimer:ScheduleTimer(BG.ReportSelling, 0.3, 0, #sellLog)
 	elseif BG_GlobalDB.reportNothingToSell then
 		BG.Print(BG.locale.reportNothingToSell)
 	end
 end
 
-function BG.ReportSelling(repairCost, iteration, maxIteration, isGuildRepair)
-	local sellValue, numItems, isLocked = BG.CheckSoldItems()
+function BG.ReportSelling(iteration, maxIteration)
+	local checkedSellValue, numItems, isLocked = BG.CheckSoldItems()
 
 	if isLocked and iteration < (maxIteration or 10)+5 then
-		AceTimer:ScheduleTimer(BG.ReportSelling, 0.3, repairCost, iteration+1, maxIteration, isGuildRepair)
+		AceTimer:ScheduleTimer(BG.ReportSelling, 0.3, iteration+1, maxIteration)
 	elseif sellValue > 0 then
 		BG.Print(string.format(BG.locale.sell, BG.FormatMoney(sellValue)))
 

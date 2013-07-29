@@ -209,7 +209,6 @@ local REASON_SOULBOUND     = 13
 
 function ns.Classify(location)
 	local cacheData = ns.containers[location]
-	-- TODO: do something with reasons?
 
 	local priority, doSell, priorityReason
 	if cacheData.value == 0 then
@@ -220,6 +219,7 @@ function ns.Classify(location)
 	end
 	cacheData.priority = priority or PRIORITY_NEUTRAL
 	cacheData.sell = doSell
+	cacheData.reason = priorityReason
 end
 
 function ns.ItemSort(locationA, locationB)
@@ -413,13 +413,16 @@ function ns.GetItemPriority(location)
 	end
 
 	-- unusable gear
-	if item.slot ~= "" and item.bop and Unfit:IsItemUnusable(item.id) then -- TODO: any other item can be bound, too, e.g. used BoE's
+	if item.slot ~= "" and ns.IsItemSoulbound(location) and Unfit:IsItemUnusable(item.id) then
 		priority = PRIORITY_NEUTRAL -- FIXME: config
 		reason = REASON_UNUSABLE_ITEM
 		return priority, true, reason
 	end
 
-	-- TODO: outdated gear / disenchanting?
+	-- outdated gear
+	if ns.containers[ location ].label == ns.VENDOR and ns.IsOutdatedItem(location) then
+		return priority, true, REASON_OUTDATED_ITEM
+	end
 
 	return PRIORITY_NEUTRAL
 end
@@ -442,12 +445,8 @@ function ns.GetBestPrice(itemID, itemLink)
 	return action, maxPrice
 end
 
--- returns: action, value
 function ns.GetItemAction(location)
 	local item = ns.containers[ location ].item
-	if not item then
-		return ns.IGNORE, 0, REASON_EMPTY_SLOT
-	end
 
 	-- custom prices for either this item or one of its categories
 	local userPrice = BG_GlobalDB.prices[item.id]
@@ -467,19 +466,18 @@ function ns.GetItemAction(location)
 		-- FIXME: config, do we really want to ignore grays? Maybe check transmog sets ...
 		return ns.VENDOR, item.v, REASON_GRAY_ITEM
 
-	elseif ns.IsItemSoulbound(location) then
-		if ns.IsOutdatedItem(location) then
-			if ns.CanDisenchant(item.id) then
-				local value = ns.GetDisenchantValue()
-				if value >= item.v then
-					return ns.DISENCHANT, value, REASON_OUTDATED_ITEM
-				end
-			else
-				return ns.VENDOR, item.v, REASON_OUTDATED_ITEM
-			end
-		end
+	elseif item.v <= 0 then
+		return ns.IGNORE, 0, REASON_WORTHLESS
 
-		return ns.VENDOR, item.v, REASON_SOULBOUND
+	elseif ns.IsItemSoulbound(location) then
+		local _, itemLink = GetItemInfo(item.id)
+		local disenchantPrice = ns.GetDisenchantValue(itemLink) or 0
+
+		if disenchantPrice >= item.v then
+			return ns.DISENCHANT, disenchantPrice, REASON_OUTDATED_ITEM
+		else
+			return ns.VENDOR, item.v, REASON_SOULBOUND
+		end
 	end
 
 	local label, value = ns.GetBestPrice(item.id)

@@ -10,8 +10,11 @@ local GetItemBinding = setmetatable({}, {
 		scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
 		scanTooltip:SetHyperlink("item:"..id)
 		local binding = _G[scanTooltip:GetName().."TextLeft2"]:GetText()
+		if not binding or binding:find(ITEM_LEVEL) then
+			binding = _G[scanTooltip:GetName().."TextLeft3"]:GetText()
+		end
 		scanTooltip:Hide()
-		if binding  then
+		if binding then
 			self[id] = binding
 			return binding
 		end
@@ -32,11 +35,11 @@ function BG.IsItemSoulbound(location)
 			return true
 		else
 			scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-			scanTooltip:SetHyperlink("item:" .. item.id)
-			local binding = _G[scanTooltip:GetName().."TextLeft2"]:GetText()
+			scanTooltip:SetBagItem( BG.GetBagSlot(location) )
+			local binding = _G[scanTooltip:GetName().."TextLeft2"]:GetText() == ITEM_SOULBOUND or
+		                    _G[scanTooltip:GetName().."TextLeft3"]:GetText() == ITEM_SOULBOUND
 			scanTooltip:Hide()
-
-			return (binding and binding == ITEM_SOULBOUND)
+			return binding
 		end
 	end
 end
