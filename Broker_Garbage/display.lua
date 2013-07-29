@@ -1,22 +1,10 @@
-local _, BG = ...
-
--- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, Broker_Garbage_Config, UIParent, LibStub, GameTooltipText, NORMAL_FONT_COLOR
--- GLOBALS: GetItemInfo, GetContainerNumFreeSlots, GetContainerItemInfo, InterfaceOptionsFrame_OpenToCategory, LoadAddOn, IsAltKeyDown, IsShiftKeyDown, IsControlKeyDown, UseContainerItem, CreateFrame, ClearCursor, InCombatLockdown
--- GLOBALS: pairs, select, type
-local format = string.format
-local floor = math.floor
+local addonName, BG, _ = ...
 
 local LibDataBroker = LibStub("LibDataBroker-1.1")
-local LDB = LibDataBroker:NewDataObject("Broker_Garbage", {
-	type	= "data source",
-	icon	= "Interface\\Icons\\achievement_bg_returnxflags_def_wsg",
-	label	= "Garbage",
-	text 	= "",
 
-	OnClick = function(...) BG:OnClick(...) end,
-	OnEnter = function(...) BG:ShowTooltip(...) end,
-	OnLeave = function() end, -- placeholder, required for e.g. ninja panel
-})
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, LibStub, NORMAL_FONT_COLOR
+-- GLOBALS: GetItemInfo, GetContainerNumFreeSlots, GetContainerItemInfo, InterfaceOptionsFrame_OpenToCategory, LoadAddOn, IsAltKeyDown, IsShiftKeyDown, IsControlKeyDown, UseContainerItem, CreateFrame, ClearCursor, InCombatLockdown, GetCoinTextureString
+-- GLOBALS: pairs, select, type, string, math
 
 -- returns a red-to-green color depending on the given percentage
 local function Colorize(minVal, maxVal)
@@ -33,7 +21,7 @@ local function Colorize(minVal, maxVal)
 			r, g, b = 510 - percentage*510, 255, 0
 		end
 	end
-	return format("|cff%02x%02x%02x", r, g, b)
+	return string.format("|cff%02x%02x%02x", r, g, b)
 end
 
 local formatReplaceFuncs = {
@@ -109,7 +97,7 @@ local formatReplacements = setmetatable({
 	end
 })
 
-function BG:UpdateLDB()
+function BG.UpdateLDB()
 	BG.junkValue = 0
 	BG.containerInInventory = false
 	BG.totalBagSpace, BG.totalFreeSlots = 0, 0
@@ -142,6 +130,8 @@ function BG:UpdateLDB()
 	-- once we've computed junkValue etc, update LDB text
 	local cheapestItem = BG.list[1]
 	local cacheData = cheapestItem and BG.containers[cheapestItem]
+
+	local LDB = LibDataBroker:GetDataObjectByName(addonName)
 	if cheapestItem and cacheData.item and cacheData.label ~= BG.IGNORE then
 		-- update LDB text
 		LDB.text = (BG_GlobalDB.LDBformat or ""):gsub("%b[]", formatReplacements)
@@ -179,7 +169,7 @@ function disenchantCellPrototype:SetupCell(tooltip, location, justification, fon
 	return 10, 10
 end
 
-function BG:ShowTooltip(self)
+function BG.ShowTooltip(self)
 	local numColumns, lineNum = (BG_GlobalDB.showSource and 4 or 3) + 1, 0
 	local tooltip = LibQTip:Acquire("Broker_Garbage", numColumns, "LEFT", "RIGHT", "RIGHT", numColumns >= 4 and "CENTER" or nil)
 	BG.tooltip = tooltip
@@ -205,8 +195,8 @@ function BG:ShowTooltip(self)
 	local numLinesShown, location, cacheData
 	for i = 1, BG_GlobalDB.tooltipNumItems do
 		location = BG.list[i]
-		cacheData = BG.containers[location]
-		if not cacheData.item or cacheData.label == BG.IGNORE then
+		cacheData = location and BG.containers[location]
+		if not cacheData or not cacheData.item or cacheData.label == BG.IGNORE then
 			-- not enough items to display
 			numLinesShown = i - 1
 			break
@@ -220,7 +210,7 @@ function BG:ShowTooltip(self)
 		lineNum = tooltip:AddLine(text, cacheData.count, BG.FormatMoney(cacheData.value), BG_GlobalDB.showSource and source or nil)
 		          tooltip:SetLineScript(lineNum, "OnMouseDown", BG.OnClick, location)
 
-		if false and BG.CanDisenchant(link) then -- TODO: fixme
+		if BG.CanDisenchantItem(cacheData.item.id) then
 			tooltip:SetCell(lineNum, numColumns, location, disenchantButtonCell)
 		else
 			tooltip:SetCell(lineNum, numColumns, nil, nil)
@@ -256,7 +246,7 @@ function BG:ShowTooltip(self)
 end
 
 -- OnClick function - works for both, the LDB plugin -and- tooltip lines
-function BG:OnClick(location, btn)
+function BG.OnClick(location, btn)
 	local isLDBclick = type(location) == "table" and true or false
 	location = isLDBclick and BG.list[1] or location
 
@@ -290,11 +280,11 @@ function BG:OnClick(location, btn)
 
 		elseif IsControlKeyDown() then
 			BG.Add("keep", itemID)
-			BG.Print(format(BG.locale.addedTo_exclude, select(2, GetItemInfo(itemID))))
+			BG.Print(string.format(BG.locale.addedTo_exclude, select(2, GetItemInfo(itemID))))
 
 		elseif IsAltKeyDown() then
 			BG.Add("price", itemID)
-			BG.Print(format(BG.locale.addedTo_forceVendorPrice, select(2,GetItemInfo(itemID))))
+			BG.Print(string.format(BG.locale.addedTo_forceVendorPrice, select(2,GetItemInfo(itemID))))
 		end
 		-- FIXME: if config ui is shown, update. delete/sell: statistics, or list options
 	end
@@ -306,9 +296,9 @@ function BG.FormatMoney(amount, displayMode)
 		  amount = amount < 0 and -1*amount or amount
 
 	local copper = amount%100
-	      amount = floor(amount/100)
+	      amount = math.floor(amount/100)
 	local silver = amount%100
-	local gold   = floor(amount/100)
+	local gold   = math.floor(amount/100)
 
 	local formatGold, formatSilver, formatCopper
 	displayMode = displayMode or BG_GlobalDB.showMoney
@@ -359,10 +349,40 @@ function BG.FormatMoney(amount, displayMode)
 	end
 
 	if gold > 0 then
-		return format(signum .. formatGold, gold, silver, copper)
+		return string.format(signum .. formatGold, gold, silver, copper)
 	elseif silver > 0 then
-		return format(signum .. formatSilver, silver, copper)
+		return string.format(signum .. formatSilver, silver, copper)
 	else
-		return format(signum .. formatCopper, copper)
+		return string.format(signum .. formatCopper, copper)
 	end
 end
+
+local LDB = LibDataBroker:NewDataObject(addonName, {
+	type	= "data source",
+	icon	= "Interface\\Icons\\achievement_bg_returnxflags_def_wsg",
+	label	= "Garbage",
+	text 	= "",
+
+	OnClick = BG.OnClick,
+	OnEnter = BG.ShowTooltip,
+	OnLeave = function() end, -- placeholder, required for e.g. ninja panel, but LibQTip takes care of that for us
+})
+
+hooksecurefunc(GameTooltip, "SetBagItem", function(tooltip, container, slot)
+	local location = BG.GetLocation(container, slot)
+	local cacheData = BG.containers[location]
+
+	if cacheData.item then
+		-- TODO: reasons, priority
+		tooltip:AddDoubleLine("|cffee6622"..addonName.."|r", string.format("%s%s%s|r",
+			cacheData.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or "",
+			BG.colors[cacheData.label] or '',
+			BG.labels[cacheData.label] or cacheData.label or ''
+		))
+
+		if BG_GlobalDB.debug then
+			tooltip:AddDoubleLine("Location", location)
+		end
+		tooltip:Show()
+	end
+end)

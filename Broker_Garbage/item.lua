@@ -1,132 +1,146 @@
 local _, BG = ...
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, TopFit, PawnIsItemIDAnUpgrade, _G
--- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink
--- GLOBALS: type, select, string
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, TopFit, PawnIsItemIDAnUpgrade, _G, UIParent
+-- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, GetProfessions, GetProfessionInfo
+-- GLOBALS: type, select, string, ipairs, math
 
--- returns true if the item is equippable. **Trinkets don't count!**
--- not using IsEquippableItem for this, as there bags would be equippable too
-function BG.IsItemEquipment(invType)	-- itemLink/itemID/invType
-	if not invType or invType == "" then
-		return nil
-	elseif (type(invType) == "string" and not invType:find("INVTYPE")) or type(invType) == "number" then
-		invType = select(9, GetItemInfo(invType))
+local scanTooltip = CreateFrame("GameTooltip", "BrokerGarbageScanTooltip", nil, "GameTooltipTemplate")
+local GetItemBinding = setmetatable({}, {
+	__index = function(self, id)
+		scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+		scanTooltip:SetHyperlink("item:"..id)
+		local binding = _G[scanTooltip:GetName().."TextLeft2"]:GetText()
+		scanTooltip:Hide()
+		if binding  then
+			self[id] = binding
+			return binding
+		end
+	end ,
+	__call = function(self, itemID)
+		return self[itemID]
 	end
-	return invType ~= "" and not invType:find("BAG") and not invType:find("TRINKET")
+})
+
+function BG.IsItemBoP(itemID)
+	return (GetItemBinding(itemID) == ITEM_BIND_ON_PICKUP)
 end
 
--- == Misc Item Information ==
-local scanTooltip = _G["BrokerGarbageScanTooltip"]
-function BG.ScanTooltipFor(searchString, item, inBag, scanRightText, filterFunc)
-	-- (String) searchString, (String|Int) item:ItemLink|BagSlotID, [(Boolean|Int) inBag:true|ContainerID], [(Function) filterFunc]
-	if not item then return end
-	scanTooltip:SetOwner(BG, "ANCHOR_NONE")
+function BG.IsItemSoulbound(location)
+	local item = BG.containers[location].item
+	if item then
+		if item.bop then
+			return true
+		else
+			scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+			scanTooltip:SetHyperlink("item:" .. item.id)
+			local binding = _G[scanTooltip:GetName().."TextLeft2"]:GetText()
+			scanTooltip:Hide()
 
-	local slot
-	if inBag and type(item) == "number" then
-		scanTooltip:SetBagItem(inBag, item)
-	elseif inBag then
-		inBag, slot = BG.FindItemInBags(item)
-		scanTooltip:SetBagItem(inBag, slot)
+			return (binding and binding == ITEM_SOULBOUND)
+		end
+	end
+end
+
+function BG.GetAuctionValue(itemLink)
+	local auctionPrice, auctionAddon
+	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.buyout) do
+		auctionAddon = BG.auctionAddons[addonKey]
+		if auctionAddon and auctionAddon.buyout then
+			if auctionAddon.buyoutEnabled and auctionAddon.buyout then
+				auctionPrice = auctionAddon.buyout(itemLink)
+			end
+			if auctionPrice then break end
+		end
+	end
+	return auctionPrice
+end
+
+function BG.GetDisenchantValue(itemLink)
+	local canDisenchant = BG.CanDisenchantItem(itemLink)
+	if not canDisenchant then return end
+
+	local disenchantPrice, auctionAddon
+	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.disenchant) do
+		auctionAddon = BG.auctionAddons[addonKey]
+		if auctionAddon and auctionAddon.disenchant then
+			if canDisenchant and auctionAddon.disenchantEnabled and auctionAddon.disenchant then
+				disenchantPrice = auctionAddon.disenchant(itemLink)
+			end
+			if disenchantPrice then break end
+		end
+	end
+	return disenchantPrice
+end
+
+local WEAPON, ARMOR = GetAuctionItemClasses()
+local notDisenchantable = {}
+function BG.CanDisenchant(item)
+	local item = BG.item[item]
+	if notDisenchantable[item.id] or (item.cl ~= WEAPON and item.cl ~= ARMOR) or item.q < 2 or item.q > 4 then
+		return false
 	else
-		scanTooltip:SetHyperlink(item)
-	end
-	return BG.FindInTooltip(searchString, scanRightText, filterFunc)
-end
+		local prof1, prof2 = GetProfessions()
+		local name, _, mySkill = GetProfessionInfo(prof1)
+		if name ~= BG.enchanting then name, _, mySkill = GetProfessionInfo(prof2) end
+		if name ~= BG.enchanting then return false end
 
-function BG.FindInTooltip(searchString, scanRightText, filterFunc)
-	local numLines = scanTooltip:NumLines()
-	local leftLine, leftLineText, rightLine, rightLineText
-	for i = 1, numLines do
-		leftLine = _G[scanTooltip:GetName().."TextLeft"..i]
-		leftLineText = leftLine and leftLine:GetText()
-		rightLine = _G[scanTooltip:GetName().."TextRight"..i]
-		rightLineText = rightLine and rightLine:GetText()
-
-		if (leftLineText:find(searchString) or (scanRightText and rightLineText:find(searchString)))
-			and (not filterFunc or filterFunc(leftLineText, rightLineText)) then
-			return leftLineText, rightLineText
-		end
-	end
-end
-
--- returns whether an item is BoP/Soulbound
-function BG.IsItemSoulbound(itemLink, bag, slot)	-- itemLink/itemID, bag, slot -OR- itemLink/itemID, checkMine -OR- itemTable
-	if not itemLink then
-		return nil
-	elseif type(itemLink) == "number" then
-		itemLink = select(2, GetItemInfo(itemLink))
-	elseif type(itemLink) == "table" then
-		if itemLink.itemLink then
-			itemLink = itemLink.itemLink
-		elseif itemLink.itemID then
-			itemLink = select(2, GetItemInfo(itemLink.itemID))
-		else
-			return nil
-		end
-	end
-
-	local searchString
-	-- check needed to distinguish between BoP/Soulbound
-	if bag and type(bag) == "boolean" then
-		bag, slot = BG.FindItemInBags(itemLink)
-	end
-
-	if not bag and not slot then	-- check if item is BOP
-		searchString = ITEM_BIND_ON_PICKUP
-	else	-- check if item is soulbound
-		searchString = ITEM_SOULBOUND
-	end
-
-	return BG.ScanTooltipFor(searchString, itemLink or slot, bag)
-end
-
-function BG.IsOutdatedItem(item)	-- itemID/itemLink/itemTable
-	local itemID, itemLink, quality, outdated
-	if not item then return nil end
-
-	if type(item) == "table" then
-		itemID = item.itemID
-		quality = item.quality
-
-		-- get itemlinks that include gems & enchants, if possible
-		if item.bag and item.slot then
-			itemLink = GetContainerItemLink(item.bag, item.slot)
-		else
-			local bag, slot = BG.FindItemInBags(item.itemID)
-			if bag and slot then
-				itemLink = GetContainerItemLink(bag, slot)
+		local requiredSkill
+		-- see http://www.wowpedia.org/Disenchanting#Required_Enchanting_skill
+		if     item.l <=  20 then requiredSkill = 1
+		elseif item.l <   60 then requiredSkill = (math.floor(item.l / 5) - 3) * 25
+		elseif item.q == 2 then -- uncommon
+			if     item.l <=  99 then requiredSkill = 225
+			elseif item.l <= 120 then requiredSkill = 275
+			elseif item.l <= 150 then requiredSkill = 325
+			elseif item.l <= 182 then requiredSkill = 350
+			elseif item.l <= 318 then requiredSkill = 425
+			elseif item.l <= 437 then requiredSkill = 475
 			else
-				_, itemLink = GetItemInfo(item.itemID)
+				-- ??
+			end
+		elseif item.q == 3 then -- rare
+			if     item.l <=  97 then requiredSkill = 225
+			elseif item.l <= 115 then requiredSkill = 275
+			elseif item.l <= 200 then requiredSkill = 325
+			elseif item.l <= 346 then requiredSkill = 450
+			elseif item.l <= 424 then requiredSkill = 525
+			elseif item.l <= 463 then requiredSkill = 550
+			else
+				-- ??
+			end
+		elseif item.q == 4 then -- epic
+			if     item.l <=  95 then requiredSkill = 225
+			elseif item.l <= 164 then requiredSkill = 300
+			elseif item.l <= 277 then requiredSkill = 375
+			elseif item.l <= 416 then requiredSkill = 475
+			elseif item.l <= 575 then requiredSkill = 575
+			else
+				-- ??
 			end
 		end
-	else
-		_, itemLink, quality = GetItemInfo(item)
-		itemID = itemLink and BG.GetItemID(itemLink)
+
+		return (mySkill + BG_GlobalDB.keepItemsForLaterDE) >= (requiredSkill or 1)
 	end
-	if not itemID then return end
-
-	-- check if this is even an item we can make decisions for
-	if not BG_GlobalDB.sellOldGear or quality > BG_GlobalDB.sellNWQualityTreshold then return end
-	if not BG.IsItemEquipment( (select(9, GetItemInfo(itemLink))) ) then return end
-
-	if BG.IsItemSoulbound(itemLink, true) then
-		-- handle different source of outdated data
-		if TopFit and TopFit.IsInterestingItem then
-			outdated = not TopFit:IsInterestingItem(itemLink)
-		end
-		if PawnIsItemIDAnUpgrade then
-			local upgrade, best, secondBest = PawnIsItemIDAnUpgrade(itemID, true)
-			outdated = not (upgrade or best or secondBest)
-		end
-	end
-
-	return outdated
 end
 
-function BG.IsItemBoP(item)
-	local itemData = BG.item[item]
-	return item.bop
+function BG.IsOutdatedItem(location)
+	local item = BG.containers[ location ].item
+	local invSlot = item and item.slot
+
+	if not item or not BG_GlobalDB.sellOldGear or item.q > BG_GlobalDB.sellNWQualityTreshold or
+		invSlot == "" or invSlot:find("BAG") or invSlot:find("TRINKET") then
+		return
+	else
+		local notOutdated = true
+		if TopFit and TopFit.IsInterestingItem then
+			notOutdated = TopFit:IsInterestingItem(item.id)
+		end
+		if PawnIsItemIDAnUpgrade then
+			local upgrade, best, secondBest = PawnIsItemIDAnUpgrade(item.id, true)
+			notOutdated = notOutdated or upgrade or best or secondBest
+		end
+		return not notOutdated
+	end
 end
 
 local function Deleted(item, count)

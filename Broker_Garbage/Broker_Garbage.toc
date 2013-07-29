@@ -22,7 +22,6 @@
 
 ## LoadManagers: AddonLoader, Addon Control Panel
 ## X-LoadOn-Always: delayed
-## X-Version: 2
 
 ## X-Website: http://wow.curseforge.com/addons/broker_garbage/
 ## X-RelSite-WoWI: 15531
@@ -52,7 +51,6 @@ util.lua
 sources.lua
 display.lua
 item.lua
-inventory.lua
 containers.lua
 core.lua
 vendor.lua

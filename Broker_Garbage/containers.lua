@@ -1,26 +1,25 @@
 local _, ns = ...
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, SlashCmdList
--- GLOBALS: GetContainerNumSlots, GetContainerItemID, GetContainerItemInfo
--- GLOBALS: type, string, table, pairs, ipairs, wipe, print, tonumber
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS
+-- GLOBALS: GetContainerNumSlots, GetContainerItemID, GetContainerItemInfo, GetItemInfo, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetAuctionItemSubClasses
+-- GLOBALS: type, string, table, pairs, ipairs, wipe, print, tonumber, select, math
+
+local Unfit = LibStub("Unfit-1.0")
+local QUEST = select(10, GetAuctionItemClasses())
 local emptyTable = {}
 
 --[[--  TODO --
-	* fix item deletion!!!!
-	* fix custom categories: BEQ, NAME, AC https://github.com/ckaotik/Broker_Garbage/blob/79bcc70f66afe8a5d3517ee833dcf95b62cadb82/Broker_Garbage/item.lua#L95
 	* handle specialty bags
 	* handle outdated equipment
-	* fix statistics/assurance when selling items
-	* check thresholds
-	* display reasons in item/ldb tooltip?
-	* convert user settings, incl. default lists
+	* handle thresholds
 	* update Config addon
+	* fix statistics/assurance when selling items
 	* fix upgraded items' itemlevels?
+	* display reasons in item/ldb tooltip?
 	* update list presets
-	* update profession scanning + check if preset categories even exist
-	* local X for frequently used funcs
 	* move code to proper files
 	* constants clean up
+	* local X for frequently used funcs
 	* "fix" namespacing (BG. is dumb, use ns.)
 	- restack
 --]]
@@ -44,7 +43,7 @@ function ns.Add(list, item, value, isGlobal, noUpdate)
 		ns[list][item] = value or 0
 	end
 	if not noUpdate then
-		ns.UpdateAll(ns.locations[item])
+		ns.Scan(ns.UpdateItem, ns.locations[item])
 	end
 end
 function ns.Remove(list, item)
@@ -66,7 +65,7 @@ function ns.ToggleShared(list, item)
 end
 
 -- --------------------------------------------------------
---  Cache LPT requests /spew Broker_Garbage.ITEMCAT("Consumable.Bandage", 72986)
+--  Cache LPT requests
 -- --------------------------------------------------------
 local LPT = LibStub("LibPeriodicTable-3.1", true)
 local function GetExpandedLPTData(destination, source)
@@ -81,7 +80,7 @@ local function GetExpandedLPTData(destination, source)
 	end
 end
 
--- smart, self-caching table <3
+local tmpTable = {}
 local isItemInCategory = setmetatable({}, {
 	__index = function(self, category)
 		self[category] = {}
@@ -89,7 +88,27 @@ local isItemInCategory = setmetatable({}, {
 		return self[category]
 	end,
 	__call = function(self, itemID, category)
-		return self[category][itemID]
+		local categoryType, categoryValue = category:match("^(.-)_(.+)")
+		if not categoryType then
+			-- plain LPT request
+			return self[category][itemID]
+		elseif categoryType == "BEQ" then
+			-- equipment set
+			categoryValue = tonumber(categoryValue)
+			if categoryValue and categoryValue <= GetNumEquipmentSets() then
+				wipe(tmpTable)
+				category = GetEquipmentSetInfo(categoryValue, tmpTable)
+			end
+			return ns.Find(GetEquipmentSetItemIDs(category), itemID)
+		elseif categoryType == "AC" then
+			-- armor class
+			categoryValue = tonumber(categoryValue)
+			return ( select(7, GetItemInfo(itemID)) ) == ( select(categoryValue, GetAuctionItemSubClasses(2)) )
+		elseif categoryType == "NAME" then
+			-- item name filter
+			categoryValue = categoryValue:gsub("%*", ".-")
+			return ( GetItemInfo(itemID) or "" ):match("^"..categoryValue.."$")
+		end
 	end
 })
 ns.isItemInCategory = isItemInCategory
@@ -97,21 +116,15 @@ ns.isItemInCategory = isItemInCategory
 -- --------------------------------------------------------
 --  Container Utils
 -- --------------------------------------------------------
-local function Find(where, what)
-	for k, v in pairs(where) do
-		if v == what then
-			return k
-		end
-	end
-end
-
 function ns.LocationSort(locationA, locationB)
 	local itemA = ns.containers[locationA]
 	local itemB = ns.containers[locationB]
-	if itemA.count ~= itemB.count then
+	if itemA.value ~= itemB.value then
+		return itemA.value > itemB.value
+	elseif itemA.count ~= itemB.count then
 		return itemA.count > itemB.count
 	else
-		return itemA.l < itemB.l
+		return locationA < locationB
 	end
 end
 local categoryLocations = setmetatable({}, {
@@ -119,8 +132,10 @@ local categoryLocations = setmetatable({}, {
 		-- build locations info
 		local myLocations = {}
 		for itemID, locations in pairs(ns.locations) do
-			for _, location in pairs(locations) do
-				table.insert(myLocations, location)
+			if isItemInCategory(itemID, category) then
+				for _, location in pairs(locations) do
+					table.insert(myLocations, location)
+				end
 			end
 		end
 		table.sort(myLocations, ns.LocationSort)
@@ -145,7 +160,7 @@ function ns.SlotIsOverLimit(location, limiter, limit)
 		-- only needs to be sorted once on creation
 		locations = categoryLocations[limiter]
 	else
-		locations = ns.itemLocations[limiter]
+		locations = ns.locations[limiter]
 		table.sort(locations, ns.LocationSort) -- TODO: we can do better than sort every time!
 	end
 
@@ -154,7 +169,7 @@ function ns.SlotIsOverLimit(location, limiter, limit)
 		if locations[index] == location or index > #locations then
 			return false
 		end
-		count = count + ns.containers[ locations[index] ][2]
+		count = count + ns.containers[ locations[index] ].count
 		index = index + 1
 	end
 	return true
@@ -172,44 +187,39 @@ function ns.GetLocation(container, slot)
 	return tonumber(string.format("%d.%.2d", container, slot) or '')
 end
 
-local PRIORITY_NEGATIVE = -1
-local PRIORITY_NEUTRAL = 0
-local PRIORITY_POSITIVE = 1
-local PRIORITY_IGNORE = 2
+local PRIORITY_NEGATIVE    = -1
+local PRIORITY_NEUTRAL     = 0
+local PRIORITY_POSITIVE    = 1
+local PRIORITY_IGNORE      = math.huge
 
-local REASON_KEEP_ID = 0
-local REASON_TOSS_ID = 1
-local REASON_KEEP_CAT = 2
-local REASON_TOSS_CAT = 3
-local REASON_QUEST_ITEM = 4
+local REASON_KEEP_ID       = 0
+local REASON_TOSS_ID       = 1
+local REASON_KEEP_CAT      = 2
+local REASON_TOSS_CAT      = 3
+local REASON_QUEST_ITEM    = 4
 local REASON_UNUSABLE_ITEM = 5
 local REASON_OUTDATED_ITEM = 6
-local REASON_GRAY_ITEM = 7
-local REASON_CUSTOM_PRICE = 8
+local REASON_GRAY_ITEM     = 7
+local REASON_PRICE_ITEM    = 8
+local REASON_PRICE_CAT     = 9
+local REASON_WORTHLESS     = 10
+local REASON_EMPTY_SLOT    = 11
+local REASON_HIGHEST_VALUE = 12
+local REASON_SOULBOUND     = 13
 
 function ns.Classify(location)
 	local cacheData = ns.containers[location]
-	local itemID = cacheData.item and cacheData.item.id
+	-- TODO: do something with reasons?
 
-	if itemID then
-		local priority, doSell, priorityReason = ns.GetItemPriority(itemID, location)
-		local label, actionValue, actionReason = ns.GetItemAction(itemID, location)
-
-		if not actionValue or (actionValue == 0 and BG_GlobalDB.hideZeroValue) then
-			priority = PRIORITY_IGNORE
-		end
-
-		-- TODO: do something with reasons?
-		cacheData.priority = priority or PRIORITY_IGNORE
-		cacheData.label = label or ns.IGNORE
-		cacheData.value = (actionValue * cacheData.count) or math.huge
-		cacheData.sell = doSell
+	local priority, doSell, priorityReason
+	if cacheData.label == ns.IGNORE then
+		priority = PRIORITY_IGNORE
+		priorityReason = REASON_WORTHLESS
 	else
-		cacheData.priority = PRIORITY_IGNORE
-		cacheData.label = ns.IGNORE
-		cacheData.value = nil
-		cacheData.sell = nil
+		priority, doSell, priorityReason = ns.GetItemPriority(location)
 	end
+	cacheData.priority = priority or PRIORITY_NEUTRAL
+	cacheData.sell = doSell
 end
 
 function ns.ItemSort(locationA, locationB)
@@ -252,46 +262,74 @@ function ns.UpdateBagSlot(container, slot, forced)
 			table.insert(changedLocations, location)
 		end
 
-		-- get rid of old priority data etc
-		wipe(cacheData)
 		if itemChanged then
 			if cacheData.item then
 				-- remove old item from locations
 				local itemLocations = ns.locations[ cacheData.item.id ]
-				table.remove(itemLocations, Find(itemLocations, location))
+				table.remove(itemLocations, ns.Find(itemLocations, location))
 			end
-			-- add new item to locations
-			table.insert(ns.locations, location)
+			if newItem then
+				-- add new item to locations
+				if not ns.locations[ newItem ] then
+					ns.locations[ newItem ] = {}
+				end
+				table.insert(ns.locations[ newItem ], location)
+
+				-- update fields
+				local label, actionValue, actionReason = ns.GetItemAction(location)
+				cacheData.label = label or ns.IGNORE
+				cacheData.value = (actionValue or 0) * (newCount or 0)
+				cacheData.priority = PRIORITY_NEUTRAL
+			else
+				cacheData.label = ns.IGNORE
+				cacheData.value = 0
+				cacheData.priority = PRIORITY_IGNORE
+			end
 		end
 
-		-- fill in new data
-		cacheData.item = newItem and ns.item[ newItem ] or nil
-		cacheData.count = newCount
+		-- make sure to set all possible fields, otherwise you risk corrupt data
 		cacheData.loc = location
+		cacheData.item = newItem and ns.item[ newItem ] or nil
+		cacheData.count = newCount or 0
+		cacheData.sell = nil
 
 		return true
 	end
 end
 
-function ns.Scan(container, forced)
-	-- updates item/location caches, categories are built on the fly when the need arrives, not here
-	for slot = 1, GetContainerNumSlots(container) or 0 do
-		ns.UpdateBagSlot(container, slot, forced)
-	end
-end
-
-function ns.ScanInventory(forced)
-	wipe(changedLocations)
-	wipe(changedLimits)
+function ns.Update(forced)
 	-- update bag caches
 	for container = 0, NUM_BAG_SLOTS do
 		if forced or ns.updateAvailable[container] then
-			ns.Scan(container, forced)
-			ns.updateAvailable[container] = false
+			for slot = 1, GetContainerNumSlots(container) or 0 do
+				ns.UpdateBagSlot(container, slot, forced)
+			end
 		end
+		ns.updateAvailable[container] = false
+	end
+end
+
+-- updates all slots associated with item (itemID or category)
+function ns.UpdateItem(item)
+	for _, location in pairs(ns.locations[item]) do
+		local container, slot = ns.GetBagSlot(location)
+		-- saves changed items to changedLocations list
+		ns.UpdateBagSlot(container, slot, true)
+	end
+end
+
+function ns.Scan(scanFunc, ...)
+	wipe(categoryLocations)
+	wipe(changedLocations)
+	wipe(changedLimits)
+
+	-- do whatever
+	if type(scanFunc) == "function" then
+		scanFunc(...)
+	else
+		ns.Update(scanFunc, ...)
 	end
 
-	-- update all items that were affected
 	for _, location in pairs(changedLocations) do
 		ns.Classify(location)
 	end
@@ -301,7 +339,6 @@ function ns.ScanInventory(forced)
 		end
 	end
 
-	-- TODO: this sucks!
 	wipe(ns.list)
 	for location, data in pairs(ns.containers) do
 		if data.item and data.priority ~= PRIORITY_IGNORE then
@@ -310,70 +347,19 @@ function ns.ScanInventory(forced)
 		end
 	end
 	table.sort(ns.list, ns.ItemSort)
-	ns:UpdateLDB()
+	ns.UpdateLDB()
 end
-
--- updates all slots associated with item (itemID or category)
-function ns.UpdateAll(item)
-	-- TODO: too much copy-paste
-	wipe(changedLimits)
-	for _, location in pairs(ns.locations[itemID]) do
-		local container, slot = ns.GetBagSlot(location)
-		ns.UpdateBagSlot(container, slot)
-
-		local cacheData = ns.containers[location]
-		local limiters = cacheData.item and cacheData.item.limit
-		if limiters and #limiters > 0 then
-			-- limited items must be fully checked, in more than 1 slot
-			for limiter, _ in pairs(limiters) do
-				table.insert(changedLimits, limiter)
-			end
-		end
-	end
-
-	for _, limiter in pairs(changedLimits) do
-		for _, location in pairs( categoryLocations[limiter] ) do
-			ns.Classify(location)
-		end
-	end
-
-	wipe(ns.list)
-	for location, data in pairs(ns.containers) do
-		if data.item and data.priority ~= PRIORITY_IGNORE then
-			-- only interested in slots with items
-			table.insert(ns.list, location)
-		end
-	end
-	table.sort(ns.list, ns.ItemSort)
-	ns:UpdateLDB()
-end
-
-local QUEST = select(10, GetAuctionItemClasses())
-local Unfit = LibStub("Unfit-1.0")
 
 -- returns: priority, autoSell, reason
-function ns.GetItemPriority(itemID, location)
+function ns.GetItemPriority(location)
 	local priority, reason
-	local item = ns.item[itemID]
-
-	-- quest items
-	if item.cl == QUEST then -- FIXME: config
-		priority = PRIORITY_POSITIVE
-		reason = REASON_QUEST_ITEM
-		return priority, false, reason
-	end
-
-	-- unusable gear
-	if item.slot ~= "" and item.bop and Unfit:IsItemUnusable(itemID) then
-		priority = PRIORITY_NEUTRAL -- FIXME: config
-		reason = REASON_UNUSABLE_ITEM
-		return priority, true, reason
-	end
+	local item = ns.containers[location].item
+	if not item then return PRIORITY_IGNORE, false, REASON_EMPTY_SLOT end
 
 	-- check list config by itemID
-	local listed = ns.keep[itemID]
+	local listed = ns.keep[ item.id ]
 	if listed then
-		local overLimit = listed > 0 and ns.SlotIsOverLimit(location, itemID, listed)
+		local overLimit = listed > 0 and ns.SlotIsOverLimit(location, item.id, listed)
 		if not overLimit then
 			priority = PRIORITY_POSITIVE
 			reason = REASON_KEEP_ID
@@ -381,7 +367,7 @@ function ns.GetItemPriority(itemID, location)
 		end
 	end
 
-	listed = ns.toss[itemID]
+	listed = ns.toss[ item.id ]
 	if listed then
 		priority = PRIORITY_NEGATIVE
 		reason = REASON_TOSS_ID
@@ -390,7 +376,7 @@ function ns.GetItemPriority(itemID, location)
 
 	-- check list config by category
 	for category, value in pairs(ns.keep) do
-		if type(category) == "string" and isItemInCategory(itemID, category) then
+		if type(category) == "string" and isItemInCategory(item.id, category) then
 			local overLimit = value > 0 and ns.SlotIsOverLimit(location, category, value)
 			if not overLimit then
 				priority = PRIORITY_POSITIVE
@@ -401,80 +387,119 @@ function ns.GetItemPriority(itemID, location)
 	end
 
 	for category, value in pairs(ns.toss) do
-		if type(category) == "string" and isItemInCategory(itemID, category) then
+		if type(category) == "string" and isItemInCategory(item.id, category) then
 			priority = PRIORITY_NEGATIVE
 			reason = REASON_TOSS_CAT
 			return priority, value == 1, reason
 		end
 	end
 
+	-- quest items
+	if item.cl == QUEST then -- FIXME: config
+		priority = PRIORITY_POSITIVE
+		reason = REASON_QUEST_ITEM
+		return priority, false, reason
+	end
+
+	-- gray quality items
 	if item.q == 0 then
-		priority = PRIORITY_NEGATIVE
+		priority = PRIORITY_NEUTRAL
 		reason = REASON_GRAY_ITEM
 		return priority, true, reason
 	end
 
+	-- unusable gear
+	if item.slot ~= "" and item.bop and Unfit:IsItemUnusable(item.id) then -- TODO: any other item can be bound, too, e.g. used BoE's
+		priority = PRIORITY_NEUTRAL -- FIXME: config
+		reason = REASON_UNUSABLE_ITEM
+		return priority, true, reason
+	end
+
+	-- TODO: outdated gear / disenchanting?
+
 	return PRIORITY_NEUTRAL
 end
 
+-- TODO: maybe store to ns.item, but needs update when DE skill changes or auctions scanned
 function ns.GetBestPrice(itemID, itemLink)
-	local auctionAddon
 	local item = ns.item[itemID]
+	local itemLink = itemLink or select(2, GetItemInfo(itemID))
 
-	-- check auction data
-	local auctionPrice
-	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.buyout) do
-		auctionAddon = ns.auctionAddons[addonKey]
-		if auctionAddon and auctionAddon.buyout then
-			if auctionAddon.buyoutEnabled and auctionAddon.buyout then
-				auctionPrice = auctionAddon.buyout(itemLink)
-			end
-			if auctionPrice then break end
-		end
-	end
-	auctionPrice = auctionPrice or -1
+	local auctionPrice = BG.GetAuctionValue(itemLink) or -1
+	local disenchantPrice = BG.GetDisenchantValue(itemLink) or -1
 
-	local canDisenchant, missingSkillPoints = false, math.huge -- ns.CanDisenchant(itemLink) -- TODO
-	canDisenchant = canDisenchant or (missingSkillPoints and missingSkillPoints <= BG_GlobalDB.keepItemsForLaterDE)
-	-- check disenchant data
-	local disenchantPrice
-	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.disenchant) do
-		auctionAddon = ns.auctionAddons[addonKey]
-		if auctionAddon and auctionAddon.disenchant then
-			if canDisenchant and auctionAddon.disenchantEnabled and auctionAddon.disenchant then
-				disenchantPrice = auctionAddon.disenchant(itemLink)
-			end
-			if disenchantPrice then break end
-		end
-	end
-	disenchantPrice = disenchantPrice or -1
-
-	local maxPrice = math.max(disenchantPrice, auctionPrice, item.v or 0)
-	local action = (maxPrice == 0 and BG_GlobalDB.hideZeroValue) and ns.IGNORE or
+	local maxPrice = math.max(disenchantPrice, auctionPrice, item.v or 0, 0)
+	local action = (maxPrice == 0 and BG_GlobalDB.hideZeroValue and ns.IGNORE) or
 	               (maxPrice == disenchantPrice and ns.DISENCHANT) or
 	               (maxPrice == item.v and ns.VENDOR) or
 	               (maxPrice == auctionPrice and ns.AUCTION) or
 	               ns.IGNORE
 
-	-- TODO: maybe store to ns.item, but needs update when DE skill changes or auctions scanned
 	return action, maxPrice
 end
 
 -- returns: action, value
-function ns.GetItemAction(itemID, location)
-	local item = ns.item[itemID]
+function ns.GetItemAction(location)
+	local item = ns.containers[ location ].item
+	if not item then return ns.IGNORE, 0, REASON_EMPTY_SLOT end
+
+	-- custom prices for either this item or one of its categories
+	local userPrice = BG_GlobalDB.prices[item.id]
+	if userPrice then
+		local value = userPrice == -1 and item.v or userPrice
+		return ns.VENDOR, value, REASON_PRICE_ITEM
+	end
+	for limiter, limit in pairs(item.limit) do
+		userPrice = BG_GlobalDB.prices[limiter]
+		if userPrice then
+			local value = userPrice == -1 and item.v or userPrice
+			return ns.VENDOR, value, REASON_PRICE_CAT
+		end
+	end
 
 	-- FIXME: config, do we really want to ignore grays? Maybe check transmog sets ...
-	--if item.q == 0 then -- or (ns.IsItemSoulbound(itemLink) and not IsUsableSpell(ns.enchanting)) then
-	--	return ns.VENDOR, item.v, REASON_GRAY_ITEM
-	--end
+	if item.q == 0 then
+		return ns.VENDOR, item.v, REASON_GRAY_ITEM
 
-	if BG_GlobalDB.forceVendorPrice[itemID] then
-		return ns.VENDOR, BG_GlobalDB.forceVendorPrice[itemID], REASON_CUSTOM_PRICE
+	elseif ns.IsItemSoulbound(location) then
+		-- TODO: outdated gear
+
+		if ns.CanDisenchant(item.id) then
+			local value = ns.GetDisenchantValue()
+		else
+			return ns.VENDOR, item.v, REASON_SOULBOUND
+		end
 	end
 
 	--[[-- TODO: outdated gear + threshold check
-	if BG_GlobalDB.sellOldGear and item.q  <= BG_GlobalDB.sellNWQualityTreshold and ns.IsOutdatedItem(itemLink) then
+	local function IsItemUsedInEquimentSet(itemID)
+		local setName
+		for setID = 1, GetNumEquipmentSets() do
+			setName = GetEquipmentSetInfo(setID)
+			if BG.Find(GetEquipmentSetItemIDs(setName), itemID) then
+				return true
+			end
+		end
+	end
+
+	local function SortEquipItems(a, b)
+		-- sorts by itemLevel, descending
+		local itemNameA, _, _, itemLevelA = GetItemInfo(a)
+		local itemNameB, _, _, itemLevelB = GetItemInfo(b)
+
+		if itemLevelA ~= itemLevelB then
+			return itemLevelA > itemLevelB
+		elseif IsEquippedItem(itemNameA) ~= IsEquippedItem(itemNameB) then
+			-- equipped item has priority
+			return IsEquippedItem(itemNameA)
+		elseif IsItemUsedInEquimentSet(a) ~= IsItemUsedInEquimentSet(b) then
+			return IsItemUsedInEquimentSet(a)
+		else
+			return itemNameA < itemNameB
+		end
+	end
+
+	if BG_GlobalDB.sellOldGear and item.q  <= BG_GlobalDB.sellNWQualityTreshold and ns.IsOutdatedItem(location) then
 		local saveItem = false
 
 		if BG_GlobalDB.keepHighestItemLevel then
@@ -520,6 +545,6 @@ function ns.GetItemAction(itemID, location)
 		end
 	end --]]
 
-	local _, itemLink = GetItemInfo(item.id) -- TODO
-	return ns.GetBestPrice(itemID, itemLink)
+	local label, value = ns.GetBestPrice(item.id)
+	return label, value, REASON_HIGHEST_VALUE
 end

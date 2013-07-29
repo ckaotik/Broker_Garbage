@@ -71,6 +71,8 @@ end
 function BG.InitPriceHandlers()
 	local disenchantHandler
 
+	BG.AddPriceHandler('Default', GetAuctionBuyout, GetDisenchantValue)
+
 	if IsAddOnLoaded('Auctionator') then
 		BG.AddPriceHandler('Auctionator', Atr_GetAuctionBuyout, Atr_GetDisenchantValue)
 	end
@@ -123,8 +125,6 @@ function BG.InitPriceHandlers()
 			return Auctional:GetDisenchantValue(itemLink)
 		end)
 	end
-
-	BG.AddPriceHandler('Default', GetAuctionBuyout, GetDisenchantValue)
 
 	-- remove stray entries so we can reorder without troubles
 	local addons, addonKey = BG_GlobalDB.auctionAddonOrder.buyout

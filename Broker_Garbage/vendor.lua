@@ -37,7 +37,6 @@ function BG.AutoSell(manualSell)
 end
 
 function BG.ReportSelling(repairCost, iteration, maxIteration, isGuildRepair)
-	BG.Debug("ReportSelling", repairCost, iteration)
 	local sellValue, numItems, isLocked = BG.CheckSoldItems()
 
 	if isLocked and iteration < (maxIteration or 10)+5 then

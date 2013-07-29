@@ -152,7 +152,7 @@ if IsAddOnLoaded("Bagnon") then
 	hooksecurefunc(Bagnon.ItemSlot, "Update", function(self, ...)
 		UpdateJunkIcon(self, self:GetBag(), self:GetID())
 	end)
-	hooksecurefunc(BG, "ScanInventory", function()
+	hooksecurefunc(BG, "Scan", function()
 		Bagnon:UpdateFrames()
 	end)
 end
@@ -166,7 +166,7 @@ if IsAddOnLoaded("ElvUI") then
 			UpdateJunkIcon(button, bagID, slotID)
 
 			if not ElvUISetup then
-				hooksecurefunc(BG, "ScanInventory", function()
+				hooksecurefunc(BG, "Scan", function()
 					containerFrame:UpdateAllSlots()
 				end)
 				ElvUISetup = true

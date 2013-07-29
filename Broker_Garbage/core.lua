@@ -1,31 +1,18 @@
 local addonName, ns, _ = ...
-local BG = ns -- FIXME
 
 -- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S, INVSLOT_LAST_EQUIPPED
 -- GLOBALS: ContainerIDToInventoryID, InCombatLockdown, GetItemInfo
--- GLOBALS: string, table, tonumber, setmetatable
-local pairs = pairs
-local format = string.format
-
--- --------------------------------------------------------
---  Libraries & setting up the LDB
--- --------------------------------------------------------
-BG.PT = LibStub("LibPeriodicTable-3.1", true)	-- don't scream if LPT isn't present
-BG.callbacks = BG.callbacks or LibStub("CallbackHandler-1.0"):New(BG)
-
--- internal variables
-BG.version = tonumber(GetAddOnMetadata(addonName, "X-Version"))
+-- GLOBALS: string, table, tonumber, setmetatable, math, pairs
 
 -- --------------------------------------------------------
 --  Event Handler
 -- --------------------------------------------------------
-local events = CreateFrame("frame")
+local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
 events:SetScript("OnEvent", function(self, event, ...)
    return self[event] and self[event](self, event, ...)
 end)
 ns.events = events
-ns.frame = events -- FIXME
 
 -- --------------------------------------------------------
 --  Initialize
@@ -33,54 +20,26 @@ ns.frame = events -- FIXME
 local function Merge(tableA, tableB)
 	local useTable = {}
 	for k, v in pairs(tableA) do
-		useTable[k] = v == true and 0 or v
+		useTable[k] = math.max(v, useTable[k] or 0)
 	end
 	for k, v in pairs(tableB) do
-		useTable[k] = true and 0 or v
+		useTable[k] = math.max(v, useTable[k] or 0)
 	end
 	return useTable
 end
 
-local scanTooltip = CreateFrame("GameTooltip", "BrokerGarbageScanTooltip", UIParent, "GameTooltipTemplate")
-local GetItemBinding = setmetatable({}, {
-	__index = function(self, id)
-		scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-		scanTooltip:SetHyperlink("item:"..id)
-		local binding = BrokerGarbageScanTooltipTextLeft2:GetText()
-		scanTooltip:Hide()
-		if binding  then
-			self[id] = binding
-			return binding
-		end
-	end ,
-	__call = function(self, itemID)
-		return self[itemID]
-	end
-})
-
 function events:ADDON_LOADED(event, addon)
 	if addon ~= addonName then return end
-	BG.CheckSettings()
+	ns.CheckSettings()
 
 	-- beware of <new!> things!
-	-- /run for i,v in pairs(BG_GlobalDB.exclude) do BG_GlobalDB.keep[i] = v end
-	-- /run for i,v in pairs(BG_LocalDB.exclude) do BG_LocalDB.keep[i] = v end
-	-- TODO: convert non-keep limits to keep limits + non-keep entry
-	-- TODO: convert sell-list entries to toss w/ value = 1
-	-- TODO: when converting, check if categories exist
-	-- /run for i,v in pairs(BG_GlobalDB.include) do BG_GlobalDB.toss[i] = v end
-	-- /run for i,v in pairs(BG_LocalDB.include) do BG_LocalDB.toss[i] = v end
-	BG_GlobalDB.keep = BG_GlobalDB.keep or {}
-	BG_GlobalDB.toss = BG_GlobalDB.toss or {}
-	BG_LocalDB.keep  = BG_LocalDB.keep  or {}
-	BG_LocalDB.toss  = BG_LocalDB.toss  or {}
 	ns.keep = Merge(BG_GlobalDB.keep, BG_LocalDB.keep)
 	ns.toss = Merge(BG_GlobalDB.toss, BG_LocalDB.toss)
 
 	ns.list = {} 								-- { <location>, <location>, ...} to reference ns.container[<location]
 	ns.locations = {} 							-- [<itemID|category>] = { <location>, ... }
 	-- contains dynamic data
-	ns.containers = setmetatable({}, { 			-- [<location>] = { ns.item[itemID], <count ~= 1> } --]]
+	ns.containers = setmetatable({}, {
 		__index = function(self, location)
 			self[location] = {
 				-- loc = location,
@@ -108,32 +67,31 @@ function events:ADDON_LOADED(event, addon)
 				return self[itemID]
 			end
 
-			local limiters = {}
 			self[itemID] = {
 				id     = itemID,
 				slot   = equipSlot,
-				limit  = limiters, 		-- will grow with more limits, but who cares ;)
+				limit  = {}, 				-- list of categories that contain this item
 				cl     = itemClass,
 				l      = iLevel, 			-- TODO: fix upgraded items
 				q      = quality,
 				v      = vendorPrice,
-				bop    = GetItemBinding(itemID) == ITEM_BIND_ON_PICKUP,
+				bop    = ns.IsItemBoP(itemID),
 			}
 			return self[itemID]
 		end
 	})
 	-- kay, stop <new!> now
 
-	BG.totalBagSpace = 0
-	BG.totalFreeSlots = 0
+	ns.totalBagSpace = 0
+	ns.totalFreeSlots = 0
 
-	BG.InitArkInvFilter()
-	BG.InitPriceHandlers()
+	ns.InitArkInvFilter()
+	ns.InitPriceHandlers()
 
 	-- initial scan
-	BG.updateAvailable = {}
+	ns.updateAvailable = {}
 	for i = 0, NUM_BAG_SLOTS do
-		BG.updateAvailable[i] = true
+		ns.updateAvailable[i] = true
 	end
 	self:BAG_UPDATE_DELAYED()
 
@@ -147,30 +105,30 @@ end
 -- --------------------------------------------------------
 --  <stuff> update events
 -- --------------------------------------------------------
-function events:AUCTION_HOUSE_CLOSED()
-	-- Update cached auction values in case anything changed
-	BG.ScanInventory(true)
-end
-
 function events:EQUIPMENT_SETS_CHANGED()
-	BG.RescanEquipmentInBags()
+	ns.Scan(function()
+		for location, cacheData in pairs(ns.containers) do
+			if cacheData.item then
+				local invSlot = cacheData.item.slot
+				if invSlot ~= "" and not invSlot:find("BAG") and not invSlot:find("TRINKET") then
+					local container, slot = ns.GetBagSlot(location)
+					ns.UpdateBagSlot(container, slot)
+				end
+			end
+		end
+	end)
 end
 
 function events:CHAT_MSG_SKILL(event, msg)
-	local skillName = string.match(msg, BG.GetPatternFromFormat(ERR_SKILL_GAINED_S))
+	-- TODO: detect newly learned skills
+	--[[local skillName = string.match(msg, ns.GetPatternFromFormat(ERR_SKILL_GAINED_S))
 	if skillName then
-		skillName = BG.GetTradeSkill(skillName)
+		skillName = ns.GetTradeSkill(skillName)
 		if skillName then
-			BG.ModifyList_ExcludeSkill(skillName)
-			BG.Print(BG.locale.listsUpdatedPleaseCheck)
+			ns.ModifyList_ExcludeSkill(skillName)
+			ns.Print(ns.locale.listsUpdatedPleaseCheck)
 		end
-	end
-end
-
-function events:GET_ITEM_INFO_RECEIVED()
-	BG.UpdateCache(BG.requestedItemID)
-	BG.requestedItemID = nil
-	self:UnregisterEvent("GET_ITEM_INFO_RECEIVED")
+	end --]]
 end
 
 -- --------------------------------------------------------
@@ -181,18 +139,18 @@ function events:BAG_UPDATE(event, bagID)
 	if bagID < 0 or bagID > NUM_BAG_SLOTS then
 		return
 	end
-	BG.updateAvailable[bagID] = true
+	ns.updateAvailable[bagID] = true
 end
 
 function events:BAG_UPDATE_DELAYED()
 	if ns.locked then return end
 	if InCombatLockdown() then
-		-- postpone ...
+		-- postpone
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 		return
 	end
 
-	ns.ScanInventory()
+	ns.Scan()
 end
 
 function events:PLAYER_REGEN_ENABLED()

@@ -111,7 +111,8 @@ local function Options_Statistics(pluginID)
 	localStatistics:SetNonSpaceWrap(true)
 	localStatistics:SetJustifyH("LEFT")
 	localStatistics:SetJustifyV("TOP")
-	localStatistics:SetText(format(BGC.locale.LocalStatisticsHeading, "|c"..RAID_CLASS_COLORS[Broker_Garbage:GetVariable("playerClass")].colorStr .. UnitName("player") .. "|r"))
+	local _, playerClass = UnitClass("player")
+	localStatistics:SetText(format(BGC.locale.LocalStatisticsHeading, "|c"..RAID_CLASS_COLORS[playerClass].colorStr .. UnitName("player") .. "|r"))
 
 	var1 = Broker_Garbage:GetOption("moneyEarned", false)
 	local localEarned, localEarnedText = AddStatistic("moneyEarned", BGC.locale.StatisticsLocalAmountEarned,

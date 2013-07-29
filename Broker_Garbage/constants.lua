@@ -1,12 +1,14 @@
 local _, BG = ...
 
+BG.enchanting = GetSpellInfo(7411)
+BG.disenchant = GetSpellInfo(87067)
+
 -- default saved variables
 BG.defaultGlobalSettings = {
 	-- lists
-	exclude = {},				-- Keep List
-	include = {},				-- Junk List
-	autoSellList = {},			-- Sell List
-	forceVendorPrice = {},		-- Vendor Price List; no corresponding local list
+	keep = {},
+	toss = {},
+	prices = {},
 
 	-- behavior
 	autoSellToVendor = true,
@@ -19,7 +21,7 @@ BG.defaultGlobalSettings = {
 	restackInventory = nil,
 
 	disableKey = "SHIFT",
-	autoSellIncludeItems = nil,	-- toggle include list being sell list as well
+	autoSellIncludeItems = nil,
 	keepItemsForLaterDE = 0,
 
 	auctionAddonOrder = { buyout = {}, disenchant = {} },
@@ -68,9 +70,8 @@ BG.defaultGlobalSettings = {
 
 BG.defaultLocalSettings = {
 	-- lists
-	exclude = {},
-	include = {},
-	autoSellList = {},
+	keep = {},
+	toss = {},
 
 	-- behavior
 	repairGuildBank = nil,
@@ -140,33 +141,11 @@ BG.lists = {
 }
 
 BG.modules = {}		-- plugins get saved in here
-BG.junkValue = 0	-- value to show on sell icon
-BG.playerClass = select(2,UnitClass("player"))
+-- BG.junkValue = 0	-- value to show on sell icon
 
 BG.disableKey = {
 	["None"] 	= function() return false end,
 	["SHIFT"] 	= IsShiftKeyDown,
 	["ALT"] 	= IsAltKeyDown,
 	["CTRL"] 	= IsControlKeyDown,
-}
-
-BG.enchanting = GetSpellInfo(7411)
-BG.disenchant = GetSpellInfo(87067)
-BG.tradeSkills = {
-	[2259] 	= "Alchemy",
-	[2018] 	= "Blacksmithing",
-	[7411] 	= "Enchanting",
-	[4036] 	= "Engineering",
-	[13614] = "Herbalism",		-- actually 2366 but this has the correct skill name
-	[45357] = "Inscription",
-	[25229] = "Jewelcrafting",
-	[2108] 	= "Leatherworking",
-	[2575] 	= "Mining",
-	[8613] 	= "Skinning",
-	[3908] 	= "Tailoring",
-
-	[78670]	= "Archaeology",
-	[2550] 	= "Cooking",
-	[3273] 	= "First Aid",
-	[7620] 	= "Fishing",
 }
