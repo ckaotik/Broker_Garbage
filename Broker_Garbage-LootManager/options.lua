@@ -2,9 +2,8 @@ local _, BGLM = ...
 
 -- GLOBALS: BGLM_GlobalDB, BGLM_LocalDB, Broker_Garbage, Broker_Garbage_Config, LibStub, _G
 -- GLOBALS: GetCVarBool, UIDropDownMenu_GetSelectedValue, UIDropDownMenu_CreateInfo, UIDropDownMenu_AddButton, UIDropDownMenu_SetText, UIDropDownMenu_SetWidth, UIDropDownMenu_JustifyText, UIDropDownMenu_SetSelectedValue, CreateFrame
-local tonumber = tonumber
 
-local function Options_LootManager(pluginID)
+local function Options_LootManager(panel)
 	local function Toggle(self)
 		if not (self and self.stat) then return end
 
@@ -14,8 +13,6 @@ local function Options_LootManager(pluginID)
 			BGLM_LocalDB[self.stat] = not BGLM_LocalDB[self.stat]
 		end
 	end
-
-	local panel, tab = Broker_Garbage_Config:CreateOptionsTab(pluginID)
 
 	local subtitle = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	subtitle:SetPoint("TOPLEFT", 16, -16)
@@ -322,7 +319,7 @@ local function Options_LootManager(pluginID)
 	debug:SetScript("OnClick", Toggle)
 
 	--[[ Panel Management ]]--
-	function panel:Update()
+	panel:SetScript("OnShow", function()
 		editbox:SetText(Broker_Garbage.FormatMoney(BGLM_LocalDB.itemMinValue))
 
 		local min, max = minFreeSlots:GetMinMaxValues()
@@ -339,8 +336,12 @@ local function Options_LootManager(pluginID)
 		end
 		autoLootLabel:SetText(autoLootTitle)
 		autoLoot.tiptext = autoLootTooltip .. BGLM.locale.GlobalSetting
-	end
+	end)
 end
-BGLM.options = panel
 
-local _ = Broker_Garbage:RegisterPlugin(BGLM.locale.LMTitle, Options_LootManager)
+local frame = CreateFrame("Frame", nil, InterfaceOptionsFramePanelContainer)
+frame.name, frame.parent = BGLM.locale.LMTitle, "Broker_Garbage"
+frame:Hide()
+frame:SetScript("OnShow", Options_LootManager)
+InterfaceOptions_AddCategory(frame)
+BGLM.options = frame

@@ -2,15 +2,11 @@ local _, BGC = ...
 
 -- GLOBALS: Broker_Garbage, LibStub, _G
 -- GLOBALS: UpdateAddOnMemoryUsage, GetAddOnMemoryUsage, IsShiftKeyDown, collectgarbage, CreateFrame, UnitName
-
-local select = select
 local floor = math.floor
 local match = string.match
 local format = string.format
 
-local function Options_Statistics(pluginID)
-	local panel, tab = BGC:CreateOptionsTab(pluginID)
-
+local function Options_Statistics(panel)
 	local function ResetStatistics(self)
 		if not self or not self.stat then return end
 		Broker_Garbage.ResetOption(self.stat, self.isGlobal)
@@ -135,7 +131,7 @@ local function Options_Statistics(pluginID)
 		panel:Update()
 	end)
 
-	function panel:Update()
+	panel:SetScript("OnShow", function()
 		UpdateAddOnMemoryUsage()
 		memoryUsageText:SetText(floor(GetAddOnMemoryUsage("Broker_Garbage")))
 
@@ -153,6 +149,11 @@ local function Options_Statistics(pluginID)
 
 		localEarnedText:SetText(Broker_Garbage.FormatMoney( Broker_Garbage:GetOption("moneyEarned", false) ))
 		localLostText:SetText(Broker_Garbage.FormatMoney( Broker_Garbage:GetOption("moneyLostByDeleting", false) ))
-	end
+	end)
 end
-local _ = Broker_Garbage:RegisterPlugin(BGC.locale.StatisticsHeading, Options_Statistics)
+
+local frame = CreateFrame("Frame", nil, InterfaceOptionsFramePanelContainer)
+frame.name, frame.parent = BGC.locale.StatisticsHeading, "Broker_Garbage"
+frame:Hide()
+frame:SetScript("OnShow", Options_Statistics)
+InterfaceOptions_AddCategory(frame)

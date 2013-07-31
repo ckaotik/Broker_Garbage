@@ -41,20 +41,20 @@ function BG.ReportSelling(iteration, maxIteration)
 
 	if isLocked and iteration < (maxIteration or 10)+5 then
 		AceTimer:ScheduleTimer(BG.ReportSelling, 0.3, iteration+1, maxIteration)
-	elseif sellValue > 0 then
-		BG.Print(string.format(BG.locale.sell, BG.FormatMoney(sellValue)))
-
-		-- regular sell unlock
-		BG.UpdateStatistics(sellValue, numItems)
-	end
-	--[[if sellValue > 0 and repairCost > 0 then
+		return
+	elseif sellValue > 0 and repairCost > 0 then
 		BG.Print(string.format(BG.locale.sellAndRepair,
 			BG.FormatMoney(sellValue),
 			BG.FormatMoney(repairCost),
 			isGuildRepair and BG.locale.guildRepair or "",
-			BG.FormatMoney(sellValue - repairCost)
+			BG.FormatMoney(guildRepair and sellValue or (sellValue - repairCost))
 		))
-	else--]]
+	elseif sellValue > 0 then
+		BG.Print(string.format(BG.locale.sell, BG.FormatMoney(sellValue)))
+	end
+
+	-- regular sell unlock
+	BG.UpdateStatistics(sellValue, numItems)
 end
 
 function BG.CheckSoldItems()

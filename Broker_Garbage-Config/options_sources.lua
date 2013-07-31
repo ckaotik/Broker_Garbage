@@ -95,9 +95,7 @@ UpdateAuctionAddonList = function(panel)
 	end
 end
 
-local function AuctionAddons(pluginID)
-	local panel, tab = BGC:CreateOptionsTab(pluginID)
-
+local function AuctionAddons(panel)
 	local explainText = panel:CreateFontString(nil, 'ARTWORK', 'GameFontHighlightSmall')
 	explainText:SetPoint('TOPLEFT', 16, -16)
 	explainText:SetPoint('RIGHT', panel, -16, 0)
@@ -115,8 +113,12 @@ local function AuctionAddons(pluginID)
 	disenchantHeading:SetPoint('TOP', explainText, 'BOTTOMLEFT', (1.5*260)+40, -10)
 	disenchantHeading:SetText(BGC.locale.AuctionAddonsDisenchant)
 
-	function panel:Update()
-		UpdateAuctionAddonList(panel)
-	end
+	UpdateAuctionAddonList(panel)
+	panel:SetScript("OnShow", UpdateAuctionAddonList)
 end
-local _ = Broker_Garbage:RegisterPlugin(BGC.locale.AuctionAddonsHeading, AuctionAddons)
+
+local frame = CreateFrame("Frame", nil, InterfaceOptionsFramePanelContainer)
+frame.name, frame.parent = BGC.locale.AuctionAddonsHeading, "Broker_Garbage"
+frame:Hide()
+frame:SetScript("OnShow", AuctionAddons)
+InterfaceOptions_AddCategory(frame)

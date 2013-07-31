@@ -18,9 +18,7 @@ local backdrop = {
 	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 16
 }
 
-local function Options_CategoryTest(pluginID)
-	local panel, tab = BGC:CreateOptionsTab(pluginID)
-
+local function Options_CategoryTest(panel)
 	local explainText = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	explainText:SetPoint("TOPLEFT", 16, -16)
 	explainText:SetPoint("RIGHT", panel, -16, 0)
@@ -173,5 +171,12 @@ local function Options_CategoryTest(pluginID)
 			UpdatePreviewBox(self.value, "category", scrollFrameContent)
 		end)
 	end
+
+	panel:SetScript("OnShow", UpdatePreviewBox)
 end
-local _ = Broker_Garbage:RegisterPlugin(BGC.locale.PTCategoryTest, Options_CategoryTest)
+
+local frame = CreateFrame("Frame", nil, InterfaceOptionsFramePanelContainer)
+frame.name, frame.parent = BGC.locale.PTCategoryTest, "Broker_Garbage"
+frame:Hide()
+frame:SetScript("OnShow", Options_CategoryTest)
+InterfaceOptions_AddCategory(frame)

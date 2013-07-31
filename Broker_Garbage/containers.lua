@@ -8,9 +8,10 @@ local Unfit = LibStub("Unfit-1.0")
 local QUEST = select(10, GetAuctionItemClasses())
 local emptyTable = {}
 
---[[--  TODO --
+--[[-- TODO --
 	* handle specialty bags
-	* handle outdated equipment
+	* logically combine GetItemAction and GetItemPriority
+	~ handle outdated equipment
 	* handle thresholds
 	* update Config addon
 	* fix statistics/assurance when selling items
@@ -216,6 +217,10 @@ function ns.Classify(location)
 		priorityReason = REASON_WORTHLESS
 	else
 		priority, doSell, priorityReason = ns.GetItemPriority(location)
+		if doSell then
+			cacheData.label = ns.AUTOSELL
+			cacheData.value = cacheData.item.v
+		end
 	end
 	cacheData.priority = priority or PRIORITY_NEUTRAL
 	cacheData.sell = doSell
@@ -356,9 +361,6 @@ end
 function ns.GetItemPriority(location)
 	local priority, reason
 	local item = ns.containers[location].item
-	if not item then
-		return PRIORITY_IGNORE, false, REASON_EMPTY_SLOT
-	end
 
 	-- check list config by itemID
 	local listed = ns.keep[ item.id ]
@@ -413,7 +415,7 @@ function ns.GetItemPriority(location)
 	end
 
 	-- unusable gear
-	if item.slot ~= "" and ns.IsItemSoulbound(location) and Unfit:IsItemUnusable(item.id) then
+	if item.slot ~= "" and item.bop and Unfit:IsItemUnusable(item.id) then -- soulbound boe can't be unusable!
 		priority = PRIORITY_NEUTRAL -- FIXME: config
 		reason = REASON_UNUSABLE_ITEM
 		return priority, true, reason
@@ -452,13 +454,13 @@ function ns.GetItemAction(location)
 	local userPrice = BG_GlobalDB.prices[item.id]
 	if userPrice then
 		local value = userPrice == -1 and item.v or userPrice
-		return ns.VENDOR, value, REASON_PRICE_ITEM
+		return ns.CUSTOM, value, REASON_PRICE_ITEM
 	end
 	for limiter, limit in pairs(item.limit) do
 		userPrice = BG_GlobalDB.prices[limiter]
 		if userPrice then
 			local value = userPrice == -1 and item.v or userPrice
-			return ns.VENDOR, value, REASON_PRICE_CAT
+			return ns.CUSTOM, value, REASON_PRICE_CAT
 		end
 	end
 

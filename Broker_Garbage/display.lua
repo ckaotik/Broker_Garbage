@@ -205,7 +205,7 @@ function BG.ShowTooltip(self)
 		-- adds lines: itemLink, count, itemPrice, source
 		local _, link, _, _, _, _, _, _, _, icon, _ = GetItemInfo(cacheData.item.id)
 		local text = (BG_GlobalDB.showIcon and "|T"..icon..":0|t " or "") .. link
-		local source = BG.colors[cacheData.label] .. BG.tag[cacheData.label] .. "|r"
+		local source = BG.GetInfo(cacheData.label, true) or ""
 
 		lineNum = tooltip:AddLine(text, cacheData.count, BG.FormatMoney(cacheData.value), BG_GlobalDB.showSource and source or nil)
 		          tooltip:SetLineScript(lineNum, "OnMouseDown", BG.OnClick, location)
@@ -375,11 +375,7 @@ hooksecurefunc(GameTooltip, "SetBagItem", function(tooltip, container, slot)
 	if BG_GlobalDB.showItemTooltipLabel and cacheData.item then
 		tooltip:AddDoubleLine(
 			string.format("|cffee6622%s|r%s", addonName, BG_LocalDB.debug and " "..location or ""),
-			string.format("%s%s%s|r",
-				cacheData.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or "",
-				BG.colors[cacheData.label] or '',
-				BG.labels[cacheData.label] or cacheData.label or ''
-			)
+			(cacheData.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or "")..(BG.GetInfo(cacheData.label) or "")
 		)
 
 		if BG_GlobalDB.showLabelReason then

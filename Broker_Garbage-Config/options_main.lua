@@ -3,11 +3,7 @@ local _, BGC = ...
 -- GLOBALS: Broker_Garbage, LibStub, _G
 -- GLOBALS: UIDropDownMenu_CreateInfo, UIDropDownMenu_GetSelectedValue, UIDropDownMenu_AddButton, UIDropDownMenu_SetSelectedValue, UIDropDownMenu_SetText, UIDropDownMenu_SetWidth, UIDropDownMenu_JustifyText, CreateFrame, IsAddOnLoaded
 
-local pairs = pairs
-
-local function Options_BasicOptions(pluginID)
-	local panel, tab = BGC:CreateOptionsTab(pluginID)
-
+local function Options_BasicOptions(panel)
 	local behavior = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupBehavior, "TOPLEFT", 21, -16)
 	behavior:SetHeight(333); behavior:SetWidth(180)
 	behavior:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
@@ -147,10 +143,6 @@ local function Options_BasicOptions(pluginID)
 	disableKeyLabel:SetPoint("BOTTOMLEFT", disableKey, "TOPLEFT", 20, 2)
 	disableKeyLabel:SetText(BGC.locale.DKTitle)
 	_G[disableKey:GetName() .. "Button"]:SetPoint("LEFT", _G[disableKey:GetName().."Middle"])
-	UIDropDownMenu_SetSelectedValue(disableKey, Broker_Garbage:GetOption("disableKey", true))
-	UIDropDownMenu_SetText(disableKey, BGC.locale["disableKey_"..Broker_Garbage:GetOption("disableKey", true)])
-	UIDropDownMenu_SetWidth(disableKey, 150, 0)
-	UIDropDownMenu_JustifyText(disableKey, "LEFT")
 
 	local function DisableKeyOnSelect(self)
 		UIDropDownMenu_SetSelectedValue(disableKey, self.value)
@@ -160,13 +152,17 @@ local function Options_BasicOptions(pluginID)
 		local selected, info = UIDropDownMenu_GetSelectedValue(disableKey), UIDropDownMenu_CreateInfo()
 		local keys = Broker_Garbage:GetVariable("disableKey")
 		for name in pairs(keys) do
-			info.text = BGC.locale["disableKey_"..name]
+			info.text = _G[name.."_KEY"]
 			info.value = name
 			info.func = DisableKeyOnSelect
 			info.checked = name == selected
 			UIDropDownMenu_AddButton(info)
 		end
 	end
+	UIDropDownMenu_SetWidth(disableKey, 150, 0)
+	UIDropDownMenu_JustifyText(disableKey, "LEFT")
+	UIDropDownMenu_SetSelectedValue(disableKey, Broker_Garbage:GetOption("disableKey", true))
+	UIDropDownMenu_SetText(disableKey, _G[Broker_Garbage:GetOption("disableKey", true).."_KEY"])
 
 	local thresholds = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupTresholds, "TOPLEFT", behavior, "TOPRIGHT", 10, 0)
 	thresholds:SetHeight(96); thresholds:SetWidth(180)
@@ -520,7 +516,7 @@ local function Options_BasicOptions(pluginID)
 		Broker_Garbage:ToggleOption("reportDisenchantOutdated", true)
 	end)
 
-	function panel:Update()
+	panel:SetScript("OnShow", function()
 		junkText:SetText( Broker_Garbage:GetOption("LDBformat", true) )
 		noJunkText:SetText( Broker_Garbage:GetOption("LDBNoJunk", true) )
 
@@ -537,6 +533,16 @@ local function Options_BasicOptions(pluginID)
 			tooltipHeight:SetValue( ttHeight )
 		end
 		tooltipHeightText:SetText(BGC.locale.maxHeightTitle .. ": " .. ttHeight)
-	end
+	end)
 end
-Broker_Garbage:RegisterPlugin(BGC.locale.BasicOptionsTitle, Options_BasicOptions)
+
+-- In case the addon is loaded from another condition, always call the remove interface options
+if AddonLoader and AddonLoader.RemoveInterfaceOptions then
+	AddonLoader:RemoveInterfaceOptions("Broker_Garbage")
+end
+
+local frame = CreateFrame("Frame", nil, InterfaceOptionsFramePanelContainer)
+frame.name = "Broker_Garbage"
+frame:Hide()
+frame:SetScript("OnShow", Options_BasicOptions)
+InterfaceOptions_AddCategory(frame)

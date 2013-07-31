@@ -1,25 +1,24 @@
 local _, BGC = ...
 
--- GLOBALS: Broker_Garbage, LibStub, _G, UIDROPDOWNMENU_MENU_VALUE, UIParent, StaticPopupDialogs, BG_GlobalDB
--- GLOBALS: IsShiftKeyDown, GetCursorInfo, StaticPopup_Show, ToggleDropDownMenu, UIDropDownMenu_AddButton, UIDropDownMenu_CreateInfo, GetAuctionItemSubClasses, GetEquipmentSetInfo, GetNumEquipmentSets, GetItemInfo, CreateFrame, MoneyInputFrame_GetCopper, IsModifiedClick, IsModifierKeyDown, HandleModifiedItemClick
-local tonumber = tonumber
-local select = select
-local type = type
-local pairs = pairs
-local ipairs = ipairs
+-- GLOBALS: Broker_Garbage, LibStub, _G, UIDROPDOWNMENU_MENU_VALUE, UIParent, StaticPopupDialogs, BG_GlobalDB, ITEM_QUALITY_COLORS, SEARCH
+-- GLOBALS: IsShiftKeyDown, GetCursorInfo, StaticPopup_Show, ToggleDropDownMenu, UIDropDownMenu_AddButton, UIDropDownMenu_CreateInfo, GetAuctionItemSubClasses, GetEquipmentSetInfo, GetNumEquipmentSets, GetItemInfo, CreateFrame, MoneyInputFrame_GetCopper, IsModifiedClick, IsModifierKeyDown, HandleModifiedItemClick, PlaySound, InterfaceOptionsFramePanelContainer, SetItemButtonCount, SetItemButtonStock, SetItemButtonTexture, SetItemButtonNormalTextureVertexColor, EditBox_ClearFocus, InterfaceOptionsFrame_Show
+-- GLOBALS: type, wipe, ipairs, tonumber, select, string, pairs, unpack
 local tinsert = table.insert
 local sort = table.sort
-local wipe = table.wipe
 local floor = math.floor
 local mod = mod
 local match = string.match
 
+local listOptions = CreateFrame("Frame", "BG_ListOptions", InterfaceOptionsFramePanelContainer)
+listOptions.name = BGC.locale.LOTitle
+listOptions.parent = "Broker_Garbage"
+
 -- allow detaching the config frame so it can be used on smaller screens
 local detachFrame, detachTrigger, attachPoint
 local function ReAttach()
-	BGC.listOptions:ClearAllPoints()
-	BGC.listOptions:SetParent(InterfaceOptionsFramePanelContainer)
-	BGC.listOptions:SetPoint(unpack(attachPoint))
+	listOptions:ClearAllPoints()
+	listOptions:SetParent(InterfaceOptionsFramePanelContainer)
+	listOptions:SetPoint(unpack(attachPoint))
 
 	detachFrame:SetPropagateKeyboardInput(false)
 	detachFrame:Hide()
@@ -31,7 +30,7 @@ end
 local function ToggleDetach(trigger, btn)
 	if not detachFrame then
 		detachTrigger = detachTrigger or trigger
-		attachPoint = { BGC.listOptions:GetPoint() }
+		attachPoint = { listOptions:GetPoint() }
 
 		detachFrame = CreateFrame("Frame", "BG_ListOptionsDetached", UIParent, "BasicFrameTemplate")
 		detachFrame:Hide()
@@ -53,7 +52,7 @@ local function ToggleDetach(trigger, btn)
 			ReAttach()
 		end)
 		detachFrame:SetScript("OnShow", function()
-			local source = BGC.listOptions
+			local source = listOptions
 			local w, h = source:GetSize()
 			detachFrame:SetSize(w, h + 20)
 
@@ -548,7 +547,7 @@ function BGC:ShowListOptions(frame)
 			end
 
 
-			if BGC.listOptions.current ~= "forceVendorPrice" then
+			if listOptions.current ~= "forceVendorPrice" then
 				button:EnableMouseWheel(true)
 				button:SetScript("OnMouseWheel", OnMouseWheel)
 			else
@@ -834,5 +833,7 @@ function BGC:ShowListOptions(frame)
 	-- plus:SetScript("OnMouseDown", OnClick)
 
 	BGC:ListOptionsUpdate()
-	BGC.listOptions:SetScript("OnShow", BGC.ListOptionsUpdate)
+	listOptions:SetScript("OnShow", BGC.ListOptionsUpdate)
 end
+
+InterfaceOptions_AddCategory(listOptions)

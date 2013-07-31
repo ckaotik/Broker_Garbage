@@ -3,27 +3,8 @@ local addonName, BG, _ = ...
 -- GLOBALS: Broker_Garbage, BG_GlobalDB, BG_LocalDB, ArkInventory, ArkInventoryRules, Bagnon
 -- GLOBALS: IsAddOnLoaded
 -- GLOBALS: string, tonumber, hooksecurefunc
-local tinsert = table.insert
 
--- register as a plugin to gain acced to BG's options panel
-function BG:RegisterPlugin(name, init)
-	if not name or not init then
-		BG.Print("Error! Cannot register a plugin without a name and initialize function.")
-		return
-	end
-
-	tinsert(BG.modules, {
-		name = name,
-		init = init
-	})
-	return #BG.modules
-end
-
-function BG:GetName()
-	return addonName
-end
-
-function BG:IsDisabled()
+function BG.IsDisabled()
 	local disable = BG.disableKey[BG_GlobalDB.disableKey]
 	return (disable and disable())
 end

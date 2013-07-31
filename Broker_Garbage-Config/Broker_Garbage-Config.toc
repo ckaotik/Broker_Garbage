@@ -21,7 +21,7 @@
 
 ## LoadManagers: AddonLoader, Addon Control Panel
 ## X-LoadOn-InterfaceOptions: Broker_Garbage
-## X-LoadOn-Slash: /garbage, /garb, /junk
+## X-LoadOn-Slash: /garbage, /junk
 
 ## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 ## X-RelSite-WoWI: 15531
@@ -42,8 +42,9 @@ locale\curse.lua
 util.lua
 options_main.lua
 options_sources.lua
-options_statistics.lua
 options_lists.lua
-options_slash.lua
+..\Broker_Garbage-LootManager\options.lua
 category_test.lua
+options_slash.lua
+options_statistics.lua
 core.lua

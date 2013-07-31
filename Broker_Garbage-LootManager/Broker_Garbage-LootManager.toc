@@ -33,4 +33,4 @@ locale\curse.lua
 # code files
 util.lua
 core.lua
-options.lua
+# options.lua

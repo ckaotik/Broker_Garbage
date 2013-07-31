@@ -44,6 +44,11 @@ function BG.GetPatternFromFormat(globalString)
 	return returnString
 end
 
+function BG.GetInfo(label, short)
+	if BG.info[label] then
+		return BG.info[label][1] .. BG.info[label][ short and 2 or 3 ] .. "|r"
+	end
+end
 
 -- --------------------------------------------------------
 --  Saved Variables
@@ -116,6 +121,10 @@ local function AdjustLists_5_4(localOnly)
 
 	BG_LocalDB.version = 3
 	if localOnly then return end
+
+	if BG_GlobalDB.disableKey == "None" then
+		BG_GlobalDB.disableKey = "NONE"
+	end
 
 	-- global lists
 	for i,v in pairs(BG_GlobalDB.exclude or emptyTable) do

@@ -18,7 +18,6 @@ BG.VENDOR = 7
 BG.DISENCHANT = 8
 BG.CUSTOM = 9
 
--- unues, but should be used!
 BG.info = {
 	[BG.EXCLUDE]    = {"|cFFffffff", "K", BG.locale.listExclude}, -- keep
 	[BG.INCLUDE]    = {"|cFFb1b1b1", "J", BG.locale.listInclude}, -- junk
@@ -33,39 +32,11 @@ BG.info = {
 	[BG.CUSTOM]     = {"|cFFf3d91b", "C", ""},
 }
 
-BG.colors = {
-	[BG.EXCLUDE]	= "|cFFffffff", -- white
-	[BG.INCLUDE] 	= "|cFFb1b1b1",	-- grey
-	[BG.VENDOR] 	= "|cFFff9c5a",	-- orange
-	[BG.AUTOSELL] 	= "|cFFff592d",	-- dark orange
-	[BG.CUSTOM] 	= "|cFFf3d91b",	-- yellow
-	[BG.AUCTION] 	= "|cFF2bff58",	-- green
-	[BG.DISENCHANT] = "|cFFe052ff",	-- purple
-	[BG.UNUSABLE] 	= "|cFF3c73ab",	-- blue
-	[BG.OUTDATED]   = "|cFF36BFA8",	-- turkoise
-}
-BG.labels = {
-	[BG.EXCLUDE]	= BG.locale.listExclude,
-	[BG.INCLUDE] 	= BG.locale.listInclude,
-	[BG.VENDOR] 	= BG.locale.listVendor,
-	[BG.AUTOSELL] 	= BG.locale.listSell,
-	[BG.CUSTOM] 	= BG.locale.listCustom,
-	[BG.AUCTION] 	= BG.locale.listAuction,
-	[BG.DISENCHANT] = BG.locale.listDisenchant,
-	[BG.UNUSABLE] 	= BG.locale.listUnusable,
-	[BG.OUTDATED]   = BG.locale.listOutdated,
-}
--- corresponding tags to be used in the LDB tooltip; EXCLUDE never shows up there!
-BG.tag = {
-	[BG.EXCLUDE]	= "K", -- keep
-	[BG.INCLUDE] 	= "J", -- junk
-	[BG.VENDOR] 	= "V",
-	[BG.AUTOSELL] 	= "V",
-	[BG.CUSTOM]		= "C",
-	[BG.AUCTION] 	= "A",
-	[BG.DISENCHANT] = "D",
-	[BG.UNUSABLE] 	= "U",
-	[BG.OUTDATED]   = "O",
+BG.disableKey = {
+	["NONE"] 	= function() return false end,
+	["SHIFT"] 	= IsShiftKeyDown,
+	["ALT"] 	= IsAltKeyDown,
+	["CTRL"] 	= IsControlKeyDown,
 }
 
 -- default saved variables
@@ -100,7 +71,7 @@ BG.defaultGlobalSettings = {
 	-- numeric values
 	tooltipMaxHeight = 220,
 	tooltipNumItems = 9,
-	showMoney = 2,
+	showMoney = nil,
 	hasEnchanter = true,
 
 	-- statistic values
@@ -144,22 +115,4 @@ BG.defaultLocalSettings = {
 	-- default values
 	moneyLostByDeleting = 0,
 	moneyEarned = 0,
-}
-
--- do not change this! these are identifiers used in the code
-BG.lists = {
-	[BG.EXCLUDE] 	= "exclude",
-	[BG.INCLUDE] 	= "include",
-	[BG.AUTOSELL] 	= "autoSellList",
-	[BG.VENDOR] 	= "forceVendorPrice",
-}
-
-BG.modules = {}		-- plugins get saved in here
--- BG.junkValue = 0	-- value to show on sell icon
-
-BG.disableKey = {
-	["None"] 	= function() return false end,
-	["SHIFT"] 	= IsShiftKeyDown,
-	["ALT"] 	= IsAltKeyDown,
-	["CTRL"] 	= IsControlKeyDown,
 }
