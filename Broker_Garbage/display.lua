@@ -169,14 +169,14 @@ end
 
 function BG.ShowTooltip(self)
 	local numColumns, lineNum = (BG_GlobalDB.showSource and 4 or 3) + 1, 0
-	local tooltip = LibQTip:Acquire("Broker_Garbage", numColumns, "LEFT", "RIGHT", "RIGHT", numColumns >= 4 and "CENTER" or nil)
+	local tooltip = LibQTip:Acquire(addonName, numColumns, "LEFT", "RIGHT", "RIGHT", numColumns >= 4 and "CENTER" or nil)
 	BG.tooltip = tooltip
 
 	tooltip:Clear()
 	tooltip:GetFont():SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
 
 	-- add header lines: these don't span across disenchant column!
-	lineNum = tooltip:AddHeader('Broker_Garbage')
+	lineNum = tooltip:AddHeader(addonName)
 			  tooltip:SetCell(lineNum, 2, BG.locale.headerAltClick, tooltip.regularFont, numColumns - 1 -1)
 	lineNum = tooltip:AddLine(BG.locale.headerShiftClick)
 			  tooltip:SetCell(lineNum, 2, BG.locale.headerCtrlClick, nil, 'RIGHT', numColumns - 1 -1)

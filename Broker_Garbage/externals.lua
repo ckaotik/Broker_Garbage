@@ -116,12 +116,13 @@ local function UpdateJunkIcon(button, container, slot)
 	local cacheData = BG.containers[location]
 	if cacheData.item then
 		if cacheData.sell then
-			icon:SetVertexColor(1, 1, 1)
-			icon:SetDesaturated(false)
-			icon:Show()
-		elseif cacheData.label == BG.DISENCHANT then
-			icon:SetVertexColor(1, 0.2, 1)
-			icon:SetDesaturated(true)
+			if cacheData.label == BG.DISENCHANT then
+				icon:SetVertexColor(1, 0.2, 1)
+				icon:SetDesaturated(true)
+			else
+				icon:SetVertexColor(1, 1, 1)
+				icon:SetDesaturated(false)
+			end
 			icon:Show()
 		end
 	end

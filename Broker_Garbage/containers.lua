@@ -24,7 +24,7 @@ local emptyTable = {}
 --  Saved Variables (lists)
 -- --------------------------------------------------------
 -- add item or category to config lists. items may only ever live in local xor global list
--- <list>: "toss" or "keep"
+-- <list>: "toss", "keep" or "price"
 function ns.Add(list, item, value, isGlobal, noUpdate)
 	if list == "price" then
 		BG_GlobalDB[list][item] = value or -1
@@ -437,6 +437,7 @@ function ns.GetItemPriority(location)
 end
 
 function ns.GetItemAction(location)
+	-- TODO: we should probably cache this to item ...
 	local item = ns.containers[ location ].item
 
 	-- custom prices for either this item or one of its categories
