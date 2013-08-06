@@ -126,23 +126,59 @@ function BG.CanDisenchant(item)
 	end
 end
 
+local itemLevel = setmetatable({ -- see http://www.wowinterface.com/forums/showthread.php?t=45388
+    [1]   =  8, -- 1/1
+    [373] =  4, -- 1/2
+    [374] =  8, -- 2/2
+    [375] =  4, -- 1/3
+    [376] =  4, -- 2/3
+    [377] =  4, -- 3/3
+    [379] =  4, -- 1/2
+    [380] =  4, -- 2/2
+    [446] =  4, -- 1/2
+    [447] =  8, -- 2/2
+    [452] =  8, -- 1/1
+    [454] =  4, -- 1/2
+    [455] =  8, -- 2/2
+    [457] =  8, -- 1/1
+    [459] =  4, -- 1/4
+    [460] =  8, -- 2/4
+    [461] = 12, -- 3/4
+    [462] = 16, -- 4/4
+    [466] =  4, -- 1/2
+    [467] =  8, -- 2/2
+    [469] =  4, -- 1/4
+    [470] =  8, -- 2/4
+    [471] = 12, -- 3/4
+    [472] = 16, -- 4/4
+}, {
+	__call = function(self, item)
+		if type(item) == "number" then
+			item = GetContainerItemLink( BG.GetBagSlot(item) )
+		end
+		local _, _, _, iLevel = GetItemInfo(item)
+		local modifier = tonumber( select(12, strsplit(":", item)) or "" )
+		return iLevel + (modifier and self[modifier] or 0)
+	end
+})
+
 local itemsForInvType = {}
 local itemsForSlot = {}
 local function SortEquipmentItems(locationA, locationB)
-	-- TODO: get upgraded item level
-	local itemA = BG.containers[ locationA ].item
-	local itemB = BG.containers[ locationB ].item
+	local levelA = itemLevel(locationA)
+	local levelB = itemLevel(locationB)
 	local isAInSet = GetContainerItemEquipmentSetInfo( BG.GetBagSlot(locationA) )
 	local isBInSet = GetContainerItemEquipmentSetInfo( BG.GetBagSlot(locationB) )
 
-	if itemA.l ~= itemB.l then
-		return itemA.l > itemB.l
+	if levelA ~= levelB then
+		return levelA > levelB
 	elseif isAInSet ~= isBInSet then
 		return isAInSet
 	else
 		return locationA < locationB
 	end
 end
+
 local function IsHighestItemLevel(location)
 	local item = BG.containers[ location ].item
 	local slots = (TopFit and TopFit.GetEquipLocationsByInvType and TopFit:GetEquipLocationsByInvType(item.slot)) or
@@ -173,8 +209,7 @@ function BG.IsOutdatedItem(location)
 	local item = BG.containers[ location ].item
 	local invSlot = item and item.slot
 
-	if not item or not BG_GlobalDB.sellOldGear or item.q > BG_GlobalDB.sellNWQualityTreshold or
-		invSlot == "" or invSlot:find("BAG") or invSlot:find("TRINKET") then
+	if not item or invSlot == "" or invSlot == "INVTYPE_BAG" --[[or invSlot:find("TRINKET")--]] then
 		return
 	else
 		local isInteresting = true

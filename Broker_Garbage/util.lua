@@ -126,6 +126,15 @@ local function AdjustLists_5_4(localOnly)
 		BG_GlobalDB.disableKey = "NONE"
 	end
 
+	BG_GlobalDB.sellUnusableQuality = BG_GlobalDB.sellNWQualityTreshold
+	BG_GlobalDB.sellOutdatedQuality = BG_GlobalDB.sellNWQualityTreshold
+	BG_GlobalDB.sellNWQualityTreshold = nil
+
+	BG_GlobalDB.sellUnusable = BG_GlobalDB.sellNotWearable
+	BG_GlobalDB.sellNotWearable = nil
+	BG_GlobalDB.sellOutdated = BG_GlobalDB.sellOldGear
+	BG_GlobalDB.sellOldGear = nil
+
 	-- global lists
 	for i,v in pairs(BG_GlobalDB.exclude or emptyTable) do
 		BG_GlobalDB.keep[i] = v

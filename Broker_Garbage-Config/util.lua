@@ -149,65 +149,20 @@ end
 
 -- Config Helpers
 -- -------------------------------------------------------------------------------------
--- button tooltip infos
 function BGC.ShowTooltip(self)
+	if not self.tiptext and not self.link then return end
 	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+	GameTooltip:ClearLines()
 
-	if self.itemLink then
-		GameTooltip:SetHyperlink(self.itemLink)
-
-	elseif self.itemID and type(self.itemID) == "number" then
-		-- most likely an actual item
-		local itemLink = select(2,GetItemInfo(self.itemID))
-		if itemLink then
-			GameTooltip:SetHyperlink(itemLink)
-			if self:GetParent() == _G["BG_ListOptions_ScrollFrame"] and not self.itemLink then
-				-- we just got new data for this tooltip!
-				BGC:ListOptionsUpdate()
-			end
-
-			if self.extraTipLine and self.extraTipLine ~= "" then
-				GameTooltip:AddLine(self.extraTipLine)
-			end
-		elseif self.tiptext then
-			-- fallback, in case GetItemInfo() wasn't available
-			GameTooltip:SetText(self.tiptext or BGC.locale.unknown, nil, nil, nil, nil, true)
-		end
-
-	elseif self.itemID and type(self.itemID) == "string" then
-		local specialType, identifier = match(self.itemID, "^(.-)_(.+)")
-		if specialType == "AC" then
-			-- armor class
-			GameTooltip:ClearLines()
-			GameTooltip:AddLine(BGC.locale.armorClass)
-			GameTooltip:AddLine(self.tiptext or BGC.locale.unknown, 1, 1, 1, true)
-		elseif specialType == "BEQ" then
-			-- Blizzard Equipment Manager item set
-			GameTooltip:ClearLines()
-			GameTooltip:AddLine(BGC.locale.equipmentManager)
-			GameTooltip:AddLine(self.tiptext or BGC.locale.unknown, 1, 1, 1, true)
-		elseif specialType == "NAME" then
-			-- Item Name Filter
-			GameTooltip:ClearLines()
-			GameTooltip:AddLine(BGC.locale.anythingCalled)
-			GameTooltip:AddLine(self.tiptext or BGC.locale.unknown, 1, 1, 1, true)
-		end
-
-	elseif self.tiptext and self:GetParent() == _G["BG_ListOptions_ScrollFrame"] then
-		-- LibPeriodicTable category
-		local text = gsub(self.tiptext, "%.", " |cffffd200>|r ")
-
-		GameTooltip:ClearLines()
-		GameTooltip:AddLine("LibPeriodicTable")
-		GameTooltip:AddLine(text, 1, 1, 1, true)
-
-	else
+	if self.link then
+		GameTooltip:SetHyperlink(self.link)
+	elseif type(self.tiptext) == "string" and self.tiptext ~= "" then
 		GameTooltip:SetText(self.tiptext, nil, nil, nil, nil, true)
+	elseif type(self.tiptext) == "function" then
+		self.tiptext(self, GameTooltip)
 	end
-
 	GameTooltip:Show()
 end
-
 function BGC:HideTooltip() GameTooltip:Hide() end
 
 function BGC.CreateHorizontalRule(parent)

@@ -49,12 +49,12 @@ BG.defaultGlobalSettings = {
 	-- behavior
 	autoSellToVendor = true,
 	autoRepairAtVendor = true,
-	sellNotWearable = nil,
-	sellOldGear = nil,
+	sellUnusable = nil,
+	sellOutdated = nil,
 	keepHighestItemLevel = true,
+	keepQuestItems = true, -- FIXME config
 	showSellLog = nil,
 	overrideLPT = nil,
-	restackInventory = nil,
 
 	disableKey = "SHIFT",
 	autoSellIncludeItems = nil,
@@ -66,7 +66,8 @@ BG.defaultGlobalSettings = {
 
 	-- thresholds
 	dropQuality = 0,
-	sellNWQualityTreshold = 3,
+	sellUnusableQuality = 3,
+	sellOutdatedQuality = 3, -- FIXME config
 
 	-- numeric values
 	tooltipMaxHeight = 220,
@@ -86,7 +87,7 @@ BG.defaultGlobalSettings = {
 	showAutoSellIcon = true,
 	showItemTooltipLabel = true,
 	showLabelReason = nil,
-	showBagnonSellIcons = nil, -- [TODO] settings
+	showBagnonSellIcons = nil, -- FIXME config
 
 	-- LibDataBroker Display
 	LDBformat = "[itemname]x[itemcount] ([itemvalue])",

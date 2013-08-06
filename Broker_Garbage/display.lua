@@ -103,8 +103,6 @@ function BG.UpdateLDB()
 	BG.totalBagSpace, BG.totalFreeSlots = 0, 0
 	BG.specialSlots, BG.freeSpecialSlots = 0, 0
 
-	-- TODO: remember lootable items
-
 	for location, cacheData in pairs(BG.containers) do
 		local container, slot = BG.GetBagSlot(location)
 
@@ -123,7 +121,7 @@ function BG.UpdateLDB()
 
 		if cacheData.sell and cacheData.value > 0 then
 			-- update junk value
-			BG.junkValue = BG.junkValue + cacheData.value
+			BG.junkValue = BG.junkValue + (cacheData.value * cacheData.count)
 		end
 	end
 

@@ -21,7 +21,7 @@ function BG.AutoSell(manualSell)
 	wipe(sellLog)    -- reset data for refilling
 	for location, cacheData in pairs(BG.containers) do
 		if cacheData.sell then
-			sellValue = sellValue + cacheData.item.v
+			sellValue = sellValue + (cacheData.item.v * cacheData.count)
 
 			ClearCursor()
 			UseContainerItem(BG.GetBagSlot(location))
