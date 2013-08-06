@@ -267,7 +267,10 @@ function ns.UpdateBagSlot(container, slot, forced)
 			if cacheData.item then
 				-- remove old item from locations
 				local itemLocations = ns.locations[ cacheData.item.id ]
-				table.remove(itemLocations, ns.Find(itemLocations, location))
+				local oldLocation = ns.Find(itemLocations, location)
+				if itemLocations and oldLocation then
+					table.remove(itemLocations, oldLocation)
+				end
 			end
 			if newItem then
 				-- add new item to locations
@@ -377,6 +380,13 @@ function ns.GetItemPriority(location)
 		return priority, listed == 1, reason
 	end
 
+	if BG_GlobalDB.overrideLPT and item.q == 0 then
+		-- override categories that include gray items
+		priority = PRIORITY_NEUTRAL
+		reason = REASON_GRAY_ITEM
+		return priority, true, reason
+	end
+
 	-- check list config by category
 	for category, value in pairs(ns.keep) do
 		if type(category) == "string" and isItemInCategory(item.id, category) then
@@ -447,7 +457,7 @@ function ns.GetItemAction(location)
 		return ns.CUSTOM, value, REASON_PRICE_ITEM
 	end
 	local maxValue
-	for limiter, limit in pairs(item.limit) do
+	for limiter, limit in pairs(item.limit or emptyTable) do
 		userPrice = BG_GlobalDB.prices[limiter]
 		if userPrice then
 			local value = userPrice == -1 and item.v or userPrice
