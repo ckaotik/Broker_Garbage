@@ -148,6 +148,11 @@ local function ListUpdate(self)
 				quality = 1
 				button.link = nil
 				button.item = item
+
+				-- TODO: use proper icons for gear sets, item names, armor class
+				-- TODO: if LPT is not loaded, show indicator:
+				-- button:SetAlpha(0.2)
+				-- button.tiptext = button.tiptext .. "\n|cffff0000"..BGC.locale.LPTNotLoaded
 			end
 
 			-- call again if we're missing data
@@ -172,6 +177,7 @@ local function ListUpdate(self)
 			else
 				button.name:SetTextColor(1, 1, 1, 1)
 			end
+
 			button.name:SetText( GetEntryTitle(name) )
 			button:SetChecked( Broker_Garbage.IsShared(self.list, item) )
 			button:Show()
@@ -231,7 +237,7 @@ end
 
 local function ToggleAutoSell(self, btn)
 	local row = self:GetParent()
-	Broker_Garbage.Add("price", row.item, self:GetChecked() and 1 or 0, nil, true)
+	Broker_Garbage.Add("toss", row.item, self:GetChecked() and 1 or 0, nil, true)
 end
 
 -- creates child options frame for setting up one's lists
@@ -291,12 +297,61 @@ local function ShowListOptions(frame)
 			list:SetPoint("TOPLEFT", "$parentList"..(i-1), "TOPRIGHT", 0, 0)
 		end
 
-		list.scrollBarHideable = false
 		list.list = listName
 		list.buttons = {}
 
 		list.ScrollBar:SetPoint("TOPLEFT", "$parent", "TOPRIGHT", -20, -20)
 		list.ScrollBar:SetPoint("BOTTOMLEFT", "$parent", "BOTTOMRIGHT", -20, 20)
+
+		local addItem = CreateFrame("Button", "$parentAddButton", list, "ItemButtonTemplate")
+		addItem:SetPoint("BOTTOMLEFT", "$parent", "TOPLEFT", 8, 26)
+		addItem:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+		addItem:RegisterForDrag("LeftButton")
+		addItem:SetScript("OnDragStart", function(self, btn)
+			self.label:SetText(GREEN_FONT_COLOR_CODE..ADD_ANOTHER .. "\nRight-Click for categories")
+			SetItemButtonTexture(self, "Interface\\GuildBankFrame\\UI-GuildBankFrame-NewTab")
+			self.item = nil
+			self.link = nil
+		end)
+		addItem:SetScript("OnClick", function(self, btn)
+			local cursorType, cursorValue, data = GetCursorInfo()
+			if cursorType == "item" then
+				local icon = GetItemIcon(cursorValue)
+				SetItemButtonTexture(self, icon)
+				self.item = cursorValue
+				self.link = data
+				self.label:SetText(data)
+			elseif cursorType == "equipmentset" then
+				local icon, cursorValue = GetEquipmentSetInfoByName(cursorValue)
+				SetItemButtonTexture(self, icon)
+				self.item = "BEQ_"..cursorValue
+				self.link = nil
+				self.label:SetText( GetEntryTitle(self.item) )
+			else
+				if IsModifiedClick() then
+					HandleModifiedItemClick(self.link)
+				end
+				return
+			end
+			ClearCursor()
+			Broker_Garbage.Add(self:GetParent().list, self.item)
+			Broker_Garbage.PrintFormat( -- FIXME: locale
+				"%s has been added to your list.",
+				self.label:GetText())
+			ListUpdate(self:GetParent())
+		end)
+		addItem:SetScript("OnReceiveDrag", addItem:GetScript("OnClick"))
+
+		SetItemButtonTexture(addItem, "Interface\\GuildBankFrame\\UI-GuildBankFrame-NewTab")
+		addItem:SetScript("OnEnter", BGC.ShowTooltip)
+		addItem:SetScript("OnLeave", BGC.HideTooltip)
+		addItem.tiptext = BGC.locale.LOPlus
+
+		local addLabel = addItem:CreateFontString(nil, nil, "GameFontNormal")
+		      addLabel:SetPoint("LEFT", addItem, "RIGHT", 6, 0)
+		      addLabel:SetJustifyH("LEFT")
+		      addLabel:SetText(GREEN_FONT_COLOR_CODE..ADD_ANOTHER .. "\nRight-Click for categories")
+		addItem.label = addLabel
 
 		-- headers
 		local sorter1 = CreateFrame("Button", "$parentSorterShared", list, "AuctionSortButtonTemplate", 1)
@@ -380,15 +435,6 @@ local function ShowListOptions(frame)
 		end)
 		ListUpdate(list)
 	end
-
-	-- action buttons
-	local plus = CreateFrame("Button", "$parentAddEntryButton", frame)
-	plus:SetPoint("TOPLEFT", frame.keepList, "BOTTOMLEFT", 4, -2)
-	plus:SetSize(25, 25)
-	plus:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-	plus:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
-	plus.tiptext = BGC.locale.LOPlus
-	plus:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
 	local savePriceSetting = function(value)
 		if not value then return end
@@ -613,13 +659,7 @@ local function ShowListOptions(frame)
 
 		local reset = nil	-- used to clean the items cache once we're done here
 		local localList, globalList = Broker_Garbage:GetOption(frame.current)
-		-- add action
-		if self == plus then
-			local cursorType, item, _ = GetCursorInfo()
-			if not (cursorType == "item" and item) then return end
-			reset = BGC.RemoteAddItemToList(item, frame.current)
-		-- setPrice action
-		elseif false then
+		if false then
 			local index = 1
 			while _G["BG_ListOptions_ScrollFrameItem"..index] do
 				local button = _G["BG_ListOptions_ScrollFrameItem"..index]
@@ -637,40 +677,9 @@ local function ShowListOptions(frame)
 		BGC:ListOptionsUpdate()
 	end
 
-	plus:SetScript("OnClick", OnClick)
-	plus:SetScript("OnEnter", BGC.ShowTooltip)
-	plus:SetScript("OnLeave", BGC.HideTooltip)
-	plus:RegisterForDrag("LeftButton")
-	plus:SetScript("OnReceiveDrag", OnClick)
-
 	local function ListOptionsUpdate(self)
 		ListUpdate(self.keepList)
 		ListUpdate(self.tossList)
-		--[[if frame.current == "forceVendorPrice" then
-				SetItemButtonCount(button, 0)
-				if globalList[itemID] >= 0 then
-					_G[button:GetName().."Stock"]:SetText('*')
-					_G[button:GetName().."Stock"]:Show()
-					button.extraTipLine = Broker_Garbage.FormatMoney(globalList[itemID])
-				else
-					SetItemButtonStock(button, 0)
-				end
-			end
-
-			if not itemLink and not button.itemID and not BGC.PT then
-				button:SetAlpha(0.2)
-				button.tiptext = button.tiptext .. "\n|cffff0000"..BGC.locale.LPTNotLoaded
-			else
-				button:SetAlpha(1)
-			end
-			SetItemButtonTexture(button, texture or "Interface\\Icons\\INV_MISC_Questionmark")
-			if quality and ITEM_QUALITY_COLORS[quality] then
-				SetItemButtonNormalTextureVertexColor(button,
-					ITEM_QUALITY_COLORS[quality].r, ITEM_QUALITY_COLORS[quality].g, ITEM_QUALITY_COLORS[quality].b)
-			else
-				SetItemButtonNormalTextureVertexColor(button, 1, 1, 1)
-			end
-		--]]
 	end
 	BGC.ListOptionsUpdate = ListOptionsUpdate
 
