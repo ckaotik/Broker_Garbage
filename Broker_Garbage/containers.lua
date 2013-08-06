@@ -318,7 +318,7 @@ end
 
 -- updates all slots associated with item (itemID or category)
 function ns.UpdateItem(item)
-	for _, location in pairs(ns.locations[item]) do
+	for _, location in pairs(ns.locations[item] or emptyTable) do
 		local container, slot = ns.GetBagSlot(location)
 		-- saves changed items to changedLocations list
 		ns.UpdateBagSlot(container, slot, true)

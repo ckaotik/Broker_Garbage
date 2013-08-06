@@ -157,7 +157,7 @@ local function ListUpdate(self)
 
 			if self.list == "keep" then
 				-- FIXME: won't display? o.0
-				button.info:SetText( data[item] )
+				button.info:SetNumber( data[item] )
 			else
 				button.info:SetChecked( data[item] == 1 )
 			end
@@ -179,6 +179,10 @@ local function ListUpdate(self)
 			button:Hide()
 		end
 	end
+end
+local function SortList(self, btn)
+	_G[self:GetName().."Arrow"]:Hide()
+	ListUpdate( self:GetParent() )
 end
 
 local function Tooltip(self, tooltip)
@@ -213,14 +217,21 @@ local function ItemButtonOnClick(self, btn)
 		self:SetChecked( not self:GetChecked() )
 		Broker_Garbage.Remove(list, self.item)
 		Broker_Garbage.PrintFormat(
-			BGC.locale["removedFrom_"..(list == "keep" and "exclude" or list == "toss" and "include" or "forceVendorPrice")],
-			self.item)
+			-- BGC.locale["removedFrom_"..list], -- FIXME: locale
+			"%s has been removed from your list.",
+			self.link or self.item)
+		ListUpdate( self:GetParent() )
 	elseif IsModifiedClick() then
 		self:SetChecked( not self:GetChecked() )
 		HandleModifiedItemClick(self.link)
 	else
 		Broker_Garbage.ToggleShared(list, self.item)
 	end
+end
+
+local function ToggleAutoSell(self, btn)
+	local row = self:GetParent()
+	Broker_Garbage.Add("price", row.item, self:GetChecked() and 1 or 0, nil, true)
 end
 
 -- creates child options frame for setting up one's lists
@@ -288,25 +299,34 @@ local function ShowListOptions(frame)
 		list.ScrollBar:SetPoint("BOTTOMLEFT", "$parent", "BOTTOMRIGHT", -20, 20)
 
 		-- headers
-		local sorter1 = CreateFrame("Button", "$parentSorterShared", list, "AuctionSortButtonTemplate")
+		local sorter1 = CreateFrame("Button", "$parentSorterShared", list, "AuctionSortButtonTemplate", 1)
 			  sorter1:SetText("|TInterface\\FriendsFrame\\PlusManz-PlusManz:24:24:-4:-1|t")
+			  sorter1.tiptext = "Shared rules have a blue border, click the icon to toggle between shared and single mode.\nRight-Click the icon to remove the item from the list." -- FIXME: locale
 			  sorter1:SetSize(30, 19)
 			  sorter1:SetPoint("BOTTOMLEFT", list, "TOPLEFT", 6, -2)
-			  sorter1:SetScript("OnClick", SimpleSort)
+			  sorter1:SetScript("OnClick", SortList)
+			  sorter1:SetScript("OnEnter", BGC.ShowTooltip)
+			  sorter1:SetScript("OnLeave", BGC.HideTooltip)
 			  _G[sorter1:GetName().."Arrow"]:Hide()
-		local sorter2 = CreateFrame("Button", "$parentSorterInfo", list, "AuctionSortButtonTemplate")
-			  sorter2:SetText( info[listName][2] )
-			  sorter2:SetSize(40, 19)
-			  sorter2:SetPoint("BOTTOMRIGHT", list, "TOPRIGHT", -20, -2)
-			  sorter2:SetScript("OnClick", SimpleSort)
-			  _G[sorter2:GetName().."Arrow"]:Hide()
-		local sorter3 = CreateFrame("Button", "$parentSorterName", list, "AuctionSortButtonTemplate")
-			  sorter3:SetText( info[listName][1] )
-			  sorter3:SetHeight(19)
-			  sorter3:SetPoint("BOTTOMLEFT", sorter1, "BOTTOMRIGHT", -2, 0)
-			  sorter3:SetPoint("BOTTOMRIGHT", sorter2, "BOTTOMLEFT", 2, 0)
-			  sorter3:SetScript("OnClick", SimpleSort)
+		local sorter3 = CreateFrame("Button", "$parentSorterInfo", list, "AuctionSortButtonTemplate", 3)
+			  sorter3:SetText( info[listName][2] )
+			  sorter3.tiptext = "Limit / Auto sell explanation" -- FIXME: locale
+			  sorter3:SetSize(40, 19)
+			  sorter3:SetPoint("BOTTOMRIGHT", list, "TOPRIGHT", -20, -2)
+			  sorter3:SetScript("OnClick", SortList)
+			  sorter3:SetScript("OnEnter", BGC.ShowTooltip)
+			  sorter3:SetScript("OnLeave", BGC.HideTooltip)
 			  _G[sorter3:GetName().."Arrow"]:Hide()
+		local sorter2 = CreateFrame("Button", "$parentSorterName", list, "AuctionSortButtonTemplate", 2)
+			  sorter2:SetText( info[listName][1] )
+			  sorter2.tiptext = "" -- FIXME: locale
+			  sorter2:SetHeight(19)
+			  sorter2:SetPoint("BOTTOMLEFT", sorter1, "BOTTOMRIGHT", -2, 0)
+			  sorter2:SetPoint("BOTTOMRIGHT", sorter3, "BOTTOMLEFT", 2, 0)
+			  sorter2:SetScript("OnClick", SortList)
+			  sorter2:SetScript("OnEnter", BGC.ShowTooltip)
+			  sorter2:SetScript("OnLeave", BGC.HideTooltip)
+			  _G[sorter2:GetName().."Arrow"]:Hide()
 
 		-- entries
 		for j = 1, 7 do
@@ -315,6 +335,7 @@ local function ShowListOptions(frame)
 				  item:SetScript("OnEnter", BGC.ShowTooltip)
 				  item:SetScript("OnLeave", BGC.HideTooltip)
 				  item:SetScript("OnClick", ItemButtonOnClick)
+				  item:RegisterForClicks("AnyUp")
 				  item.tiptext = Tooltip
 
 				  item:SetSize(26, 26)
@@ -332,12 +353,14 @@ local function ShowListOptions(frame)
 					  info:SetPoint("LEFT", name, "RIGHT", 2, 0)
 					  info:SetSize(26, 20)
 					  info:SetAutoFocus(false)
+					  info:SetNumeric(true)
+					  -- info:SetScript("OnEnter", SetKeepLimit) -- TODO: onenter, onescape, clear handlers
 				item.info = info
 			else
 				local info = CreateFrame("CheckButton", nil, item, "UICheckButtonTemplate")
 					  info:SetPoint("LEFT", name, "RIGHT", 4, 0)
 					  info:SetSize(20, 20)
-					  -- info:SetScript("OnClick", ClickFunc)
+					  info:SetScript("OnClick", ToggleAutoSell)
 				item.info = info
 			end
 
@@ -366,12 +389,6 @@ local function ShowListOptions(frame)
 	plus:SetNormalTexture("Interface\\Icons\\Spell_chargepositive")
 	plus.tiptext = BGC.locale.LOPlus
 	plus:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-	local minus = CreateFrame("Button", "$parentRemoveEntryButton", frame)
-	minus:SetPoint("LEFT", plus, "RIGHT", 4, 0)
-	minus:SetSize(25, 25)
-	minus:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-	minus:SetNormalTexture("Interface\\Icons\\Spell_chargenegative")
-	minus.tiptext = BGC.locale.LOMinus
 
 	local savePriceSetting = function(value)
 		if not value then return end
@@ -441,7 +458,7 @@ local function ShowListOptions(frame)
 	end
 
 	-- function to set the drop treshold (limit) via the mousewheel
-	local function OnMouseWheel(self, dir)
+	local function OnMouseWheel(self, dir) -- TODO: update code
 		local list = Broker_Garbage:GetOption(frame.current, self.isGlobal)
 		local key = self.itemID or self.tiptext
 
@@ -601,18 +618,6 @@ local function ShowListOptions(frame)
 			local cursorType, item, _ = GetCursorInfo()
 			if not (cursorType == "item" and item) then return end
 			reset = BGC.RemoteAddItemToList(item, frame.current)
-		-- remove action
-		elseif self == minus then
-			local index, newReset = 1, nil
-			while _G["BG_ListOptions_ScrollFrameItem"..index] do
-				local button = _G["BG_ListOptions_ScrollFrameItem"..index]
-				if button:IsVisible() and button:GetChecked() then
-					local item = button.itemID or button.tiptext
-					newReset = BGC.RemoteRemoveItemFromList(item, frame.current)
-					reset = reset or newReset
-				end
-				index = index + 1
-			end
 		-- setPrice action
 		elseif false then
 			local index = 1
@@ -637,9 +642,6 @@ local function ShowListOptions(frame)
 	plus:SetScript("OnLeave", BGC.HideTooltip)
 	plus:RegisterForDrag("LeftButton")
 	plus:SetScript("OnReceiveDrag", OnClick)
-	minus:SetScript("OnClick", OnClick)
-	minus:SetScript("OnEnter", BGC.ShowTooltip)
-	minus:SetScript("OnLeave", BGC.HideTooltip)
 
 	local function ListOptionsUpdate(self)
 		ListUpdate(self.keepList)
