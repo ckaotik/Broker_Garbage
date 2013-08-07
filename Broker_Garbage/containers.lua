@@ -187,29 +187,30 @@ local PRIORITY_NEUTRAL     = 0
 local PRIORITY_POSITIVE    = 1
 local PRIORITY_IGNORE      = math.huge
 
-local REASON_KEEP_ID       = 0
-local REASON_KEEP_CAT      = 1
-local REASON_TOSS_ID       = 2
-local REASON_TOSS_CAT      = 3
-local REASON_QUEST_ITEM    = 4
-local REASON_UNUSABLE_ITEM = 5
-local REASON_OUTDATED_ITEM = 6
-local REASON_GRAY_ITEM     = 7
-local REASON_PRICE_ITEM    = 8
-local REASON_PRICE_CAT     = 9
-local REASON_WORTHLESS     = 10
-local REASON_EMPTY_SLOT    = 11
-local REASON_HIGHEST_VALUE = 12
-local REASON_SOULBOUND     = 13
-local REASON_QUALITY       = 14
+local REASON_KEEP_ID       = 1
+local REASON_KEEP_CAT      = 2
+local REASON_TOSS_ID       = 3
+local REASON_TOSS_CAT      = 4
+local REASON_QUEST_ITEM    = 5
+local REASON_UNUSABLE_ITEM = 6
+local REASON_OUTDATED_ITEM = 7
+local REASON_GRAY_ITEM     = 8
+local REASON_PRICE_ITEM    = 9
+local REASON_PRICE_CAT     = 10
+local REASON_WORTHLESS     = 11
+local REASON_EMPTY_SLOT    = 12
+local REASON_HIGHEST_VALUE = 13
+local REASON_SOULBOUND     = 14
+local REASON_QUALITY       = 15
+local REASON_HIGHEST_LEVEL = 16
 
 local function Classify(location)
 	local cacheData = ns.containers[location]
 
 	local priority, doSell, priorityReason
-	if cacheData.value == 0 then
+	if not cacheData.item then
 		priority = PRIORITY_IGNORE
-		priorityReason = REASON_WORTHLESS
+		priorityReason = REASON_EMPTY_SLOT
 	else
 		priority, doSell, priorityReason = ns.GetItemPriority(location)
 		if doSell then
@@ -424,13 +425,26 @@ function ns.GetItemPriority(location)
 
 	-- outdated gear
 	if BG_GlobalDB.sellOutdated and item.q <= BG_GlobalDB.sellOutdatedQuality and
-		item.slot ~= "" and item.slot ~= "INVTYPE_BAG" and ns.IsItemSoulbound(location) and ns.IsOutdatedItem(location) then
-		priority = PRIORITY_NEUTRAL
-		return priority, true, REASON_OUTDATED_ITEM
+		item.slot ~= "" and item.slot ~= "INVTYPE_BAG" and ns.IsItemSoulbound(location) then
+		local isOutdated, isHighestLevel = ns.IsOutdatedItem(location)
+		if isOutdated then
+			priority = PRIORITY_NEUTRAL
+			return priority, true, REASON_OUTDATED_ITEM
+		elseif isHighestLevel then
+			priority = PRIORITY_POSITIVE
+			return priority, false, REASON_HIGHEST_LEVEL
+		end
+	end
+
+	-- items without value
+	if item.v == 0 and BG_GlobalDB.hideZeroValue then
+		priority = PRIORITY_IGNORE
+		reason = REASON_WORTHLESS
+		return priority, false, reason
 	end
 
 	-- gray quality items
-	if item.q == 0 then
+	if item.q == 0 then -- TODO: config "autosell greys"
 		priority = PRIORITY_NEUTRAL
 		reason = REASON_GRAY_ITEM
 		return priority, true, reason

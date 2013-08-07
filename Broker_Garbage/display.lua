@@ -246,7 +246,11 @@ end
 -- OnClick function - works for both, the LDB plugin -and- tooltip lines
 function BG.OnClick(self, location, btn)
 	local isLDBclick = type(location) ~= "number" and true or false
-	location = isLDBclick and BG.list[1] or location
+	if isLDBclick then
+		-- shift arguments
+		btn = location
+		location = BG.list[1]
+	end
 
 	if isLDBclick and btn == "RightButton" then
 		if InCombatLockdown() then BG.Print('Please try again after combat.'); return end -- TODO: locale
@@ -366,19 +370,20 @@ local LDB = LibDataBroker:NewDataObject(addonName, {
 	OnLeave = function() end, -- placeholder, required for e.g. ninja panel, but LibQTip takes care of that for us
 })
 
+-- FIXME
+local reasonNames = {"keep (itemID)", "keep (category)", "toss (itemID)", "toss (category)", "quest item", "unusable gear", "outdated gear", "gray item", "custom price (itemID)", "custom price (category)", "worthless", "slot is empty", "highest value", "soulbound", "quality above threshold", "outdated but highest ilvl"}
+
 hooksecurefunc(GameTooltip, "SetBagItem", function(tooltip, container, slot)
 	local location = BG.GetLocation(container, slot)
 	local cacheData = BG.containers[location]
 
 	if BG_GlobalDB.showItemTooltipLabel and cacheData.item then
-		tooltip:AddDoubleLine(
-			string.format("|cffee6622%s|r%s", addonName, BG_LocalDB.debug and " "..location or ""),
-			(cacheData.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or "")..(BG.GetInfo(cacheData.label) or "")
-		)
+		tooltip:AddDoubleLine(string.format("|cffee6622%s|r%s", addonName, BG_LocalDB.debug and " "..location or ""),
+			(cacheData.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or "")..(BG.GetInfo(cacheData.label) or "") )
 
 		if BG_GlobalDB.showLabelReason then
 			-- TODO: prettify
-			tooltip:AddDoubleLine(cacheData.priority, cacheData.reason)
+			tooltip:AddDoubleLine(cacheData.priority, reasonNames[ cacheData.reason ])
 		end
 		tooltip:Show()
 	end

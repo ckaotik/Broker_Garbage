@@ -221,11 +221,8 @@ function BG.IsOutdatedItem(location)
 			isInteresting = isInteresting or upgrade or best or secondBest
 		end
 
-		if not isInteresting and BG_GlobalDB.keepHighestItemLevel then
-			isInteresting = IsHighestItemLevel(location, item)
-		end
-
-		return not isInteresting
+		local isHighestItemLevel = not isInteresting and BG_GlobalDB.keepHighestItemLevel and IsHighestItemLevel(location, item)
+		return not (isInteresting or isHighestItemLevel), isHighestItemLevel
 	end
 end
 
