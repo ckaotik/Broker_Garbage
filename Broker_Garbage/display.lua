@@ -244,11 +244,11 @@ function BG.ShowTooltip(self)
 end
 
 -- OnClick function - works for both, the LDB plugin -and- tooltip lines
-function BG.OnClick(location, btn)
-	local isLDBclick = type(location) == "table" and true or false
+function BG.OnClick(self, location, btn)
+	local isLDBclick = type(location) ~= "number" and true or false
 	location = isLDBclick and BG.list[1] or location
 
-	if btn == "RightButton" then
+	if isLDBclick and btn == "RightButton" then
 		if InCombatLockdown() then BG.Print('Please try again after combat.'); return end -- TODO: locale
 		LoadAddOn("Broker_Garbage-Config")
 		InterfaceOptionsFrame_OpenToCategory("Broker_Garbage")
