@@ -109,7 +109,7 @@ local function UpdateEquipment()
 	for location, cacheData in pairs(ns.containers) do
 		if cacheData.item then
 			local invSlot = cacheData.item.slot
-			if invSlot ~= "" and not invSlot:find("BAG") and not invSlot:find("TRINKET") then
+			if invSlot ~= "" and not invSlot:find("BAG") then
 				local container, slot = ns.GetBagSlot(location)
 				ns.UpdateBagSlot(container, slot)
 			end

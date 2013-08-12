@@ -5,6 +5,7 @@ ignore:
     - Broker_Garbage/libs/CallbackHandler-1.0
     - Broker_Garbage/libs/LibStub
     - Broker_Garbage/libs/LibQTip-1.0
+    - Broker_Garbage/libs/LibItemUpgradeInfo-1.0
     - Broker_Garbage/libs/Unfit-1.0
 
 externals:
@@ -16,6 +17,9 @@ externals:
         tag: latest
     Broker_Garbage/libs/LibQTip-1.0:
         url: svn://svn.wowace.com/wow/libqtip-1-0/mainline/trunk
+        tag: latest
+    Broker_Garbage/libs/LibItemUpgradeInfo-1.0:
+        url: git://git.wowace.com/wow/libitemupgradeinfo-1-0/mainline.git
         tag: latest
     Broker_Garbage/libs/Unfit-1.0:
         url: git://github.com/Jaliborc/Unfit-1.0.git

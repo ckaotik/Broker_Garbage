@@ -362,6 +362,9 @@ end
 function ns.GetItemPriority(location)
 	local priority, reason
 	local item = ns.containers[location].item
+	if not item or not item.id then return
+		PRIORITY_IGNORE, false, REASON_EMPTY_SLOT
+	end
 
 	-- check list config by itemID
 	local listed = ns.keep[ item.id ]
@@ -385,7 +388,7 @@ function ns.GetItemPriority(location)
 		-- override categories that include gray items
 		priority = PRIORITY_NEUTRAL
 		reason = REASON_GRAY_ITEM
-		return priority, true, reason
+		return priority, item.v and item.v > 0, reason
 	end
 
 	-- check list config by category

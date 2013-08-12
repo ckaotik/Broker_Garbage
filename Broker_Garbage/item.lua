@@ -1,8 +1,8 @@
 local _, BG = ...
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, TopFit, PawnIsItemIDAnUpgrade, _G, UIParent
--- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, GetProfessions, GetProfessionInfo
--- GLOBALS: type, select, string, ipairs, math
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, ITEM_LEVEL, TopFit, PawnIsItemAnUpgrade, PawnGetItemData, PawnGetSlotsForItemType, _G, UIParent
+-- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, GetProfessions, GetProfessionInfo, GetContainerItemEquipmentSetInfo, GetInventoryItemsForSlot, EquipmentManager_UnpackLocation
+-- GLOBALS: type, select, string, ipairs, math, tonumber, wipe, pairs, table, strsplit
 
 local scanTooltip = CreateFrame("GameTooltip", "BrokerGarbageScanTooltip", nil, "GameTooltipTemplate")
 local GetItemBinding = setmetatable({}, {
@@ -126,7 +126,7 @@ function BG.CanDisenchant(item)
 	end
 end
 
-local itemLevel = setmetatable({ -- see http://www.wowinterface.com/forums/showthread.php?t=45388
+--[[ local itemLevel = setmetatable({ -- see http://www.wowinterface.com/forums/showthread.php?t=45388
     [1]   =  8, -- 1/1
     [373] =  4, -- 1/2
     [374] =  8, -- 2/2
@@ -160,13 +160,16 @@ local itemLevel = setmetatable({ -- see http://www.wowinterface.com/forums/showt
 		local modifier = tonumber( select(12, strsplit(":", item)) or "" )
 		return iLevel + (modifier and self[modifier] or 0)
 	end
-})
+}) --]]
 
+local ItemUpgradeInfo = LibStub("LibItemUpgradeInfo-1.0")
 local itemsForInvType = {}
 local itemsForSlot = {}
 local function SortEquipmentItems(locationA, locationB)
-	local levelA = itemLevel(locationA)
-	local levelB = itemLevel(locationB)
+	-- local levelA = itemLevel(locationA)
+	-- local levelB = itemLevel(locationB)
+	local levelA = LibItemUpgrade:GetUpgradedItemLevel( GetContainerItemLink( BG.GetBagSlot(locationA) ) )
+	local levelB = LibItemUpgrade:GetUpgradedItemLevel( GetContainerItemLink( BG.GetBagSlot(locationB) ) )
 	local isAInSet = GetContainerItemEquipmentSetInfo( BG.GetBagSlot(locationA) )
 	local isBInSet = GetContainerItemEquipmentSetInfo( BG.GetBagSlot(locationB) )
 
@@ -177,6 +180,18 @@ local function SortEquipmentItems(locationA, locationB)
 	else
 		return locationA < locationB
 	end
+end
+
+local function IsInterestingItem(itemLink)
+	local isInteresting = true
+	if TopFit and TopFit.IsInterestingItem then
+		isInteresting = TopFit:IsInterestingItem(itemLink)
+	end
+	if PawnGetItemData and PawnIsItemAnUpgrade then
+		local upgrade, best, secondBest = PawnIsItemAnUpgrade( PawnGetItemData(itemLink), true )
+		isInteresting = isInteresting or upgrade or best or secondBest
+	end
+	return isInteresting
 end
 
 local function IsHighestItemLevel(location)
@@ -192,11 +207,12 @@ local function IsHighestItemLevel(location)
 	wipe(itemsForSlot)
 	for location, inventoryItemID in pairs(itemsForInvType) do
 		local isEquipped, _, isInBags, _, slot, container = EquipmentManager_UnpackLocation(location)
-		if isInBags then
+		local itemLink = isInBags and GetContainerItemLink(container, slot)
+		if itemLink and not IsInterestingItem(itemLink) then
 			table.insert(itemsForSlot, BG.GetLocation(container, slot))
 		end
 	end
-	sort(itemsForSlot, SortEquipmentItems)
+	table.sort(itemsForSlot, SortEquipmentItems)
 
 	for i = 1, #slots do
 		if itemsForSlot[i] and itemsForSlot[i] == location then
@@ -209,19 +225,13 @@ function BG.IsOutdatedItem(location)
 	local item = BG.containers[ location ].item
 	local invSlot = item and item.slot
 
-	if not item or invSlot == "" or invSlot == "INVTYPE_BAG" --[[or invSlot:find("TRINKET")--]] then
+	if not item or invSlot == "" or invSlot == "INVTYPE_BAG" then
 		return
 	else
-		local isInteresting = true
-		if TopFit and TopFit.IsInterestingItem then
-			isInteresting = TopFit:IsInterestingItem(item.id)
-		end
-		if PawnIsItemIDAnUpgrade then
-			local upgrade, best, secondBest = PawnIsItemIDAnUpgrade(item.id, true)
-			isInteresting = isInteresting or upgrade or best or secondBest
-		end
-
+		local itemLink = GetContainerItemLink( BG.GetBagSlot(location) )
+		local isInteresting = IsInterestingItem(itemLink)
 		local isHighestItemLevel = not isInteresting and BG_GlobalDB.keepHighestItemLevel and IsHighestItemLevel(location, item)
+
 		return not (isInteresting or isHighestItemLevel), isHighestItemLevel
 	end
 end
