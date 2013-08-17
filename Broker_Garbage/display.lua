@@ -292,71 +292,48 @@ function BG.OnClick(self, location, btn)
 	end
 end
 
+local gColor, sColor, cColor = "ffd700", "c7c7cf", "eda55f"
+local separators = {
+	{'.', '.', ''},
+	{'|cff'..gColor..'.|r',  '|cff'..sColor..'.|r',  ''},
+	{'|cff'..gColor..'g|r ', '|cff'..sColor..'s|r ', '|cff'..cColor..'c|r '},
+	{'|TInterface\\MoneyFrame\\UI-GoldIcon:0|t ', '|TInterface\\MoneyFrame\\UI-SilverIcon:0|t ', '|TInterface\\MoneyFrame\\UI-CopperIcon:0|t '},
+}
+
+local parts = {}
 function BG.FormatMoney(amount, displayMode)
-	if not amount then return "" end
-	local signum = amount < 0 and "-" or ""
-		  amount = amount < 0 and -1*amount or amount
+	if not amount then return '' end
+	local signum = amount < 0 and '-' or ''
+		  amount = math.abs(amount)
 
 	local copper = amount%100
-	      amount = math.floor(amount/100)
-	local silver = amount%100
-	local gold   = math.floor(amount/100)
+	local tmp    = math.floor(amount/100)
+	local silver = tmp%100
+	local gold   = math.floor(tmp/100)
 
-	local formatGold, formatSilver, formatCopper
 	displayMode = displayMode or BG_GlobalDB.showMoney
-	if displayMode == 0 then
-		-- 1337.09.09
-		formatGold   = "%i.%.2i.%.2i"
-		formatSilver = "%i.%.2i"
-		formatCopper = "%i"
-	elseif displayMode == 1 then
-		-- 1337.9.9
-		formatGold   = "%i.%i.%i"
-		formatSilver = "%i.%i"
-		formatCopper = "%i"
-	elseif displayMode == 2 then
-		-- 1337.09.09 (colored)
-		formatGold   = "|cffffd700%i|r.|cffc7c7cf%.2i|r.|cffeda55f%.2i|r"
-		formatSilver = "|cffc7c7cf%i|r.|cffeda55f%.2i|r"
-		formatCopper = "|cffeda55f%i|r"
-	elseif displayMode == 3 then
-		-- 1337.9.9 (colored)
-		formatGold   = "|cffffd700%i|r.|cffc7c7cf%i|r.|cffeda55f%i|r"
-		formatSilver = "|cffc7c7cf%i|r.|cffeda55f%i|r"
-		formatCopper = "|cffeda55f%i|r"
-	-- Ara Broker Money
-	elseif displayMode == 4 then
-		-- 1337g 09s 09c (colored)
-		formatGold   = "|cffeeeeee%i|r|cffffd700g|r |cffeeeeee%.2i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r"
-		formatSilver = "|cffeeeeee%i|r|cffc7c7cfs|r |cffeeeeee%.2i|r|cffeda55fc|r"
-		formatCopper = "|cffeeeeee%i|r|cffeda55fc|r"
-	elseif displayMode == 5 then
-		-- 1337g 9s 9c (colored)
-		formatGold   = "|cffeeeeee%i|r|cffffd700g|r |cffeeeeee%i|r|cffc7c7cfs|r |cffeeeeee%i|r|cffeda55fc|r"
-		formatSilver = "|cffeeeeee%i|r|cffc7c7cfs|r |cffeeeeee%i|r|cffeda55fc|r"
-		formatCopper = "|cffeeeeee%i|r|cffeda55fc|r"
-	-- Haggler
-	elseif displayMode == 6 then
-		-- 1337* 09* 09* (icons)
-		formatGold   = "%i|TInterface\\MoneyFrame\\UI-GoldIcon:0|t %.2i|TInterface\\MoneyFrame\\UI-SilverIcon:0|t %.2i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
-		formatSilver = "%i|TInterface\\MoneyFrame\\UI-SilverIcon:0|t %.2i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
-		formatCopper = "%i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
-	elseif displayMode == 7 then
-		-- 1337* 9* 9* (icons)
-		formatGold   = "%i|TInterface\\MoneyFrame\\UI-GoldIcon:0|t %i|TInterface\\MoneyFrame\\UI-SilverIcon:0|t %i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
-		formatSilver = "%i|TInterface\\MoneyFrame\\UI-SilverIcon:0|t %i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
-		formatCopper = "%i|TInterface\\MoneyFrame\\UI-CopperIcon:0|t"
+
+	local text
+	local template = displayMode%2 == 0 and '%1$.2i' or '%1$i'
+	if displayMode == 2 or displayMode == 3 then
+		template = "|cff%3$s"..template.."|r%2$s"
 	else
-		return amount and GetCoinTextureString(amount)
+		template = template.."%2$s"
+	end
+	local showEmptyDenominators = true -- TODO, only applies to inner values
+	local style = math.floor(displayMode/2)+1
+	if separators[style] then
+		wipe(parts)
+		if gold > 0 then table.insert(parts, template:format(gold, separators[style][1], gColor)) end
+		if silver > 0 or (showEmptyDenominators and #parts > 0) then table.insert(parts, template:format(silver, separators[style][2], sColor)) end
+		if copper > 0 or (showEmptyDenominators and #parts > 0) then table.insert(parts, template:format(copper, separators[style][3], cColor)) end
+		text = signum .. table.concat(parts, '')
+		text = strtrim(text, " ")
+	else
+		text = signum .. GetCoinTextureString(amount)
 	end
 
-	if gold > 0 then
-		return string.format(signum .. formatGold, gold, silver, copper)
-	elseif silver > 0 then
-		return string.format(signum .. formatSilver, silver, copper)
-	else
-		return string.format(signum .. formatCopper, copper)
-	end
+	return text or ''
 end
 
 local LDB = LibDataBroker:NewDataObject(addonName, {
