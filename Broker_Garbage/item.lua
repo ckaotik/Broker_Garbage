@@ -162,10 +162,11 @@ end
 	end
 }) --]]
 
-local ItemUpgradeInfo = LibStub("LibItemUpgradeInfo-1.0")
+local LibItemUpgrade = LibStub("LibItemUpgradeInfo-1.0")
 local itemsForInvType = {}
 local itemsForSlot = {}
 local function SortEquipmentItems(locationA, locationB)
+	-- TODO: store upgrade-mod in containers[location]
 	-- local levelA = itemLevel(locationA)
 	-- local levelB = itemLevel(locationB)
 	local levelA = LibItemUpgrade:GetUpgradedItemLevel( GetContainerItemLink( BG.GetBagSlot(locationA) ) )

@@ -315,16 +315,19 @@ function BG.FormatMoney(amount, displayMode)
 
 	local text
 	local template = displayMode%2 == 0 and '%1$.2i' or '%1$i'
+	local goldTemplate = '%1$i' -- gold does not need padding
 	if displayMode == 2 or displayMode == 3 then
 		template = "|cff%3$s"..template.."|r%2$s"
+		goldTemplate = "|cff%3$s"..goldTemplate.."|r%2$s"
 	else
 		template = template.."%2$s"
+		goldTemplate = goldTemplate.."%2$s"
 	end
 	local showEmptyDenominators = true -- TODO, only applies to inner values
 	local style = math.floor(displayMode/2)+1
 	if separators[style] then
 		wipe(parts)
-		if gold > 0 then table.insert(parts, template:format(gold, separators[style][1], gColor)) end
+		if gold > 0 then table.insert(parts, goldTemplate:format(gold, separators[style][1], gColor)) end
 		if silver > 0 or (showEmptyDenominators and #parts > 0) then table.insert(parts, template:format(silver, separators[style][2], sColor)) end
 		if copper > 0 or (showEmptyDenominators and #parts > 0) then table.insert(parts, template:format(copper, separators[style][3], cColor)) end
 		text = signum .. table.concat(parts, '')
