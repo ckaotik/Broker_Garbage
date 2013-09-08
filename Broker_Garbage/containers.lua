@@ -216,6 +216,9 @@ local function Classify(location)
 		if doSell then
 			cacheData.label = ns.AUTOSELL
 			cacheData.value = cacheData.item.v
+		elseif priority == PRIORITY_NEGATIVE and cacheData.label == ns.IGNORE then
+			-- FIXME: conflict
+			cacheData.label = ns.INCLUDE
 		end
 	end
 
