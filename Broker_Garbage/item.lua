@@ -1,7 +1,7 @@
 local _, BG = ...
 
 -- GLOBALS: BG_GlobalDB, BG_LocalDB, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, ITEM_LEVEL, TopFit, PawnIsItemAnUpgrade, PawnGetItemData, PawnGetSlotsForItemType, _G, UIParent
--- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, GetProfessions, GetProfessionInfo, GetContainerItemEquipmentSetInfo, GetInventoryItemsForSlot, EquipmentManager_UnpackLocation
+-- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, GetInventoryItemLink, GetProfessions, GetProfessionInfo, GetContainerItemEquipmentSetInfo, GetInventoryItemsForSlot, EquipmentManager_UnpackLocation
 -- GLOBALS: type, select, string, ipairs, math, tonumber, wipe, pairs, table, strsplit
 
 local scanTooltip = CreateFrame("GameTooltip", "BrokerGarbageScanTooltip", nil, "GameTooltipTemplate")
@@ -126,61 +126,42 @@ function BG.CanDisenchant(item)
 	end
 end
 
---[[ local itemLevel = setmetatable({ -- see http://www.wowinterface.com/forums/showthread.php?t=45388
-    [1]   =  8, -- 1/1
-    [373] =  4, -- 1/2
-    [374] =  8, -- 2/2
-    [375] =  4, -- 1/3
-    [376] =  4, -- 2/3
-    [377] =  4, -- 3/3
-    [379] =  4, -- 1/2
-    [380] =  4, -- 2/2
-    [446] =  4, -- 1/2
-    [447] =  8, -- 2/2
-    [452] =  8, -- 1/1
-    [454] =  4, -- 1/2
-    [455] =  8, -- 2/2
-    [457] =  8, -- 1/1
-    [459] =  4, -- 1/4
-    [460] =  8, -- 2/4
-    [461] = 12, -- 3/4
-    [462] = 16, -- 4/4
-    [466] =  4, -- 1/2
-    [467] =  8, -- 2/2
-    [469] =  4, -- 1/4
-    [470] =  8, -- 2/4
-    [471] = 12, -- 3/4
-    [472] = 16, -- 4/4
-}, {
-	__call = function(self, item)
-		if type(item) == "number" then
-			item = GetContainerItemLink( BG.GetBagSlot(item) )
-		end
-		local _, _, _, iLevel = GetItemInfo(item)
-		local modifier = tonumber( select(12, strsplit(":", item)) or "" )
-		return iLevel + (modifier and self[modifier] or 0)
-	end
-}) --]]
-
 local LibItemUpgrade = LibStub("LibItemUpgradeInfo-1.0")
 local itemsForInvType = {}
-local itemsForSlot = {}
-local function SortEquipmentItems(locationA, locationB)
-	-- TODO: store upgrade-mod in containers[location]
-	-- local levelA = itemLevel(locationA)
-	-- local levelB = itemLevel(locationB)
-	local levelA = LibItemUpgrade:GetUpgradedItemLevel( GetContainerItemLink( BG.GetBagSlot(locationA) ) )
-	local levelB = LibItemUpgrade:GetUpgradedItemLevel( GetContainerItemLink( BG.GetBagSlot(locationB) ) )
-	local isAInSet = GetContainerItemEquipmentSetInfo( BG.GetBagSlot(locationA) )
-	local isBInSet = GetContainerItemEquipmentSetInfo( BG.GetBagSlot(locationB) )
+local function IsHighestItemLevel(location)
+	local equipSlot = BG.containers[ location ].item.slot
+	local slots = (TopFit and TopFit.GetEquipLocationsByInvType and TopFit:GetEquipLocationsByInvType(equipSlot)) or
+		(PawnGetSlotsForItemType and { PawnGetSlotsForItemType(equipSlot) }) or
+		{}
 
-	if levelA ~= levelB then
-		return levelA > levelB
-	elseif isAInSet ~= isBInSet then
-		return isAInSet
-	else
-		return locationA < locationB
+	local numSlots = #slots
+	local locationLevel = LibItemUpgrade:GetUpgradedItemLevel( GetContainerItemLink( BG.GetBagSlot(location) ) )
+
+	wipe(itemsForInvType)
+	-- compare with equipped item levels
+	for _, slot in ipairs(slots) do
+		local itemLink = GetInventoryItemLink("player", slot)
+		local itemLevel = itemLink and LibItemUpgrade:GetUpgradedItemLevel(itemLink)
+		if itemLink and itemLevel > locationLevel then
+			numSlots = numSlots - 1
+		end
+		if numSlots <= 0 then return false end
+
+		GetInventoryItemsForSlot(slot, itemsForInvType)
 	end
+
+	-- compare with other equipment in bags
+	for location, inventoryItemID in pairs(itemsForInvType) do
+		local isEquipped, _, isInBags, _, slot, container = EquipmentManager_UnpackLocation(location)
+		-- use actual link for upgraded item levels
+		local itemLink = isInBags and GetContainerItemLink(container, slot)
+		local itemLevel = itemLink and LibItemUpgrade:GetUpgradedItemLevel(itemLink)
+		if itemLink and itemLevel > locationLevel then
+			numSlots = numSlots - 1
+		end
+		if numSlots <= 0 then return false end
+	end
+	return true
 end
 
 local function IsInterestingItem(itemLink)
@@ -195,33 +176,6 @@ local function IsInterestingItem(itemLink)
 	return isInteresting
 end
 
-local function IsHighestItemLevel(location)
-	local item = BG.containers[ location ].item
-	local slots = (TopFit and TopFit.GetEquipLocationsByInvType and TopFit:GetEquipLocationsByInvType(item.slot)) or
-		(PawnGetSlotsForItemType and { PawnGetSlotsForItemType(item.slot) }) or
-		{}
-
-	wipe(itemsForInvType)
-	for _, slot in ipairs(slots) do
-		GetInventoryItemsForSlot(slot, itemsForInvType)
-	end
-	wipe(itemsForSlot)
-	for location, inventoryItemID in pairs(itemsForInvType) do
-		local isEquipped, _, isInBags, _, slot, container = EquipmentManager_UnpackLocation(location)
-		local itemLink = isInBags and GetContainerItemLink(container, slot)
-		if itemLink and not IsInterestingItem(itemLink) then
-			table.insert(itemsForSlot, BG.GetLocation(container, slot))
-		end
-	end
-	table.sort(itemsForSlot, SortEquipmentItems)
-
-	for i = 1, #slots do
-		if itemsForSlot[i] and itemsForSlot[i] == location then
-			return true
-		end
-	end
-end
-
 function BG.IsOutdatedItem(location)
 	local item = BG.containers[ location ].item
 	local invSlot = item and item.slot
@@ -231,7 +185,7 @@ function BG.IsOutdatedItem(location)
 	else
 		local itemLink = GetContainerItemLink( BG.GetBagSlot(location) )
 		local isInteresting = IsInterestingItem(itemLink)
-		local isHighestItemLevel = not isInteresting and BG_GlobalDB.keepHighestItemLevel and IsHighestItemLevel(location, item)
+		local isHighestItemLevel = not isInteresting and BG_GlobalDB.keepHighestItemLevel and IsHighestItemLevel(location)
 
 		return not (isInteresting or isHighestItemLevel), isHighestItemLevel
 	end
