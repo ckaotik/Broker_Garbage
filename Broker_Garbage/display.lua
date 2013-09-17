@@ -26,7 +26,7 @@ end
 
 local formatReplaceFuncs = {
 	["[junkvalue]"] = function()
-		return BG.FormatMoney(BG.junkValue)
+		return BG.FormatMoney(BG.junkValue or 0)
 	end,
 	-- item based
 	["[itemname]"] = function()
@@ -52,7 +52,7 @@ local formatReplaceFuncs = {
 	["[itemvalue]"] = function()
 		local cacheData = BG.containers[ BG.list[1] ]
 		if cacheData.item then
-			return BG.FormatMoney(cacheData.value)
+			return BG.FormatMoney(cacheData.value or 0)
 		end
 	end,
 
