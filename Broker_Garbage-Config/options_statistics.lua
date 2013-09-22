@@ -1,7 +1,7 @@
 local _, BGC = ...
 
--- GLOBALS: Broker_Garbage, LibStub, _G
--- GLOBALS: UpdateAddOnMemoryUsage, GetAddOnMemoryUsage, IsShiftKeyDown, collectgarbage, CreateFrame, UnitName
+-- GLOBALS: Broker_Garbage, LibStub, _G, RAID_CLASS_COLORS, select
+-- GLOBALS: UpdateAddOnMemoryUsage, GetAddOnMemoryUsage, IsShiftKeyDown, collectgarbage, CreateFrame, UnitName, UnitClass
 local floor = math.floor
 local match = string.match
 local format = string.format
@@ -10,7 +10,8 @@ local function Options_Statistics(panel)
 	local function ResetStatistics(self)
 		if not self or not self.stat then return end
 		Broker_Garbage.ResetOption(self.stat, self.isGlobal)
-		BGC.UpdateOptionsPanel()
+		panel:Hide()
+		panel:Show()
 	end
 
 	local function AddStatistic(stat, label, value, tooltip, ...)
@@ -40,7 +41,7 @@ local function Options_Statistics(panel)
 				action.isGlobal = match(stat, "^_.*") and true or nil
 				action.stat = match(stat, "^_?(.*)")
 				if stat == "collectgarbage" then
-					action:SetScript("OnClick", function() collectgarbage("collect"); BGC.UpdateOptionsPanel() end)
+					action:SetScript("OnClick", function() collectgarbage("collect"); panel:Hide(); panel:Show() end)
 				else
 					action:SetNormalTexture("Interface\\RAIDFRAME\\ReadyCheck-NotReady")
 					action:SetScript("OnClick", ResetStatistics)
@@ -55,7 +56,7 @@ local function Options_Statistics(panel)
 	end
 
 	UpdateAddOnMemoryUsage()
-	local memoryUsage, memoryUsageText = AddStatistic("collectgarbage", BGC.locale.MemoryUsageTitle, floor(GetAddOnMemoryUsage("Broker_Garbage")), BGC.locale.CollectMemoryUsageTooltip, "TOPRIGHT", panel, "TOP", -2, -40)
+	local memoryUsage, memoryUsageText = AddStatistic("collectgarbage", BGC.locale.MemoryUsageTitle, floor(GetAddOnMemoryUsage("Broker_Garbage")), BGC.locale.CollectMemoryUsageTooltip, "TOPRIGHT", panel, "TOP", -2, -120)
 
 	-- local auctionAddon, auctionAddonText = AddStatistic(nil, BGC.locale.AuctionAddon, Broker_Garbage:GetVariable("auctionAddon") or BGC.locale.na, BGC.locale.AuctionAddonTooltip, "TOPLEFT", memoryUsage, "BOTTOMLEFT", 0, -6)
 
