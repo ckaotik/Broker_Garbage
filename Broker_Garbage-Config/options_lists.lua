@@ -117,7 +117,7 @@ local function ListUpdate(self)
 			isMatch = true
 		elseif type(item) == "number" then
 			local itemName = GetItemInfo(item)
-			isMatch = itemName:lower():find( frame.searchString )
+			isMatch = itemName and itemName:lower():find( frame.searchString )
 		else
 			isMatch = item:lower():find( frame.searchString )
 		end
@@ -246,7 +246,7 @@ local function ShowListOptions(frame)
 	detach:SetText(BGC.locale.detachConfigText)
 	detach.tiptext = BGC.locale.detachConfigTooltip
 	detach:SetWidth(100)
-	detach:RegisterForClicks("RightButtonUp", "LeftButtonUp")
+	detach:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 	detach:SetScript("OnClick", ToggleDetach)
 
 	local title = LibStub("tekKonfig-Heading").new(frame, "Broker_Garbage - " .. BGC.locale.LOTitle)
@@ -342,6 +342,7 @@ local function ShowListOptions(frame)
 		end)
 		addItem:SetScript("OnReceiveDrag", addItem:GetScript("OnClick"))
 
+		-- TODO: FIXME: right click menu!
 		SetItemButtonTexture(addItem, "Interface\\GuildBankFrame\\UI-GuildBankFrame-NewTab")
 		addItem:SetScript("OnEnter", BGC.ShowTooltip)
 		addItem:SetScript("OnLeave", BGC.HideTooltip)
@@ -436,6 +437,7 @@ local function ShowListOptions(frame)
 		ListUpdate(list)
 	end
 
+	-- TODO: forced price config + update
 	local savePriceSetting = function(value)
 		if not value then return end
 		local index, button, item, resetRequired = 1, nil, nil, nil
@@ -501,33 +503,6 @@ local function ShowListOptions(frame)
 	end)
 	searchbox.clearFunc = function(self)
 		BGC.ListOptionsUpdate(frame)
-	end
-
-	-- function to set the drop treshold (limit) via the mousewheel
-	local function OnMouseWheel(self, dir) -- TODO: update code
-		local list = Broker_Garbage:GetOption(frame.current, self.isGlobal)
-		local key = self.itemID or self.tiptext
-
-		local countText = _G[self:GetName()..'Count']
-		local change = IsShiftKeyDown() and 10 or 1
-			  change = (dir == 1) and change or change * -1
-		local value = tonumber(list[key]) or 0
-			  value = value + change
-			  value = value > 0 and value or 0
-
-		list[key] = value
-		SetItemButtonCount(self, value)
-		if value == 1 then
-			countText:SetText(value)
-			countText:Show()
-		end
-
-		if self.itemID then
-			Broker_Garbage.UpdateCache(self.itemID)
-		else
-			-- commented because of huuuuge memory/CPU requirements
-			-- Broker_Garbage.ScanInventory() -or- Broker_Garbage.UpdateAllDynamicItems()
-		end
 	end
 
 	if not _G["BG_LPTMenuFrame"] then
