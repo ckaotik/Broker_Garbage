@@ -1,4 +1,4 @@
-## Interface: 50300
+## Interface: 50400
 ## Dependencies: Broker_Garbage
 ## OptionalDeps: Broker_Garbage-LootManager
 
@@ -23,7 +23,7 @@
 ## X-LoadOn-InterfaceOptions: Broker_Garbage
 ## X-LoadOn-Slash: /garbage, /junk
 
-## X-Website: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
+## X-Website: http://www.curse.com/addons/wow/broker_garbage
 ## X-RelSite-WoWI: 15531
 ## X-Category: Inventory
 ## X-Localizations: enUS, deDE. Works in any language. You can help!
@@ -41,7 +41,6 @@ locale\curse.lua
 # main files
 util.lua
 options_main.lua
-options_sources.lua
 options_lists.lua
 ..\Broker_Garbage-LootManager\options.lua
 category_test.lua

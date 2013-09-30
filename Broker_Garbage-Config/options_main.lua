@@ -3,9 +3,107 @@ local _, BGC = ...
 -- GLOBALS: Broker_Garbage, LibStub, _G
 -- GLOBALS: UIDropDownMenu_CreateInfo, UIDropDownMenu_GetSelectedValue, UIDropDownMenu_AddButton, UIDropDownMenu_SetSelectedValue, UIDropDownMenu_SetText, UIDropDownMenu_SetWidth, UIDropDownMenu_JustifyText, CreateFrame, IsAddOnLoaded
 
+-- declare so it's usable ...
+local UpdateAuctionAddonList = function() end
+
+local function EnableDisable(self, button)
+	local name = self:GetParent().addonName:GetText()
+	if self:GetParent().displayType == 'buyout' then
+		Broker_Garbage.EnablePriceHandler(name, self:GetChecked() and true or false)
+	else
+		Broker_Garbage.EnablePriceHandler(name, nil, self:GetChecked() and true or false)
+	end
+end
+
+local function ChangeOrder(self, button)
+	local index = self:GetParent():GetID()
+	local displayType = self:GetParent().displayType
+	local name = self:GetParent().addonName:GetText()
+
+	Broker_Garbage.ReOrderPriceHandler(name, displayType, index + (self.direction == 1 and 0 or 1))
+	UpdateAuctionAddonList()
+end
+
+local frames = { buyout = {}, disenchant = {} }
+local displayTypes = { 'buyout', 'disenchant' }
+UpdateAuctionAddonList = function(panel)
+	local auctionAddonOrder, auctionAddon, addonLine, bgTex
+	for _, displayType in ipairs(displayTypes) do
+		local numShown = 0
+		auctionAddonOrder = Broker_Garbage.GetPriceHandlerOrder(displayType)
+		for i, addonKey in ipairs(auctionAddonOrder) do
+			auctionAddon = Broker_Garbage.GetPriceHandler(addonKey, true)
+			if auctionAddon and auctionAddon[displayType] then
+				addonLine = frames[displayType][i]
+				if not addonLine then
+					addonLine = CreateFrame('Frame', nil, panel)
+					addonLine:SetSize(260, 16)
+					addonLine:SetID(i)
+					addonLine.displayType = displayType
+					frames[displayType][i] = addonLine
+
+					if i == 1 then
+						-- addonLine:SetPoint('TOPLEFT', 16 + (displayType == 'buyout' and 0 or 260 + 40), -426)
+						addonLine:SetPoint('TOPLEFT', panel.prioritiesExplain, 'BOTTOMLEFT', (displayType == 'buyout' and 0 or 260+40), -12)
+					else
+						addonLine:SetPoint('TOPLEFT', frames[displayType][i-1], 'BOTTOMLEFT', 0, 0)
+					end
+					if i%2 ~= 0 then
+						bgTex = addonLine:CreateTexture(nil, 'BACKGROUND')
+						bgTex:SetTexture(1, 1, 1, 0.1)
+						bgTex:SetHorizTile(true)
+						bgTex:SetVertTile(true)
+						bgTex:SetAllPoints()
+					end
+
+					addonLine.enabled, addonLine.addonName = LibStub("tekKonfig-Checkbox").new(addonLine, 20, '', 'LEFT', -1, 0)
+					addonLine.addonName:SetFontObject('GameFontNormalSmall')
+					addonLine.enabled.tiptext = BGC.locale.AuctionAddonsEnableTT
+					addonLine.enabled:SetScript('OnClick', EnableDisable)
+
+					addonLine.moveUp = CreateFrame('Button', '$parentUpButton', addonLine)
+					addonLine.moveUp.direction = 1
+					addonLine.moveUp:SetScript('OnClick', ChangeOrder)
+					addonLine.moveUp:SetPoint('TOPLEFT', 224, 2)
+					addonLine.moveUp:SetSize(20, 20)
+					addonLine.moveUp:SetNormalTexture('Interface\\ChatFrame\\UI-ChatIcon-ScrollUp-Up')
+					addonLine.moveUp:SetPushedTexture('Interface\\ChatFrame\\UI-ChatIcon-ScrollUp-Down')
+					addonLine.moveUp:SetDisabledTexture('Interface\\ChatFrame\\UI-ChatIcon-ScrollUp-Disabled')
+					addonLine.moveUp:SetHighlightTexture('Interface\\PaperDollInfoFrame\\UI-Character-Tab-Highlight', 'ADD')
+
+					addonLine.moveDown = CreateFrame('Button', '$parentDownButton', addonLine)
+					addonLine.moveDown.direction = -1
+					addonLine.moveDown:SetScript('OnClick', ChangeOrder)
+					addonLine.moveDown:SetPoint('TOPLEFT', 224+18, 2)
+					addonLine.moveDown:SetSize(20, 20)
+					addonLine.moveDown:SetNormalTexture('Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Up')
+					addonLine.moveDown:SetPushedTexture('Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Down')
+					addonLine.moveDown:SetDisabledTexture('Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Disabled')
+					addonLine.moveDown:SetHighlightTexture('Interface\\PaperDollInfoFrame\\UI-Character-Tab-Highlight', 'ADD')
+				end
+				addonLine.enabled:SetChecked(auctionAddon[displayType .. 'Enabled'])
+				addonLine.addonName:SetText(addonKey)
+				addonLine.moveDown:Show()
+				if i == 1 then addonLine.moveUp:Hide()
+				else addonLine.moveUp:Show() end
+
+
+				numShown = numShown + 1
+				addonLine:Show()
+			end
+		end
+		if numShown > 0 then frames[displayType][numShown].moveDown:Hide() end
+		for i = numShown + 1, #frames[displayType] do
+			frames[i]:Hide()
+		end
+	end
+end
+
+-- ----------------------------------------------------------------------------
+
 local function Options_BasicOptions(panel)
-	local behavior = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupBehavior, "TOPLEFT", 21, -16)
-	behavior:SetHeight(333); behavior:SetWidth(180)
+	local behavior = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupBehavior, "TOPLEFT", 20, -20)
+	behavior:SetSize(185, 285)
 	behavior:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
 	local sell = BGC.CreateCheckBox(behavior, nil, BGC.locale.autoSellTitle, "TOPLEFT", behavior, "TOPLEFT", 4, -2)
@@ -66,16 +164,7 @@ local function Options_BasicOptions(panel)
 	line:SetPoint("RIGHT", -6, 2)
 	-- -----------------------------------------------------------------
 
-	local restack = BGC.CreateCheckBox(behavior, nil, BGC.locale.restackTitle, "TOPLEFT", line, "BOTTOMLEFT", 0, 0)
-	restack.tiptext = BGC.locale.restackTooltip .. BGC.locale.GlobalSetting
-	restack:SetChecked( Broker_Garbage:GetOption("restackInventory", true) )
-	local checksound = restack:GetScript("OnClick")
-	restack:SetScript("OnClick", function(self)
-		checksound(self)
-		Broker_Garbage:ToggleOption("restackInventory", true)
-	end)
-
-	local repair = BGC.CreateCheckBox(behavior, nil, BGC.locale.autoRepairTitle, "TOPLEFT", restack, "BOTTOMLEFT", 0, 4)
+	local repair = BGC.CreateCheckBox(behavior, nil, BGC.locale.autoRepairTitle, "TOPLEFT", line, "BOTTOMLEFT", 0, 0)
 	repair.tiptext = BGC.locale.autoRepairText .. BGC.locale.GlobalSetting
 	repair:SetChecked( Broker_Garbage:GetOption("autoRepairAtVendor", true) )
 	local checksound = repair:GetScript("OnClick")
@@ -115,19 +204,9 @@ local function Options_BasicOptions(panel)
 		Broker_Garbage.Scan()
 	end)
 
-	local hideZero = BGC.CreateCheckBox(behavior, nil, BGC.locale.hideZeroTitle, "TOPLEFT", enchanter, "BOTTOMLEFT", 0, -40)
-	hideZero.tiptext = BGC.locale.hideZeroTooltip .. BGC.locale.GlobalSetting
-	hideZero:SetChecked( Broker_Garbage:GetOption("hideZeroValue", true) )
-	local checksound = hideZero:GetScript("OnClick")
-	hideZero:SetScript("OnClick", function(self)
-		checksound(self)
-		Broker_Garbage:ToggleOption("hideZeroValue", true)
-		Broker_Garbage.Scan()
-	end)
-
 	-- -----------------------------------------------------------------
 	local line2 = BGC.CreateHorizontalRule(behavior)
-	line2:SetPoint("TOPLEFT", hideZero, "BOTTOMLEFT", 2, 2)
+	line2:SetPoint("TOPLEFT", enchanter, "BOTTOMLEFT", 2, 2-40)
 	line2:SetPoint("RIGHT", -6, 2)
 	-- -----------------------------------------------------------------
 
@@ -163,7 +242,7 @@ local function Options_BasicOptions(panel)
 	UIDropDownMenu_SetText(disableKey, _G[Broker_Garbage:GetOption("disableKey", true).."_KEY"])
 
 	local thresholds = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupTresholds, "TOPLEFT", behavior, "TOPRIGHT", 10, 0)
-	thresholds:SetHeight(96); thresholds:SetWidth(180)
+	thresholds:SetSize(185, 96)
 	thresholds:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
 	local qualityTreshold = CreateFrame("Frame", "BG_DropQualityDropDown", thresholds, "UIDropDownMenuTemplate")
@@ -229,7 +308,7 @@ local function Options_BasicOptions(panel)
 	end
 
 	local tooltip = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupTooltip, "TOPLEFT", thresholds, "BOTTOMLEFT", 0, -14)
-	tooltip:SetHeight(215); tooltip:SetWidth(180)
+	tooltip:SetSize(185, 215)
 	tooltip:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
 	local showSource = BGC.CreateCheckBox(tooltip, nil, BGC.locale.showSourceTitle, "TOPLEFT", tooltip, "TOPLEFT", 4, -2)
@@ -404,7 +483,7 @@ local function Options_BasicOptions(panel)
 	-- ----------------------------------------------------------------------------------------------------
 
 	local display = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupDisplay, "TOPLEFT", thresholds, "TOPRIGHT", 10, 0)
-	display:SetHeight(125); display:SetWidth(180)
+	display:SetSize(185, 150)
 	display:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
 	local sellIcon = BGC.CreateCheckBox(display, nil, BGC.locale.showAutoSellIconTitle, "TOPLEFT", display, "TOPLEFT", 4, -2)
@@ -473,8 +552,18 @@ local function Options_BasicOptions(panel)
 		end
 	end
 
+	local hideZero = BGC.CreateCheckBox(display, nil, BGC.locale.hideZeroTitle, "TOPLEFT", moneyFormatLabel, "BOTTOMLEFT", -6, -30)
+	hideZero.tiptext = BGC.locale.hideZeroTooltip .. BGC.locale.GlobalSetting
+	hideZero:SetChecked( Broker_Garbage:GetOption("hideZeroValue", true) )
+	local checksound = hideZero:GetScript("OnClick")
+	hideZero:SetScript("OnClick", function(self)
+		checksound(self)
+		Broker_Garbage:ToggleOption("hideZeroValue", true)
+		Broker_Garbage.Scan()
+	end)
+
 	local output = LibStub("tekKonfig-Group").new(panel, BGC.locale.GroupOutput, "TOPLEFT", display, "BOTTOMLEFT", 0, -14)
-	output:SetHeight(108); output:SetWidth(180)
+	output:SetSize(185, 108)
 	output:SetBackdropColor(0.1, 0.1, 0.1, 0.4)
 
 	local debugMode = BGC.CreateCheckBox(output, nil, BGC.locale.debugTitle, "TOPLEFT", output, "TOPLEFT", 4, -2)
@@ -514,7 +603,29 @@ local function Options_BasicOptions(panel)
 		Broker_Garbage:ToggleOption("reportDisenchantOutdated", true)
 	end)
 
-	panel:SetScript("OnShow", function()
+	-- ------------------------------------------------------------------------
+	local explainText = panel:CreateFontString(nil, 'ARTWORK', 'GameFontHighlightSmall')
+	explainText:SetPoint('LEFT', panel, 'LEFT', 24, 0)
+	explainText:SetPoint('RIGHT', panel, 'RIGHT', -24, 0)
+	explainText:SetPoint('TOP', tooltip, 'BOTTOM', 0, -16)
+	explainText:SetHeight(40)
+	explainText:SetNonSpaceWrap(true)
+	explainText:SetJustifyH('LEFT')
+	explainText:SetJustifyV('TOP')
+	explainText:SetText(BGC.locale.AuctionAddonsExplanation)
+	panel.prioritiesExplain = explainText
+
+	local buyoutHeading = panel:CreateFontString(nil, 'ARTWORK', 'GameFontNormalSmall')
+	buyoutHeading:SetPoint('TOP', explainText, 'BOTTOMLEFT', 0.5*260, 0)
+	buyoutHeading:SetText(BGC.locale.AuctionAddonsBuyout)
+
+	local disenchantHeading = panel:CreateFontString(nil, 'ARTWORK', 'GameFontNormalSmall')
+	disenchantHeading:SetPoint('TOP', explainText, 'BOTTOMLEFT', (1.5*260)+40, 0)
+	disenchantHeading:SetText(BGC.locale.AuctionAddonsDisenchant)
+
+	UpdateAuctionAddonList(panel)
+
+	panel:SetScript("OnShow", function(self)
 		junkText:SetText( Broker_Garbage:GetOption("LDBformat", true) )
 		noJunkText:SetText( Broker_Garbage:GetOption("LDBNoJunk", true) )
 
@@ -531,6 +642,8 @@ local function Options_BasicOptions(panel)
 			tooltipHeight:SetValue( ttHeight )
 		end
 		tooltipHeightText:SetText(BGC.locale.maxHeightTitle .. ": " .. ttHeight)
+
+		UpdateAuctionAddonList(self)
 	end)
 end
 
