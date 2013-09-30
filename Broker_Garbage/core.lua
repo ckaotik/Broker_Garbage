@@ -32,11 +32,10 @@ function events:ADDON_LOADED(event, addon)
 	if addon ~= addonName then return end
 	ns.CheckSettings()
 
-	-- beware of <new!> things!
 	ns.keep = Merge(BG_GlobalDB.keep, BG_LocalDB.keep)
 	ns.toss = Merge(BG_GlobalDB.toss, BG_LocalDB.toss)
 
-	ns.list = {} 								-- { <location>, <location>, ...} to reference ns.container[<location]
+	ns.list = {} 								-- { <location>, <location>, ...} to reference ns.container[<location>]
 	ns.locations = {} 							-- [<itemID|category>] = { <location>, ... }
 	-- contains dynamic data
 	ns.containers = setmetatable({}, {
@@ -72,7 +71,7 @@ function events:ADDON_LOADED(event, addon)
 				slot   = equipSlot,
 				limit  = {}, 				-- list of categories that contain this item
 				cl     = itemClass,
-				l      = iLevel, 			-- TODO: fix upgraded items
+				l      = iLevel,
 				q      = quality,
 				v      = vendorPrice,
 				bop    = ns.IsItemBoP(itemID),
@@ -95,9 +94,11 @@ function events:ADDON_LOADED(event, addon)
 	end
 	self:BAG_UPDATE_DELAYED()
 
-	for _, event in pairs({ "BAG_UPDATE", "BAG_UPDATE_DELAYED", "CHAT_MSG_SKILL", "EQUIPMENT_SETS_CHANGED" }) do
-		self:RegisterEvent(event)
-	end
+	self:RegisterEvent("BAG_UPDATE")
+	self:RegisterEvent("BAG_UPDATE_DELAYED")
+	self:RegisterEvent("CHAT_MSG_SKILL")
+	self:RegisterEvent("EQUIPMENT_SETS_CHANGED")
+	hooksecurefunc("SaveEquipmentSet", self.EQUIPMENT_SETS_CHANGED)
 
 	self:UnregisterEvent("ADDON_LOADED")
 end
