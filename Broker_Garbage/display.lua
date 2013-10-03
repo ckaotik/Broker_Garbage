@@ -323,7 +323,7 @@ function BG.FormatMoney(amount, displayMode)
 		template = template.."%2$s"
 		unpaddedTemplate = unpaddedTemplate.."%2$s"
 	end
-	local showEmptyDenominators = true -- TODO, only applies to inner values
+	local showEmptyDenominators = true -- TODO config?
 	local style = math.floor(displayMode/2)+1
 	if separators[style] then
 		wipe(parts)
@@ -333,7 +333,7 @@ function BG.FormatMoney(amount, displayMode)
 		if silver > 0 or (showEmptyDenominators and #parts > 0) then
 			table.insert(parts, (#parts > 0 and template or unpaddedTemplate):format(silver, separators[style][2], sColor))
 		end
-		if copper > 0 or (showEmptyDenominators and #parts > 0) then
+		if copper > 0 or showEmptyDenominators or #parts == 0 then
 			table.insert(parts, (#parts > 0 and template or unpaddedTemplate):format(copper, separators[style][3], cColor))
 		end
 		text = signum .. table.concat(parts, '')
