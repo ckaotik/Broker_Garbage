@@ -76,7 +76,7 @@ local function Options_Statistics(panel)
 
 	local var2 = Broker_Garbage:GetOption("itemsSold", true)
 	local itemsSold, itemsSoldText = AddStatistic("_itemsSold", BGC.locale.GlobalItemsSoldTitle,
-		var1,
+		var2,
 		BGC.locale.ResetStatistic,
 		"TOPLEFT", globalEarned, "BOTTOMLEFT", 0, -6)
 
