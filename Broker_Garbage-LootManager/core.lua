@@ -248,9 +248,9 @@ function BGLM.SelectiveLooting(blizzAutoLoot)
 				if isLocked then
 					BGLM:Print(format(BGLM.locale.couldNotLootLocked, slotItemLink, slotQuantity), BGLM_GlobalDB.printLocked)
 
-				elseif slotItem.value < BGLM_LocalDB.itemMinValue then
+				--elseif slotItem.v < BGLM_LocalDB.itemMinValue then
 					-- minimum loot value not reached; item is too cheap
-					BGLM:Print(format(BGLM.locale.couldNotLootValue, slotItemLink, slotQuantity), BGLM_GlobalDB.printValue)
+				--	BGLM:Print(format(BGLM.locale.couldNotLootValue, slotItemLink, slotQuantity), BGLM_GlobalDB.printValue)
 
 				elseif abs(constraint) > slotQuality then
 					BGLM:Debug("Unconstrained item:", slotItemLink)

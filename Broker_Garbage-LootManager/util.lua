@@ -154,12 +154,16 @@ end
 -- determines if an item should be looted
 function BGLM:IsInteresting(cachedItemTable)
 	local isInteresting, alwaysLoot
+	-- TODO: fixme, BG.EXCLUDE is probably positive_priority
 	if cachedItemTable.label == Broker_Garbage.EXCLUDE then
 		isInteresting = true
 		alwaysLoot = BGLM_GlobalDB.lootExcludeItems
+	-- TODO: fixme, BG.INCLUDE is probably negative_priority
 	elseif cachedItemTable.label == Broker_Garbage.INCLUDE and not BGLM_GlobalDB.lootIncludeItems then
 		isInteresting = false
 	elseif cachedItemTable.q < BGLM_LocalDB.minItemQuality then
+		isInteresting = false
+	elseif cachedItemTable.v < BGLM_LocalDB.itemMinValue then
 		isInteresting = false
 	else
 		isInteresting = true
@@ -174,12 +178,13 @@ function BGLM:IsInteresting(cachedItemTable)
 	end
 end
 
+local playerClass = UnitClass("player")
 -- returns <shouldAL:true|false>, <clearAll:true|false>
 function BGLM:ShouldAutoLoot(blizzAutoLoot)
-	local lootAny = blizzAutoLoot ~= 0 or BGLM_GlobalDB.autoLoot
-	local lootPickpocket = BGLM_GlobalDB.autoLootPickpocket and Broker_Garbage:GetVariable("playerClass") == "ROGUE" and IsStealthed()
-	local lootFishing = BGLM_GlobalDB.autoLootFishing and IsFishingLoot()
-	local lootSkinning = BGLM_GlobalDB.autoLootSkinning and UnitExists("target") and UnitIsDead("target") and UnitCreatureType("target") == BGLM.locale.CreatureTypeBeast and BGLM:CanSkin(UnitLevel("target"))
+	local lootAny        = blizzAutoLoot ~= 0 or BGLM_GlobalDB.autoLoot
+	local lootPickpocket = playerClass == "ROGUE" and BGLM_GlobalDB.autoLootPickpocket and IsStealthed()
+	local lootFishing    = BGLM_GlobalDB.autoLootFishing and IsFishingLoot()
+	local lootSkinning   = BGLM_GlobalDB.autoLootSkinning and UnitExists("target") and UnitIsDead("target") and UnitCreatureType("target") == BATTLE_PET_NAME_8 and BGLM:CanSkin(UnitLevel("target"))
 
 	return (lootAny or lootPickpocket or lootFishing or lootSkinning), (BGLM_GlobalDB.forceClear or lootSkinning)
 end
