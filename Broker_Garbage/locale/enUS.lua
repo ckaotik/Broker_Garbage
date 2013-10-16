@@ -48,5 +48,22 @@ local L = BG.locale
 	L["listUnusable"] = "Unusable Gear"
 	L["listOutdated"] = "Outdated"
 
+	-- classification reasons
+	L["reason_KEEP_ID"] = "keep (itemID)"
+	L["reason_KEEP_CAT"] = "keep (category)"
+	L["reason_TOSS_ID"] = "toss (itemID)"
+	L["reason_TOSS_CAT"] = "toss (category)"
+	L["reason_QUEST_ITEM"] = "quest item"
+	L["reason_UNUSABLE_ITEM"] = "unusable gear"
+	L["reason_OUTDATED_ITEM"] = "outdated gear"
+	L["reason_GRAY_ITEM"] = "gray item"
+	L["reason_PRICE_ITEM"] = "custom price (itemID)"
+	L["reason_PRICE_CAT"] = "custom price (category)"
+	L["reason_WORTHLESS"] = "worthless"
+	L["reason_EMPTY_SLOT"] = "slot is empty"
+	L["reason_HIGHEST_VALUE"] = "highest value"
+	L["reason_SOULBOUND"] = "soulbound"
+	L["reason_QUALITY"] = "quality above threshold"
+	L["reason_HIGHEST_LEVEL"] = "outdated but highest ilvl"
 
 -- end

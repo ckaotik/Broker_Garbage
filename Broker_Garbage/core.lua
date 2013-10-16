@@ -2,7 +2,7 @@ local addonName, ns, _ = ...
 
 -- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S, INVSLOT_LAST_EQUIPPED
 -- GLOBALS: ContainerIDToInventoryID, InCombatLockdown, GetItemInfo
--- GLOBALS: string, table, tonumber, setmetatable, math, pairs
+-- GLOBALS: string, table, tonumber, setmetatable, math, pairs, ipairs
 
 -- --------------------------------------------------------
 --  Event Handler
@@ -32,11 +32,13 @@ function events:ADDON_LOADED(event, addon)
 	if addon ~= addonName then return end
 	ns.CheckSettings()
 
-	ns.keep = Merge(BG_GlobalDB.keep, BG_LocalDB.keep)
-	ns.toss = Merge(BG_GlobalDB.toss, BG_LocalDB.toss)
+	ns.prices = BG_GlobalDB.prices
+	ns.keep   = Merge(BG_GlobalDB.keep, BG_LocalDB.keep)
+	ns.toss   = Merge(BG_GlobalDB.toss, BG_LocalDB.toss)
 
 	ns.list = {} 								-- { <location>, <location>, ...} to reference ns.container[<location>]
 	ns.locations = {} 							-- [<itemID|category>] = { <location>, ... }
+
 	-- contains dynamic data
 	ns.containers = setmetatable({}, {
 		__index = function(self, location)
@@ -52,6 +54,7 @@ function events:ADDON_LOADED(event, addon)
 			return self[location]
 		end
 	})
+
 	-- contains static item data (no categories!)
 	ns.item = setmetatable({}, {
 		__mode = "kv",
@@ -79,7 +82,6 @@ function events:ADDON_LOADED(event, addon)
 			return self[itemID]
 		end
 	})
-	-- kay, stop <new!> now
 
 	ns.totalBagSpace = 0
 	ns.totalFreeSlots = 0
@@ -98,7 +100,7 @@ function events:ADDON_LOADED(event, addon)
 	self:RegisterEvent("BAG_UPDATE_DELAYED")
 	self:RegisterEvent("CHAT_MSG_SKILL")
 	self:RegisterEvent("EQUIPMENT_SETS_CHANGED")
-	hooksecurefunc("SaveEquipmentSet", self.EQUIPMENT_SETS_CHANGED)
+	-- hooksecurefunc("SaveEquipmentSet", self.EQUIPMENT_SETS_CHANGED)
 
 	self:UnregisterEvent("ADDON_LOADED")
 end
@@ -110,14 +112,15 @@ local function UpdateEquipment()
 	for location, cacheData in pairs(ns.containers) do
 		if cacheData.item then
 			local invSlot = cacheData.item.slot
-			if invSlot ~= "" and not invSlot:find("BAG") then
+			if invSlot ~= "" and invSlot ~= "INVTYPE_BAG" then
 				local container, slot = ns.GetBagSlot(location)
-				ns.UpdateBagSlot(container, slot)
+				ns.UpdateBagSlot(container, slot, true)
 			end
 		end
 	end
 end
 function events:EQUIPMENT_SETS_CHANGED()
+	ns.Print("Rescan equipment in bags")
 	ns.Scan(UpdateEquipment)
 end
 

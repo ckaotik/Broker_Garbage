@@ -1,9 +1,63 @@
-local _, BG = ...
+local _, ns = ...
 
 -- GLOBALS: BG_GlobalDB, BG_LocalDB, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, ITEM_LEVEL, TopFit, PawnIsItemAnUpgrade, PawnGetItemData, PawnGetSlotsForItemType, _G, UIParent
 -- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, GetInventoryItemLink, GetProfessions, GetProfessionInfo, GetContainerItemEquipmentSetInfo, GetInventoryItemsForSlot, EquipmentManager_UnpackLocation
 -- GLOBALS: type, select, string, ipairs, math, tonumber, wipe, pairs, table, strsplit
 
+local emptyTable = {}
+
+-- --------------------------------------------------------
+--  LPT caching
+-- --------------------------------------------------------
+local LPT = LibStub("LibPeriodicTable-3.1", true)
+local function GetExpandedLPTData(destination, source)
+	for k, v in pairs(source or emptyTable) do
+		if type(v) == "table" then
+			-- subset table
+			GetExpandedLPTData(destination, v)
+		elseif type(k) == "number" then
+			-- single item
+			destination[k] = tonumber(v) or v
+		end
+	end
+end
+
+local tmpTable = {}
+local isItemInCategory = setmetatable({}, {
+	__index = function(self, category)
+		self[category] = {}
+		if LPT then GetExpandedLPTData(self[category], LPT:GetSetTable(category)) end
+		return self[category]
+	end,
+	__call = function(self, itemID, category)
+		local categoryType, categoryValue = category:match("^(.-)_(.+)")
+		if not categoryType then
+			-- plain LPT request
+			return self[category][itemID]
+		elseif categoryType == "BEQ" then
+			-- equipment set
+			categoryValue = tonumber(categoryValue)
+			if categoryValue and categoryValue <= GetNumEquipmentSets() then
+				wipe(tmpTable)
+				category = GetEquipmentSetInfo(categoryValue, tmpTable)
+			end
+			return ns.Find(GetEquipmentSetItemIDs(category), itemID)
+		elseif categoryType == "AC" then
+			-- armor class
+			categoryValue = tonumber(categoryValue)
+			return ( select(7, GetItemInfo(itemID)) ) == ( select(categoryValue, GetAuctionItemSubClasses(2)) )
+		elseif categoryType == "NAME" then
+			-- item name filter
+			categoryValue = categoryValue:gsub("%*", ".-")
+			return ( GetItemInfo(itemID) or "" ):match("^"..categoryValue.."$")
+		end
+	end
+})
+ns.isItemInCategory = isItemInCategory
+
+-- --------------------------------------------------------
+--  Item Binding
+-- --------------------------------------------------------
 local scanTooltip = CreateFrame("GameTooltip", "BrokerGarbageScanTooltip", nil, "GameTooltipTemplate")
 local GetItemBinding = setmetatable({}, {
 	__index = function(self, id)
@@ -24,18 +78,18 @@ local GetItemBinding = setmetatable({}, {
 	end
 })
 
-function BG.IsItemBoP(itemID)
+function ns.IsItemBoP(itemID)
 	return (GetItemBinding(itemID) == ITEM_BIND_ON_PICKUP)
 end
 
-function BG.IsItemSoulbound(location)
-	local item = BG.containers[location].item
+function ns.IsItemSoulbound(location)
+	local item = ns.containers[location].item
 	if item then
 		if item.bop then
 			return true
 		else
 			scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-			scanTooltip:SetBagItem( BG.GetBagSlot(location) )
+			scanTooltip:SetBagItem( ns.GetBagSlot(location) )
 			local binding = _G[scanTooltip:GetName().."TextLeft2"]:GetText() == ITEM_SOULBOUND or
 		                    _G[scanTooltip:GetName().."TextLeft3"]:GetText() == ITEM_SOULBOUND
 			scanTooltip:Hide()
@@ -44,10 +98,13 @@ function BG.IsItemSoulbound(location)
 	end
 end
 
-function BG.GetAuctionValue(itemLink)
+-- --------------------------------------------------------
+--  Item Values
+-- --------------------------------------------------------
+function ns.GetAuctionValue(itemLink)
 	local auctionPrice, auctionAddon
 	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.buyout) do
-		auctionAddon = BG.auctionAddons[addonKey]
+		auctionAddon = ns.auctionAddons[addonKey]
 		if auctionAddon and auctionAddon.buyout then
 			if auctionAddon.buyoutEnabled and auctionAddon.buyout then
 				auctionPrice = auctionAddon.buyout(itemLink)
@@ -58,13 +115,13 @@ function BG.GetAuctionValue(itemLink)
 	return auctionPrice
 end
 
-function BG.GetDisenchantValue(itemLink, noSkillReq)
-	local canDisenchant = BG.CanDisenchant(itemLink)
+function ns.GetDisenchantValue(itemLink, noSkillReq)
+	local canDisenchant = ns.CanDisenchant(itemLink)
 	if not canDisenchant and not noSkillReq then return end
 
 	local disenchantPrice, auctionAddon
 	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.disenchant) do
-		auctionAddon = BG.auctionAddons[addonKey]
+		auctionAddon = ns.auctionAddons[addonKey]
 		if auctionAddon and auctionAddon.disenchant then
 			if canDisenchant and auctionAddon.disenchantEnabled and auctionAddon.disenchant then
 				disenchantPrice = auctionAddon.disenchant(itemLink)
@@ -76,16 +133,17 @@ function BG.GetDisenchantValue(itemLink, noSkillReq)
 end
 
 local WEAPON, ARMOR = GetAuctionItemClasses()
+local ENCHANTING = GetSpellInfo(7411)
 local notDisenchantable = {} -- TODO: fill with data
-function BG.CanDisenchant(item)
-	local item = BG.item[item]
+function ns.CanDisenchant(item)
+	local item = ns.item[item]
 	if notDisenchantable[item.id] or (item.cl ~= WEAPON and item.cl ~= ARMOR) or item.q < 2 or item.q > 4 then
 		return false
 	else
 		local prof1, prof2 = GetProfessions()
 		local name, _, mySkill = GetProfessionInfo(prof1)
-		if name ~= BG.enchanting then name, _, mySkill = GetProfessionInfo(prof2) end
-		if name ~= BG.enchanting then return false end
+		if name ~= ENCHANTING then name, _, mySkill = GetProfessionInfo(prof2) end
+		if name ~= ENCHANTING then return false end
 
 		local requiredSkill
 		-- see http://www.wowpedia.org/Disenchanting#Required_Enchanting_skill
@@ -126,16 +184,19 @@ function BG.CanDisenchant(item)
 	end
 end
 
+-- --------------------------------------------------------
+--  Interesting/Outdated items
+-- --------------------------------------------------------
 local LibItemUpgrade = LibStub("LibItemUpgradeInfo-1.0")
 local itemsForInvType = {}
 local function IsHighestItemLevel(location)
-	local equipSlot = BG.containers[ location ].item.slot
+	local equipSlot = ns.containers[ location ].item.slot
 	local slots = (TopFit and TopFit.GetEquipLocationsByInvType and TopFit:GetEquipLocationsByInvType(equipSlot)) or
 		(PawnGetSlotsForItemType and { PawnGetSlotsForItemType(equipSlot) }) or
 		{}
 
 	local numSlots = #slots
-	local locationLevel = LibItemUpgrade:GetUpgradedItemLevel( GetContainerItemLink( BG.GetBagSlot(location) ) )
+	local locationLevel = LibItemUpgrade:GetUpgradedItemLevel( GetContainerItemLink( ns.GetBagSlot(location) ) )
 
 	wipe(itemsForInvType)
 	-- compare with equipped item levels
@@ -176,14 +237,14 @@ local function IsInterestingItem(itemLink)
 	return isInteresting
 end
 
-function BG.IsOutdatedItem(location)
-	local item = BG.containers[ location ].item
+function ns.IsOutdatedItem(location)
+	local item = ns.containers[ location ].item
 	local invSlot = item and item.slot
 
 	if not item or invSlot == "" or invSlot == "INVTYPE_BAG" then
 		return
 	else
-		local itemLink = GetContainerItemLink( BG.GetBagSlot(location) )
+		local itemLink = GetContainerItemLink( ns.GetBagSlot(location) )
 		local isInteresting = IsInterestingItem(itemLink)
 		local isHighestItemLevel = not isInteresting and BG_GlobalDB.keepHighestItemLevel and IsHighestItemLevel(location)
 
@@ -191,6 +252,9 @@ function BG.IsOutdatedItem(location)
 	end
 end
 
+-- --------------------------------------------------------
+--  Item Deletion
+-- --------------------------------------------------------
 local function Deleted(item, count)
 	local _, link, _, _, _, _, _, _, _, _, vendorPrice = GetItemInfo(item)
 	local itemValue = count * vendorPrice
@@ -200,27 +264,27 @@ local function Deleted(item, count)
 	BG_GlobalDB.moneyLostByDeleting	= BG_GlobalDB.moneyLostByDeleting + itemValue
 	BG_LocalDB.moneyLostByDeleting 	= BG_LocalDB.moneyLostByDeleting + itemValue
 
-	BG.PrintFormat(BG.locale.itemDeleted, link, count)
+	ns.PrintFormat(ns.locale.itemDeleted, link, count)
 end
 -- deletes the item in a given location of your bags
-function BG.Delete(location, ...)
+function ns.Delete(location, ...)
 	if not location then
-		BG.Print("Error! Broker_Garbage Delete: no argument supplied.")
+		ns.Print("Error! Broker_Garbage Delete: no argument supplied.")
 		return
 	elseif location == "cursor" then
 		-- item on the cursor
 		local cursorType, itemID = GetCursorInfo()
 		if cursorType ~= "item" then
 			-- TODO: localize
-			BG.Print("Error! Trying to delete an item from the cursor, but there is none.")
+			ns.Print("Error! Trying to delete an item from the cursor, but there is none.")
 			return
 		end
 		DeleteCursorItem()
 		Deleted(itemID, ...)
 	else
 		-- security check
-		local container, slot = BG.GetBagSlot(location)
-		local cacheData = BG.containers[location]
+		local container, slot = ns.GetBagSlot(location)
+		local cacheData = ns.containers[location]
 
 		-- TODO: also check item count?
 		if cacheData.item and GetContainerItemID(container, slot) == cacheData.item.id then
@@ -231,7 +295,7 @@ function BG.Delete(location, ...)
 			Deleted(cacheData.item.id, cacheData.count)
 		else
 			-- TODO: localize
-			BG.PrintFormat("Error! Item to be deleted is not the expected item (%s in %d)",
+			ns.PrintFormat("Error! Item to be deleted is not the expected item (%s in %d)",
 				cacheData.item and cacheData.item.id or "?",
 				location)
 		end

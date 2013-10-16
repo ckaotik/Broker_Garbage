@@ -47,5 +47,23 @@ if GetLocale() == "deDE" then
 	L["listUnusable"] = "Nicht anlegbar"
 	L["listOutdated"] = "Alte Ausrüstung"
 
+	-- classification reasons
+	L["reason_KEEP_ID"] = "Schatz (ItemID)"
+	L["reason_KEEP_CAT"] = "Schatz (Kategorie)"
+	L["reason_TOSS_ID"] = "Plunder (ItemID)"
+	L["reason_TOSS_CAT"] = "Plunder (Kategorie)"
+	L["reason_QUEST_ITEM"] = "Questgegenstand"
+	L["reason_UNUSABLE_ITEM"] = "Nicht verwendbar"
+	L["reason_OUTDATED_ITEM"] = "Veraltet"
+	L["reason_GRAY_ITEM"] = "Graue Qualität"
+	L["reason_PRICE_ITEM"] = "Eigener Preis (ItemID)"
+	L["reason_PRICE_CAT"] = "Eigener Preis (Kategorie)"
+	L["reason_WORTHLESS"] = "Wertlos"
+	L["reason_EMPTY_SLOT"] = "Leerer Platz"
+	L["reason_HIGHEST_VALUE"] = "Höchster Wert"
+	L["reason_SOULBOUND"] = "Seelengebunden"
+	L["reason_QUALITY"] = "Qualität zu hoch"
+	L["reason_HIGHEST_LEVEL"] = "Veraltet aber höchste Stufe"
+
 	BG.locale = L
 end

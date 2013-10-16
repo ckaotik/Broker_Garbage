@@ -1,17 +1,11 @@
 local _, BG = ...
 
-BG.enchanting = GetSpellInfo(7411)
-BG.disenchant = GetSpellInfo(87067)
-
 -- item classifications
 BG.IGNORE = -1
 -- static list types
-BG.EXCLUDE = 0
-BG.INCLUDE = 1
+BG.EXCLUDE = 0 -- unused
+BG.INCLUDE = 1 -- mostly unused
 BG.AUTOSELL = 2
--- dynamic list types
-BG.UNUSABLE = 4		-- unusable gear, e.g. mail for a priest
-BG.OUTDATED = 5		-- item is gear but irrelevant (TopFit/Pawn)
 -- price types
 BG.AUCTION = 6
 BG.VENDOR = 7
@@ -25,12 +19,20 @@ BG.info = {
 	[BG.AUTOSELL]   = {"|cFFff592d", "V", BG.locale.listSell},
 	[BG.AUCTION]    = {"|cFF2bff58", "A", BG.locale.listAuction},
 	[BG.DISENCHANT] = {"|cFFe052ff", "D", BG.locale.listDisenchant},
-	[BG.UNUSABLE]   = {"|cFF3c73ab", "U", BG.locale.listUnusable},
-	[BG.OUTDATED]   = {"|cFF36BFA8", "O", BG.locale.listOutdated},
 
 	[BG.IGNORE]     = {"", "", ""},
 	[BG.CUSTOM]     = {"|cFFf3d91b", "C", ""},
 }
+
+BG.priority = { "NEGATIVE", "NEUTRAL", "POSITIVE", "IGNORE" }
+for i, priority in ipairs(BG.priority) do
+	BG.priority[ priority ] = i
+end
+
+BG.reason = { "KEEP_ID", "KEEP_CAT", "TOSS_ID", "TOSS_CAT", "QUEST_ITEM", "UNUSABLE_ITEM", "OUTDATED_ITEM", "GRAY_ITEM", "PRICE_ITEM", "PRICE_CAT", "WORTHLESS", "EMPTY_SLOT", "HIGHEST_VALUE", "SOULBOUND", "QUALITY", "HIGHEST_LEVEL" }
+for i, reason in ipairs(BG.reason) do
+	BG.reason[ reason ] = i
+end
 
 BG.disableKey = {
 	["NONE"] 	= function() return false end,
@@ -49,15 +51,15 @@ BG.defaultGlobalSettings = {
 	-- behavior
 	autoSellToVendor = true,
 	autoRepairAtVendor = true,
-	sellUnusable = nil,
-	sellOutdated = nil,
+	sellUnusable = false,
+	sellOutdated = false,
 	keepHighestItemLevel = true,
 	keepQuestItems = true, -- FIXME config
-	showSellLog = nil,
-	overrideLPT = nil,
+	showSellLog = false,
+	overrideLPT = false,
 
 	disableKey = "SHIFT",
-	autoSellIncludeItems = nil,
+	autoSellIncludeItems = false,
 	keepItemsForLaterDE = 0,
 
 	auctionAddonOrder = { buyout = {}, disenchant = {} },
@@ -72,7 +74,7 @@ BG.defaultGlobalSettings = {
 	-- numeric values
 	tooltipMaxHeight = 220,
 	tooltipNumItems = 9,
-	showMoney = nil,
+	showMoney = false,
 	hasEnchanter = true,
 
 	-- statistic values
@@ -82,12 +84,12 @@ BG.defaultGlobalSettings = {
 	itemsDropped = 0,
 
 	-- display options
-	useRealValues = nil,
+	useRealValues = false,
 	hideZeroValue = true,
 	showAutoSellIcon = true,
 	showItemTooltipLabel = true,
-	showLabelReason = nil,
-	showBagnonSellIcons = nil, -- FIXME config
+	showLabelReason = false,
+	showBagnonSellIcons = false, -- FIXME config
 
 	-- LibDataBroker Display
 	LDBformat = "[itemname]x[itemcount] ([itemvalue])",
@@ -97,12 +99,12 @@ BG.defaultGlobalSettings = {
 	showIcon = true,
 	showLost = true,
 	showEarned = true,
-	showSource = nil,
+	showSource = false,
 	showContainers = true,
 
 	-- output options
 	reportNothingToSell = true,
-	reportDisenchantOutdated = nil,
+	reportDisenchantOutdated = false,
 }
 
 BG.defaultLocalSettings = {
@@ -111,7 +113,7 @@ BG.defaultLocalSettings = {
 	toss = {},
 
 	-- behavior
-	repairGuildBank = nil,
+	repairGuildBank = false,
 
 	-- default values
 	moneyLostByDeleting = 0,

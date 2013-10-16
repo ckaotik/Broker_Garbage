@@ -1,19 +1,20 @@
-local addonName, BG, _ = ...
+local addonName, ns, _ = ...
+_G[addonName] = ns
 
--- GLOBALS: Broker_Garbage, BG_GlobalDB, BG_LocalDB, ArkInventory, ArkInventoryRules, Bagnon
+local BG = ns
+
+-- GLOBALS: BG_GlobalDB, BG_LocalDB, ArkInventory, ArkInventoryRules, Bagnon
 -- GLOBALS: IsAddOnLoaded
 -- GLOBALS: string, tonumber, hooksecurefunc
 
-function BG.IsDisabled()
-	local disable = BG.disableKey[BG_GlobalDB.disableKey]
+function ns.IsDisabled()
+	local disable = ns.disableKey[BG_GlobalDB.disableKey]
 	return (disable and disable())
 end
 
-function BG:GetVariable(name)
-	return BG[name]
-end
-
--- returns the requested option
+-- --------------------------------------------------------
+--  Saved Variables: User Settings
+-- --------------------------------------------------------
 function BG:GetOption(optionName, global)
 	if global == nil then
 		return BG_LocalDB[optionName], BG_GlobalDB[optionName]
@@ -24,7 +25,6 @@ function BG:GetOption(optionName, global)
 	end
 end
 
--- writes back an option
 function BG:SetOption(optionName, global, value)
 	if not global then
 		BG_LocalDB[optionName] = value
@@ -43,33 +43,66 @@ function BG:ToggleOption(optionName, global)
 end
 
 -- resets an option entry to its default value
-function BG.ResetOption(name, isGlobal)
-	local optionsTable = isGlobal and BG_GlobalDB or BG_LocalDB
-	local defaultOptions = isGlobal and BG.defaultGlobalSettings or BG.defaultLocalSettings
-
-	if optionsTable[name] then
-		optionsTable[name] = defaultOptions[name]
+function ns.ResetOption(name)
+	if ns.defaultLocalSettings[name] ~= nil then
+		BG_LocalDB[name]  = ns.defaultLocalSettings[name]
+	elseif ns.defaultGlobalSettings[name] ~= nil then
+		BG_GlobalDB[name] = ns.defaultGlobalSettings[name]
+	else
+		ns.Print('Error: No setting named "'..name..'" found.')
 	end
 end
 
--- resets statistics. global = true -> global, otherwise local
-function BG.ResetStatistics(isGlobal)
-	BG.ResetOption("moneyEarned", isGlobal)
-	BG.ResetOption("moneyLostByDeleting", isGlobal)
-	BG.ResetOption("itemsDropped", isGlobal)
-	BG.ResetOption("itemsSold", isGlobal)
-end
-
-function BG.GetItemClassification(container, slot)
-	local location = BG.GetLocation(container, slot)
-	local cacheData = BG.containers[location]
-
-	if cacheData.item then
-		return cacheData.label or BG.IGNORE
+-- --------------------------------------------------------
+--  Saved Variables: Item List Settings
+-- --------------------------------------------------------
+-- add item or category to config lists. items may only ever live in local xor global list
+-- <list>: "toss", "keep" or "prices"
+function ns.Add(list, item, value, isGlobal, noUpdate)
+	if list == "prices" then
+		BG_GlobalDB[list][item] = value or -1
+	else
+		if isGlobal then
+			BG_LocalDB[list][item] = nil
+			BG_GlobalDB[list][item] = value or 0
+		else
+			BG_GlobalDB[list][item] = nil
+			BG_LocalDB[list][item] = value or 0
+		end
+		ns[list][item] = value or 0
+	end
+	if not noUpdate then
+		ns.Print("Update locations of "..item)
+		ns.Scan(ns.UpdateItem, ns.locations[item])
 	end
 end
+function ns.Remove(list, item)
+	if list ~= "prices" then
+		BG_LocalDB[list][item] = nil
+	end
+	BG_GlobalDB[list][item] = nil
+	ns[list][item] = nil
 
---[[ Interaction with other addons ]]--
+	-- TODO: update lists etc
+	-- Broker_Garbage:UpdateLDB()
+	-- Broker_Garbage.UpdateMerchantButton()
+end
+function ns.Get(list, item)
+	return BG_LocalDB[list][item] or BG_GlobalDB[list][item]
+end
+function ns.IsShared(list, item)
+	return BG_GlobalDB[list][item] ~= nil
+end
+function ns.ToggleShared(list, item)
+	local isGlobal = ns.IsShared(list, item)
+	local value = ns.Get(list, item)
+	ns.Remove(list, item)
+	ns.Add(list, item, value, not isGlobal)
+end
+
+-- --------------------------------------------------------
+--  Integration with third party addons
+-- --------------------------------------------------------
 -- ArkInventory + ArkInventoryRules
 function BG.ArkInventoryFilter(label)
 	if not ArkInventoryRules.Object.h or ArkInventoryRules.Object.class ~= "item" then
@@ -92,7 +125,12 @@ function BG.InitArkInvFilter()
 	end
 end
 
--- Bagnon
+--[[ Status Icons
+	these indicators need two handlers:
+		1) the bag slot was changed by 'the addon', have BG react and update display if needed
+		2) BG has changed labels for an item, have 'the addon' update its display
+--]]
+
 local function CreateIcon(slot)
 	local icon = slot:CreateTexture(nil, 'OVERLAY')
 	icon:SetTexture('Interface\\Buttons\\UI-GroupLoot-Coin-Up')
@@ -127,9 +165,8 @@ local function UpdateJunkIcon(button, container, slot)
 		end
 	end
 end
--- these indicators need two handlers:
--- 		1) the slot was changed by 'the addon', have BG react and update display if needed
--- 		2) BG has changed labels for an item, have 'the addon' update its display
+
+-- Bagnon
 if IsAddOnLoaded("Bagnon") then
 	hooksecurefunc(Bagnon.ItemSlot, "Update", function(self, ...)
 		UpdateJunkIcon(self, self:GetBag(), self:GetID())
@@ -138,6 +175,8 @@ if IsAddOnLoaded("Bagnon") then
 		Bagnon:UpdateFrames()
 	end)
 end
+
+-- ElvUI
 if IsAddOnLoaded("ElvUI") then
 	local ElvUISetup = false
 	local bagsModule = ElvUI[1]:GetModule('Bags')
@@ -156,6 +195,3 @@ if IsAddOnLoaded("ElvUI") then
 		end)
 	end
 end
-
--- external access, for modules etc.
-Broker_Garbage = BG

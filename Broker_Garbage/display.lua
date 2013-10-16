@@ -141,6 +141,7 @@ function BG.UpdateLDB()
 end
 
 local LibQTip = LibStub("LibQTip-1.0")
+local disenchanting = GetSpellInfo(13262)
 local disenchantButtonCell, disenchantCellPrototype = LibQTip:CreateCellProvider()
 function disenchantCellPrototype:InitializeCell()
 	local button = CreateFrame("Button", nil, self, "SecureActionButtonTemplate")
@@ -149,7 +150,7 @@ function disenchantCellPrototype:InitializeCell()
 	      button:SetPoint("TOPLEFT", self)
 
 	      button:SetAttribute("type", "spell")
-	      button:SetAttribute("spell", BG.disenchant)
+	      button:SetAttribute("spell", disenchanting)
 
 	self.disenchant = button
 end
@@ -260,7 +261,7 @@ function BG.OnClick(self, location, btn)
 	else
 		-- don't touch invalid/outdated items
 		local cacheData = BG.containers[location]
-		if not cacheData.item or cacheData.label == BG.IGNORE then -- TODO: use PRIORITY_IGNORE ?
+		if not cacheData.item or cacheData.priority == BG.priority.IGNORE then -- or cacheData.label == BG.IGNORE then
 			BG.Print(BG.locale.noItems)
 			return
 		end
@@ -356,9 +357,6 @@ local LDB = LibDataBroker:NewDataObject(addonName, {
 	OnLeave = function() end, -- placeholder, required for e.g. ninja panel, but LibQTip takes care of that for us
 })
 
--- FIXME
-local reasonNames = {"keep (itemID)", "keep (category)", "toss (itemID)", "toss (category)", "quest item", "unusable gear", "outdated gear", "gray item", "custom price (itemID)", "custom price (category)", "worthless", "slot is empty", "highest value", "soulbound", "quality above threshold", "outdated but highest ilvl"}
-
 hooksecurefunc(GameTooltip, "SetBagItem", function(tooltip, container, slot)
 	local location = BG.GetLocation(container, slot)
 	local cacheData = BG.containers[location]
@@ -368,8 +366,8 @@ hooksecurefunc(GameTooltip, "SetBagItem", function(tooltip, container, slot)
 			(cacheData.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or "")..(BG.GetInfo(cacheData.label) or "") )
 
 		if BG_GlobalDB.showLabelReason then
-			-- TODO: prettify
-			tooltip:AddDoubleLine(cacheData.priority, reasonNames[ cacheData.reason ])
+			local reason = BG.reason[ cacheData.reason ]
+			tooltip:AddDoubleLine(cacheData.priority, BG.locale["reason_"..reason])
 		end
 		tooltip:Show()
 	end
