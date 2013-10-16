@@ -1,6 +1,8 @@
 local _, BGC = ...
 if not BGC.PT then return end
 
+-- TODO: rewrite & update, including complete item list (i.e. unlimited tooltip lines)
+
 -- GLOBALS: Broker_Garbage, _G
 -- GLOBALS: SetItemButtonTexture, GetItemInfo, UIDropDownMenu_SetSelectedValue, UIDropDownMenu_SetText, GetCursorInfo, HandleModifiedItemClick, GetItemCount, CreateFrame, ClearCursor, UIDropDownMenu_SetWidth
 

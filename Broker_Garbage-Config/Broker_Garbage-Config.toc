@@ -40,10 +40,12 @@ locale\curse.lua
 
 # main files
 util.lua
+lpt.lua
+
 options_main.lua
-options_lists.lua
 ..\Broker_Garbage-LootManager\options.lua
+options_lists.lua
 category_test.lua
-options_slash.lua
-options_statistics.lua
+slashcmd.lua
+statistics.lua
 core.lua

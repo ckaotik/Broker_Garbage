@@ -32,10 +32,12 @@ local COMMAND_ALIAS = {
 	resetcache 	= 'cache',
 	update 		= 'cache',
 
-	treasure 	= 'exclude',
-	keep 		= 'exclude',
-	garbage 	= 'include',
-	junk 		= 'include',
+	exclude     = 'keep',
+	treasure 	= 'keep',
+	keep 		= 'keep',
+	include     = 'toss',
+	garbage 	= 'toss',
+	junk 		= 'toss',
 	autosell 	= 'autoSellList',
 	vendor 		= 'autoSellList',
 	autoselllist = 'autoSellList',
@@ -111,9 +113,7 @@ local COMMAND_PARAMS = {
 		end
 		Broker_Garbage:SetOption("tooltipNumItems", true, param)
 		Broker_Garbage:ScanInventory()
-		if BGC.options.currentTab and BGC.modules[BGC.options.currentTab].panel.Update then
-			BGC.modules[BGC.options.currentTab].panel:Update()
-		end
+		-- TODO: update config panel
 	end,
 
 	-- + set pixel height of LDB tooltip
@@ -124,9 +124,7 @@ local COMMAND_PARAMS = {
 			return
 		end
 		Broker_Garbage:SetOption("tooltipMaxHeight", true, param)
-		if BGC.options.currentTab and BGC.modules[BGC.options.currentTab].panel.Update then
-			BGC.modules[BGC.options.currentTab].panel:Update()
-		end
+		-- TODO: update config panel
 	end,
 
 	-- + set minimum item value for looting
@@ -172,6 +170,7 @@ local COMMAND_PARAMS = {
 		end
 
 		local itemLink = select(2, GetItemInfo(param))
+		-- TODO: FIXME
 		local result = Broker_Garbage.GetItemListCategories(Broker_Garbage.GetCached(param))
 		if not result or #result < 1 then
 			BGC:Print(format("%s is in no used category.", itemLink))
@@ -199,12 +198,7 @@ local COMMAND_PARAMS = {
 		end
 
 		local itemList = COMMAND_ALIAS[list] or list
-		local resetRequired = BGC.RemoteAddItemToList(item, itemList)
-		if resetRequired then
-			-- BGC:Print(BGC.locale.updateCache)
-			Broker_Garbage.UpdateAllDynamicItems()
-			Broker_Garbage:UpdateLDB()
-		end
+		Broker_Garbage.Add(itemList, item)
 	end,
 	remove = function(param)
 		local list, item = param:match("^(%S*)%s*(.-)%s*$")
@@ -222,12 +216,7 @@ local COMMAND_PARAMS = {
 		end
 
 		local itemList = COMMAND_ALIAS[list] or list
-		local resetRequired = BGC.RemoteRemoveItemFromList(item, itemList)
-		if resetRequired then
-			-- BGC:Print(BGC.locale.updateCache)
-			Broker_Garbage.UpdateAllDynamicItems()
-			Broker_Garbage:UpdateLDB()
-		end
+		Broker_Garbage.Remove(itemList, item)
 	end,
 
 	cache = function(item)

@@ -26,7 +26,7 @@ end
 
 local frames = { buyout = {}, disenchant = {} }
 local displayTypes = { 'buyout', 'disenchant' }
-UpdateAuctionAddonList = function(panel)
+local function UpdateAuctionAddonList(panel)
 	local auctionAddonOrder, auctionAddon, addonLine, bgTex
 	for _, displayType in ipairs(displayTypes) do
 		local numShown = 0
@@ -227,8 +227,7 @@ local function Options_BasicOptions(panel)
 	end
 	disableKey.initialize = function()
 		local selected, info = UIDropDownMenu_GetSelectedValue(disableKey), UIDropDownMenu_CreateInfo()
-		local keys = Broker_Garbage:GetVariable("disableKey")
-		for name in pairs(keys) do
+		for name in pairs( Broker_Garbage.disableKey ) do
 			info.text = _G[name.."_KEY"]
 			info.value = name
 			info.func = DisableKeyOnSelect
@@ -409,9 +408,10 @@ local function Options_BasicOptions(panel)
 	end
 	local function ResetEditBoxDefault(self)
 		local target = self:GetParent()
-		local defaultValue = Broker_Garbage:GetVariable("defaultGlobalSettings")
-		Broker_Garbage:SetOption(target.setting, true, defaultValue[target.setting])
-		target:SetText( Broker_Garbage:GetOption(target.setting, true) )
+		Broker_Garbage.ResetOption(target.setting)
+
+		local value = Broker_Garbage:GetOption(target.setting, true)
+		target:SetText(value)
 		target:ClearFocus()
 		Broker_Garbage.Scan()
 	end
@@ -429,10 +429,9 @@ local function Options_BasicOptions(panel)
 	editHelp:SetScript("OnLeave", BGC.HideTooltip)
 
 	-- LDB format string for "Junk"
-	local junkText = CreateFrame("EditBox", nil, tooltip)
-	BGC.CreateFrameBorders(junkText)
+	local junkText = CreateFrame("EditBox", "BGCEditBoxJunk", tooltip, "InputBoxTemplate")
 	junkText:SetPoint("TOPLEFT", LDBtitle, "BOTTOMLEFT", 2, 2)
-	junkText:SetWidth(140); junkText:SetHeight(32)
+	junkText:SetSize(140, 32)
 	junkText:SetFontObject("GameFontHighlightSmall")
 	junkText:SetAutoFocus(false)
 	junkText:SetText( Broker_Garbage:GetOption("LDBformat", true) )
@@ -447,7 +446,7 @@ local function Options_BasicOptions(panel)
 	local editReset = CreateFrame("Button", nil, tooltip)
 	editReset:SetParent(junkText)
 	editReset:SetPoint("LEFT", junkText, "RIGHT", 4, 0)
-	editReset:SetWidth(16); editReset:SetHeight(16)
+	editReset:SetSize(16, 16)
 	editReset:SetNormalTexture("Interface\\RAIDFRAME\\ReadyCheck-NotReady")
 	editReset.tiptext = BGC.locale.ResetToDefault
 	editReset:SetScript("OnEnter", BGC.ShowTooltip)
@@ -455,11 +454,10 @@ local function Options_BasicOptions(panel)
 	editReset:SetScript("OnClick", ResetEditBoxDefault)
 
 	-- LDB format string for "No Junk"
-	local noJunkText = CreateFrame("EditBox", nil, tooltip)
-	BGC.CreateFrameBorders(noJunkText)
+	local noJunkText = CreateFrame("EditBox", "BGCEditBoxNoJunk", tooltip, "InputBoxTemplate")
 	noJunkText:SetPoint("TOPLEFT", junkText, "BOTTOMLEFT", 0, 12)
 	noJunkText:SetAutoFocus(false)
-	noJunkText:SetWidth(140); noJunkText:SetHeight(32)
+	noJunkText:SetSize(140, 32)
 	noJunkText:SetFontObject("GameFontHighlightSmall")
 	noJunkText:SetText(  Broker_Garbage:GetOption("LDBNoJunk", true))
 	noJunkText.tiptext = BGC.locale.LDBNoJunkTextTooltip .. BGC.locale.GlobalSetting
@@ -473,7 +471,7 @@ local function Options_BasicOptions(panel)
 	local editReset2 = CreateFrame("Button", nil, tooltip)
 	editReset2:SetParent(noJunkText)
 	editReset2:SetPoint("LEFT", noJunkText, "RIGHT", 4, 0)
-	editReset2:SetWidth(16); editReset2:SetHeight(16)
+	editReset2:SetSize(16, 16)
 	editReset2:SetNormalTexture("Interface\\RAIDFRAME\\ReadyCheck-NotReady")
 	editReset2.tiptext = BGC.locale.ResetToDefault
 	editReset2:SetScript("OnEnter", BGC.ShowTooltip)

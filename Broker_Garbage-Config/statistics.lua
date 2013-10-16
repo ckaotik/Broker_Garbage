@@ -58,8 +58,6 @@ local function Options_Statistics(panel)
 	UpdateAddOnMemoryUsage()
 	local memoryUsage, memoryUsageText = AddStatistic("collectgarbage", BGC.locale.MemoryUsageTitle, floor(GetAddOnMemoryUsage("Broker_Garbage")), BGC.locale.CollectMemoryUsageTooltip, "TOPRIGHT", panel, "TOP", -2, -120)
 
-	-- local auctionAddon, auctionAddonText = AddStatistic(nil, BGC.locale.AuctionAddon, Broker_Garbage:GetVariable("auctionAddon") or BGC.locale.na, BGC.locale.AuctionAddonTooltip, "TOPLEFT", memoryUsage, "BOTTOMLEFT", 0, -6)
-
 	local globalStatistics = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	globalStatistics:SetPoint("TOPLEFT", memoryUsage, "BOTTOMLEFT", 0, -12)
 	globalStatistics:SetPoint("RIGHT", panel, -32, 0)
@@ -128,7 +126,12 @@ local function Options_Statistics(panel)
 	resetAll.tiptext = BGC.locale.ResetAllTooltip
 	resetAll:SetWidth(150)
 	resetAll:SetScript("OnClick", function()
-		Broker_Garbage.ResetStatistics( IsShiftKeyDown() )
+		local isGlobal = IsShiftKeyDown()
+		Broker_Garbage.ResetOption("moneyEarned", isGlobal)
+		Broker_Garbage.ResetOption("moneyLostByDeleting", isGlobal)
+		Broker_Garbage.ResetOption("itemsDropped", isGlobal)
+		Broker_Garbage.ResetOption("itemsSold", isGlobal)
+
 		panel:Update()
 	end)
 

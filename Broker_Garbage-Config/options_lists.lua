@@ -76,6 +76,28 @@ local function ToggleDetach(trigger, btn)
 end
 
 -- ========================================================
+--  static stuff
+-- ========================================================
+local function SavePriceSetting() end
+StaticPopupDialogs["BROKERGARBAGE_SETITEMPRICE"] = {
+	text = BGC.locale.setPriceInfo,
+	button1 = _G["OKAY"],
+	button2 = _G["CANCEL"],
+	button3 = _G["SELL_PRICE"],
+	hasMoneyInputFrame = true,
+	OnAccept = SavePriceSetting,
+	OnAlt = function(self) SavePriceSetting(self, -1) end,
+	OnShow = function(self) --[[MoneyFrame_Update(self.moneyFrame, currentPrice)--]] end,
+	EditBoxOnEscapePressed = function(self) self:GetParent():GetParent().button2:Click() end,
+	EditBoxOnEnterPressed = function(self) self:GetParent():GetParent().button1:Click() end,
+	timeout = 0,
+	whileDead = true,
+	enterClicksFirstButton = true,
+	hideOnEscape = true,
+	preferredIndex = 3,
+}
+
+-- ========================================================
 --  Actual UI
 -- ========================================================
 local entries = {}
@@ -87,6 +109,7 @@ local function SimpleSort(a, b)
 		return a < b
 	end
 end
+
 local function GetEntryTitle(text)
 	if not text then return UNKNOWN end
 
@@ -106,6 +129,33 @@ local function GetEntryTitle(text)
 		return BGC.locale.anythingCalled..": "..identifier
 	end
 end
+
+local function Tooltip(self, tooltip)
+	if not self.item then return end
+	local item = self.item
+
+	local specialType, identifier = item:match("^(.-)_(.+)")
+	if not specialType then
+		-- LibPeriodicTable category
+		local text = item:gsub("%.", " |cffffd200>|r ")
+		tooltip:AddLine("LibPeriodicTable")
+		tooltip:AddLine(text, 1, 1, 1, true)
+	elseif specialType == "AC" then
+		-- armor class
+		tooltip:AddLine(BGC.locale.armorClass)
+		tooltip:AddLine(identifier or UNKNOWN, 1, 1, 1, true)
+	elseif specialType == "BEQ" then
+		-- Blizzard Equipment Manager item set
+		tooltip:AddLine(BGC.locale.equipmentManager)
+		identifier = GetEquipmentSetInfo( tonumber(identifier) )
+		tooltip:AddLine(identifier or UNKNOWN, 1, 1, 1, true)
+	elseif specialType == "NAME" then
+		-- Item Name Filter
+		tooltip:AddLine(BGC.locale.anythingCalled)
+		tooltip:AddLine(identifier or UNKNOWN, 1, 1, 1, true)
+	end
+end
+
 local function ListUpdate(self)
 	local data = Broker_Garbage[self.list]
 	local frame = self:GetParent()
@@ -163,6 +213,9 @@ local function ListUpdate(self)
 			if self.list == "keep" then
 				-- FIXME: won't display? o.0
 				button.info:SetNumber( data[item] )
+			elseif self.list == "prices" then
+				button.info:SetText( data[item] == -1 and MERCHANT or Broker_Garbage.FormatMoney(data[item]) )
+				-- CHAT_DEFAULT, MERCHANT, "|TInterface\\Buttons\\UI-GroupLoot-Coin-Up:14:14:0:0|t"
 			else
 				button.info:SetChecked( data[item] == 1 )
 			end
@@ -191,32 +244,6 @@ local function SortList(self, btn)
 	ListUpdate( self:GetParent() )
 end
 
-local function Tooltip(self, tooltip)
-	if not self.item then return end
-	local item = self.item
-
-	local specialType, identifier = item:match("^(.-)_(.+)")
-	if not specialType then
-		-- LibPeriodicTable category
-		local text = item:gsub("%.", " |cffffd200>|r ")
-		tooltip:AddLine("LibPeriodicTable")
-		tooltip:AddLine(text, 1, 1, 1, true)
-	elseif specialType == "AC" then
-		-- armor class
-		tooltip:AddLine(BGC.locale.armorClass)
-		tooltip:AddLine(identifier or UNKNOWN, 1, 1, 1, true)
-	elseif specialType == "BEQ" then
-		-- Blizzard Equipment Manager item set
-		tooltip:AddLine(BGC.locale.equipmentManager)
-		identifier = GetEquipmentSetInfo( tonumber(identifier) )
-		tooltip:AddLine(identifier or UNKNOWN, 1, 1, 1, true)
-	elseif specialType == "NAME" then
-		-- Item Name Filter
-		tooltip:AddLine(BGC.locale.anythingCalled)
-		tooltip:AddLine(identifier or UNKNOWN, 1, 1, 1, true)
-	end
-end
-
 local function ItemButtonOnClick(self, btn)
 	local list = self:GetParent().list
 	if btn == "RightButton" then
@@ -233,6 +260,31 @@ local function ItemButtonOnClick(self, btn)
 	else
 		Broker_Garbage.ToggleShared(list, self.item)
 	end
+end
+
+-- TODO: forced price config + update
+local function SavePriceSetting(self, value)
+	value = value or MoneyInputFrame_GetCopper(self.moneyInputFrame)
+	if not value then return end
+
+	local index, button, item, resetRequired = 1, nil, nil, nil
+	while _G["BG_ListOptions_ScrollFrameItem"..index] do
+		button = _G["BG_ListOptions_ScrollFrameItem"..index]
+		if button:IsVisible() and button:GetChecked() then
+			item = button.itemID or button.tiptext
+			-- BG_GlobalDB.forceVendorPrice[item] = value
+			if button.itemID and type(button.itemID) == "number" then
+				-- Broker_Garbage.UpdateAllCaches(item)
+			else
+				-- resetRequired = true
+			end
+		end
+		index = index + 1
+	end
+
+	-- Broker_Garbage:UpdateLDB()
+	-- Broker_Garbage:UpdateMerchantButton()
+	-- BGC.ListOptionsUpdate(frame)
 end
 
 local function ToggleAutoSell(self, btn)
@@ -271,9 +323,11 @@ local function ShowListOptions(frame)
 <p>Among every ability a rogue has at his disposal, Ambush is without a doubt the hardest hitting Rogue ability.</p>
 </body></html>]]) --]=]
 
+	-- TODO: locale
 	local info = {
-		keep = {"Treasures", "Limit"},
-		toss = {"Junk", "Sell"},
+		prices = {"Prices", "Custom price rules", "Value", "Coin = vendor price"},
+		keep   = {"Treasures", "<3 items", "Limit", "Everything below your limit will be kept, use 0 to keep everything"},
+		toss   = {"Junk", "</3 items", "Sell", "Check to auto sell at vendor"},
 	}
 	local backdrop = {
 		bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
@@ -284,17 +338,19 @@ local function ShowListOptions(frame)
 		insets = { left = 5, right = 5, top = 5, bottom = 5 }
 	}
 
-	for i, listName in ipairs({"keep", "toss"}) do
+	for i, listName in ipairs({"prices", "keep", "toss"}) do
 		local list = CreateFrame("ScrollFrame", "$parentList"..i, frame, "FauxScrollFrameTemplate")
 		list:SetSize(300, 200)
 		list:SetBackdrop(backdrop)
 		list:SetBackdropBorderColor(0.4, 0.4, 0.4)
 		list:SetBackdropColor(0.1, 0.1, 0.1, 0.3)
 
-		if i == 1 then
-			list:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -240)
-		else
-			list:SetPoint("TOPLEFT", "$parentList"..(i-1), "TOPRIGHT", 0, 0)
+		if listName == "prices" then
+			list:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -130)
+		elseif listName == "keep" then
+			list:SetPoint("TOPLEFT", frame["pricesList"], "BOTTOMLEFT", 0, -20)
+		elseif listName == "toss" then
+			list:SetPoint("TOPLEFT", frame["keepList"], "TOPRIGHT", 0, 0)
 		end
 
 		list.list = listName
@@ -302,57 +358,6 @@ local function ShowListOptions(frame)
 
 		list.ScrollBar:SetPoint("TOPLEFT", "$parent", "TOPRIGHT", -20, -20)
 		list.ScrollBar:SetPoint("BOTTOMLEFT", "$parent", "BOTTOMRIGHT", -20, 20)
-
-		local addItem = CreateFrame("Button", "$parentAddButton", list, "ItemButtonTemplate")
-		addItem:SetPoint("BOTTOMLEFT", "$parent", "TOPLEFT", 8, 26)
-		addItem:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-		addItem:RegisterForDrag("LeftButton")
-		addItem:SetScript("OnDragStart", function(self, btn)
-			self.label:SetText(GREEN_FONT_COLOR_CODE..ADD_ANOTHER .. "\nRight-Click for categories")
-			SetItemButtonTexture(self, "Interface\\GuildBankFrame\\UI-GuildBankFrame-NewTab")
-			self.item = nil
-			self.link = nil
-		end)
-		addItem:SetScript("OnClick", function(self, btn)
-			local cursorType, cursorValue, data = GetCursorInfo()
-			if cursorType == "item" then
-				local icon = GetItemIcon(cursorValue)
-				SetItemButtonTexture(self, icon)
-				self.item = cursorValue
-				self.link = data
-				self.label:SetText(data)
-			elseif cursorType == "equipmentset" then
-				local icon, cursorValue = GetEquipmentSetInfoByName(cursorValue)
-				SetItemButtonTexture(self, icon)
-				self.item = "BEQ_"..cursorValue
-				self.link = nil
-				self.label:SetText( GetEntryTitle(self.item) )
-			else
-				if IsModifiedClick() then
-					HandleModifiedItemClick(self.link)
-				end
-				return
-			end
-			ClearCursor()
-			Broker_Garbage.Add(self:GetParent().list, self.item)
-			Broker_Garbage.PrintFormat( -- FIXME: locale
-				"%s has been added to your list.",
-				self.label:GetText())
-			ListUpdate(self:GetParent())
-		end)
-		addItem:SetScript("OnReceiveDrag", addItem:GetScript("OnClick"))
-
-		-- TODO: FIXME: right click menu!
-		SetItemButtonTexture(addItem, "Interface\\GuildBankFrame\\UI-GuildBankFrame-NewTab")
-		addItem:SetScript("OnEnter", BGC.ShowTooltip)
-		addItem:SetScript("OnLeave", BGC.HideTooltip)
-		addItem.tiptext = BGC.locale.LOPlus
-
-		local addLabel = addItem:CreateFontString(nil, nil, "GameFontNormal")
-		      addLabel:SetPoint("LEFT", addItem, "RIGHT", 6, 0)
-		      addLabel:SetJustifyH("LEFT")
-		      addLabel:SetText(GREEN_FONT_COLOR_CODE..ADD_ANOTHER .. "\nRight-Click for categories")
-		addItem.label = addLabel
 
 		-- headers
 		local sorter1 = CreateFrame("Button", "$parentSorterShared", list, "AuctionSortButtonTemplate", 1)
@@ -365,9 +370,9 @@ local function ShowListOptions(frame)
 			  sorter1:SetScript("OnLeave", BGC.HideTooltip)
 			  _G[sorter1:GetName().."Arrow"]:Hide()
 		local sorter3 = CreateFrame("Button", "$parentSorterInfo", list, "AuctionSortButtonTemplate", 3)
-			  sorter3:SetText( info[listName][2] )
-			  sorter3.tiptext = "Limit / Auto sell explanation" -- FIXME: locale
-			  sorter3:SetSize(40, 19)
+			  sorter3:SetText( info[listName][3] )
+			  sorter3.tiptext = info[listName][4]
+			  sorter3:SetSize(60, 19)
 			  sorter3:SetPoint("BOTTOMRIGHT", list, "TOPRIGHT", -20, -2)
 			  sorter3:SetScript("OnClick", SortList)
 			  sorter3:SetScript("OnEnter", BGC.ShowTooltip)
@@ -375,7 +380,7 @@ local function ShowListOptions(frame)
 			  _G[sorter3:GetName().."Arrow"]:Hide()
 		local sorter2 = CreateFrame("Button", "$parentSorterName", list, "AuctionSortButtonTemplate", 2)
 			  sorter2:SetText( info[listName][1] )
-			  sorter2.tiptext = "" -- FIXME: locale
+			  sorter2.tiptext = info[listName][2]
 			  sorter2:SetHeight(19)
 			  sorter2:SetPoint("BOTTOMLEFT", sorter1, "BOTTOMRIGHT", -2, 0)
 			  sorter2:SetPoint("BOTTOMRIGHT", sorter3, "BOTTOMLEFT", 2, 0)
@@ -404,15 +409,22 @@ local function ShowListOptions(frame)
 				  name:SetWordWrap(true)
 			item.name = name
 
-			if i == 1 then
-				local info = CreateFrame("EditBox", nil, item, "InputBoxTemplate")
+			if listName == "prices" then
+				local info = item:CreateFontString(nil, nil, "GameFontNormal")
 					  info:SetPoint("LEFT", name, "RIGHT", 2, 0)
-					  info:SetSize(26, 20)
+					  info:SetWidth(50)
+					  info:SetJustifyH("RIGHT")
+				item.info = info
+				name:SetWidth(210-(50-26))
+			elseif listName == "keep" then
+				local info = CreateFrame("EditBox", nil, item, "InputBoxTemplate")
+					  info:SetPoint("LEFT", name, "RIGHT", 4, 0)
+					  info:SetSize(24, 20)
 					  info:SetAutoFocus(false)
 					  info:SetNumeric(true)
 					  -- info:SetScript("OnEnter", SetKeepLimit) -- TODO: onenter, onescape, clear handlers
 				item.info = info
-			else
+			elseif listName == "toss" then
 				local info = CreateFrame("CheckButton", nil, item, "UICheckButtonTemplate")
 					  info:SetPoint("LEFT", name, "RIGHT", 4, 0)
 					  info:SetSize(20, 20)
@@ -437,74 +449,8 @@ local function ShowListOptions(frame)
 		ListUpdate(list)
 	end
 
-	-- TODO: forced price config + update
-	local savePriceSetting = function(value)
-		if not value then return end
-		local index, button, item, resetRequired = 1, nil, nil, nil
-		while _G["BG_ListOptions_ScrollFrameItem"..index] do
-			button = _G["BG_ListOptions_ScrollFrameItem"..index]
-			if button:IsVisible() and button:GetChecked() then
-				item = button.itemID or button.tiptext
-				BG_GlobalDB.forceVendorPrice[item] = value
-				if button.itemID and type(button.itemID) == "number" then
-					Broker_Garbage.UpdateAllCaches(item)
-				else
-					resetRequired = true
-				end
-			end
-			index = index + 1
-		end
 
-		if resetRequired then
-			Broker_Garbage.UpdateAllDynamicItems()
-		end
-		Broker_Garbage:UpdateLDB()
-		Broker_Garbage:UpdateMerchantButton()
-		BGC.ListOptionsUpdate(frame)
-	end
-	StaticPopupDialogs["BROKERGARBAGE_SETITEMPRICE"] = {
-		text = BGC.locale.setPriceInfo,
-		button1 = _G["OKAY"],
-		button2 = _G["CANCEL"],
-		button3 = _G["SELL_PRICE"],
-		hasMoneyInputFrame = true,
-		OnAccept = function(self)
-			local value = MoneyInputFrame_GetCopper(self.moneyInputFrame)
-			savePriceSetting(value)
-		end,
-		OnAlt = function(self) savePriceSetting(-1) end,
-		OnShow = function(self) --[[MoneyFrame_Update(self.moneyFrame, currentPrice)--]] end,
-		EditBoxOnEscapePressed = function(self) self:GetParent():GetParent().button2:Click() end,
-		EditBoxOnEnterPressed = function(self) self:GetParent():GetParent().button1:Click() end,
-		timeout = 0,
-		whileDead = true,
-		enterClicksFirstButton = true,
-		hideOnEscape = true,
-		preferredIndex = 3,
-	}
-
-	local searchbox = CreateFrame("EditBox", "$parentSearchBox", frame, "SearchBoxTemplate")
-	searchbox:SetPoint("TOPRIGHT", frame.keepList, "BOTTOMRIGHT", -4, 2)
-	searchbox:SetSize(160, 32)
-	searchbox:SetScript("OnEnterPressed", EditBox_ClearFocus)
-	searchbox:SetScript("OnEscapePressed", function(self)
-		PlaySound("igMainMenuOptionCheckBoxOn")
-		self:SetText(SEARCH)
-		EditBox_ClearFocus(self)
-		self:clearFunc()
-	end)
-	searchbox:SetScript("OnTextChanged", function(self)
-		local text = self:GetText()
-		local oldText = frame.searchString
-		frame.searchString = (text ~= "" and text ~= SEARCH) and text:lower() or nil
-		if oldText ~= frame.searchString then
-			BGC.ListOptionsUpdate(frame)
-		end
-	end)
-	searchbox.clearFunc = function(self)
-		BGC.ListOptionsUpdate(frame)
-	end
-
+	-- TODO: FIXME
 	if not _G["BG_LPTMenuFrame"] then
 		local RightClickMenuOnClick = function(self)
 			local value = self
@@ -512,13 +458,11 @@ local function ShowListOptions(frame)
 				value = self.value
 			end
 
-			local reset = BGC.RemoteAddItemToList(value, frame.current)
-			if reset then
-				Broker_Garbage.UpdateAllDynamicItems()
-			end
-			Broker_Garbage:UpdateLDB()
-			Broker_Garbage.UpdateMerchantButton()
-			BGC:ListOptionsUpdate()
+			Broker_Garbage.Add(frame.current, value)
+			Broker_Garbage.PrintFormat( -- FIXME: locale
+				"%s has been added to your list.",
+				self.label:GetText())
+			-- ListUpdate(frame)
 		end
 
 		StaticPopupDialogs["BROKERGARBAGE_ADDITEMNAME"] = {
@@ -624,35 +568,105 @@ local function ShowListOptions(frame)
 		end
 	end
 
-	local function OnClick(self, button)
-		if button == "RightButton" then
+	local addItem = CreateFrame("Button", "$parentAddButton", frame, "ItemButtonTemplate")
+	addItem:SetPoint("TOPRIGHT", "$parent", "TOPRIGHT", -16-200, -130)
+	SetItemButtonTexture(addItem, "Interface\\GuildBankFrame\\UI-GuildBankFrame-NewTab")
+	addItem.tiptext = BGC.locale.LOPlus
+
+	addItem:SetScript("OnEnter", BGC.ShowTooltip)
+	addItem:SetScript("OnLeave", BGC.HideTooltip)
+	addItem:RegisterForDrag("LeftButton")
+	addItem:SetScript("OnDragStart", function(self, btn)
+		self.label:SetText(GREEN_FONT_COLOR_CODE..ADD_ANOTHER .. "\nRight-Click for categories")
+		SetItemButtonTexture(self, "Interface\\GuildBankFrame\\UI-GuildBankFrame-NewTab")
+		self.item = nil
+		self.link = nil
+	end)
+	addItem:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+	addItem:SetScript("OnClick", function(self, btn)
+		if btn == "RightButton" then
 			-- toggle LibPeriodicTable menu
-			BGC.menuFrame.clickTarget = self
 			ToggleDropDownMenu(nil, nil, BGC.menuFrame, self, -20, 0)
 			return
 		end
 
-		local reset = nil	-- used to clean the items cache once we're done here
-		local localList, globalList = Broker_Garbage:GetOption(frame.current)
-		if false then
-			local index = 1
-			while _G["BG_ListOptions_ScrollFrameItem"..index] do
-				local button = _G["BG_ListOptions_ScrollFrameItem"..index]
-				if button:IsVisible() and button:GetChecked() then
-					StaticPopup_Show("BROKERGARBAGE_SETITEMPRICE")
-					break
-				end
-				index = index + 1
+		local cursorType, cursorValue, data = GetCursorInfo()
+		if cursorType == "item" then
+			local icon = GetItemIcon(cursorValue)
+			SetItemButtonTexture(self, icon)
+			self.item = cursorValue
+			self.link = data
+			self.label:SetText(data)
+		elseif cursorType == "equipmentset" then
+			local icon, cursorValue = GetEquipmentSetInfoByName(cursorValue)
+			SetItemButtonTexture(self, icon)
+			self.item = "BEQ_"..cursorValue
+			self.link = nil
+			self.label:SetText( GetEntryTitle(self.item) )
+		else
+			if IsModifiedClick() then
+				HandleModifiedItemClick(self.link)
 			end
-			return -- continued in savePriceSetting() called from popup
+			return
 		end
+		ClearCursor()
+		Broker_Garbage.Add(self:GetParent().list, self.item)
+		Broker_Garbage.PrintFormat( -- FIXME: locale
+			"%s has been added to your list.",
+			self.label:GetText())
+		ListUpdate(self:GetParent())
 
-		Broker_Garbage:UpdateLDB()
-		Broker_Garbage:UpdateMerchantButton()
-		BGC:ListOptionsUpdate()
+		--[[
+			if false then
+				local index = 1
+				while _G["BG_ListOptions_ScrollFrameItem"..index] do
+					local button = _G["BG_ListOptions_ScrollFrameItem"..index]
+					if button:IsVisible() and button:GetChecked() then
+						StaticPopup_Show("BROKERGARBAGE_SETITEMPRICE")
+						break
+					end
+					index = index + 1
+				end
+				return -- continued in savePriceSetting() called from popup
+			end
+
+			Broker_Garbage:UpdateLDB()
+			Broker_Garbage:UpdateMerchantButton()
+			BGC.ListOptionsUpdate(frame)
+		--]]
+	end)
+	addItem:SetScript("OnReceiveDrag", addItem:GetScript("OnClick"))
+
+	local addLabel = addItem:CreateFontString(nil, nil, "GameFontNormal")
+	      addLabel:SetPoint("LEFT", addItem, "RIGHT", 6, 0)
+	      addLabel:SetJustifyH("LEFT")
+	      addLabel:SetText(GREEN_FONT_COLOR_CODE..ADD_ANOTHER .. "\nRight-Click for categories")
+	addItem.label = addLabel
+
+	local searchbox = CreateFrame("EditBox", "$parentSearchBox", frame, "SearchBoxTemplate")
+	searchbox:SetPoint("TOPLEFT", addLabel, "BOTTOMLEFT", -4, -10)
+	searchbox:SetSize(160, 32)
+	searchbox:SetScript("OnEnterPressed", EditBox_ClearFocus)
+	searchbox:SetScript("OnEscapePressed", function(self)
+		PlaySound("igMainMenuOptionCheckBoxOn")
+		self:SetText(SEARCH)
+		EditBox_ClearFocus(self)
+		self:clearFunc()
+	end)
+	searchbox:SetScript("OnTextChanged", function(self)
+		local text = self:GetText()
+		local oldText = frame.searchString
+		frame.searchString = (text ~= "" and text ~= SEARCH) and text:lower() or nil
+		if oldText ~= frame.searchString then
+			BGC.ListOptionsUpdate(frame)
+		end
+	end)
+	searchbox.clearFunc = function(self)
+		BGC.ListOptionsUpdate(frame)
 	end
 
 	local function ListOptionsUpdate(self)
+		ListUpdate(self.pricesList)
 		ListUpdate(self.keepList)
 		ListUpdate(self.tossList)
 	end
