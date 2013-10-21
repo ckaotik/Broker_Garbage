@@ -30,8 +30,10 @@
 ## X-Credits: tekKonfig
 ## X-License: BSD
 
+#@no-lib-strip@
 # libraries
 libs\tekKonfig\tekKonfig.xml
+#@end-no-lib-strip@
 
 # locale
 locale\enUS.lua
