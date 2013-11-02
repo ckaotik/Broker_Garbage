@@ -451,118 +451,117 @@ local function ShowListOptions(frame)
 
 
 	-- TODO: FIXME
-	if not _G["BG_LPTMenuFrame"] then
-		local RightClickMenuOnClick = function(self)
-			local value = self
-			if type(self) == "table" then
-				value = self.value
-			end
-
-			Broker_Garbage.Add(frame.current, value)
-			Broker_Garbage.PrintFormat( -- FIXME: locale
-				"%s has been added to your list.",
-				self.label:GetText())
-			-- ListUpdate(frame)
+	local RightClickMenuOnClick = function(self)
+		local value = self
+		if type(self) == "table" then
+			value = self.value
 		end
 
-		StaticPopupDialogs["BROKERGARBAGE_ADDITEMNAME"] = {
-			text = BGC.locale.namedItemsInfo,
-			button1 = _G["OKAY"],
-			button2 = _G["CANCEL"],
-			hasEditBox = true,
-			OnAccept = function(self)
-				local name = self.editBox:GetText()
-				name = GetItemInfo(name) or name
+		Broker_Garbage.Add(frame.current, value)
+		Broker_Garbage.PrintFormat( -- FIXME: locale
+			"%s has been added to your list.",
+			self.label:GetText())
+		-- ListUpdate(frame)
+	end
 
-				if name and name ~= "" then
-					name = "NAME_"..name
-					local localList, globalList = Broker_Garbage:GetOption(frame.current)
-					if localList and localList[name] == nil then localList[name] = 0
-					elseif globalList and globalList[name] == nil then globalList[name] = 0
-					end
-					BGC:ListOptionsUpdate()
+	StaticPopupDialogs["BROKERGARBAGE_ADDITEMNAME"] = {
+		text = BGC.locale.namedItemsInfo,
+		button1 = _G["OKAY"],
+		button2 = _G["CANCEL"],
+		hasEditBox = true,
+		OnAccept = function(self)
+			local name = self.editBox:GetText()
+			name = GetItemInfo(name) or name
+
+			if name and name ~= "" then
+				name = "NAME_"..name
+				local localList, globalList = Broker_Garbage:GetOption(frame.current)
+				if localList and localList[name] == nil then localList[name] = 0
+				elseif globalList and globalList[name] == nil then globalList[name] = 0
 				end
-			end,
-			EditBoxOnEscapePressed = function(self)
-				self:GetParent().button2:Click()
-			end,
-			EditBoxOnEnterPressed = function(self)
-				self:GetParent().button1:Click()
-			end,
-			timeout = 0,
-			whileDead = true,
-			enterClicksFirstButton = true,
-			hideOnEscape = true,
-			preferredIndex = 3,
-		}
+				BGC:ListOptionsUpdate()
+			end
+		end,
+		EditBoxOnEscapePressed = function(self)
+			self:GetParent().button2:Click()
+		end,
+		EditBoxOnEnterPressed = function(self)
+			self:GetParent().button1:Click()
+		end,
+		timeout = 0,
+		whileDead = true,
+		enterClicksFirstButton = true,
+		hideOnEscape = true,
+		preferredIndex = 3,
+	}
 
-		--initialize dropdown menu for adding setstrings
-		BGC.menuFrame = CreateFrame("Frame", "BG_LPTMenuFrame", UIParent, "UIDropDownMenuTemplate")
-		BGC.menuFrame.displayMode = "MENU"
-		BGC.menuFrame.initialize = function(self, level)
-			-- LPT sets as dropdown entries
-			BGC:LPTDropDown(self, level, RightClickMenuOnClick, true)
+	-- initialize dropdown menu for adding setstrings
+	BGC.menuFrame = CreateFrame("Frame", "BG_LPTMenuFrame", UIParent, "UIDropDownMenuTemplate")
+	BGC.menuFrame.displayMode = "MENU"
 
-			-- add equipment sets
-			if level == 1 then
-				-- placeholder
+	local armorTypes = { GetAuctionItemSubClasses(2) }
+	BGC.menuFrame.initialize = function(self, menuLevel, menuList)
+		local level = menuLevel or 1
+		BGC.InitializeLPTDropdown(self, level, menuList, RightClickMenuOnClick)
+
+		-- add equipment sets and other special categories
+		if level == 1 then
+			local info = UIDropDownMenu_CreateInfo()
+			      info.func = RightClickMenuOnClick
+
+			-- placeholder
+			info.isTitle      = true
+			info.notClickable = true
+			info.notCheckable = true
+			info.hasArrow     = nil
+			info.text         = BGC.locale.tooltipHeadingOther
+			UIDropDownMenu_AddButton(info, level)
+
+			-- reset unwanted attributes
+			info.isTitle      = nil
+			info.disabled     = nil
+			info.notClickable = nil
+
+			info.text = BGC.locale.namedItems
+			info.value = "NAME"
+			info.func = function()
+				StaticPopup_Show("BROKERGARBAGE_ADDITEMNAME")
+				ToggleDropDownMenu(nil, nil, BGC.menuFrame)
+			end
+			UIDropDownMenu_AddButton(info, level)
+
+			info.hasArrow     = true
+			info.notCheckable = true
+			info.func         = nil
+
+			info.text         = BGC.locale.equipmentManager
+			info.menuList     = 'BEQ'
+			UIDropDownMenu_AddButton(info, level)
+
+			info.text         = BGC.locale.armorClass
+			info.menuList     = 'AC'
+			UIDropDownMenu_AddButton(info, level)
+
+		elseif level == 2 then
+			if menuList == 'BEQ' then
 				local info = UIDropDownMenu_CreateInfo()
-				info.notCheckable = true
-				UIDropDownMenu_AddButton(info, level)
+				      info.func = RightClickMenuOnClick
+				      info.hasArrow = nil
 
-				info.notClickable = true
-				info.isTitle = true
-				info.text = BGC.locale.tooltipHeadingOther
-				UIDropDownMenu_AddButton(info, level)
-
-				-- reset unwanted attributes
-				info.notClickable = nil
-				info.isTitle = nil
-				info.disabled = nil
-
-				info.text = BGC.locale.namedItems
-				info.value = "NAME"
-				info.func = function()
-					StaticPopup_Show("BROKERGARBAGE_ADDITEMNAME")
-					ToggleDropDownMenu(nil, nil, BGC.menuFrame)
+				for index = 1, GetNumEquipmentSets() do
+					info.text = GetEquipmentSetInfo(index)
+					info.value = "BEQ_"..index
+					UIDropDownMenu_AddButton(info, level)
 				end
-				UIDropDownMenu_AddButton(info, level)
+			elseif menuList == 'AC' then
+				local info = UIDropDownMenu_CreateInfo()
+				      info.func = RightClickMenuOnClick
+				      info.hasArrow = nil
 
-				info.hasArrow = true
-				info.text = BGC.locale.equipmentManager
-				info.value = "BEQ"
-				UIDropDownMenu_AddButton(info, level)
-
-				info.text = BGC.locale.armorClass
-				info.value = "AC"
-				UIDropDownMenu_AddButton(info, level)
-			elseif level == 2 and UIDROPDOWNMENU_MENU_VALUE then
-				if UIDROPDOWNMENU_MENU_VALUE == "BEQ" then
-					for k = 1, GetNumEquipmentSets() do
-						local info = UIDropDownMenu_CreateInfo()
-						info.text = GetEquipmentSetInfo(k)
-						info.value = "BEQ_" .. k
-
-						info.notCheckable = true
-						info.hasArrow = false
-						info.func = RightClickMenuOnClick
-
-						UIDropDownMenu_AddButton(info, level);
-					end
-				elseif UIDROPDOWNMENU_MENU_VALUE == "AC" then
-					local armorTypes = { GetAuctionItemSubClasses(2) }
-
-					for k = 2, 5 do
-						local info = UIDropDownMenu_CreateInfo()
-						info.text = armorTypes[k]
-						info.value = "AC_"..k
-
-						info.notCheckable = true
-						info.hasArrow = false
-						info.func = RightClickMenuOnClick
-
-						UIDropDownMenu_AddButton(info, level);
-					end
+				for index = 2, 5 do
+					info.text = armorTypes[index]
+					info.value = "AC_"..index
+					UIDropDownMenu_AddButton(info, level)
 				end
 			end
 		end
@@ -586,7 +585,7 @@ local function ShowListOptions(frame)
 	addItem:SetScript("OnClick", function(self, btn)
 		if btn == "RightButton" then
 			-- toggle LibPeriodicTable menu
-			ToggleDropDownMenu(nil, nil, BGC.menuFrame, self, -20, 0)
+			ToggleDropDownMenu(nil, nil, BGC.menuFrame, self, 0, 0)
 			return
 		end
 

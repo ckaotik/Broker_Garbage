@@ -20,6 +20,15 @@ function BGC:Print(text)
 	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622Broker_Garbage|r "..(text or ""))
 end
 
+function BGC.Find(where, value)
+	if not where then return end
+	for k, v in pairs(where) do
+		if v == value then
+			return k
+		end
+	end
+end
+
 function BGC.GetListEntryInfo(item)
 	local link, resetRequired = nil, nil
 	-- create "link" for output

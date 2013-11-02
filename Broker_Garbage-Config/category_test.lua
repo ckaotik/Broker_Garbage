@@ -1,5 +1,6 @@
 local _, BGC = ...
-if not BGC.PT then return end
+local LibPeriodicTable = LibStub("LibPeriodicTable-3.1", true)
+if not LibPeriodicTable then return end
 
 -- TODO: rewrite & update, including complete item list (i.e. unlimited tooltip lines)
 
@@ -46,7 +47,7 @@ local function Options_CategoryTest(panel)
 				end
 			end
 
-			local searchResults = BGC.PT:ItemSearch(data)
+			local searchResults = LibPeriodicTable:ItemSearch(data)
 			if searchResults and #(searchResults) > 0 then
 				output = output .. "\n\n" .. BGC.locale.categoryTestOthersTitle
 				for _, category in ipairs(searchResults) do
@@ -80,7 +81,7 @@ local function Options_CategoryTest(panel)
 			end
 
 			local index, itemList = 0, {}
-			for itemID, value in BGC.PT:IterateSet(data) do
+			for itemID, value in LibPeriodicTable:IterateSet(data) do
 				local show = false
 				if GetItemCount(itemID) ~= 0 and not itemList[itemID] then
 					itemList[itemID] = true
@@ -166,8 +167,8 @@ local function Options_CategoryTest(panel)
 	itemSlot:SetScript("OnLeave", BGC.HideTooltip)
 	itemSlot.tiptext = BGC.locale.categoryTestItemSlot
 
-	LPTDropDown.initialize = function(self, level)
-		BGC:LPTDropDown(self, level, function(self)
+	LPTDropDown.initialize = function(self, menuLevel, menuList)
+		BGC.InitializeLPTDropdown(self, menuLevel, menuList, function(self)
 			UIDropDownMenu_SetSelectedValue(LPTDropDown, self.value)
 			UIDropDownMenu_SetText(LPTDropDown, self.value)
 			UpdatePreviewBox(self.value, "category", scrollFrameContent)
