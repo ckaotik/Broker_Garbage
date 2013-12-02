@@ -188,16 +188,10 @@ local COMMAND_PARAMS = {
 			BGC:Print(BGC.locale.invalidArgument)
 			return
 		end
+
 		list = list:lower()
-
-		local itemID = tonumber(item) or item
-		if type(itemID) == "string" then
-			itemID = Broker_Garbage.GetItemID(item) or itemID
-		elseif type(itemID) == "number" then
-			itemID = item
-		end
-
 		local itemList = COMMAND_ALIAS[list] or list
+		local itemID = tonumber(item) or Broker_Garbage.GetItemID(item) or item
 		Broker_Garbage.Add(itemList, item)
 	end,
 	remove = function(param)
