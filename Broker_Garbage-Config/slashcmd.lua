@@ -192,7 +192,7 @@ local COMMAND_PARAMS = {
 		list = list:lower()
 		local itemList = COMMAND_ALIAS[list] or list
 		local itemID = tonumber(item) or Broker_Garbage.GetItemID(item) or item
-		Broker_Garbage.Add(itemList, item)
+		Broker_Garbage.Add(itemList, itemID)
 	end,
 	remove = function(param)
 		local list, item = param:match("^(%S*)%s*(.-)%s*$")
@@ -210,7 +210,7 @@ local COMMAND_PARAMS = {
 		end
 
 		local itemList = COMMAND_ALIAS[list] or list
-		Broker_Garbage.Remove(itemList, item)
+		Broker_Garbage.Remove(itemList, itemID)
 	end,
 
 	cache = function(item)
