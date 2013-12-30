@@ -123,6 +123,8 @@ local function Classify(location)
 	cacheData.priority = priority or ns.priority.NEUTRAL
 	cacheData.sell = doSell
 	cacheData.reason = priorityReason
+
+	return cacheData
 end
 
 function ns.ItemSort(locationA, locationB)

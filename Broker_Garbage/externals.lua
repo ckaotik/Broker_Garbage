@@ -71,17 +71,21 @@ function ns.Add(list, item, value, isGlobal, noUpdate)
 		end
 		ns[list][item] = value or 0
 	end
+
 	if not noUpdate then
-		ns.Print("Update locations of "..item)
-		ns.Scan(ns.UpdateItem, ns.locations[item])
+		ns.Scan(ns.UpdateItem, item)
 	end
 end
-function ns.Remove(list, item)
+function ns.Remove(list, item, noUpdate)
 	if list ~= "prices" then
 		BG_LocalDB[list][item] = nil
 	end
 	BG_GlobalDB[list][item] = nil
 	ns[list][item] = nil
+
+	if not noUpdate then
+		ns.Scan(ns.UpdateItem, item)
+	end
 
 	-- TODO: update lists etc
 	-- Broker_Garbage:UpdateLDB()

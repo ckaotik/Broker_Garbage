@@ -29,10 +29,8 @@ end
 
 function BG.GetItemID(itemLink)
 	if not itemLink or type(itemLink) ~= "string" then return end
-	local linkType, id, data = itemLink:find("\124H([^:]+):([^:\124]+)")
-	if linkType == "item" then
-		return tonumber(id)
-	end
+	local linkType, id, data = itemLink:match("\124H([^:\124]+):([^:\124]+)")
+	return id and tonumber(id) or nil, linkType, data
 end
 
 function BG.GetPatternFromFormat(globalString)
