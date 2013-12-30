@@ -5,6 +5,7 @@ local _, ns = ...
 -- GLOBALS: type, select, string, ipairs, math, tonumber, wipe, pairs, table, strsplit
 
 local emptyTable = {}
+local EXTERNAL_ITEM = 0
 
 -- --------------------------------------------------------
 --  LPT caching
@@ -89,7 +90,13 @@ function ns.IsItemSoulbound(location)
 			return true
 		else
 			scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-			scanTooltip:SetBagItem( ns.GetBagSlot(location) )
+			if location ~= EXTERNAL_ITEM then
+				scanTooltip:SetBagItem( ns.GetBagSlot(location) )
+			elseif item.link then
+				scanTooltip:SetHyperlink(item.link)
+			else
+				return
+			end
 			local binding = _G[scanTooltip:GetName().."TextLeft2"]:GetText() == ITEM_SOULBOUND or
 		                    _G[scanTooltip:GetName().."TextLeft3"]:GetText() == ITEM_SOULBOUND
 			scanTooltip:Hide()
@@ -190,13 +197,14 @@ end
 local LibItemUpgrade = LibStub("LibItemUpgradeInfo-1.0")
 local itemsForInvType = {}
 local function IsHighestItemLevel(location)
-	local equipSlot = ns.containers[ location ].item.slot
+	local item = ns.containers[ location ].item
+	local equipSlot = item.slot
 	local slots = (TopFit and TopFit.GetEquipLocationsByInvType and TopFit:GetEquipLocationsByInvType(equipSlot)) or
 		(PawnGetSlotsForItemType and { PawnGetSlotsForItemType(equipSlot) }) or
 		{}
 
 	local numSlots = #slots
-	local locationLevel = LibItemUpgrade:GetUpgradedItemLevel( GetContainerItemLink( ns.GetBagSlot(location) ) )
+	local locationLevel = LibItemUpgrade:GetUpgradedItemLevel( item.link or GetContainerItemLink( ns.GetBagSlot(location) ) )
 
 	wipe(itemsForInvType)
 	-- compare with equipped item levels
@@ -244,7 +252,7 @@ function ns.IsOutdatedItem(location)
 	if not item or invSlot == "" or invSlot == "INVTYPE_BAG" then
 		return
 	else
-		local itemLink = GetContainerItemLink( ns.GetBagSlot(location) )
+		local itemLink = item.link or GetContainerItemLink( ns.GetBagSlot(location) )
 		local isInteresting = IsInterestingItem(itemLink)
 		local isHighestItemLevel = not isInteresting and BG_GlobalDB.keepHighestItemLevel and IsHighestItemLevel(location)
 

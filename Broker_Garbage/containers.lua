@@ -6,6 +6,7 @@ local _, ns = ...
 
 local Unfit = LibStub("Unfit-1.0")
 local QUEST = select(10, GetAuctionItemClasses())
+local EXTERNAL_ITEM = 0
 local emptyTable = {}
 
 --[[-- TODO --
@@ -71,7 +72,7 @@ function ns.SlotIsOverLimit(location, limiter, limit)
 
 	local index, count = 1, 0
 	while count < limit do
-		if locations[index] == location or index > #locations then
+		if index > #locations or locations[index] == location then
 			return false
 		end
 		count = count + ns.containers[ locations[index] ].count
@@ -327,7 +328,8 @@ function ns.GetItemPriority(location)
 
 	-- unusable gear
 	if BG_GlobalDB.sellUnusable and item.q <= BG_GlobalDB.sellUnusableQuality and
-		item.slot ~= "" and item.slot ~= "INVTYPE_BAG" and item.bop and Unfit:IsItemUnusable(item.id) then -- soulbound boe can't be unusable!
+		item.slot ~= "" and item.slot ~= "INVTYPE_BAG" and item.bop and Unfit:IsItemUnusable(item.id) then
+		-- soulbound boe can't be unusable!
 		priority = ns.priority.NEUTRAL
 		reason = ns.reason.UNUSABLE_ITEM
 		return priority, true, reason
@@ -427,4 +429,35 @@ function ns.GetItemAction(location)
 	end
 
 	return label, maxPrice, reason
+end
+
+function ns.GetExternalItemInfo(item, count)
+	local itemID, itemLink
+	if not item then
+		return
+	elseif type(item) == 'string' then
+		itemID = ns.GetItemID(item)
+		itemLink = item
+	elseif type(item) == 'number' then
+		itemID = item
+		_, itemLink = GetItemInfo(itemID)
+	end
+
+	-- pretend to have this item in inventory
+	local location = EXTERNAL_ITEM
+	ns.containers[location].loc   = EXTERNAL_ITEM
+	ns.containers[location].count = count or 1
+	ns.containers[location].item  = ns.item[itemID]
+	ns.containers[location].item.link = itemLink
+
+	-- get classification data
+	local data = Classify(location)
+	local priority, label, value, autoSell, reason = data.priority, data.label, data.value, data.sell, data.reason
+
+	-- remove item from fake inventory
+	ns.containers[location].item.link = nil
+	ns.containers[location].item = nil
+	Classify(location)
+
+	return priority, label, value, autoSell, reason
 end
