@@ -111,10 +111,10 @@ function BG.UpdateLDB()
 		-- update slot stats
 		if containerType == 0 then
 			BG.totalBagSpace = BG.totalBagSpace + 1
-			BG.totalFreeSlots = BG.totalFreeSlots + (cacheData.item and 1 or 0)
+			BG.totalFreeSlots = BG.totalFreeSlots + (cacheData.item and 0 or 1)
 		else
 			BG.specialSlots = BG.specialSlots + 1
-			BG.freeSpecialSlots = BG.freeSpecialSlots + (cacheData.item and 1 or 0)
+			BG.freeSpecialSlots = BG.freeSpecialSlots + (cacheData.item and 0 or 1)
 		end
 
 		BG.containerInInventory = BG.containerInInventory or ( select(6, GetContainerItemInfo(container, slot)) )
