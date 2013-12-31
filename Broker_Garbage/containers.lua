@@ -431,7 +431,7 @@ function ns.GetItemAction(location)
 	return label, maxPrice, reason
 end
 
-function ns.GetExternalItemInfo(item, count)
+function ns.GetUnownedItemInfo(item, count)
 	local itemID, itemLink
 	if not item then
 		return

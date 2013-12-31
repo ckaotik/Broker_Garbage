@@ -151,34 +151,32 @@ function BGLM:CanSkin(mobLevel)
 	return maxLevel >= mobLevel
 end
 
--- determines if an item should be looted
-function BGLM:IsInteresting(item)
-	if true then return true end
+-- determines if an item should be looted. item: id or link, [count], [lootType]
+function BGLM:IsInteresting(item, count, lootType)
+	if lootType and lootType ~= LOOT_SLOT_ITEM then return true end
+	-- if true then return true end
 
-	local priority, label, value, sell, reason = Broker_Garbage.GetExternalItemInfo(item, count)
+	local priority, label, value, sell, reason = Broker_Garbage.GetUnownedItemInfo(item, count)
+	local _, _, quality, _, _, _, _, _, _, _, vendorPrice = GetItemInfo(item)
 
 	local isInteresting, alwaysLoot
-	-- TODO: fixme, BG.EXCLUDE is probably positive_priority
-	if cachedItemTable.label == Broker_Garbage.EXCLUDE then
+	if priority == Broker_Garbage.priority.POSITIVE then
 		isInteresting = true
 		alwaysLoot = BGLM_GlobalDB.lootExcludeItems
-	-- TODO: fixme, BG.INCLUDE is probably negative_priority
-	elseif cachedItemTable.label == Broker_Garbage.INCLUDE and not BGLM_GlobalDB.lootIncludeItems then
+	elseif priority == Broker_Garbage.priority.NEGATIVE and not BGLM_GlobalDB.lootIncludeItems then
 		isInteresting = false
-	elseif cachedItemTable.q < BGLM_LocalDB.minItemQuality then
+	elseif quality and quality < BGLM_LocalDB.minItemQuality then
 		isInteresting = false
-	elseif value < BGLM_LocalDB.itemMinValue then
+	elseif value and value < BGLM_LocalDB.itemMinValue then
 		isInteresting = false
 	else
 		isInteresting = true
 	end
 
-	local isTopFitInteresting = IsAddOnLoaded("TopFit") and Broker_Garbage.IsItemEquipment(select(9, GetItemInfo(cachedItemTable.id))) and TopFit:IsInterestingItem(cachedItemTable.itemID)
-
-	if isTopFitInteresting or BGLM_GlobalDB.forceClear or alwaysLoot then
-		return isInteresting, true
+	if BGLM_GlobalDB.forceClear or alwaysLoot then
+		return isInteresting, true,  value or vendorPrice
 	else
-		return isInteresting, false
+		return isInteresting, false, value or vendorPrice
 	end
 end
 

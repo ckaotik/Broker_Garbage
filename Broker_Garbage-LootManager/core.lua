@@ -166,11 +166,12 @@ end
 function ns.UpdateLootFrame(index)
 	if not index then return end
 	local slot = (LOOTFRAME_NUMBUTTONS * (LootFrame.page - 1)) + index
-	local item = GetLootSlotLink(slot)
-	-- local itemID = item and Broker_Garbage.GetItemID(item)
+	local itemLink = GetLootSlotLink(slot)
+	local _, _, count = GetLootSlotInfo(slot)
+	local lootType = GetLootSlotType(slot)
 
-	if item then
-		local isInteresting, alwaysLoot = ns:IsInteresting(item)
+	if itemLink then
+		local isInteresting, alwaysLoot = ns:IsInteresting(itemLink, count, lootType)
 		if isInteresting or alwaysLoot then
 			_G["LootButton"..index.."IconTexture"]:SetDesaturated(false)
 			_G["LootButton"..index.."IconTexture"]:SetAlpha(1)
@@ -233,7 +234,7 @@ function ns.SelectiveLooting(blizzAutoLoot)
 
 	local closeLootWindow = BGLM_GlobalDB.closeLootWindow
 
-	local slotQuantity, slotQuality, isLocked, isQuest, slotItemLink, slotItemID, slotItem
+	local slotQuantity, slotQuality, isLocked, isQuest, slotItemLink, slotItemID, value
 	local masterWarning = nil
 
 	for container = 1, NUM_BAG_SLOTS do
@@ -255,10 +256,11 @@ function ns.SelectiveLooting(blizzAutoLoot)
 
 			slotItemLink = GetLootSlotLink(lootSlotID)
 			-- slotItemID   = Broker_Garbage.GetItemID(slotItemLink)
+			-- slotItem = Broker_Garbage.item[slotItemLink]
 
 			ns:Debug("Checking item", slotItemLink)
 
-			isInteresting, alwaysLoot = ns:IsInteresting(slotItemLink)
+			isInteresting, alwaysLoot, value = ns:IsInteresting(slotItemLink)
 			-- interesting items that we may take need to be considered
 			if clearAll then
 				ns:Debug("Have to clear all items ...", slotItemLink)
@@ -268,7 +270,7 @@ function ns.SelectiveLooting(blizzAutoLoot)
 				if isLocked then
 					ns:Print(format(ns.locale.couldNotLootLocked, slotItemLink, slotQuantity), BGLM_GlobalDB.printLocked)
 
-				--elseif slotItem.v < BGLM_LocalDB.itemMinValue then
+				--elseif value < BGLM_LocalDB.itemMinValue then
 					-- minimum loot value not reached; item is too cheap
 				--	ns:Print(format(ns.locale.couldNotLootValue, slotItemLink, slotQuantity), BGLM_GlobalDB.printValue)
 
@@ -322,7 +324,7 @@ function ns.SelectiveLooting(blizzAutoLoot)
 			lootData[numItems].slotID = lootSlotID
 			lootData[numItems].itemLink = slotItemLink
 			lootData[numItems].count = slotQuantity
-			lootData[numItems].value = isInteresting and ((slotItem.value or 0) * slotQuantity) or -1
+			lootData[numItems].value = isInteresting and ((value or 0) * slotQuantity) or -1
 			lootData[numItems].currentStack = itemInBags
 			lootData[numItems].stackOverflow = itemStackOverflow
 			lootData[numItems].isSpecial = goesIntoSpecialBag
