@@ -154,10 +154,8 @@ end
 -- determines if an item should be looted. item: id or link, [count], [lootType]
 function BGLM:IsInteresting(item, count, lootType)
 	if lootType and lootType ~= LOOT_SLOT_ITEM then return true end
-	-- if true then return true end
-
 	local priority, label, value, sell, reason = Broker_Garbage.GetUnownedItemInfo(item, count)
-	local _, _, quality, _, _, _, _, _, _, _, vendorPrice = GetItemInfo(item)
+	-- local _, _, quality, _, _, _, _, _, _, _, vendorPrice = GetItemInfo(item)
 
 	local isInteresting, alwaysLoot
 	if priority == Broker_Garbage.priority.POSITIVE then
@@ -165,8 +163,8 @@ function BGLM:IsInteresting(item, count, lootType)
 		alwaysLoot = BGLM_GlobalDB.lootExcludeItems
 	elseif priority == Broker_Garbage.priority.NEGATIVE and not BGLM_GlobalDB.lootIncludeItems then
 		isInteresting = false
-	elseif quality and quality < BGLM_LocalDB.minItemQuality then
-		isInteresting = false
+	-- elseif quality and quality < BGLM_LocalDB.minItemQuality then
+	-- 	isInteresting = false
 	elseif value and value < BGLM_LocalDB.itemMinValue then
 		isInteresting = false
 	else

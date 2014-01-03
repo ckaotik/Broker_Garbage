@@ -1,5 +1,6 @@
 ## Interface: 50300
 ## Dependencies: Broker_Garbage
+## OptionalDeps: Broker_Garbage-Config
 ## SavedVariables: BGLM_GlobalDB
 ## SavedVariablesPerCharacter: BGLM_LocalDB
 
@@ -33,4 +34,4 @@ locale\curse.lua
 # code files
 util.lua
 core.lua
-# options.lua
+options.lua

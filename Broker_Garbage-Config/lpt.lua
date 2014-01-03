@@ -14,6 +14,7 @@ end
 local sortTable = {}
 function ns.InitializeLPTDropdown(self, menuLevel, menuList, clickFunc)
 	local level = menuLevel or 1
+	local selectedValue = UIDropDownMenu_GetSelectedValue(self)
 	local info = UIDropDownMenu_CreateInfo()
 	      info.func = clickFunc
 
@@ -62,6 +63,7 @@ function ns.InitializeLPTDropdown(self, menuLevel, menuList, clickFunc)
 			info.hasArrow = isMultiSet
 			info.value    = setPath
 			info.menuList = setPath
+			info.checked  = setPath == selectedValue
 
 			UIDropDownMenu_AddButton(info, level)
 		end

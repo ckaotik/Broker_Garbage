@@ -339,9 +339,11 @@ local function Options_LootManager(panel)
 	end)
 end
 
-local frame = CreateFrame("Frame", nil, InterfaceOptionsFramePanelContainer)
-frame.name, frame.parent = BGLM.locale.LMTitle, "Broker_Garbage"
-frame:Hide()
-frame:SetScript("OnShow", Options_LootManager)
-InterfaceOptions_AddCategory(frame)
-BGLM.options = frame
+local panel = CreateFrame("Frame")
+      panel.name = BGLM.locale.LMTitle
+      panel.parent = "Broker_Garbage"
+      panel:Hide()
+      panel:SetScript("OnShow", Options_LootManager)
+InterfaceOptions_AddCategory(panel)
+
+BGLM.options = panel

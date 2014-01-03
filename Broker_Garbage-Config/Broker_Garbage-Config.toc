@@ -1,6 +1,5 @@
 ## Interface: 50400
 ## Dependencies: Broker_Garbage
-## OptionalDeps: Broker_Garbage-LootManager
 
 ## Title: Broker_Garbage-Config
 ## Author: ckaotik
