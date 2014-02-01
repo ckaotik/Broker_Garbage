@@ -255,12 +255,11 @@ function ns.SelectiveLooting(blizzAutoLoot)
 			-- texture, item, quantity, quality, locked, isQuestItem, questID, isQuestActive
 
 			slotItemLink = GetLootSlotLink(lootSlotID)
-			-- slotItemID   = Broker_Garbage.GetItemID(slotItemLink)
-			-- slotItem = Broker_Garbage.item[slotItemLink]
-
-			ns:Debug("Checking item", slotItemLink)
+			-- slotItemID = Broker_Garbage.GetItemID(slotItemLink)
+			-- slotItem   = Broker_Garbage.item[slotItemLink]
 
 			isInteresting, alwaysLoot, value = ns:IsInteresting(slotItemLink)
+			ns:Debug("Checking item", slotItemLink, isInteresting, '/', ns:IsInteresting(slotItemLink))
 			-- interesting items that we may take need to be considered
 			if clearAll then
 				ns:Debug("Have to clear all items ...", slotItemLink)

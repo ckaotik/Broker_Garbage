@@ -92,7 +92,9 @@ local function UpdateAuctionAddonList(panel)
 				addonLine:Show()
 			end
 		end
-		if numShown > 0 then frames[displayType][numShown].moveDown:Hide() end
+		if numShown > 0 and frames[displayType] and frames[displayType][numShown] then
+			frames[displayType][numShown].moveDown:Hide()
+		end
 		for i = numShown + 1, #frames[displayType] do
 			frames[i]:Hide()
 		end

@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 2
+local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 3
 
 local lib = _G.LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -36,7 +36,14 @@ local upgradeTable = {
 	[470] = { upgrade = 2, max = 4, ilevel = 8 },
 	[471] = { upgrade = 3, max = 4, ilevel = 12 },
 	[472] = { upgrade = 4, max = 4, ilevel = 16 },
-	
+	[491] = { upgrade = 0, max = 2, ilevel = 0 },
+	[492] = { upgrade = 1, max = 2, ilevel = 4 },
+	[493] = { upgrade = 2, max = 2, ilevel = 8 },
+	[494] = { upgrade = 0, max = 4, ilevel = 0 },
+	[495] = { upgrade = 1, max = 4, ilevel = 4 },
+	[496] = { upgrade = 2, max = 4, ilevel = 8 },
+	[497] = { upgrade = 3, max = 4, ilevel = 12 },
+	[498] = { upgrade = 4, max = 4, ilevel = 16 },
 }
 do
 	local stub = { ilevel = 0 }
@@ -98,6 +105,35 @@ end
 --            cannot be or has not been upgraded
 function lib:GetItemLevelUpgrade(id)
 	return upgradeTable[id].ilevel
+end
+
+-- GetItemUpgradeInfo(itemString)
+--
+-- Returns the current upgrade level, maximum upgrade level, and item level
+-- increase for an item.
+--
+-- Arguments:
+--   itemString - String - An itemLink or itemString denoting the item
+--
+-- Returns if the item can be upgraded:
+--   Number - The current upgrade level of the item
+--   Number - The maximum upgrade level of the item
+--   Number - The item level increase of the item
+-- or if the item cannot be upgraded:
+--   nil
+--   nil
+--   0
+-- or if the item is invalid or does not contain upgrade info:
+--   nil
+function lib:GetItemUpgradeInfo(itemString)
+	local id = self:GetUpgradeID(itemString)
+	if id then
+		local cur = self:GetCurrentUpgrade(id)
+		local max = self:GetMaximumUpgrade(id)
+		local delta = self:GetItemLevelUpgrade(id)
+		return cur, max, delta
+	end
+	return nil
 end
 
 -- GetUpgradedItemLevel(itemString)

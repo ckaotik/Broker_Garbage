@@ -148,8 +148,9 @@ function ns.CanDisenchant(item)
 		return false
 	else
 		local prof1, prof2 = GetProfessions()
+		if not prof1 then return false end
 		local name, _, mySkill = GetProfessionInfo(prof1)
-		if name ~= ENCHANTING then name, _, mySkill = GetProfessionInfo(prof2) end
+		if name ~= ENCHANTING and prof2 then name, _, mySkill = GetProfessionInfo(prof2) end
 		if name ~= ENCHANTING then return false end
 
 		local requiredSkill
