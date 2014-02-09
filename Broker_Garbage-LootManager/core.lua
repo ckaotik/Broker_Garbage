@@ -68,7 +68,7 @@ local function eventHandler(self, event, arg1, ...)
 		ns:HandleLootCallback()
 
 	elseif event == "LOOT_BIND_CONFIRM" then
-		ns.confirm[arg1] = true
+		-- ns.confirm[arg1] = true
 		if not BGLM_GlobalDB.autoConfirmBoP then
 			ns.keepWindowOpen = true
 		end
