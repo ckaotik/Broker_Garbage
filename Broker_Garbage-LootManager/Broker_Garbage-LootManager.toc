@@ -33,5 +33,5 @@ locale\curse.lua
 
 # code files
 util.lua
-core.lua
+Broker_Garbage-LootManager.lua
 options.lua

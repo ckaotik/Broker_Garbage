@@ -49,4 +49,4 @@ options_lists.lua
 category_test.lua
 slashcmd.lua
 statistics.lua
-core.lua
+Broker_Garbage-Config.lua
