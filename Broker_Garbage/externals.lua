@@ -135,28 +135,21 @@ end
 		2) BG has changed labels for an item, have 'the addon' update its display
 --]]
 
-local function CreateIcon(slot)
-	local icon = slot:CreateTexture(nil, 'OVERLAY')
-	icon:SetTexture('Interface\\Buttons\\UI-GroupLoot-Coin-Up')
-	icon:SetPoint('TOPLEFT', 2, -2)
-	icon:SetSize(16, 16)
+local function CreateIcon(button)
+	local icon = button:CreateTexture(nil, 'OVERLAY')
+	      icon:SetTexture('Interface\\Buttons\\UI-GroupLoot-Coin-Up')
+	      icon:SetPoint('TOPLEFT', 2, -2)
+	      icon:SetSize(16, 16)
+  	button.JunkIcon = icon
 
-  	slot.scrapIcon = icon
 	return icon
 end
 local function UpdateJunkIcon(button, container, slot)
-	if not BG_GlobalDB.showBagnonSellIcons then
-		if button.scrapIcon and button.scrapIcon:IsShown() then
-			button.scrapIcon:Hide()
-		end
-		return
-	end
-	local icon = button.scrapIcon or CreateIcon(button)
-	icon:Hide()
-
 	local location = BG.GetLocation(container, slot)
 	local cacheData = BG.containers[location]
-	if cacheData.item then
+	if cacheData.item and BG_GlobalDB.showBagnonSellIcons then
+		local icon = button.JunkIcon or CreateIcon(button)
+		      icon:Hide()
 		if cacheData.sell then
 			if cacheData.label == BG.DISENCHANT then
 				icon:SetVertexColor(1, 0.2, 1)
@@ -167,6 +160,10 @@ local function UpdateJunkIcon(button, container, slot)
 			end
 			icon:Show()
 		end
+	elseif button.JunkIcon and button.JunkIcon:IsShown()
+		and not (cacheData.item and cacheData.item.q == _G.LE_ITEM_QUALITY_POOR) then
+		-- junk icon was shown by us
+		button.JunkIcon:Hide()
 	end
 end
 
