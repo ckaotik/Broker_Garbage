@@ -359,35 +359,53 @@ local function ShowListOptions(frame)
 		list.ScrollBar:SetPoint("TOPLEFT", "$parent", "TOPRIGHT", -20, -20)
 		list.ScrollBar:SetPoint("BOTTOMLEFT", "$parent", "BOTTOMRIGHT", -20, 20)
 
+-- local sorter = CreateFrame('Button', '$parentSorter'..index, panel, 'WhoFrameColumnHeaderTemplate', data.id)
+-- local width = sorter:GetTextWidth() + 16
+-- WhoFrameColumn_SetWidth(sorter, width)
+
 		-- headers
-		local sorter1 = CreateFrame("Button", "$parentSorterShared", list, "AuctionSortButtonTemplate", 1)
+		local tabRegions = {'', 'Left', 'Middle', 'Right'}
+		local sorter1 = CreateFrame("Button", "$parentSorterShared", list, "WhoFrameColumnHeaderTemplate", 1)
 			  sorter1:SetText("|TInterface\\FriendsFrame\\PlusManz-PlusManz:24:24:-4:-1|t")
 			  sorter1.tiptext = "Shared rules have a blue border, click the icon to toggle between shared and single mode.\nRight-Click the icon to remove the item from the list." -- FIXME: locale
-			  sorter1:SetSize(30, 19)
+			  sorter1:SetWidth(12)
 			  sorter1:SetPoint("BOTTOMLEFT", list, "TOPLEFT", 6, -2)
 			  sorter1:SetScript("OnClick", SortList)
 			  sorter1:SetScript("OnEnter", BGC.ShowTooltip)
 			  sorter1:SetScript("OnLeave", BGC.HideTooltip)
-			  _G[sorter1:GetName().."Arrow"]:Hide()
-		local sorter3 = CreateFrame("Button", "$parentSorterInfo", list, "AuctionSortButtonTemplate", 3)
+		-- adjust tab size
+		local sorterName = sorter1:GetName()
+		for _, region in ipairs(tabRegions) do
+			_G[sorterName..region]:SetHeight(20)
+		end
+		local sorter3 = CreateFrame("Button", "$parentSorterInfo", list, "WhoFrameColumnHeaderTemplate", 3)
 			  sorter3:SetText( info[listName][3] )
 			  sorter3.tiptext = info[listName][4]
-			  sorter3:SetSize(60, 19)
+			  sorter3:SetWidth(60)
 			  sorter3:SetPoint("BOTTOMRIGHT", list, "TOPRIGHT", -20, -2)
 			  sorter3:SetScript("OnClick", SortList)
 			  sorter3:SetScript("OnEnter", BGC.ShowTooltip)
 			  sorter3:SetScript("OnLeave", BGC.HideTooltip)
-			  _G[sorter3:GetName().."Arrow"]:Hide()
-		local sorter2 = CreateFrame("Button", "$parentSorterName", list, "AuctionSortButtonTemplate", 2)
+		-- adjust tab size
+		local sorterName = sorter3:GetName()
+		for _, region in ipairs(tabRegions) do
+			_G[sorterName..region]:SetHeight(20)
+		end
+		local sorter2 = CreateFrame("Button", "$parentSorterName", list, "WhoFrameColumnHeaderTemplate", 2)
 			  sorter2:SetText( info[listName][1] )
 			  sorter2.tiptext = info[listName][2]
-			  sorter2:SetHeight(19)
+			  sorter2:SetWidth(300-60-12)
 			  sorter2:SetPoint("BOTTOMLEFT", sorter1, "BOTTOMRIGHT", -2, 0)
 			  sorter2:SetPoint("BOTTOMRIGHT", sorter3, "BOTTOMLEFT", 2, 0)
 			  sorter2:SetScript("OnClick", SortList)
 			  sorter2:SetScript("OnEnter", BGC.ShowTooltip)
 			  sorter2:SetScript("OnLeave", BGC.HideTooltip)
-			  _G[sorter2:GetName().."Arrow"]:Hide()
+		-- adjust tab size
+		local sorterName = sorter2:GetName()
+		for _, region in ipairs(tabRegions) do
+			_G[sorterName..region]:SetHeight(20)
+		end
+
 
 		-- entries
 		for j = 1, 7 do
