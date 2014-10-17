@@ -1,177 +1,37 @@
-local addonName, ns, _ = ...
+local addonName, addon, _ = ...
+LibStub('AceAddon-3.0'):NewAddon(addon, addonName, 'AceEvent-3.0')
+local L = LibStub('AceLocale-3.0'):GetLocale(addonName)
 
--- GLOBALS: BGLM_GlobalDB, BGLM_LocalDB, Broker_Garbage, ERR_INV_FULL, INVENTORY_FULL, coroutine, LOOTFRAME_NUMBUTTONS, NUM_BAG_SLOTS, LOOT_SLOT_ITEM
--- GLOBALS: StaticPopup1, LootFrame
--- GLOBALS: IsAddOnLoaded, GetTime, InCombatLockdown, IsFishingLoot, GetNumLootItems, GetLootSlotType, LootSlot, CloseLoot, CursorHasItem, GetItemInfo, GetContainerNumFreeSlots, GetContainerItemID, SplitContainerItem, GetLootSlotLink, GetLootSlotInfo, ConfirmLootSlot, GetItemCount
-local _G = _G
-local pairs = pairs
-local ipairs = ipairs
-local select = select
-local wipe = table.wipe
-local sort = table.sort
-local format = string.format
-local hooksecurefunc = hooksecurefunc
-local infinite = math.huge
-local abs = math.abs
-local mod = mod
+-- GLOBALS: _G, BGLM_GlobalDB, BGLM_LocalDB, Broker_Garbage
+-- GLOBALS: GetCVarBool, GetLootInfo, GetLootSlotLink, GetLootSlotInfo, GetLootSlotType, LootSlot, ConfirmLootSlot
+-- GLOBALS: GetProfessions, GetProfessionInfo, IsStealthed, IsFishingLoot, UnitClass, UnitIsDead, UnitCreatureType, GetItemInfo
+-- GLOBALS: pairs, table, print, select
 
-local function InitializePrivateLoot()
-	ns.privateLoot = GetTime()
-end
-local function MarkSlotAsLooted(lootSlotID)
-	ns.looted[lootSlotID] = true
-end
+local playerClass
 
--- register events
-local lootRoutine = nil
-local frame = CreateFrame("Frame")
-function frame.RESTACK_COMPLETE()
-	Broker_Garbage.UnregisterCallback("Broker_Garbage-LootManager", "RESTACK_COMPLETE")
-	ns:HandleLootCallback()
-end
-local function eventHandler(self, event, arg1, ...)
-	if event == "ADDON_LOADED" and arg1 == addonName then
-		ns.CheckSettings()
-		ns.UpdateSettings_4_1()
-
-		-- used to distinguish between raid loot and inventory loot
-		hooksecurefunc("UseContainerItem", InitializePrivateLoot)
-
-		ns.looted = {}
-		hooksecurefunc("LootSlot", MarkSlotAsLooted)
-
-		-- ns.confirm = {}
-		-- ns.BoPConfirmation = 0 -- number of pending item confirmations
-
-		local events = {
-			"ITEM_PUSH", "LOOT_OPENED", "LOOT_BIND_CONFIRM", "LOOT_CLOSED",
-			"UI_ERROR_MESSAGE", "UNIT_SPELLCAST_SUCCEEDED"
-		}
-		for _, event in ipairs(events) do
-			frame:RegisterEvent(event)
-		end
-		frame:UnregisterEvent("ADDON_LOADED")
-
-	elseif event == "ITEM_PUSH" and BGLM_LocalDB.autoDestroy and BGLM_LocalDB.autoDestroyInstant then
-		local numOverflowSlots = BGLM_GlobalDB.tooFewSlots - Broker_Garbage.totalFreeSlots
-		if numOverflowSlots > 0 then
-			ns.TrimInventory(numOverflowSlots)
-		end
-
-	elseif event == "UI_ERROR_MESSAGE" then
-			if arg1 and (arg1 == ERR_INV_FULL or arg1 == INVENTORY_FULL) then
-			ns:Print(ns.locale.errorInventoryFull, BGLM_GlobalDB.warnInvFull)
-		end
-
-	elseif lootRoutine and (event == "BAG_UPDATE" or event == "UNIT_INVENTORY_CHANGED" or event == "GET_ITEM_INFO_RECEIVED") then
-		frame:UnregisterEvent(event)
-		ns:HandleLootCallback()
-
-	elseif event == "LOOT_BIND_CONFIRM" then
-		-- ns.confirm[arg1] = true
-		if not BGLM_GlobalDB.autoConfirmBoP then
-			ns.keepWindowOpen = true
-		end
-
-	elseif event == "LOOT_OPENED" then
-		if not Broker_Garbage:IsDisabled() and (not InCombatLockdown() or BGLM_GlobalDB.useInCombat) then
-			if BGLM_GlobalDB.autoConfirmBoP then
-				StaticPopup_Hide("LOOT_BIND")
-			end
-
-			--[[
-			local index, popup = 1
-			for lootSlotID, confirm in pairs(ns.confirm) do
-				if confirm and BGLM_GlobalDB.autoConfirmBoP then
-					popup = _G["StaticPopup"..index]
-					while popup do
-						if popup:IsVisible() and popup.which == "LOOT_BIND" then
-							popup:Hide()
-						end
-						index = index + 1
-						popup = _G["StaticPopup"..index]
-					end
-				end
-			end
-			--]]
-
-			if not lootRoutine then
-				lootRoutine = coroutine.create(ns.SelectiveLooting)
-			end
-			ns:HandleLootCallback(arg1)
-		end
-
-	elseif event == "LOOT_CLOSED" then
-		for lootSlotID, looted in pairs(ns.looted) do
-			ns.looted[lootSlotID] = nil
-		end
-		--[[ for lootSlotID, confirm in pairs(ns.confirm) do
-			ns.confirm[lootSlotID] = nil
-		end --]]
-
-	elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-		if arg1 == "player" and Broker_Garbage.Find(ns.privateLootSpells, ( select(4, ...) )) then
-			InitializePrivateLoot()
-		end
+local function SortLoot(a, b)
+	if (a.slotID or a.slot) ~= (b.slotID or b.slot) then
+		return (a.slotID or a.slot) < (b.slotID or b.slot)
+	elseif (a.clear or a.autoloot) ~= (b.clear or b.autoloot) then
+		return a.clear or a.autoloot
+	elseif (a.quest or a.isQuestItem) ~= (b.quest or b.isQuestItem) then
+		return a.quest or a.isQuestItem
+	elseif a.value ~= b.value then
+		return a.value > b.value
+	else
+		return a.value ~= nil
 	end
 end
 
-frame:RegisterEvent("ADDON_LOADED")
-frame:SetScript("OnEvent", eventHandler)
+local function UpdateLootButton(index)
+	local button = index and _G['LootButton'..index]
+	if not button or not button:IsShown() then return end
 
-function ns:HandleLootCallback(blizzAutoLoot)
-	if lootRoutine and coroutine.status(lootRoutine) ~= "dead" then
-		local success, waitFor, isCBH = coroutine.resume(lootRoutine, blizzAutoLoot)
-		if waitFor then
-			frame:RegisterEvent(waitFor)
-			return
-
-			--[[
-			if isCBH and waitFor == "RESTACK_COMPLETE" then
-				Broker_Garbage.RegisterCallback("Broker_Garbage-LootManager", waitFor, frame[waitFor])
-				Broker_Garbage.DoFullRestack()
-			else
-				frame:RegisterEvent(waitFor)
-			end
-			--]]
-		end
-	end
-
-	lootRoutine = nil
-end
-
-
--- ---------------------------------------------------------
--- deletes as many items as needed
-function ns:DeletePartialStack(itemID, num)
-	local locations = Broker_Garbage.locations[itemID]
-	local maxStack = select(8, GetItemInfo(itemID))
-
-	local location = locations[ #locations ]
-	local container, slot = Broker_Garbage.GetBagSlot(location)
-	if GetContainerItemID(container, slot) ~= itemID then
-		ns:Print("Error! DeletePartialStack: This is not the item I expected.")
-		return
-	end
-
-	SplitContainerItem(container, slot, num)
-	if CursorHasItem() then
-		ns:Delete("cursor", num)
-		ns:Debug("DeletePartialStack", itemID, num, locations[1].bag, locations[1].slot)
-		return true
-	end
-end
-
--- hook UpdateButton function for non-autoloot
-function ns.UpdateLootFrame(index)
-	if not index then return end
-	local slot = (LOOTFRAME_NUMBUTTONS * (LootFrame.page - 1)) + index
+	local slot = button.slot
 	local itemLink = GetLootSlotLink(slot)
-	local _, _, count = GetLootSlotInfo(slot)
-	local lootType = GetLootSlotType(slot)
-
 	if itemLink then
-		local isInteresting, alwaysLoot = ns:IsInteresting(itemLink, count, lootType)
+		local _, _, count = GetLootSlotInfo(slot)
+		local isInteresting, alwaysLoot = addon:IsInteresting(itemLink, count)
 		if isInteresting or alwaysLoot then
 			_G["LootButton"..index.."IconTexture"]:SetDesaturated(false)
 			_G["LootButton"..index.."IconTexture"]:SetAlpha(1)
@@ -181,269 +41,209 @@ function ns.UpdateLootFrame(index)
 		end
 	end
 end
-hooksecurefunc("LootFrame_UpdateButton", ns.UpdateLootFrame)
 
--- ---------------------------------------------------------
--- lootmanager functionality from here on
--- ---------------------------------------------------------
-function ns.TrimInventory(emptySlotNum)
-	if not emptySlotNum then return end
-	for i = 1, emptySlotNum do
-		local success = ns:DeleteCheapestItem(i)
-		if not success then return end
+-- --------------------------------------------------------
+--  Addon Setup
+-- --------------------------------------------------------
+function addon:OnInitialize()
+	_, playerClass = UnitClass('player')
+end
+
+local defaults = {
+	profile = {
+		enable = {
+			general      = false,
+			skinning     =  true,
+			fishing      =  true,
+			pickpocket   =  true,
+		},
+		lootTreasure =  true,
+		ignoreJunk   = false,
+		confirmBind  = false,
+		minValue     = 0,
+		minQuality   = 0,
+		notify = {
+			locked   = true,
+			lootRoll = true,
+			value    = true,
+			quality  = true,
+			-- bagsFull = false,
+		},
+	},
+}
+function addon:OnEnable()
+	-- initialize database and settings
+	self.db = Broker_Garbage.db:RegisterNamespace('LootManager', defaults)
+	self:RegisterEvent('LOOT_READY')
+	self:RegisterEvent('LOOT_BIND_CONFIRM')
+
+	local dataPath, types = 'Broker_Garbage.db.children.LootManager.profile', {
+		minValue   = 'money',
+		minQuality = 'itemquality',
+	}
+	LibStub('AceConfig-3.0'):RegisterOptionsTable(self.name, {
+		type = 'group',
+		args = {
+			main = LibStub('LibOptionsGenerate-1.0'):GetOptionsTable(dataPath, types, L),
+		},
+	})
+	local AceConfigDialog = LibStub('AceConfigDialog-3.0')
+	      AceConfigDialog:AddToBlizOptions(self.name, 'Loot Manager', 'Broker_Garbage', 'main')
+
+	-- TODO: could also consider LootFrame_InitAutoLootTable
+	-- hooksecurefunc('LootFrame_UpdateButton', UpdateLootButton)
+end
+
+function addon:OnDisable()
+	self:UnregisterEvent('LOOT_READY')
+	self:UnregisterEvent('LOOT_BIND_CONFIRM')
+end
+
+-- --------------------------------------------------------
+--  Event Handlers
+-- --------------------------------------------------------
+function addon:LOOT_BIND_CONFIRM()
+	-- TODO
+	if not self.db.profile.confirmBind then
+		self.keepWindowOpen = true
 	end
 end
 
-function ns.Loot(lootSlotID)
-	if not lootSlotID or ns.looted[lootSlotID] or not (GetLootSlotInfo(lootSlotID)) then
-		ns:Debug("Trying to loot, but there is nothing left in slot", lootSlotID)
-	else
-		LootSlot(lootSlotID)
-		if ns.confirm[lootSlotID] and BGLM_GlobalDB.autoConfirmBoP then
-			ConfirmLootSlot(lootSlotID)
-		end
-	end
-end
-
-local function SortLoot(a, b)
-	if    a.slotID ~= b.slotID then
-		return a.slotID
-	elseif a.clear ~= b.clear then
-		return a.clear
-	elseif a.quest ~= b.quest then
-		return a.quest
-	elseif a.value ~= b.value then
-		return a.value > b.value
-	else
-		return a.value ~= nil
-	end
-end
-
--- decides how to handle loot in a LOOT_OPENED event
-local lootData, capacities = {}, {}
-function ns.SelectiveLooting(blizzAutoLoot)
-	-- if InCombatLockdown() and not BGLM_GlobalDB.useInCombat then return end
-
-	local shouldAutoLoot, clearAll = ns:ShouldAutoLoot(blizzAutoLoot)
-	ns:Debug("Selective looting ...", shouldAutoLoot and "yes" or "no")
+function addon:LOOT_READY(event)
+	-- can't compete with Blizzard's autoloot
+	if GetCVarBool('autoLootDefault') then return end
+	local shouldAutoLoot, clearAll = self:ShouldAutoLoot()
 	if not shouldAutoLoot then return end
 
-	local isPrivateLoot = ns:IsPrivateLoot()
-	if isPrivateLoot then ns:Debug("Currently dealing with private loot") end
-	local constraint = ns:GetLootConstraint() or infinite
+	local lootInfo = GetLootInfo()
+	for lootSlot, loot in pairs(lootInfo) do
+		-- this data would get lost when sorting table
+		loot.slot = lootSlot
 
-	local closeLootWindow = BGLM_GlobalDB.closeLootWindow
+		local itemLink = GetLootSlotLink(lootSlot)
+		if itemLink then
+			local isInteresting, alwaysLoot, value = self:IsInteresting(itemLink, loot.quantity)
+			value = value or select(11, GetItemInfo(itemLink))
 
-	local slotQuantity, slotQuality, isLocked, isQuest, slotItemLink, slotItemID, value
-	local masterWarning = nil
-
-	for container = 1, NUM_BAG_SLOTS do
-		capacities[container] = (GetContainerNumFreeSlots(container))
-	end
-	for i=1, #lootData do
-		wipe(lootData[i])
-	end
-
-	-- loot preprocessing
-	local goesIntoSpecialBag, dataIndex
-	local numRequiredSlots, numSpecialSlots, numItems = 0, 0, 0
-	local isInteresting, alwaysLoot
-	for lootSlotID = 1, GetNumLootItems() do
-		local addItem, needsConfirmation = nil, nil
-		if GetLootSlotType(lootSlotID) == LOOT_SLOT_ITEM then
-			_, _, slotQuantity, slotQuality, isLocked, isQuest = GetLootSlotInfo(lootSlotID)
-			-- texture, item, quantity, quality, locked, isQuestItem, questID, isQuestActive
-
-			slotItemLink = GetLootSlotLink(lootSlotID)
-			-- slotItemID = Broker_Garbage.GetItemID(slotItemLink)
-			-- slotItem   = Broker_Garbage.item[slotItemLink]
-
-			isInteresting, alwaysLoot, value = ns:IsInteresting(slotItemLink)
-			ns:Debug("Checking item", slotItemLink, isInteresting, '/', ns:IsInteresting(slotItemLink))
-			-- interesting items that we may take need to be considered
-			if clearAll then
-				ns:Debug("Have to clear all items ...", slotItemLink)
-				addItem = true
-
-			elseif isInteresting or alwaysLoot or isQuest then
-				if isLocked then
-					ns:Print(format(ns.locale.couldNotLootLocked, slotItemLink, slotQuantity), BGLM_GlobalDB.printLocked)
-
-				--elseif value < BGLM_LocalDB.itemMinValue then
-					-- minimum loot value not reached; item is too cheap
-				--	ns:Print(format(ns.locale.couldNotLootValue, slotItemLink, slotQuantity), BGLM_GlobalDB.printValue)
-
-				elseif abs(constraint) > slotQuality then
-					ns:Debug("Unconstrained item:", slotItemLink)
-					addItem = true
-				else
-					ns:Debug("Item obove threshold:", slotItemLink)
-					if isQuest or isPrivateLoot then
-						needsConfirmation = true
-						addItem = true
+			if clearAll or alwaysLoot or clearAll or loot.isQuestItem or loot.questId then
+				loot.autoloot = true
+			elseif isInteresting then
+				if loot.locked then
+					if self.db.profile.notify.locked then
+						self:Notify('Not looting %s because it\'s locked.', itemLink)
 					end
-					closeLootWindow = nil
+				elseif loot.roll then
+					if self.db.profile.notify.lootRoll then
+						self:Notify('Not looting %s because it\'s still being rolled for.', itemLink)
+					end
+				elseif loot.quality < self.db.profile.minQuality then
+					if self.db.profile.notify.quality then
+						self:Notify('Not looting %s because it\'s of poor quality.', itemLink)
+					end
+				elseif value and value > 0 and value < self.db.profile.minValue then
+					if self.db.profile.notify.value then
+						self:Notify('Not looting %s because it\'s worthless.', itemLink)
+					end
+				else
+					loot.autoloot = true
 				end
-			else
-				ns:Debug("Left uninteresting item behind:", slotItemLink)
 			end
-
-			if constraint < 0 and -1*constraint <= slotQuality and not masterWarning then
-				-- You are loot master! Do something!
-				ns:Print(format(ns.locale.couldNotLootLM, slotItemLink), BGLM_GlobalDB.warnLM)
-				masterWarning = true
-				closeLootWindow = nil
-			end
+			loot.value = value
+		elseif GetLootSlotType(lootSlot) ~= _G.LOOT_SLOT_ITEM then
+			-- gold coins, currency and archaeology fragments
+			loot.autoloot = true
+			loot.value = -1
 		else
-			-- this can be looted right away! hooray!
-			ns:Debug("Not an item:", slotItemLink)
-			ns.Loot(lootSlotID)
-		end
-
-		local itemMaxStack, itemInBags, itemStackOverflow, targetContainer, slotItemBagType
-		if addItem then
-			itemMaxStack = select(8, GetItemInfo(slotItemLink))
-			itemInBags = mod(GetItemCount(slotItemLink), itemMaxStack)
-			-- itemInBags = itemInBags ~= 0 and itemInBags or itemMaxStack
-			itemStackOverflow = slotQuantity + (itemInBags ~= 0 and itemInBags or itemMaxStack) - itemMaxStack
-
-			if itemStackOverflow > 0 then
-				targetContainer, _, slotItemBagType = 0, _, 0 -- Broker_Garbage.FindBestContainerForItem(slotItemLink) TODO
-				goesIntoSpecialBag = targetContainer and slotItemBagType ~= 0 and capacities[targetContainer] > 0
-				if goesIntoSpecialBag then
-					numSpecialSlots = numSpecialSlots + 1
-					capacities[targetContainer] = capacities[targetContainer] - 1
-				else
-					numRequiredSlots = numRequiredSlots + 1
-				end
-			end
-
-			numItems = numItems + 1
-			if not lootData[numItems] then lootData[numItems] = {} end
-			lootData[numItems].slotID = lootSlotID
-			lootData[numItems].itemLink = slotItemLink
-			lootData[numItems].count = slotQuantity
-			lootData[numItems].value = isInteresting and ((value or 0) * slotQuantity) or -1
-			lootData[numItems].currentStack = itemInBags
-			lootData[numItems].stackOverflow = itemStackOverflow
-			lootData[numItems].isSpecial = goesIntoSpecialBag
-			lootData[numItems].confirm = needsConfirmation
-			lootData[numItems].clear = alwaysLoot or isQuest or clearAll
-			lootData[numItems].quest = isQuest
+			print('No item link for loot slot', lootSlot, loot.item)
 		end
 	end
 
-	sort(lootData, SortLoot)
+	table.sort(lootInfo, SortLoot)
 
-	local outOfBagSpace = (numRequiredSlots - Broker_Garbage.totalFreeSlots) > 0
-		or ((numRequiredSlots+numSpecialSlots) - (Broker_Garbage.freeSpecialSlots+Broker_Garbage.totalFreeSlots)) > 0
-	ns:Debug("Out of bag space?", outOfBagSpace and "true" or "false", numRequiredSlots, numSpecialSlots, Broker_Garbage.totalFreeSlots, Broker_Garbage.freeSpecialSlots)
-
-	--[[
-	if outOfBagSpace and Broker_Garbage:GetOption("restackInventory", true) then
-		ns:Debug("Out of bag space, trying restack ...")
-		coroutine.yield("RESTACK_COMPLETE", true)
-
-		-- update, in case restack helped
-		outOfBagSpace = (numRequiredSlots - Broker_Garbage.totalFreeSlots) > 0
-					or (numSpecialSlots - Broker_Garbage.freeSpecialSlots) > 0
-	end
-	--]]
-
-	local start, finish, step = 1, numItems, 1
-	if clearAll then
-		start = numItems
-		finish = 1
-		step = -1
-	end
-
-	local slot, takeItem, compareTo, success
-	local numBasic, numSpecial = Broker_Garbage.totalFreeSlots, Broker_Garbage.freeSpecialSlots
-	for i = start, finish, step do
-		slot = lootData[i]
-		takeItem = nil
-
-		success = true
-
-		if slot.stackOverflow <= 0 then
-			-- item stacks somehow, no actions nessessary
-			ns:Debug("Item Stacks", slot.itemLink)
-			takeItem = true
-
-		elseif outOfBagSpace then
-			compareTo = Broker_Garbage.cheapestItems and Broker_Garbage.cheapestItems[1]
-			compareTo = compareTo and compareTo.value or -1
-
-			-- these items *just* fit
-			if numSpecial > 0 and slot.isSpecial then
-				takeItem = true
-				numSpecial = numSpecial - 1
-			elseif numBasic > 0 then
-				takeItem = true
-				numBasic = numBasic - 1
-
-			-- these items don't fit anymore
-			elseif not slot.clear and slot.value <= compareTo then
-					ns:Print(format(ns.locale.couldNotLootCompareValue, slot.itemLink, slot.count), BGLM_GlobalDB.printCompareValue)
-
-			elseif BGLM_LocalDB.autoDestroy then
-				if slot.stackOverflow > 0 and slot.currentStack ~= 0 then
-					-- delete partial stack. throw away partial stacks to squeeze in a little more
-					ns:Debug("Deleting partial stack of", slot.itemLink)
-					local itemID = Broker_Garbage.GetItemID(slot.itemLink)
-					success = ns:DeletePartialStack(itemID, slot.stackOverflow)
-					if success then
-						ns:Debug("PAUSE: BAG_UPDATE")
-						coroutine.yield("BAG_UPDATE")
-						takeItem = true
-					end
-				else
-					-- delete only if it's worth more, if it's an item we really need or if we want to skin the mob
-					ns:Debug("Deleting item to make room for", slot.itemLink)
-					success = ns:DeleteCheapestItem()
-					if success then
-						ns:Debug("PAUSE: UNIT_INVENTORY_CHANGED")
-						coroutine.yield("UNIT_INVENTORY_CHANGED")
-						takeItem = true
-					end
-				end
-			else
-				ns:Print(format(ns.locale.couldNotLootSpace, slot.itemLink, slot.count), BGLM_GlobalDB.printSpace)
-				if slot.clear or slot.quest then
-					closeLootWindow = false
-				end
-			end
-		else
-			ns:Debug("Item is fine.", slot.itemLink)
-			takeItem = true
+	for _, loot in pairs(lootInfo) do
+		if loot.autoloot then
+			LootSlot(loot.slot)
+			-- TODO: what about ConfirmLootSlot(loot.slot)
 		end
-
-		if not success then
-			ns:Debug("Item doesn't fit and deletion won't work!", slot.itemLink)
-			closeLootWindow = false
-		end
-
-		-- A little less conversation, a little more action please!
-		if takeItem then
-			ns:Debug("Taking", slot.itemLink or "<not an item>", (slot.confirm and BGLM_GlobalDB.autoConfirmBoP) and "confirm" or "no confirm")
-			ns.Loot(slot.slotID)
-
-			--[[
-			if slot.confirm and BGLM_GlobalDB.autoConfirmBoP then
-				ns.BoPConfirmation = ns.BoPConfirmation + 1
-			end
-			--]]
-			if isPrivateLoot and BGLM_GlobalDB.keepPrivateLootOpen then
-				closeLootWindow = false
-			end
-		end
-	end
-
-	if ns.keepWindowOpen then
-		ns:Debug("BoP awaits, keeping window open")
-		ns.keepWindowOpen = nil
-	elseif closeLootWindow and (not IsFishingLoot() or not IsAddOnLoaded("FishingBuddy")) then
-		ns:Debug("Closing loot window")
-		CloseLoot()
 	end
 end
+
+-- --------------------------------------------------------
+--  Utility Functions
+-- --------------------------------------------------------
+function addon:Notify(reason, itemLink)
+	local message = (L[reason] or reason):format(itemLink)
+	Broker_Garbage.Print('[LootManager] '..message)
+end
+
+local SKINNING, MINING, HERBALISM = 393, 186, 182
+function addon:CanSkin()
+	local prof1, prof2 = GetProfessions()
+	local name, _, rank, _, _, _, skillLine = GetProfessionInfo(prof1)
+	local skillRank = skillLine == SKINNING and rank or nil
+	if not skillRank then
+		name, _, rank, _, _, _, skillLine = GetProfessionInfo(prof2)
+		skillRank = skillLine == SKINNING and rank or nil
+	end
+	return skillRank and skillRank > 0
+end
+
+-- determines if an item should be looted. item: id or link, [count], [lootType]
+function addon:IsInteresting(item, count)
+	local isInteresting, alwaysLoot
+	local priority, label, value, sell, reason = Broker_Garbage.GetUnownedItemInfo(item, count)
+
+	if priority == Broker_Garbage.priority.POSITIVE then
+		isInteresting = true
+		alwaysLoot = self.db.profile.lootTreasure
+	elseif priority == Broker_Garbage.priority.NEGATIVE and self.db.profile.ignoreJunk then
+		isInteresting = false
+	else
+		isInteresting = true
+	end
+
+	if alwaysLoot then
+		return isInteresting, true,  value
+	else
+		return isInteresting, false, value
+	end
+end
+
+-- returns <shouldAL:true|false>, <clearAll:true|false>
+function addon:ShouldAutoLoot()
+	local autoLoot = self.db.profile.enable.general
+	autoLoot = autoLoot or (self.db.profile.enable.fishing and IsFishingLoot())
+	autoLoot = autoLoot or (playerClass == 'ROGUE' and IsStealthed() and self.db.profile.enable.pickpocket)
+	autoLoot = autoLoot or (self.db.profile.enable.skinning and self:CanSkin()
+		and UnitIsDead('target') and UnitCreatureType('target') == _G.BATTLE_PET_NAME_8)
+	return autoLoot
+end
+
+--[[
+-- forceClear = false, -- use Blizzard's autoloot + inventory pruning instead
+-- TODO: this is something Broker_Garbage itself needs to do
+function addon:ITEM_PUSH(event, arg1, ...)
+	if BGLM_LocalDB.autoDestroy and BGLM_LocalDB.autoDestroyInstant then
+		-- TODO
+		print('This should now delete items in your inventory. But it doesn\'t. Yet.')
+		if true then return end
+		local numOverflowSlots = BGLM_GlobalDB.tooFewSlots - Broker_Garbage.totalFreeSlots
+		if numOverflowSlots > 0 then
+			for i = 1, numOverflowSlots do
+				local success = self:DeleteCheapestItem(i)
+				if not success then break end
+			end
+		end
+	end
+end
+
+function addon:DeleteCheapestItem(index)
+	local item = Broker_Garbage.cheapestItems and Broker_Garbage.cheapestItems[index or 1]
+	if item and not item.invalid and item.source ~= Broker_Garbage.IGNORE then
+		Broker_Garbage.Delete(item)
+		return true
+	else
+		self:Print(self.locale.LMAutoDestroy_ErrorNoItems)
+		return nil
+	end
+end --]]

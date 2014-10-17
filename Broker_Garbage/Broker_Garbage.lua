@@ -1,4 +1,6 @@
 local addonName, ns, _ = ...
+-- local addon = ns
+-- addon = LibStub('AceAddon-3.0'):NewAddon(addon, addonName, 'AceEvent-3.0')
 
 -- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S, INVSLOT_LAST_EQUIPPED
 -- GLOBALS: ContainerIDToInventoryID, InCombatLockdown, GetItemInfo
@@ -30,6 +32,7 @@ end
 
 function events:ADDON_LOADED(event, addon)
 	if addon ~= addonName then return end
+	ns.db = LibStub('AceDB-3.0'):New(addonName..'DB', {}, true)
 	ns.CheckSettings()
 
 	ns.prices = BG_GlobalDB.prices
