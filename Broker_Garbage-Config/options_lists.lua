@@ -664,16 +664,11 @@ local function ShowListOptions(frame)
 	searchbox:SetPoint("TOPLEFT", addLabel, "BOTTOMLEFT", -4, -10)
 	searchbox:SetSize(160, 32)
 	searchbox:SetScript("OnEnterPressed", EditBox_ClearFocus)
-	searchbox:SetScript("OnEscapePressed", function(self)
-		PlaySound("igMainMenuOptionCheckBoxOn")
-		self:SetText(SEARCH)
-		EditBox_ClearFocus(self)
-		self:clearFunc()
-	end)
+	searchbox:SetScript('OnEscapePressed', function(self) self.clearButton:Click() end)
 	searchbox:SetScript("OnTextChanged", function(self)
 		local text = self:GetText()
 		local oldText = frame.searchString
-		frame.searchString = (text ~= "" and text ~= SEARCH) and text:lower() or nil
+		frame.searchString = text ~= "" and text:lower() or nil
 		if oldText ~= frame.searchString then
 			BGC.ListOptionsUpdate(frame)
 		end
