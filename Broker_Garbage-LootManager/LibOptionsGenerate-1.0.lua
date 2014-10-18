@@ -80,7 +80,6 @@ local function SetListSetting(info, value)
 	setter(info, GetTableFromList(value, '\n'))
 end
 
-
 local function Widget(key, option, typeMappings)
 	local key, widget = typeMappings and typeMappings[key] or key:lower(), nil
 
