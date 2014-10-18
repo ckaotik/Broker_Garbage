@@ -1,4 +1,4 @@
-local MAJOR, MINOR = 'LibOptionsGenerate-1.0', 5
+local MAJOR, MINOR = 'LibOptionsGenerate-1.0', 6
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
 
@@ -10,8 +10,10 @@ local AceConfigDialog = LibStub('AceConfigDialog-3.0')
 if not AceConfig or not AceConfigDialog then return end
 
 local itemQualities = {}
-for quality, color in ipairs(_G.BAG_ITEM_QUALITY_COLORS) do
-	itemQualities[quality] = RGBTableToColorCode(color) .. _G['ITEM_QUALITY'..quality..'_DESC'] .. '|r'
+for quality, color in pairs(_G.ITEM_QUALITY_COLORS) do
+	if quality >= 0 then
+		itemQualities[quality] = color.hex .. _G['ITEM_QUALITY'..quality..'_DESC'] .. '|r'
+	end
 end
 
 local function GetVariableFromPath(path)
@@ -33,7 +35,6 @@ local function GetSettingDefault(info, dataPath)
 	end
 	return data
 end
-
 local function SetSettingDefault(info, value, dataPath)
 	local db = GetVariableFromPath(dataPath)
 	local data = db
@@ -51,6 +52,14 @@ local function GetMediaKey(mediaType, value)
 		end
 	end
 end
+local function GetFontSetting(info)
+	local getter = info.options.args[ info[1] ].get
+	return GetMediaKey('font', getter(info))
+end
+local function SetFontSetting(info, value)
+	local setter = info.options.args[ info[1] ].set
+	setter(info, SharedMedia:Fetch('font', value))
+end
 
 local function GetTableFromList(dataString, seperator)
 	return { strsplit(seperator, dataString) }
@@ -62,6 +71,15 @@ local function GetListFromTable(dataTable, seperator)
 	end
 	return output
 end
+local function GetListSetting(info)
+	local getter = info.options.args[ info[1] ].get
+	return GetListFromTable(getter(info), '\n')
+end
+local function SetListSetting(info, value)
+	local setter = info.options.args[ info[1] ].set
+	setter(info, GetTableFromList(value, '\n'))
+end
+
 
 local function Widget(key, option, typeMappings)
 	local key, widget = typeMappings and typeMappings[key] or key:lower(), nil
@@ -99,22 +117,14 @@ local function Widget(key, option, typeMappings)
 			type = 'select',
 			dialogControl = 'LSM30_Font',
 			name = 'Font Family',
-
 			values = SharedMedia:HashTable('font'),
-			get = function(info)
-				local getter = info.options.args[ info[1] ].get
-				return GetMediaKey('font', getter(info))
-			end,
-			set = function(info, value)
-				local setter = info.options.args[ info[1] ].set
-				setter(info, SharedMedia:Fetch('font', value))
-			end,
+			get = GetFontSetting,
+			set = SetFontSetting,
 		}
 	elseif key == 'fontstyle' then
 		widget = {
 			type = 'select',
 			name = 'Font Style',
-
 			values = {['NONE'] = 'NONE', ['OUTLINE'] = 'OUTLINE', ['THICKOUTLINE'] = 'THICKOUTLINE', ['MONOCHROME'] = 'MONOCHROME'},
 		}
 	elseif key == 'itemquality' or (key:find('quality') and type(option) == 'number') then
@@ -135,15 +145,8 @@ local function Widget(key, option, typeMappings)
 			type = 'input',
 			multiline = true,
 			usage = 'Insert one entry per line',
-
-			get = function(info)
-				local getter = info.options.args[ info[1] ].get
-				return GetListFromTable(getter(info), '\n')
-			end,
-			set = function(info, value)
-				local setter = info.options.args[ info[1] ].set
-				setter(info, GetTableFromList(value, '\n'))
-			end,
+			get = GetListSetting,
+			set = SetListSetting,
 		}
 	elseif type(option) == 'string' then
 		widget = {
