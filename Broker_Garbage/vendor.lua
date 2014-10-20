@@ -99,16 +99,16 @@ function BG.AutoRepair()
 	repairCost, guildRepair = 0, nil
 	if BG_GlobalDB.autoRepairAtVendor and CanMerchantRepair() then
 		local repairCost = GetRepairAllCost()
-		local guildRepairFunds = CanGuildBankRepair() and GetGuildBankWithdrawMoney()
+		local guildRepairFunds = CanGuildBankRepair() and GetGuildBankWithdrawMoney() or 0
 		local guildRepair = BG_LocalDB.repairGuildBank and guildRepairFunds and (guildRepairFunds == -1 or guildRepairFunds >= repairCost)
 
 		if repairCost > 0 then
 			if guildRepair then
 				-- guild repair if we're allowed to and the user wants it
-				RepairAllItems(1)
+				RepairAllItems(true)
 			elseif GetMoney() >= repairCost then
 				-- not enough allowance to guild bank repair, pay ourselves
-				RepairAllItems(0)
+				RepairAllItems(false)
 			else
 				-- oops, guess we're broke
 				BG.Print(string.format(BG.locale.couldNotRepair, BG.FormatMoney(repairCost)))
