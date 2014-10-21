@@ -205,14 +205,14 @@ local function IsHighestItemLevel(location)
 		{}
 
 	local numSlots = #slots
-	local locationLevel = LibItemUpgrade:GetUpgradedItemLevel( item.link or GetContainerItemLink( ns.GetBagSlot(location) ) )
+	local locationLevel = LibItemUpgrade:GetUpgradedItemLevel(item.link or GetContainerItemLink(ns.GetBagSlot(location)))
 
 	wipe(itemsForInvType)
 	-- compare with equipped item levels
 	for _, slot in ipairs(slots) do
 		local itemLink = GetInventoryItemLink("player", slot)
 		local itemLevel = itemLink and LibItemUpgrade:GetUpgradedItemLevel(itemLink)
-		if itemLink and itemLevel > locationLevel then
+		if itemLevel and locationLevel and itemLevel > locationLevel then
 			numSlots = numSlots - 1
 		end
 		if numSlots <= 0 then return false end
