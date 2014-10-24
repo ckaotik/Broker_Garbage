@@ -1,4 +1,4 @@
-﻿
+
 local lib, oldminor = LibStub:NewLibrary("tekKonfig-Slider", 3)
 if not lib then return end
 oldminor = oldminor or 0
@@ -39,7 +39,7 @@ if oldminor < 2 then
 		slider:SetHeight(17)
 		slider:SetHitRectInsets(0, 0, -10, -10)
 		slider:SetOrientation("HORIZONTAL")
-		slider:EnableMouseWheel(1)
+		slider:EnableMouseWheel(true)
 		slider:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal") -- Dim: 32x32... can't find API to set this?
 		slider:SetBackdrop(HorizontalSliderBG)
 

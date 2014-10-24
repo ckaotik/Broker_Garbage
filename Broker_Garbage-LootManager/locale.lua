@@ -36,6 +36,11 @@ L['valueName'] = 'Low value'
 L['valueDesc'] = 'Item value is below threshold.'
 L['qualityName'] = 'Poor quality'
 L['qualityDesc'] = 'Item quality is below threshold.'
+-- ------------------------------------
+L['%s is locked.'] = true
+L['%s is still being rolled for.'] = true
+L['%s is of poor quality.'] = true
+L['%s is worthless.'] = true
 
 local L = LibStub('AceLocale-3.0'):NewLocale(addonName, 'deDE')
 --@localization(locale='deDE', format='lua_additive_table', namespace='LootManager', handle-unlocalized='ignore')@

@@ -92,6 +92,9 @@ function addon:OnEnable()
 
 	-- TODO: could also consider LootFrame_InitAutoLootTable
 	-- hooksecurefunc('LootFrame_UpdateButton', UpdateLootButton)
+	-- TODO: adjust Blizzard's autoloot?
+	-- local autoLootBliz = GetCVarBool('autoLootDefault')
+	-- SetCVar('autoLootDefault', 0)
 end
 
 function addon:OnDisable()
@@ -130,19 +133,19 @@ function addon:LOOT_READY(event)
 			elseif isInteresting then
 				if loot.locked then
 					if self.db.profile.notify.locked then
-						self:Notify('Not looting %s because it\'s locked.', itemLink)
+						self:Notify('%s is locked.', itemLink)
 					end
 				elseif loot.roll then
 					if self.db.profile.notify.lootRoll then
-						self:Notify('Not looting %s because it\'s still being rolled for.', itemLink)
+						self:Notify('%s is still being rolled for.', itemLink)
 					end
 				elseif loot.quality < self.db.profile.minQuality then
 					if self.db.profile.notify.quality then
-						self:Notify('Not looting %s because it\'s of poor quality.', itemLink)
+						self:Notify('%s is of poor quality.', itemLink)
 					end
 				elseif value and value > 0 and value < self.db.profile.minValue then
 					if self.db.profile.notify.value then
-						self:Notify('Not looting %s because it\'s worthless.', itemLink)
+						self:Notify('%s is worthless.', itemLink)
 					end
 				else
 					loot.autoloot = true
@@ -209,7 +212,7 @@ function addon:IsInteresting(item, count)
 	end
 end
 
--- returns <shouldAL:true|false>, <clearAll:true|false>
+-- returns <shouldAutoLoot:true|false>, <clearAll:true|false>
 function addon:ShouldAutoLoot()
 	local autoLoot = self.db.profile.enable.general
 	autoLoot = autoLoot or (self.db.profile.enable.fishing and IsFishingLoot())
