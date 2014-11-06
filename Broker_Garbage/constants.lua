@@ -84,10 +84,10 @@ BG.defaults = {
 		},
 
 		dataSources = {
-			buyout = {}, -- was: auctionAddonOrder.buyout
-			buyoutDisabled = {}, -- was: buyoutDisabledSources
-			disenchant = {}, -- was: auctionAddonOrder.disenchant
-			disenchantDisabled = {}, -- was: disenchantDisabledSources
+			buyout = {}, 				-- was: auctionAddonOrder.buyout
+			buyoutDisabled = {}, 		-- was: buyoutDisabledSources
+			disenchant = {}, 			-- was: auctionAddonOrder.disenchant
+			disenchantDisabled = {}, 	-- was: disenchantDisabledSources
 		},
 	},
 	profile = {
@@ -95,7 +95,6 @@ BG.defaults = {
 		toss = {},
 	},
 	char = {
-		repairGuildBank = false,
 		moneyLost   = 0,
 		moneyEarned = 0,
 		numSold     = 0,

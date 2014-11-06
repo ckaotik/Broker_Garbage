@@ -77,18 +77,14 @@ function addon:OnEnable()
 	self:RegisterEvent('LOOT_READY')
 	self:RegisterEvent('LOOT_BIND_CONFIRM')
 
-	local dataPath, types = 'Broker_Garbage.db.children.LootManager.profile', {
+	local types = {
 		minValue   = 'money',
 		minQuality = 'itemquality',
 	}
-	LibStub('AceConfig-3.0'):RegisterOptionsTable(self.name, {
-		type = 'group',
-		args = {
-			main = LibStub('LibOptionsGenerate-1.0'):GetOptionsTable(dataPath, types, L),
-		},
-	})
-	local AceConfigDialog = LibStub('AceConfigDialog-3.0')
-	      AceConfigDialog:AddToBlizOptions(self.name, 'Loot Manager', 'Broker_Garbage', 'main')
+	local optionsTable = LibStub('LibOptionsGenerate-1.0'):GetOptionsTable(self.db, types, L)
+	      optionsTable.name = addonName .. ' - Loot Manager'
+	LibStub('AceConfig-3.0'):RegisterOptionsTable(self.name, optionsTable)
+	LibStub('AceConfigDialog-3.0'):AddToBlizOptions(self.name, 'Loot Manager', 'Broker_Garbage')
 
 	-- TODO: could also consider LootFrame_InitAutoLootTable
 	-- hooksecurefunc('LootFrame_UpdateButton', UpdateLootButton)

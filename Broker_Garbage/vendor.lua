@@ -1,10 +1,12 @@
 local addonName, addon, _ = ...
 local plugin = addon:NewModule('Vendor', 'AceEvent-3.0', 'AceTimer-3.0')
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, _G
+-- GLOBALS: _G, LibStub
 -- GLOBALS: GameTooltip, MerchantFrameInset, MerchantRepairAllButton, CreateFrame, MerchantFrame
 -- GLOBALS: SetItemButtonTexture, SetItemButtonDesaturated, MerchantFrame_UpdateRepairButtons, RepairAllItems, GetMoney, GetGuildBankWithdrawMoney, GetRepairAllCost, CanMerchantRepair, CanGuildBankRepair, GetContainerItemInfo, ClearCursor, UseContainerItem
 -- GLOBALS: wipe, pairs, table, string, hooksecurefunc
+
+-- TODO: change sellLog/report to use events instead of timers
 
 -- --------------------------------------------------------
 --  Merchant: auto sell, auto repair
@@ -17,7 +19,7 @@ function plugin:AutoSell(manualTrigger)
 	end
 
 	sellValue = 0
-	wipe(sellLog)    -- reset data for refilling
+	wipe(sellLog) -- reset data for refilling
 	for location, cacheData in pairs(addon.containers) do
 		if cacheData.sell then
 			sellValue = sellValue + (cacheData.item.v * cacheData.count)
@@ -29,7 +31,7 @@ function plugin:AutoSell(manualTrigger)
 	end
 
 	if #sellLog > 0 then
-		addon:ScheduleTimer(self.ReportSelling, 0.3, self, 0, #sellLog)
+		self:ScheduleTimer(self.ReportSelling, 0.3, self, 0, #sellLog)
 	elseif self.db.global.reportNothingToSell then
 		addon.Print(addon.locale.reportNothingToSell)
 	end
@@ -39,7 +41,7 @@ function plugin:ReportSelling(iteration, maxIteration)
 	local checkedSellValue, numItems, isLocked = self:CheckSoldItems()
 
 	if isLocked and iteration < (maxIteration or 10)+5 then
-		addon:ScheduleTimer(self.ReportSelling, 0.3, self, iteration+1, maxIteration)
+		self:ScheduleTimer(self.ReportSelling, 0.3, self, iteration+1, maxIteration)
 		return
 	elseif sellValue > 0 and repairCost > 0 then
 		addon.Print(string.format(addon.locale.sellAndRepair,
@@ -99,7 +101,7 @@ function plugin:AutoRepair()
 	if self.db.global.autoRepair and CanMerchantRepair() then
 		local guildRepairFunds = CanGuildBankRepair() and GetGuildBankWithdrawMoney() or 0
 		repairCost = GetRepairAllCost()
-		guildRepair = BG_LocalDB.repairGuildBank
+		guildRepair = self.db.char.repairGuildBank
 		if not CanGuildBankRepair() or (repairCost > GetGuildBankWithdrawMoney() and GetGuildBankWithdrawMoney() ~= -1) then
 			guildRepair = false
 		end
@@ -165,17 +167,22 @@ local defaults = {
 	global = {
 		autoSell = true,
 		autoRepair = true,
+		-- TODO: repair guild bank
 		sellLog = false,
 		reportActions = true, -- TODO
 		reportNothingToSell = true,
 		addSellButton = true,
 	},
+	char = {
+		repairGuildBank = false,
+	}
 }
+
 function plugin:OnEnable()
 	self.db = addon.db:RegisterNamespace('Vendor', defaults)
 
-	hooksecurefunc("MerchantFrame_UpdateRepairButtons", UpdateMerchantButton)
-	hooksecurefunc("MerchantFrame_UpdateBuybackInfo", function()
+	hooksecurefunc('MerchantFrame_UpdateRepairButtons', UpdateMerchantButton)
+	hooksecurefunc('MerchantFrame_UpdateBuybackInfo', function()
 		local sellIcon = GetSellButton(true)
 		if sellIcon then
 			sellIcon:Hide()
@@ -183,6 +190,11 @@ function plugin:OnEnable()
 	end)
 
 	self:RegisterEvent('MERCHANT_SHOW')
+
+	local optionsTable = LibStub('LibOptionsGenerate-1.0'):GetOptionsTable(self.db)
+	      optionsTable.name = addonName .. ' - Vendor'
+	LibStub('AceConfig-3.0'):RegisterOptionsTable(self.name, optionsTable)
+	LibStub('AceConfigDialog-3.0'):AddToBlizOptions(self.name, 'Vendor', 'Broker_Garbage') --, 'general')
 end
 
 function plugin:MERCHANT_SHOW()
