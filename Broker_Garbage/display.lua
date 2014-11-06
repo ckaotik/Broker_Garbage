@@ -270,7 +270,7 @@ function BG.OnClick(self, location, btn)
 		local itemID = cacheData.item.id
 		if IsShiftKeyDown() then
 			-- delete or sell item, depending on whether we're at a vendor or not
-			if BG.isAtVendor and cacheData.value > 0 then
+			if MerchantFrame:IsShown() and cacheData.value > 0 then
 				BG_GlobalDB.moneyEarned	= BG_GlobalDB.moneyEarned + cacheData.value
 				BG_LocalDB.moneyEarned 	= BG_LocalDB.moneyEarned + cacheData.value
 				BG_GlobalDB.itemsSold 	= BG_GlobalDB.itemsSold + cacheData.count

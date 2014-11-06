@@ -122,8 +122,8 @@ local function Classify(location)
 	end
 
 	cacheData.priority = priority or ns.priority.NEUTRAL
-	cacheData.sell = doSell
-	cacheData.reason = priorityReason
+	cacheData.reason   = priorityReason
+	cacheData.sell     = doSell
 
 	return cacheData
 end

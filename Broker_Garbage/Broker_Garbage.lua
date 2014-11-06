@@ -1,24 +1,10 @@
-local addonName, ns, _ = ...
--- local addon = ns
--- addon = LibStub('AceAddon-3.0'):NewAddon(addon, addonName, 'AceEvent-3.0')
+local addonName, addon, _ = ...
+addon = LibStub('AceAddon-3.0'):NewAddon(addon, addonName, 'AceEvent-3.0')
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S, INVSLOT_LAST_EQUIPPED
+-- GLOBALS: LibStub, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S, INVSLOT_LAST_EQUIPPED
 -- GLOBALS: ContainerIDToInventoryID, InCombatLockdown, GetItemInfo
 -- GLOBALS: string, table, tonumber, setmetatable, math, pairs, ipairs
 
--- --------------------------------------------------------
---  Event Handler
--- --------------------------------------------------------
-local events = CreateFrame("Frame")
-events:RegisterEvent("ADDON_LOADED")
-events:SetScript("OnEvent", function(self, event, ...)
-   return self[event] and self[event](self, event, ...)
-end)
-ns.events = events
-
--- --------------------------------------------------------
---  Initialize
--- --------------------------------------------------------
 local function Merge(tableA, tableB)
 	local useTable = {}
 	for k, v in pairs(tableA) do
@@ -30,38 +16,37 @@ local function Merge(tableA, tableB)
 	return useTable
 end
 
-function events:ADDON_LOADED(event, addon)
-	if addon ~= addonName then return end
-	ns.db = LibStub('AceDB-3.0'):New(addonName..'DB', {}, true)
-	ns.CheckSettings()
+function addon:OnEnable()
+	self.db = LibStub('AceDB-3.0'):New(addonName..'DB', {}, true)
+	self.CheckSettings()
 
-	ns.prices = BG_GlobalDB.prices
-	ns.keep   = Merge(BG_GlobalDB.keep, BG_LocalDB.keep)
-	ns.toss   = Merge(BG_GlobalDB.toss, BG_LocalDB.toss)
+	self.prices = BG_GlobalDB.prices
+	self.keep   = Merge(BG_GlobalDB.keep, BG_LocalDB.keep)
+	self.toss   = Merge(BG_GlobalDB.toss, BG_LocalDB.toss)
 
-	ns.list = {} 								-- { <location>, <location>, ...} to reference ns.container[<location>]
-	ns.locations = {} 							-- [<itemID|category>] = { <location>, ... }
+	self.list = {} 		-- { <location>, <location>, ...} to reference self.container[<location>]
+	self.locations = {} -- [<itemID|category>] = { <location>, ... }
 
 	-- contains dynamic data
-	ns.containers = setmetatable({}, {
-		__index = function(self, location)
-			self[location] = {
+	self.containers = setmetatable({}, {
+		__index = function(containerTable, location)
+			containerTable[location] = {
 				-- loc = location,
-				-- item = ns.item[itemID],
+				-- item = self.item[itemID],
 				-- count = count,
 				-- priority = priority,
 				-- value = value,
 				-- label = label,
 				-- sell = sell,
 			}
-			return self[location]
+			return containerTable[location]
 		end
 	})
 
 	-- contains static item data (no categories!)
-	ns.item = setmetatable({}, {
+	self.item = setmetatable({}, {
 		__mode = "kv",
-		__index = function(self, item)
+		__index = function(itemTable, item)
 			-- item info should be available, as we only check items we own
 			local _, link, quality, iLevel, _, itemClass, _, _, equipSlot, _, vendorPrice = GetItemInfo(item)
 			local itemID = link and tonumber(link:match('item:(%d+):') or '')
@@ -69,10 +54,10 @@ function events:ADDON_LOADED(event, addon)
 			if not itemID then
 				return {}
 			elseif itemID ~= item then
-				return self[itemID]
+				return itemTable[itemID]
 			end
 
-			self[itemID] = {
+			itemTable[itemID] = {
 				id     = itemID,
 				slot   = equipSlot,
 				limit  = {}, 				-- list of categories that contain this item
@@ -80,61 +65,59 @@ function events:ADDON_LOADED(event, addon)
 				l      = iLevel,
 				q      = quality,
 				v      = vendorPrice,
-				bop    = ns.IsItemBoP(itemID),
+				bop    = self.IsItemBoP(itemID),
 			}
-			return self[itemID]
+			return itemTable[itemID]
 		end
 	})
 
-	ns.totalBagSpace = 0
-	ns.totalFreeSlots = 0
+	self.totalBagSpace = 0
+	self.totalFreeSlots = 0
 
-	ns.InitArkInvFilter()
-	ns.InitPriceHandlers()
+	self.InitArkInvFilter()
+	self.InitPriceHandlers()
 
 	-- initial scan
-	ns.updateAvailable = {}
+	self.updateAvailable = {}
 	for i = 0, NUM_BAG_SLOTS do
-		ns.updateAvailable[i] = true
+		self.updateAvailable[i] = true
 	end
 	self:BAG_UPDATE_DELAYED()
 
-	self:RegisterEvent("BAG_UPDATE")
-	self:RegisterEvent("BAG_UPDATE_DELAYED")
-	self:RegisterEvent("CHAT_MSG_SKILL")
-	self:RegisterEvent("EQUIPMENT_SETS_CHANGED")
-	-- hooksecurefunc("SaveEquipmentSet", self.EQUIPMENT_SETS_CHANGED)
-
-	self:UnregisterEvent("ADDON_LOADED")
+	self:RegisterEvent('BAG_UPDATE')
+	self:RegisterEvent('BAG_UPDATE_DELAYED')
+	self:RegisterEvent('CHAT_MSG_SKILL')
+	self:RegisterEvent('EQUIPMENT_SETS_CHANGED')
+	-- hooksecurefunc('SaveEquipmentSet', self.EQUIPMENT_SETS_CHANGED)
 end
 
 -- --------------------------------------------------------
 --  <stuff> update events
 -- --------------------------------------------------------
 local function UpdateEquipment()
-	for location, cacheData in pairs(ns.containers) do
+	for location, cacheData in pairs(addon.containers) do
 		if cacheData.item then
 			local invSlot = cacheData.item.slot
 			if invSlot ~= "" and invSlot ~= "INVTYPE_BAG" then
-				local container, slot = ns.GetBagSlot(location)
-				ns.UpdateBagSlot(container, slot, true)
+				local container, slot = addon.GetBagSlot(location)
+				addon.UpdateBagSlot(container, slot, true)
 			end
 		end
 	end
 end
-function events:EQUIPMENT_SETS_CHANGED()
-	ns.Print("Rescan equipment in bags")
-	ns.Scan(UpdateEquipment)
+function addon:EQUIPMENT_SETS_CHANGED()
+	self.Print("Rescan equipment in bags")
+	self.Scan(UpdateEquipment)
 end
 
-function events:CHAT_MSG_SKILL(event, msg)
-	-- TODO: detect newly learned skills
-	--[[local skillName = string.match(msg, ns.GetPatternFromFormat(ERR_SKILL_GAINED_S))
+function addon:CHAT_MSG_SKILL(event, msg)
+	-- TODO: detect newly learned trade skills and create list entries accordingly
+	--[[local skillName = string.match(msg, self.GetPatternFromFormat(ERR_SKILL_GAINED_S))
 	if skillName then
-		skillName = ns.GetTradeSkill(skillName)
+		skillName = self.GetTradeSkill(skillName)
 		if skillName then
-			ns.ModifyList_ExcludeSkill(skillName)
-			ns.Print(ns.locale.listsUpdatedPleaseCheck)
+			self.ModifyList_ExcludeSkill(skillName)
+			self.Print(self.locale.listsUpdatedPleaseCheck)
 		end
 	end --]]
 end
@@ -142,26 +125,24 @@ end
 -- --------------------------------------------------------
 --  Bag scanning
 -- --------------------------------------------------------
-function events:BAG_UPDATE(event, bagID)
-	if ns.locked then return end
+function addon:BAG_UPDATE(event, bagID)
+	if self.locked then return end
 	if bagID < 0 or bagID > NUM_BAG_SLOTS then
 		return
 	end
-	ns.updateAvailable[bagID] = true
+	self.updateAvailable[bagID] = true
 end
 
-function events:BAG_UPDATE_DELAYED()
-	if ns.locked then return end
+function addon:BAG_UPDATE_DELAYED()
+	if self.locked then return end
 	if InCombatLockdown() then
-		-- postpone
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 		return
 	end
-
-	ns.Scan()
+	self.Scan()
 end
 
-function events:PLAYER_REGEN_ENABLED()
+function addon:PLAYER_REGEN_ENABLED()
 	self:UnregisterEvent("PLAYER_REGEN_ENABLED")
 	self:BAG_UPDATE_DELAYED()
 end

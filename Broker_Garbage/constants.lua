@@ -41,6 +41,68 @@ BG.disableKey = {
 	["CTRL"] 	= IsControlKeyDown,
 }
 
+BG.defaults = {
+	global = {
+		dropQuality = 0,
+		disableKey = "SHIFT",
+		prices = {}, -- item/category preset prices
+		showJunkSellIcons = false, -- FIXME config, was: showBagnonSellIcons
+
+		disenchantValues = true, -- was: hasEnchanter
+		disenchantSkillOffset = 0, -- was: keepItemsForLaterDE
+		disenchantSuggestions = false, -- was: reportDisenchantOutdated
+
+		-- behavior
+		keepHighestItemLevel = true,
+		keepQuestItems = true, -- FIXME config
+		sellJunk = false, -- was: autoSellIncludeItems
+		sellUnusable = false,
+		sellUnusableQuality = 3,
+		sellOutdated = false,
+		sellOutdatedQuality = 3, -- FIXME config
+
+		LPTJunkIsJunk   = false, -- was: overrideLPT
+		ignoreZeroValue = true, -- was: hideZeroValue
+		moneyFormat     = 0, -- was: showMoney
+
+		-- LibDataBroker Display
+		label = "[itemname]x[itemcount] ([itemvalue])", -- was: LDBformat
+		noJunkLabel = BG.locale.label, -- was: LDBNoJunk
+		tooltip = {
+			height = 220,
+			numLines = 9,
+			showIcon = true,
+			showMoneyLost = true,
+			showMoneyEarned = true,
+			showReason = true,
+			showUnopenedContainers = true, -- FIXME: deprecated
+		},
+
+		itemTooltip = {
+			showClassification = true, -- was: showItemTooltipLabel
+			showReason = false, -- was: showLabelReason
+		},
+
+		dataSources = {
+			buyout = {}, -- was: auctionAddonOrder.buyout
+			buyoutDisabled = {}, -- was: buyoutDisabledSources
+			disenchant = {}, -- was: auctionAddonOrder.disenchant
+			disenchantDisabled = {}, -- was: disenchantDisabledSources
+		},
+	},
+	profile = {
+		keep = {},
+		toss = {},
+	},
+	char = {
+		repairGuildBank = false,
+		moneyLost   = 0,
+		moneyEarned = 0,
+		numSold     = 0,
+		numDeleted  = 0,
+	},
+}
+
 -- default saved variables
 BG.defaultGlobalSettings = {
 	-- lists
