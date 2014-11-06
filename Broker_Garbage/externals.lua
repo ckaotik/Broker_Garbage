@@ -145,10 +145,11 @@ local function CreateIcon(button)
 	return icon
 end
 local function UpdateJunkIcon(button, container, slot)
-	local location = BG.GetLocation(container, slot)
+	local location  = BG.GetLocation(container, slot)
 	local cacheData = BG.containers[location]
-	if cacheData.item and BG_GlobalDB.showBagnonSellIcons then
-		local icon = button.JunkIcon or CreateIcon(button)
+	-- print('junkicon', cacheData.item and cacheData.item.id, cacheData.count)
+	if BG_GlobalDB.showBagnonSellIcons then
+		local icon = button.JunkIcon or (cacheData.item and CreateIcon(button))
 		      icon:Hide()
 		if cacheData.sell then
 			if cacheData.label == BG.DISENCHANT then
@@ -169,8 +170,15 @@ end
 
 -- Bagnon
 if IsAddOnLoaded("Bagnon") then
-	hooksecurefunc(Bagnon.ItemSlot, "Update", function(self, ...)
-		UpdateJunkIcon(self, self:GetBag(), self:GetID())
+	--[[ Bagnon.BagEvents.Listen(ns, 'ITEM_SLOT_UPDATE', function(event, ...)
+		-- print('bagnon event', event, ...)
+		local bag, slot, link, count, locked, coolingDown = ...
+		-- local button = Bagnon.Frame:GetItemFrame():GetItemSlot(bag, slot)
+		-- UpdateJunkIcon(button, bag, slot)
+	end) --]]
+
+	hooksecurefunc(Bagnon.ItemSlot, "Update", function(button, ...)
+		UpdateJunkIcon(button, button:GetBag(), button:GetID())
 	end)
 	hooksecurefunc(BG, "Scan", function()
 		Bagnon:UpdateFrames()
