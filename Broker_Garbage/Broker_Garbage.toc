@@ -38,6 +38,7 @@ libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 libs\LibQTip-1.0\LibQTip-1.0.lua
 libs\LibItemUpgradeInfo-1.0\Core.lua
 #@end-no-lib-strip@
+libs\LibItemLocations\LibItemLocations.lua
 # unfit is special, as curse's version is outdated
 libs\Unfit-1.0\Unfit-1.0.lua
 
