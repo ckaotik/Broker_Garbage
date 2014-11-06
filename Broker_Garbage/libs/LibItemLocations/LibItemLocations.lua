@@ -75,7 +75,7 @@ function lib:UnpackInventoryLocation(location)
 	return container, slot, player, bank, bags, voidStorage, reagentBank, mailAttachment, guildBank, auctionHouse
 end
 
-function lib:GetLocation(container, slot)
+function lib:GetLocation(container, slot, index)
 	-- note: to access "equipped containers", use container:EQUIPMENT_CONTAINER, slot:<inventoryID>
 	local equipment, bank, bags, voidStorage, reagentBank, mailbox, guildBank, auctionHouse
 	if container == EQUIPMENT_CONTAINER then
@@ -99,26 +99,41 @@ function lib:GetLocation(container, slot)
 		container   = container
 		slot        = slot
 	elseif container == VOIDSTORAGE_CONTAINER then
-		local numVoidSlots = 80 -- _G._G.VOID_STORAGE_MAX
-		voidStorage = true
-		container   = ceil(slot/numVoidSlots)
-		slot        = slot%numVoidSlots
+		if index then
+			container = slot
+			slot      = index
+		else
+			local numVoidSlots = 80 -- _G._G.VOID_STORAGE_MAX
+			voidStorage = true
+			container   = ceil(slot/numVoidSlots)
+			slot        = slot%numVoidSlots
+		end
 	elseif container == REAGENTBANK_CONTAINER then
 		-- local numReagentSlots = 98
 		reagentBank = true
 		container   = 0
 		slot        = slot
 	elseif container == MAILATTACHMENT_CONTAINER then
-		-- construct slot as (mailIndex-1)*ATTACHMENTS_MAX+attachmentIndex
-		local numAttachmentSlots = _G.ATTACHMENTS_MAX
-		mailbox     = true
-		container   = ceil(slot/numAttachmentSlots) -- mailIndex
-		slot        = slot%numAttachmentSlots       -- attachmentIndex
+		if index then
+			container = slot
+			slot      = index
+		else
+			-- slot is (mailIndex-1)*ATTACHMENTS_MAX+attachmentIndex
+			local numAttachmentSlots = _G.ATTACHMENTS_MAX
+			mailbox     = true
+			container   = ceil(slot/numAttachmentSlots) -- mailIndex
+			slot        = slot%numAttachmentSlots       -- attachmentIndex
+		end
 	elseif contaier == GUILDBANK_CONTAINER then
-		local numGuildbankSlots = 98 -- _G.MAX_GUILDBANK_SLOTS_PER_TAB
-		guildBank   = true
-		container   = ceil(slot/numGuildbankSlots)  -- guild bank tab
-		slot        = slot%numGuildbankSlots        -- slot
+		if index then
+			container = slot
+			slot      = index
+		else
+			local numGuildbankSlots = 98 -- _G.MAX_GUILDBANK_SLOTS_PER_TAB
+			guildBank   = true
+			container   = ceil(slot/numGuildbankSlots)  -- guild bank tab
+			slot        = slot%numGuildbankSlots        -- slot
+		end
 	elseif container == AUCTIONHOUSE_CONTAINER then
 		auctionHouse = true
 		container   = 0
@@ -131,20 +146,32 @@ function lib:GetLocation(container, slot)
 end
 
 function lib:GetLocationItemInfo(location)
-	local container, slot, player, bank, bags, voidStorage, reagentBank, mailAttachment, guildBank, auctionHouse = lib:UnpackInventoryLocation(location)
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice, itemID
 
-	-- TODO
-	if container == EQUIPMENT_CONTAINER then
-	elseif container == BANK_CONTAINER then
-	elseif container == VOIDSTORAGE_CONTAINER then
-	elseif container == REAGENTBANK_CONTAINER then
-	elseif container == MAILATTACHMENT_CONTAINER then
-	elseif contaier == GUILDBANK_CONTAINER then
+	local container, slot, player, bank, bags, voidStorage, reagentBank, mailAttachment, guildBank, auctionHouse = lib:UnpackInventoryLocation(location)
+	if player or container == EQUIPMENT_CONTAINER then
+		-- slot: equipment slot
+		link = GetInventoryItemLink('player', slot)
+	elseif voidStorage then
+		-- container: tab, slot: slot
+		itemID = GetVoidItemInfo(container, slot)
+	elseif mailAttachment then
+		-- container: mailIndex, slot: attachmentIndex
+		link = GetInboxItemLink(container, slot)
+	elseif guildBank then
+		-- container: tab, slot: slot
+		link = GetGuildBankItemLink(container, slot)
 	elseif container == AUCTIONHOUSE_CONTAINER then
-	elseif container >= BACKPACK_CONTAINER and container <= BACKPACK_CONTAINER + _G.NUM_BAG_SLOTS then
-	elseif container > _G.NUM_BAG_SLOTS and container <= _G.NUM_BAG_SLOTS + _G.NUM_BANKBAGSLOTS then
+		link = GetAuctionItemLink('owner', slot)
+	else
+		-- backpack, backpack bags, bank, bank bags, reagent bank
+		link = GetContainerItemLink(container, slot)
 	end
+
+	if link and not itemID then
+		itemID = link:match('item:(%d+)')*1
+	end
+	name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice, itemID = GetItemInfo(link or itemID)
 
 	return itemID, name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
 end
