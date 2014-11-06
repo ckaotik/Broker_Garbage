@@ -52,12 +52,12 @@ end
 local defaults = {
 	profile = {
 		enable = {
-			general      = false,
-			skinning     =  true,
-			fishing      =  true,
-			pickpocket   =  true,
+			general    = false,
+			skinning   = true,
+			fishing    = true,
+			pickpocket = true,
 		},
-		lootTreasure =  true,
+		lootTreasure = true,
 		ignoreJunk   = false,
 		confirmBind  = false,
 		minValue     = 0,
