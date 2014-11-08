@@ -66,37 +66,36 @@ local function Options_Statistics(panel)
 	globalStatistics:SetJustifyV("TOP")
 	globalStatistics:SetText(BGC.locale.GlobalStatisticsHeading)
 
-	local var1 = Broker_Garbage:GetOption("moneyEarned", true)
+	-- global statistics
+	local moneyEarned, moneyLost, numSold, numDeleted = Broker_Garbage:GetStatistics()
+
 	local globalEarned, globalEarnedText = AddStatistic("_moneyEarned", BGC.locale.GlobalMoneyEarnedTitle,
-		Broker_Garbage.FormatMoney(var1),
+		Broker_Garbage.FormatMoney(moneyEarned),
 		BGC.locale.ResetStatistic,
 		"TOPLEFT", globalStatistics, "BOTTOMLEFT", 0, -15)
 
-	local var2 = Broker_Garbage:GetOption("itemsSold", true)
 	local itemsSold, itemsSoldText = AddStatistic("_itemsSold", BGC.locale.GlobalItemsSoldTitle,
-		var2,
+		numSold,
 		BGC.locale.ResetStatistic,
 		"TOPLEFT", globalEarned, "BOTTOMLEFT", 0, -6)
 
 	local averageSellValue, averageSellValueText = AddStatistic(nil, BGC.locale.AverageSellValueTitle,
-	 	Broker_Garbage.FormatMoney(floor(var1 / (var2 ~= 0 and var2 or 1))),
+	 	Broker_Garbage.FormatMoney(floor(moneyEarned / (numSold ~= 0 and numSold or 1))),
 		BGC.locale.AverageSellValueTooltip,
 		"TOPLEFT", itemsSold, "BOTTOMLEFT", 0, -6)
 
-	var1 = Broker_Garbage:GetOption("moneyLostByDeleting", true)
 	local globalLost, globalLostText = AddStatistic("_moneyLostByDeleting", BGC.locale.GlobalMoneyLostTitle,
-		Broker_Garbage.FormatMoney(var1),
+		Broker_Garbage.FormatMoney(moneyLost),
 		BGC.locale.ResetStatistic,
 		"TOPLEFT", averageSellValue, "BOTTOMLEFT", 0, -15)
 
-	var2 = Broker_Garbage:GetOption("itemsDropped", true)
 	local itemsDropped, itemsDroppedText = AddStatistic("_itemsDropped", BGC.locale.ItemsDroppedTitle,
-		var2,
+		numDeleted,
 		BGC.locale.ResetStatistic,
 		"TOPLEFT", globalLost, "BOTTOMLEFT", 0, -6)
 
 	local averageValueLost, averageValueLostText = AddStatistic(nil, BGC.locale.AverageDropValueTitle,
-		Broker_Garbage.FormatMoney(floor(var1 / (var2 ~= 0 and var2 or 1))),
+		Broker_Garbage.FormatMoney(floor(moneyLost / (numDeleted ~= 0 and numDeleted or 1))),
 		BGC.locale.AverageDropValueTooltip,
 		"TOPLEFT", itemsDropped, "BOTTOMLEFT", 0, -6)
 
@@ -109,15 +108,17 @@ local function Options_Statistics(panel)
 	local _, playerClass = UnitClass("player")
 	localStatistics:SetText(format(BGC.locale.LocalStatisticsHeading, "|c"..RAID_CLASS_COLORS[playerClass].colorStr .. UnitName("player") .. "|r"))
 
-	var1 = Broker_Garbage:GetOption("moneyEarned", false)
+	-- character statistics
+	local realmName, unitName = GetRealmName(), UnitName('player')
+	local moneyEarned, moneyLost, numSold, numDeleted = Broker_Garbage:GetStatistics(unitName .. ' - ' .. realmName)
+
 	local localEarned, localEarnedText = AddStatistic("moneyEarned", BGC.locale.StatisticsLocalAmountEarned,
-	 	Broker_Garbage.FormatMoney(var1),
+	 	Broker_Garbage.FormatMoney(moneyEarned),
 		BGC.locale.ResetStatistic,
 		"TOPLEFT", localStatistics, "BOTTOMLEFT", 0, -15)
 
-	var2 = Broker_Garbage:GetOption("moneyLostByDeleting", false)
 	local localLost, localLostText = AddStatistic("moneyLostByDeleting", BGC.locale.StatisticsLocalAmountLost,
-		Broker_Garbage.FormatMoney(var2),
+		Broker_Garbage.FormatMoney(moneyLost),
 		BGC.locale.ResetStatistic,
 		"TOPLEFT", localEarned, "BOTTOMLEFT", 0, -6)
 
@@ -139,20 +140,26 @@ local function Options_Statistics(panel)
 		UpdateAddOnMemoryUsage()
 		memoryUsageText:SetText(floor(GetAddOnMemoryUsage("Broker_Garbage")))
 
-		globalEarnedText:SetText(Broker_Garbage.FormatMoney( Broker_Garbage:GetOption("moneyEarned", true) ))
-		itemsSoldText:SetText( Broker_Garbage:GetOption("itemsSold", true) )
-		globalLostText:SetText(Broker_Garbage.FormatMoney( Broker_Garbage:GetOption("moneyLostByDeleting", true) ))
-		itemsDroppedText:SetText( Broker_Garbage:GetOption("itemsDropped", true) )
+		-- global statistics
+		local moneyEarned, moneyLost, numSold, numDeleted = Broker_Garbage:GetStatistics()
+
+		globalEarnedText:SetText(Broker_Garbage.FormatMoney(moneyEarned))
+		itemsSoldText:SetText(numSold)
+		globalLostText:SetText(Broker_Garbage.FormatMoney(moneyLost))
+		itemsDroppedText:SetText(numDeleted)
 
 		averageSellValueText:SetText(Broker_Garbage.FormatMoney(
-			floor(Broker_Garbage:GetOption("moneyEarned", true) / (Broker_Garbage:GetOption("itemsSold", true) ~= 0 and Broker_Garbage:GetOption("itemsSold", true) or 1))
+			floor(moneyEarned / (numSold ~= 0 and numSold or 1))
 		))
 		averageValueLostText:SetText(Broker_Garbage.FormatMoney(
-			floor(Broker_Garbage:GetOption("moneyLostByDeleting", true) / (Broker_Garbage:GetOption("itemsDropped", true) ~= 0 and Broker_Garbage:GetOption("itemsDropped", true) or 1))
+			floor(moneyLost / (numDeleted ~= 0 and numDeleted or 1))
 		))
 
-		localEarnedText:SetText(Broker_Garbage.FormatMoney( Broker_Garbage:GetOption("moneyEarned", false) ))
-		localLostText:SetText(Broker_Garbage.FormatMoney( Broker_Garbage:GetOption("moneyLostByDeleting", false) ))
+		-- character statistics
+		local realmName, unitName = GetRealmName(), UnitName('player')
+		local moneyEarned, moneyLost = Broker_Garbage:GetStatistics(unitName .. ' - ' .. realmName)
+		localEarnedText:SetText(Broker_Garbage.FormatMoney(moneyEarned))
+		localLostText:SetText(Broker_Garbage.FormatMoney(moneyLost))
 	end)
 end
 
