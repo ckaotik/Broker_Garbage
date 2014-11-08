@@ -1,56 +1,62 @@
 local addonName, ns, _ = ...
 _G[addonName] = ns
 
-local BG = ns
-
--- GLOBALS: BG_GlobalDB, BG_LocalDB, ArkInventory, ArkInventoryRules, Bagnon
+-- GLOBALS: _G, ArkInventory, ArkInventoryRules, Bagnon
 -- GLOBALS: IsAddOnLoaded
--- GLOBALS: string, tonumber, hooksecurefunc
+-- GLOBALS: string, tonumber, hooksecurefunc, pairs, strsplit
 
 function ns.IsDisabled()
-	local disable = ns.disableKey[BG_GlobalDB.disableKey]
+	local disable = ns.disableKey[ns.db.global.disableKey]
 	return (disable and disable())
+end
+
+-- character(optional): "Mychar - My Realm"
+function ns:GetStatistics(character)
+	local moneyEarned, moneyLost, numSold, numDeleted = 0, 0, 0, 0
+	for char, variables in pairs(ns.db.sv.char) do
+		if not character or char == character then
+			moneyEarned = moneyEarned + (variables.moneyEarned or 0)
+			moneyLost   = moneyLost   + (variables.moneyLost or 0)
+			numSold     = numSold     + (variables.numSold or 0)
+			numDeleted  = numDeleted  + (variables.numDeleted or 0)
+		end
+	end
+	return moneyEarned, moneyLost, numSold, numDeleted
 end
 
 -- --------------------------------------------------------
 --  Saved Variables: User Settings
 -- --------------------------------------------------------
-function BG:GetOption(optionName, global)
-	if global == nil then
-		return BG_LocalDB[optionName], BG_GlobalDB[optionName]
-	elseif global == false then
-		return BG_LocalDB[optionName]
-	else
-		return BG_GlobalDB[optionName]
+function ns:GetOption(optionName, global)
+	local option, subOption = strsplit('.', optionName)
+	local variable = global and self.db.global[option] or self.db.profile[option]
+	if subOption then
+		variable = variable[subOption]
 	end
+	return variable
 end
 
-function BG:SetOption(optionName, global, value)
-	if not global then
-		BG_LocalDB[optionName] = value
+function ns:SetOption(optionName, global, value)
+	local option, subOption = strsplit('.', optionName)
+	if global then
+		local variable = subOption and ns.db.global[option] or ns.db.global
+		variable[subOption or option] = value
 	else
-		BG_GlobalDB[optionName] = value
+		local variable = subOption and ns.db.profile[option] or ns.db.profile
+		variable[subOption or option] = value
 	end
 end
 
 -- toggles an option true/false
-function BG:ToggleOption(optionName, global)
-	if not global then
-		BG_LocalDB[optionName] = not BG_LocalDB[optionName]
-	else
-		BG_GlobalDB[optionName] = not BG_GlobalDB[optionName]
-	end
+function ns:ToggleOption(optionName, global)
+	local value = ns:GetOption(optionName, global)
+	ns:SetOption(optionName, global, not value)
 end
 
 -- resets an option entry to its default value
-function ns.ResetOption(name)
-	if ns.defaultLocalSettings[name] ~= nil then
-		BG_LocalDB[name]  = ns.defaultLocalSettings[name]
-	elseif ns.defaultGlobalSettings[name] ~= nil then
-		BG_GlobalDB[name] = ns.defaultGlobalSettings[name]
-	else
-		ns.Print('Error: No setting named "'..name..'" found.')
-	end
+function ns.ResetOption(optionName)
+	local default = ns.defaults.global[optionName] or ns.defaults.profile[optionName]
+	ns:SetOption(optionName, ns.defaults.global[optionName], default)
 end
 
 -- --------------------------------------------------------
@@ -60,16 +66,9 @@ end
 -- <list>: "toss", "keep" or "prices"
 function ns.Add(list, item, value, isGlobal, noUpdate)
 	if list == "prices" then
-		BG_GlobalDB[list][item] = value or -1
+		ns.db.global[list][item] = value or -1
 	else
-		if isGlobal then
-			BG_LocalDB[list][item] = nil
-			BG_GlobalDB[list][item] = value or 0
-		else
-			BG_GlobalDB[list][item] = nil
-			BG_LocalDB[list][item] = value or 0
-		end
-		ns[list][item] = value or 0
+		ns.db.profile[list][item] = value or 0
 	end
 
 	if not noUpdate then
@@ -77,11 +76,11 @@ function ns.Add(list, item, value, isGlobal, noUpdate)
 	end
 end
 function ns.Remove(list, item, noUpdate)
-	if list ~= "prices" then
-		BG_LocalDB[list][item] = nil
+	if list == "prices" then
+		ns.db.global[list][item] = nil
+	else
+		ns.db.profile[list][item] = nil
 	end
-	BG_GlobalDB[list][item] = nil
-	ns[list][item] = nil
 
 	if not noUpdate then
 		ns.Scan(ns.UpdateItem, item)
@@ -92,10 +91,10 @@ function ns.Remove(list, item, noUpdate)
 	-- Broker_Garbage.UpdateMerchantButton()
 end
 function ns.Get(list, item)
-	return BG_LocalDB[list][item] or BG_GlobalDB[list][item]
+	return list == "prices" and ns.db.global[list][item] or ns.db.profile[list][item]
 end
 function ns.IsShared(list, item)
-	return BG_GlobalDB[list][item] ~= nil
+	return ns.db:GetCurrentProfile() == 'Default'
 end
 function ns.ToggleShared(list, item)
 	local isGlobal = ns.IsShared(list, item)
@@ -108,7 +107,7 @@ end
 --  Integration with third party addons
 -- --------------------------------------------------------
 -- ArkInventory + ArkInventoryRules
-function BG.ArkInventoryFilter(label)
+function ns.ArkInventoryFilter(label)
 	if not ArkInventoryRules.Object.h or ArkInventoryRules.Object.class ~= "item" then
 		return false
 	end
@@ -116,16 +115,16 @@ function BG.ArkInventoryFilter(label)
 	local slot = ArkInventoryRules.Object.slot_id
 	label = label and string.upper(label)
 
-	return BG.GetItemClassification(container, slot) == BG[label]
+	return ns.GetItemClassification(container, slot) == ns[label]
 end
-function BG.InitArkInvFilter()
+function ns.InitArkInvFilter()
 	if not IsAddOnLoaded("ArkInventoryRules") then return end
 	if not ArkInventoryRules:IsEnabled() then
 		-- hook for when AIR activates
-		hooksecurefunc(ArkInventoryRules, "OnInitialize", BG.InitArkInvFilter) -- [TODO] make sure we only init once
+		hooksecurefunc(ArkInventoryRules, "OnInitialize", ns.InitArkInvFilter) -- [TODO] make sure we only init once
 		return
 	else
-		ArkInventoryRules.Register(BG, "brokergarbage", BG.ArkInventoryFilter, false)
+		ArkInventoryRules.Register(ns, "brokergarbage", ns.ArkInventoryFilter, false)
 	end
 end
 
@@ -145,14 +144,13 @@ local function CreateIcon(button)
 	return icon
 end
 local function UpdateJunkIcon(button, container, slot)
-	local location  = BG.GetLocation(container, slot)
-	local cacheData = BG.containers[location]
-	-- print('junkicon', cacheData.item and cacheData.item.id, cacheData.count)
-	if BG_GlobalDB.showBagnonSellIcons then
+	local location  = ns.GetLocation(container, slot)
+	local cacheData = ns.containers[location]
+	if ns.db.global.showJunkSellIcons then
 		local icon = button.JunkIcon or (cacheData.item and CreateIcon(button))
 		      icon:Hide()
 		if cacheData.sell then
-			if cacheData.label == BG.DISENCHANT then
+			if cacheData.label == ns.DISENCHANT then
 				icon:SetVertexColor(1, 0.2, 1)
 				icon:SetDesaturated(true)
 			else
@@ -170,19 +168,10 @@ end
 
 -- Bagnon
 if IsAddOnLoaded("Bagnon") then
-	--[[ Bagnon.BagEvents.Listen(ns, 'ITEM_SLOT_UPDATE', function(event, ...)
-		-- print('bagnon event', event, ...)
-		local bag, slot, link, count, locked, coolingDown = ...
-		-- local button = Bagnon.Frame:GetItemFrame():GetItemSlot(bag, slot)
-		-- UpdateJunkIcon(button, bag, slot)
-	end) --]]
-
-	hooksecurefunc(Bagnon.ItemSlot, "Update", function(button, ...)
+	hooksecurefunc(Bagnon.ItemSlot.mt.__index, "Update", function(button)
 		UpdateJunkIcon(button, button:GetBag(), button:GetID())
 	end)
-	hooksecurefunc(BG, "Scan", function()
-		Bagnon:UpdateFrames()
-	end)
+	hooksecurefunc(ns, "Scan", function() Bagnon:UpdateFrames() end)
 end
 
 -- ElvUI
@@ -196,7 +185,7 @@ if IsAddOnLoaded("ElvUI") then
 			UpdateJunkIcon(button, bagID, slotID)
 
 			if not ElvUISetup then
-				hooksecurefunc(BG, "Scan", function()
+				hooksecurefunc(ns, "Scan", function()
 					containerFrame:UpdateAllSlots()
 				end)
 				ElvUISetup = true

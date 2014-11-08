@@ -55,7 +55,7 @@ function plugin:ReportSelling(iteration, maxIteration)
 	end
 
 	-- regular sell unlock
-	self:UpdateStatistics(sellValue, numItems)
+	addon.UpdateSellStatistics(sellValue, numItems)
 end
 
 function plugin:CheckSoldItems()
@@ -75,7 +75,7 @@ function plugin:CheckSoldItems()
 			--[[ _, itemLink, _, _, _, _, _, _, _, _, vendorValue = GetItemInfo( cacheData.item.id )
 
 			local sellValue, count = vendorValue * cacheData.count, cacheData.count
-			self:UpdateStatistics(sellValue, count)
+			addon.UpdateSellStatistics(sellValue, count)
 
 			actualSellValue = actualSellValue + sellValue
 			numItemsSold = numItemsSold + count
@@ -86,13 +86,6 @@ function plugin:CheckSoldItems()
 		end
 	end
 	return actualSellValue, numItemsSold, itemLocked
-end
-
-function plugin:UpdateStatistics(sellValue, numItems)
-	if not sellValue or not numItems then return end
-	BG_LocalDB.moneyEarned  = BG_LocalDB.moneyEarned  + sellValue
-	BG_GlobalDB.moneyEarned = BG_GlobalDB.moneyEarned + sellValue
-	BG_GlobalDB.itemsSold   = BG_GlobalDB.itemsSold   + numItems
 end
 
 -- automatically repair at a vendor
@@ -167,7 +160,6 @@ local defaults = {
 	global = {
 		autoSell = true,
 		autoRepair = true,
-		-- TODO: repair guild bank
 		sellLog = false,
 		reportActions = true, -- TODO
 		reportNothingToSell = true,
@@ -198,7 +190,7 @@ function plugin:OnEnable()
 end
 
 function plugin:MERCHANT_SHOW()
-	local disable = addon.disableKey[BG_GlobalDB.disableKey]
+	local disable = addon.disableKey[addon.db.global.disableKey]
 	if not (disable and disable()) then
 		self:AutoSell()
 		self:AutoRepair()

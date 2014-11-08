@@ -17,12 +17,12 @@ local function Merge(tableA, tableB)
 end
 
 function addon:OnEnable()
-	self.db = LibStub('AceDB-3.0'):New(addonName..'DB', {}, true)
-	self.CheckSettings()
+	self.db = LibStub('AceDB-3.0'):New(addonName..'DB', self.defaults, true)
+	self:PortSettings()
 
-	self.prices = BG_GlobalDB.prices
-	self.keep   = Merge(BG_GlobalDB.keep, BG_LocalDB.keep)
-	self.toss   = Merge(BG_GlobalDB.toss, BG_LocalDB.toss)
+	self.prices = self.db.global.prices
+	self.keep   = self.db.profile.keep
+	self.toss   = self.db.profile.toss
 
 	self.list = {} 		-- { <location>, <location>, ...} to reference self.container[<location>]
 	self.locations = {} -- [<itemID|category>] = { <location>, ... }
@@ -125,16 +125,14 @@ end
 -- --------------------------------------------------------
 --  Bag scanning
 -- --------------------------------------------------------
-function addon:BAG_UPDATE(event, bagID)
-	if self.locked then return end
-	if bagID < 0 or bagID > NUM_BAG_SLOTS then
-		return
+function addon:BAG_UPDATE(event, container)
+	if container >= 0 and container <= NUM_BAG_SLOTS then
+		-- TODO: reagent bank, bank etc
+		self.updateAvailable[container] = true
 	end
-	self.updateAvailable[bagID] = true
 end
 
 function addon:BAG_UPDATE_DELAYED()
-	if self.locked then return end
 	if InCombatLockdown() then
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 		return

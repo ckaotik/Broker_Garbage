@@ -1,6 +1,6 @@
 local _, BGC = ...
 
--- GLOBALS: Broker_Garbage, LibStub, _G, UIDROPDOWNMENU_MENU_VALUE, UIParent, StaticPopupDialogs, BG_GlobalDB, ITEM_QUALITY_COLORS, SEARCH, UNKNOWN, ARMOR
+-- GLOBALS: Broker_Garbage, LibStub, _G, UIDROPDOWNMENU_MENU_VALUE, UIParent, StaticPopupDialogs, ITEM_QUALITY_COLORS, SEARCH, UNKNOWN, ARMOR
 -- GLOBALS: IsShiftKeyDown, GetCursorInfo, StaticPopup_Show, ToggleDropDownMenu, UIDropDownMenu_AddButton, UIDropDownMenu_CreateInfo, GetAuctionItemSubClasses, GetEquipmentSetInfo, GetNumEquipmentSets, GetItemInfo, CreateFrame, MoneyInputFrame_GetCopper, IsModifiedClick, IsModifierKeyDown, HandleModifiedItemClick, PlaySound, InterfaceOptionsFramePanelContainer, SetItemButtonCount, SetItemButtonStock, SetItemButtonTexture, SetItemButtonNormalTextureVertexColor, EditBox_ClearFocus, InterfaceOptionsFrame_Show, FauxScrollFrame_Update, FauxScrollFrame_GetOffset, FauxScrollFrame_OnVerticalScroll
 -- GLOBALS: type, wipe, ipairs, tonumber, select, pairs, unpack, table
 local AceTimer = LibStub("AceTimer-3.0")
@@ -249,10 +249,8 @@ local function ItemButtonOnClick(self, btn)
 	if btn == "RightButton" then
 		self:SetChecked( not self:GetChecked() )
 		Broker_Garbage.Remove(list, self.item)
-		Broker_Garbage.PrintFormat(
-			-- BGC.locale["removedFrom_"..list], -- FIXME: locale
-			"%s has been removed from your list.",
-			self.link or self.item)
+		-- BGC.locale["removedFrom_"..list], -- FIXME: locale
+		Broker_Garbage.Print(("%s has been removed from your list."):format(self.link or self.item))
 		ListUpdate( self:GetParent() )
 	elseif IsModifiedClick() then
 		self:SetChecked( not self:GetChecked() )
@@ -476,9 +474,7 @@ local function ShowListOptions(frame)
 		end
 
 		Broker_Garbage.Add(frame.current, value)
-		Broker_Garbage.PrintFormat( -- FIXME: locale
-			"%s has been added to your list.",
-			self.label:GetText())
+		Broker_Garbage.Print(("%s has been added to your list."):format(self.label:GetText())) -- FIXME: locale
 		-- ListUpdate(frame)
 	end
 
@@ -628,9 +624,8 @@ local function ShowListOptions(frame)
 		end
 		ClearCursor()
 		Broker_Garbage.Add(self:GetParent().list, self.item)
-		Broker_Garbage.PrintFormat( -- FIXME: locale
-			"%s has been added to your list.",
-			self.label:GetText())
+		local text = ("%s has been added to your list."):format(self.label:GetText())
+		Broker_Garbage.Print(text)
 		ListUpdate(self:GetParent())
 
 		--[[

@@ -1,30 +1,11 @@
 local addonName, BG = ...
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, Broker_Garbage_Config, DEFAULT_CHAT_FRAME
+-- GLOBALS: Broker_Garbage_Config, DEFAULT_CHAT_FRAME
 -- GLOBALS: GetProfessions, GetProfessionInfo, GetSpellInfo, UnitClass
 -- GLOBALS: setmetatable, getmetatable, pairs, type, select, wipe, tostringall, tonumber, string, math, table
 
 function BG.Print(text)
 	DEFAULT_CHAT_FRAME:AddMessage("|cffee6622"..addonName.."|r "..text)
-end
-
-function BG.PrintFormat(formatString, ...)
-	BG.Print(string.format(formatString, ...))
-end
-
-function BG.Find(where, value)
-	if not where then return end
-	for k, v in pairs(where) do
-		if v == value then
-			return k
-		end
-	end
-end
-
-function BG.Debug(...)
-	if BG_GlobalDB and BG_GlobalDB.debug then
-		BG.Print("! "..string.join(", ", tostringall(...)))
-	end
 end
 
 function BG.GetItemID(itemLink)
@@ -51,179 +32,120 @@ end
 -- --------------------------------------------------------
 --  Saved Variables
 -- --------------------------------------------------------
-local emptyTable = {}
-local function AdjustLists_4_1(localOnly)
-	for _, subtable in pairs({"exclude", "include", "autoSellList", "forceVendorPrice"}) do
-		for key, value in pairs(BG_LocalDB[ subtable ] or {}) do
-			if value == true then
-				BG_LocalDB[subtable][key] = 0
+-- migrate old database to new AceDB structure
+function BG:PortSettings()
+	local currentProfile = self.db:GetCurrentProfile()
+	if not self.db.sv.namespaces then self.db.sv.namespaces = {} end
+	if not self.db.sv.namespaces.Vendor then self.db.sv.namespaces.Vendor = {} end
+	local vendor = self.db.sv.namespaces.Vendor -- self.db:GetNamespace('Vendor', true) is not yet available
+
+
+	local db = _G['BG_GlobalDB']
+	if db and currentProfile == 'Default' and db.version then
+		self.db.profile.keep = {}
+		for k, v in pairs(db.keep) do self.db.profile.keep[k] = v end
+		self.db.profile.toss = {}
+		for k, v in pairs(db.toss) do self.db.profile.toss[k] = v end
+		self.db.global.prices = {}
+		for k, v in pairs(db.prices) do self.db.global.prices[k] = v end
+		db.keep, db.toss, db.prices = nil, nil, nil
+
+		local unchanged = {'disableKey', 'dropQuality', 'keepHighestItemLevel', 'keepQuestItems', 'sellUnusable', 'sellUnusableQuality', 'sellOutdated', 'sellOutdatedQuality'}
+		local mappings = {
+			showJunkSellIcons = 'showBagnonSellIcons',
+			disenchantValues = 'hasEnchanter',
+			disenchantSkillOffset = 'keepItemsForLaterDE',
+			disenchantSuggestions = 'reportDisenchantOutdated',
+			sellJunk = 'autoSellIncludeItems',
+			LPTJunkIsJunk = 'overrideLPT',
+			ignoreZeroValue = 'hideZeroValue',
+			moneyFormat = 'showMoney',
+			label = 'LDBformat',
+			noJunkLabel = 'LDBNoJunk',
+			['tooltip.height'] = 'tooltipMaxHeight',
+			['tooltip.numLines'] = 'tooltipNumItems',
+			['tooltip.showIcon'] = 'showIcon',
+			['tooltip.showMoneyLost'] = 'showLost',
+			['tooltip.showMoneyEarned'] = 'showEarned',
+			['tooltip.showReason'] = 'showSource',
+			['tooltip.showUnopenedContainers'] = 'showContainers',
+			['itemTooltip.showClassification'] = 'showItemTooltipLabel',
+			['itemTooltip.showReason'] = 'showLabelReason',
+			['dataSources.buyout'] = 'auctionAddonOrder.buyout',
+			['dataSources.disenchant'] = 'auctionAddonOrder.disenchant',
+			['dataSources.buyoutDisabled'] = 'buyoutDisabledSources',
+			['dataSources.disenchantDisabled'] = 'disenchantDisabledSources',
+		}
+		for _, variable in pairs(unchanged) do
+			self.db.global[variable] = self.db.global[variable] or db[variable] or nil
+			db[variable] = nil
+		end
+		for new, old in pairs(mappings) do
+			local new1, new2 = strsplit('.', new)
+			local newVar = new2 and self.db.global[new1] or self.db.global
+			local old1, old2 = strsplit('.', old)
+			local oldVar = old2 and db[old1] or db
+			newVar[new2 or new1] = newVar[new2 or new1] or oldVar[old2 or old1] or nil
+			oldVar[old2 or old1] = nil
+			if old2 and oldVar[old1] and not next(oldVar[old1]) then
+				oldVar[old1] = nil
 			end
 		end
-	end
-	BG_LocalDB.version = 1
-	if localOnly then return end
+		db.version = nil
 
-	for _, subtable in pairs({"exclude", "include", "autoSellList", "forceVendorPrice"}) do
-		for key, value in pairs(BG_GlobalDB[ subtable ] or {}) do
-			if value == true then
-				BG_GlobalDB[subtable][key] = 0
-			end
+		-- namespace settings
+		local vendorMappings = {
+			autoSell = 'autoSellToVendor',
+			autoRepair = 'autoRepairAtVendor',
+			sellLog = 'showSellLog',
+			reportNothingToSell = 'reportNothingToSell',
+			addSellButton = 'showAutoSellIcon',
+		}
+		for new, old in pairs(vendorMappings) do
+			if not vendor.global then vendor.global = {} end
+			vendor.global[new] = vendor.global[new] or db[old] or nil
+			db[old] = nil
 		end
 	end
 
-	if BG_GlobalDB.neverRepairGuildBank ~= nil and
-		(BG_GlobalDB.neverRepairGuildBank ~= BG_GlobalDB.repairGuildBank or BG_GlobalDB.repairGuildBank == nil) then
-		BG_GlobalDB.repairGuildBank = BG_GlobalDB.neverRepairGuildBank
-		BG_GlobalDB.neverRepairGuildBank = nil
-	end
+	local realmName, unitName = GetRealmName(), UnitName('player')
+	local characterProfile = unitName .. ' - ' .. realmName
 
-	if BG_GlobalDB.keepItemsForLaterDE and type(BG_GlobalDB.keepItemsForLaterDE) ~= "number" then
-		BG_GlobalDB.keepItemsForLaterDE = 0
-	end
-
-	BG_GlobalDB.version = 1
-end
-local function AdjustLists_4_3(localOnly)
-	BG_LocalDB.version = 2
-	if localOnly then return end
-
-	for key, value in pairs(BG_GlobalDB.forceVendorPrice) do
-		if value == 0 then
-			BG_GlobalDB.forceVendorPrice[key] = -1
+	local db = _G['BG_LocalDB']
+	if db and not tContains(self.db:GetProfiles(), characterProfile) then
+		if next(db.keep) or next(db.toss) then
+			-- create character profile based on Default
+			self.db:SetProfile(characterProfile)
+			self.db:CopyProfile('Default')
+			-- merge character lists into global lists
+			for k, v in pairs(db.keep) do self.db.profile.keep[k] = v end
+			for k, v in pairs(db.toss) do self.db.profile.toss[k] = v end
+			db.keep, db.toss = nil, nil
 		end
-	end
-	BG_GlobalDB.version = 2
-end
-local function AdjustLists_5_4(localOnly)
-	-- local lists
-	for i,v in pairs(BG_LocalDB.exclude or emptyTable) do
-		BG_LocalDB.keep[i] = v
-	end
-	BG_LocalDB.exclude = nil
 
-	for item, v in pairs(BG_LocalDB.include or emptyTable) do
-		BG_LocalDB.toss[item] = 0
-		if v > 0 then
-			BG_LocalDB.keep[item] = v
-		end
-	end
-	BG_LocalDB.include = nil
+		self.db.char.moneyLost   = self.db.char.moneyLost   or db.moneyLostByDeleting or nil
+		self.db.char.moneyEarned = self.db.char.moneyEarned or db.moneyEarned or nil
+		db.moneyLostByDeleting = nil
+		db.moneyEarned = nil
 
-	for item, v in pairs(BG_LocalDB.autoSellList or emptyTable) do
-		BG_LocalDB.toss[item] = 1
-		if v > 0 then
-			BG_LocalDB.keep[item] = math.max(BG_LocalDB.keep[item] or 0, v)
-		end
-	end
-	BG_LocalDB.autoSellList = nil
-
-	BG_LocalDB.version = 3
-	if localOnly then return end
-
-	if BG_GlobalDB.disableKey == "None" then
-		BG_GlobalDB.disableKey = "NONE"
-	end
-
-	BG_GlobalDB.sellUnusableQuality = BG_GlobalDB.sellNWQualityTreshold
-	BG_GlobalDB.sellOutdatedQuality = BG_GlobalDB.sellNWQualityTreshold
-	BG_GlobalDB.sellNWQualityTreshold = nil
-
-	BG_GlobalDB.sellUnusable = BG_GlobalDB.sellNotWearable
-	BG_GlobalDB.sellNotWearable = nil
-	BG_GlobalDB.sellOutdated = BG_GlobalDB.sellOldGear
-	BG_GlobalDB.sellOldGear = nil
-
-	-- global lists
-	for i,v in pairs(BG_GlobalDB.exclude or emptyTable) do
-		BG_GlobalDB.keep[i] = v
-	end
-	BG_GlobalDB.exclude = nil
-
-	for item, v in pairs(BG_GlobalDB.include or emptyTable) do
-		BG_GlobalDB.toss[item] = 0
-		if v > 0 then
-			BG_GlobalDB.keep[item] = v
-		end
-	end
-	BG_GlobalDB.include = nil
-
-	for item, v in pairs(BG_GlobalDB.autoSellList or emptyTable) do
-		BG_GlobalDB.toss[item] = 1
-		if v > 0 then
-			BG_GlobalDB.keep[item] = math.max(BG_GlobalDB.keep[item] or 0, v)
-		end
-	end
-	BG_GlobalDB.autoSellList = nil
-
-	-- global-only lists
-	for item, v in pairs(BG_GlobalDB.forceVendorPrice or emptyTable) do
-		BG_GlobalDB.prices[item] = v
-	end
-	BG_GlobalDB.forceVendorPrice = nil
-
-	BG_GlobalDB.version = 3
-end
-
--- checks for and sets default settings
-function BG.CheckSettings()
-	local newGlobals, newLocals
-	if not BG_GlobalDB then BG_GlobalDB = {}; newGlobals = true end
-	for key, value in pairs(BG.defaultGlobalSettings) do
-		if BG_GlobalDB[key] == nil then
-			BG_GlobalDB[key] = value
-		end
-	end
-
-	if not BG_LocalDB then BG_LocalDB = {}; newLocals = true end
-	for key, value in pairs(BG.defaultLocalSettings) do
-		if BG_LocalDB[key] == nil then
-			BG_LocalDB[key] = value
-		end
-	end
-
-	if newGlobals then
-		-- first load ever of Broker_Garbage
-		BG_GlobalDB.version = BG.version
-		BG.CreateDefaultLists(true)
-	elseif newLocals then
-		-- first load on this character
-		BG.CreateDefaultLists()
-	end
-
-	if BG_GlobalDB.version and type(BG_GlobalDB.version) ~= "number" then
-		BG_GlobalDB.version = tonumber(BG_GlobalDB.version)
-	end
-
-	-- variables update functions
-	if not BG_GlobalDB.version or BG_GlobalDB.version < 1 then
-		AdjustLists_4_1()
-	elseif not BG_LocalDB.version or BG_LocalDB.version < 1 then
-		AdjustLists_4_1(true)
-	end
-
-	if BG_GlobalDB.version < 2 then
-		AdjustLists_4_3()
-	elseif BG_LocalDB.version < 2 then
-		AdjustLists_4_3(true)
-	end
-
-	if BG_GlobalDB.version < 3 then
-		AdjustLists_5_4()
-	elseif BG_LocalDB.version < 3 then
-		AdjustLists_5_4(true)
+		-- namespace settings
+		if not vendor.char then vendor.char = {} end
+		if not vendor.char[characterProfile] then vendor.char[characterProfile] = {} end
+		vendor.char.repairGuildBank = vendor.char[characterProfile].repairGuildBank or db.repairGuildBank or nil
+		db.repairGuildBank = nil
 	end
 end
 
 -- inserts some basic list settings
 function BG.CreateDefaultLists(includeGlobals)
 	if includeGlobals then
-		BG_GlobalDB.toss[46069] = 0											-- argentum lance
-		BG_GlobalDB.keep["Consumable.Water.Conjured"] = 20
-		BG_GlobalDB.toss["Consumable.Water.Conjured"] = 0
-		BG_GlobalDB.toss["Consumable.Food.Edible.Basic.Conjured"] = 0
-		BG_GlobalDB.prices["Consumable.Food.Edible.Basic"] = -1
-		BG_GlobalDB.prices["Consumable.Water.Basic"] = -1
-		BG_GlobalDB.prices["Tradeskill.Mat.BySource.Vendor"] = -1
+		BG.db.profile.toss[46069] = 0 -- argentum lance
+		BG.db.profile.keep["Consumable.Water.Conjured"] = 20
+		BG.db.profile.toss["Consumable.Water.Conjured"] = 0
+		BG.db.profile.toss["Consumable.Food.Edible.Basic.Conjured"] = 0
+		BG.db.global.prices["Consumable.Food.Edible.Basic"] = BG.db.global.prices["Consumable.Food.Edible.Basic"] or -1
+		BG.db.global.prices["Consumable.Water.Basic"] = BG.db.global.prices["Consumable.Water.Basic"] or -1
+		BG.db.global.prices["Tradeskill.Mat.BySource.Vendor"] = BG.db.global.prices["Tradeskill.Mat.BySource.Vendor"] or -1
 	end
 
 	-- tradeskills
@@ -236,7 +158,7 @@ function BG.CreateDefaultLists(includeGlobals)
 	-- class specific
 	local _, playerClass = UnitClass("player")
 	if playerClass == "WARRIOR" or playerClass == "ROGUE" or playerClass == "DEATHKNIGHT" or playerClass == "HUNTER" then
-		BG_LocalDB.toss["Consumable.Water"] = 1
+		BG.db.profile.toss["Consumable.Water"] = 1
 	end
 
 	BG.Print(BG.locale.listsUpdatedPleaseCheck)
@@ -275,11 +197,11 @@ local tradeskillIsGather = {
 
 function BG.AddTradeSkill(skillLine)
 	local skillName = tradeskillNames[skillLine]
-	BG_LocalDB.keep[ "Tradeskill.Tool."..skillName ] = 0
+	BG.db.profile.keep[ "Tradeskill.Tool."..skillName ] = 0
 
 	if tradeskillIsGather[skillLine] then
-		BG_LocalDB.keep[ "Tradeskill.Gather."..skillName ] = 0
+		BG.db.profile.keep[ "Tradeskill.Gather."..skillName ] = 0
 	else
-		BG_LocalDB.keep[ "Tradeskill.Mat.ByProfession."..skillName ] = 0
+		BG.db.profile.keep[ "Tradeskill.Mat.ByProfession."..skillName ] = 0
 	end
 end

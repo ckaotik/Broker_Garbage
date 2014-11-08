@@ -43,14 +43,15 @@ BG.disableKey = {
 
 BG.defaults = {
 	global = {
+		version = 1,
 		dropQuality = 0,
 		disableKey = "SHIFT",
 		prices = {}, -- item/category preset prices
-		showJunkSellIcons = false, -- FIXME config, was: showBagnonSellIcons
+		showJunkSellIcons = false, -- FIXME config
 
-		disenchantValues = true, -- was: hasEnchanter
-		disenchantSkillOffset = 0, -- was: keepItemsForLaterDE
-		disenchantSuggestions = false, -- was: reportDisenchantOutdated
+		disenchantValues = true,
+		disenchantSkillOffset = 0,
+		disenchantSuggestions = false,
 
 		-- behavior
 		keepHighestItemLevel = true,
@@ -61,13 +62,13 @@ BG.defaults = {
 		sellOutdated = false,
 		sellOutdatedQuality = 3, -- FIXME config
 
-		LPTJunkIsJunk   = false, -- was: overrideLPT
-		ignoreZeroValue = true, -- was: hideZeroValue
-		moneyFormat     = 0, -- was: showMoney
+		LPTJunkIsJunk   = false,
+		ignoreZeroValue = true,
+		moneyFormat     = 0,
 
 		-- LibDataBroker Display
-		label = "[itemname]x[itemcount] ([itemvalue])", -- was: LDBformat
-		noJunkLabel = BG.locale.label, -- was: LDBNoJunk
+		label = "[itemname]x[itemcount] ([itemvalue])",
+		noJunkLabel = BG.locale.label,
 		tooltip = {
 			height = 220,
 			numLines = 9,
@@ -79,8 +80,8 @@ BG.defaults = {
 		},
 
 		itemTooltip = {
-			showClassification = true, -- was: showItemTooltipLabel
-			showReason = false, -- was: showLabelReason
+			showClassification = true,
+			showReason = false,
 		},
 
 		dataSources = {
@@ -100,83 +101,4 @@ BG.defaults = {
 		numSold     = 0,
 		numDeleted  = 0,
 	},
-}
-
--- default saved variables
-BG.defaultGlobalSettings = {
-	-- lists
-	keep = {},
-	toss = {},
-	prices = {},
-
-	-- behavior
-	autoSellToVendor = true,
-	autoRepairAtVendor = true,
-	sellUnusable = false,
-	sellOutdated = false,
-	keepHighestItemLevel = true,
-	keepQuestItems = true, -- FIXME config
-	showSellLog = false,
-	overrideLPT = false,
-
-	disableKey = "SHIFT",
-	autoSellIncludeItems = false,
-	keepItemsForLaterDE = 0,
-
-	auctionAddonOrder = { buyout = {}, disenchant = {} },
-	buyoutDisabledSources = {},
-	disenchantDisabledSources = {},
-
-	-- thresholds
-	dropQuality = 0,
-	sellUnusableQuality = 3,
-	sellOutdatedQuality = 3, -- FIXME config
-
-	-- numeric values
-	tooltipMaxHeight = 220,
-	tooltipNumItems = 9,
-	showMoney = false,
-	hasEnchanter = true,
-
-	-- statistic values
-	moneyLostByDeleting = 0,
-	moneyEarned = 0,
-	itemsSold = 0,
-	itemsDropped = 0,
-
-	-- display options
-	useRealValues = false,
-	hideZeroValue = true,
-	showAutoSellIcon = true,
-	showItemTooltipLabel = true,
-	showLabelReason = false,
-	showBagnonSellIcons = false, -- FIXME config
-
-	-- LibDataBroker Display
-	LDBformat = "[itemname]x[itemcount] ([itemvalue])",
-	LDBNoJunk = BG.locale.label,
-
-	-- tooltip
-	showIcon = true,
-	showLost = true,
-	showEarned = true,
-	showSource = false,
-	showContainers = true,
-
-	-- output options
-	reportNothingToSell = true,
-	reportDisenchantOutdated = false,
-}
-
-BG.defaultLocalSettings = {
-	-- lists
-	keep = {},
-	toss = {},
-
-	-- behavior
-	repairGuildBank = false,
-
-	-- default values
-	moneyLostByDeleting = 0,
-	moneyEarned = 0,
 }

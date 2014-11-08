@@ -1,6 +1,6 @@
 local _, ns = ...
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, ITEM_LEVEL, TopFit, PawnIsItemAnUpgrade, PawnGetItemData, PawnGetSlotsForItemType, _G, UIParent
+-- GLOBALS: ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, ITEM_LEVEL, TopFit, PawnIsItemAnUpgrade, PawnGetItemData, PawnGetSlotsForItemType, _G, UIParent
 -- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, GetInventoryItemLink, GetProfessions, GetProfessionInfo, GetContainerItemEquipmentSetInfo, GetInventoryItemsForSlot, EquipmentManager_UnpackLocation
 -- GLOBALS: type, select, string, ipairs, math, tonumber, wipe, pairs, table, strsplit
 
@@ -42,7 +42,7 @@ local isItemInCategory = setmetatable({}, {
 				wipe(tmpTable)
 				category = GetEquipmentSetInfo(categoryValue, tmpTable)
 			end
-			return ns.Find(GetEquipmentSetItemIDs(category), itemID)
+			return tContains(GetEquipmentSetItemIDs(category), itemID)
 		elseif categoryType == "AC" then
 			-- armor class
 			categoryValue = tonumber(categoryValue)
@@ -52,6 +52,7 @@ local isItemInCategory = setmetatable({}, {
 			categoryValue = categoryValue:gsub("%*", ".-")
 			return ( GetItemInfo(itemID) or "" ):match("^"..categoryValue.."$")
 		end
+		-- TODO: add types for "CRAFTMATERIAL", "CRAFTGATHER", "CRAFTTOOL"
 	end
 })
 ns.isItemInCategory = isItemInCategory
@@ -110,7 +111,7 @@ end
 -- --------------------------------------------------------
 function ns.GetAuctionValue(itemLink)
 	local auctionPrice, auctionAddon
-	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.buyout) do
+	for i, addonKey in ipairs(ns.db.global.dataSources.buyout) do
 		auctionAddon = ns.auctionAddons[addonKey]
 		if auctionAddon and auctionAddon.buyout then
 			if auctionAddon.buyoutEnabled and auctionAddon.buyout then
@@ -127,7 +128,7 @@ function ns.GetDisenchantValue(itemLink, noSkillReq)
 	if not canDisenchant and not noSkillReq then return end
 
 	local disenchantPrice, auctionAddon
-	for i, addonKey in ipairs(BG_GlobalDB.auctionAddonOrder.disenchant) do
+	for i, addonKey in ipairs(ns.db.global.dataSources.disenchant) do
 		auctionAddon = ns.auctionAddons[addonKey]
 		if auctionAddon and auctionAddon.disenchant then
 			if canDisenchant and auctionAddon.disenchantEnabled and auctionAddon.disenchant then
@@ -188,7 +189,7 @@ function ns.CanDisenchant(item)
 			end
 		end
 
-		return (mySkill + BG_GlobalDB.keepItemsForLaterDE) >= (requiredSkill or 1)
+		return (mySkill + ns.db.global.disenchantSkillOffset) >= (requiredSkill or 1)
 	end
 end
 
@@ -255,7 +256,7 @@ function ns.IsOutdatedItem(location)
 	else
 		local itemLink = item.link or GetContainerItemLink( ns.GetBagSlot(location) )
 		local isInteresting = IsInterestingItem(itemLink)
-		local isHighestItemLevel = not isInteresting and BG_GlobalDB.keepHighestItemLevel and IsHighestItemLevel(location)
+		local isHighestItemLevel = not isInteresting and ns.db.global.keepHighestItemLevel and IsHighestItemLevel(location)
 
 		return not (isInteresting or isHighestItemLevel), isHighestItemLevel
 	end
@@ -268,13 +269,10 @@ local function Deleted(item, count)
 	local _, link, _, _, _, _, _, _, _, _, vendorPrice = GetItemInfo(item)
 	local itemValue = count * vendorPrice
 
-	-- statistics
-	BG_GlobalDB.itemsDropped 		= BG_GlobalDB.itemsDropped + count
-	BG_GlobalDB.moneyLostByDeleting	= BG_GlobalDB.moneyLostByDeleting + itemValue
-	BG_LocalDB.moneyLostByDeleting 	= BG_LocalDB.moneyLostByDeleting + itemValue
-
-	ns.PrintFormat(ns.locale.itemDeleted, link, count)
+	ns.UpdateSellStatistics(-1 * count * vendorPrice, -1 * count)
+	ns.Print(ns.locale.itemDeleted:format(link, count))
 end
+
 -- deletes the item in a given location of your bags
 function ns.Delete(location, ...)
 	if not location then
@@ -304,9 +302,38 @@ function ns.Delete(location, ...)
 			Deleted(cacheData.item.id, cacheData.count)
 		else
 			-- TODO: localize
-			ns.PrintFormat("Error! Item to be deleted is not the expected item (%s in %d)",
-				cacheData.item and cacheData.item.id or "?",
-				location)
+			local text = ("Error! Item to be deleted is not the expected item (%s in %d)"):format(cacheData.item and cacheData.item.id or "?", location)
+			ns.Print(text)
 		end
 	end
+end
+
+function ns.UpdateSellStatistics(value, count)
+	if not value or not count then return end
+	if value >= 0 then
+		ns.db.char.moneyEarned = ns.db.char.moneyEarned + value
+	else
+		ns.db.char.moneyLost = ns.db.char.moneyLost + value
+	end
+	if count >= 0 then
+		ns.db.char.numSold = ns.db.char.numSold + count
+	else
+		ns.db.char.numDeleted = ns.db.char.numDeleted + count
+	end
+end
+
+function ns.Sell(location)
+	if not location then
+		ns.Print("Error! Broker_Garbage Sell: no argument supplied.")
+		return
+	elseif not ns.containers[location] or not ns.containers[location].item then
+		ns.Print("Error! Broker_Garbage Sell: item not found.")
+		return
+	end
+
+	local cacheData = ns.containers[location]
+	ns.UpdateSellStatistics(cacheData.value, cacheData.count)
+
+	ClearCursor()
+	UseContainerItem( ns.GetBagSlot(location) )
 end

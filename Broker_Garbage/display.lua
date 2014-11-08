@@ -2,7 +2,7 @@ local addonName, BG, _ = ...
 
 local LibDataBroker = LibStub("LibDataBroker-1.1")
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, LibStub, NORMAL_FONT_COLOR
+-- GLOBALS: LibStub, NORMAL_FONT_COLOR
 -- GLOBALS: GetItemInfo, GetContainerNumFreeSlots, GetContainerItemInfo, InterfaceOptionsFrame_OpenToCategory, LoadAddOn, IsAltKeyDown, IsShiftKeyDown, IsControlKeyDown, UseContainerItem, CreateFrame, ClearCursor, InCombatLockdown, GetCoinTextureString
 -- GLOBALS: pairs, select, type, string, math
 
@@ -132,10 +132,10 @@ function BG.UpdateLDB()
 	local LDB = LibDataBroker:GetDataObjectByName(addonName)
 	if cheapestItem and cacheData.item and cacheData.label ~= BG.IGNORE then
 		-- update LDB text
-		LDB.text = (BG_GlobalDB.LDBformat or ""):gsub("%b[]", formatReplacements)
+		LDB.text = (BG.db.global.label or ""):gsub("%b[]", formatReplacements)
 		LDB.icon = select(10, GetItemInfo(cacheData.item.id))
 	else
-		LDB.text = (BG_GlobalDB.LDBNoJunk or ""):gsub("%b[]", formatReplacements)
+		LDB.text = (BG.db.global.noJunkLabel or ""):gsub("%b[]", formatReplacements)
 		LDB.icon = "Interface\\Icons\\achievement_bg_returnxflags_def_wsg"
 	end
 end
@@ -169,7 +169,7 @@ function disenchantCellPrototype:SetupCell(tooltip, location, justification, fon
 end
 
 function BG.ShowTooltip(self)
-	local numColumns, lineNum = (BG_GlobalDB.showSource and 4 or 3) + 1, 0
+	local numColumns, lineNum = (BG.db.global.tooltip.showReason and 4 or 3) + 1, 0
 	local tooltip = LibQTip:Acquire(addonName, numColumns, "LEFT", "RIGHT", "RIGHT", numColumns >= 4 and "CENTER" or nil)
 	BG.tooltip = tooltip
 
@@ -184,7 +184,7 @@ function BG.ShowTooltip(self)
 	tooltip:AddSeparator(2)
 
 	-- add container slots information
-	if BG_GlobalDB.openContainers and BG.containerInInventory then
+	if BG.db.global.tooltip.showUnopenedContainers and BG.containerInInventory then
 		lineNum = tooltip:AddLine()
 		          tooltip:SetCell(lineNum, 1, BG.locale.openPlease, nil, 'CENTER', numColumns)
 		tooltip:AddSeperator(2)
@@ -192,7 +192,7 @@ function BG.ShowTooltip(self)
 
 	-- shows up to n lines of deletable items
 	local numLinesShown, location, cacheData
-	for i = 1, BG_GlobalDB.tooltipNumItems do
+	for i = 1, BG.db.global.tooltip.numLines do
 		location = BG.list[i]
 		cacheData = location and BG.containers[location]
 		if not cacheData or not cacheData.item or cacheData.label == BG.IGNORE then
@@ -203,10 +203,10 @@ function BG.ShowTooltip(self)
 
 		-- adds lines: itemLink, count, itemPrice, source
 		local _, link, _, _, _, _, _, _, _, icon, _ = GetItemInfo(cacheData.item.id)
-		local text = (BG_GlobalDB.showIcon and "|T"..icon..":0|t " or "") .. link
+		local text = (BG.global.db.tooltip.showIcon and "|T"..icon..":0|t " or "") .. link
 		local source = BG.GetInfo(cacheData.label, true) or ""
 
-		lineNum = tooltip:AddLine(text, cacheData.count, BG.FormatMoney(cacheData.value), BG_GlobalDB.showSource and source or nil)
+		lineNum = tooltip:AddLine(text, cacheData.count, BG.FormatMoney(cacheData.value), BG.db.global.tooltip.showReason and source or nil)
 		          tooltip:SetLineScript(lineNum, "OnMouseDown", BG.OnClick, location)
 
 		if BG.CanDisenchant(cacheData.item.id) then
@@ -221,17 +221,18 @@ function BG.ShowTooltip(self)
 	end
 
 	-- add statistics information
-	if (BG_GlobalDB.showLost and BG_LocalDB.moneyLostByDeleting ~= 0)
-		or (BG_GlobalDB.showEarned and BG_LocalDB.moneyEarned ~= 0) then
+	local moneyEarned, moneyLost = BG:GetStatistics(BG.db.keys.profile)
+	if (BG.db.global.tooltip.showMoneyLost and moneyLost ~= 0)
+		or (BG.db.global.tooltip.showMoneyEarned and moneyEarned ~= 0) then
 
 		tooltip:AddSeparator(2)
-		if BG_GlobalDB.showLost and BG_LocalDB.moneyLostByDeleting ~= 0 then
+		if BG.db.global.tooltip.showMoneyLost and moneyLost ~= 0 then
 			lineNum = tooltip:AddLine(BG.locale.moneyLost)
-			          tooltip:SetCell(lineNum, 2, BG.FormatMoney(BG_LocalDB.moneyLostByDeleting), nil, "RIGHT", numColumns - 1)
+			          tooltip:SetCell(lineNum, 2, BG.FormatMoney(moneyLost), nil, "RIGHT", numColumns - 1)
 		end
-		if BG_GlobalDB.showEarned and BG_LocalDB.moneyEarned ~= 0 then
+		if BG.db.global.tooltip.showMoneyEarned and moneyEarned ~= 0 then
 			lineNum = tooltip:AddLine(BG.locale.moneyEarned)
-			          tooltip:SetCell(lineNum, 2, BG.FormatMoney(BG_LocalDB.moneyEarned), nil, "RIGHT", numColumns - 1)
+			          tooltip:SetCell(lineNum, 2, BG.FormatMoney(moneyEarned), nil, "RIGHT", numColumns - 1)
 		end
 	end
 
@@ -241,7 +242,7 @@ function BG.ShowTooltip(self)
 
 	-- Show it, et voilà !
 	tooltip:Show()
-	tooltip:UpdateScrolling(BG_GlobalDB.tooltipMaxHeight)
+	tooltip:UpdateScrolling(BG.db.global.tooltip.height)
 end
 
 -- OnClick function - works for both, the LDB plugin -and- tooltip lines
@@ -271,12 +272,7 @@ function BG.OnClick(self, location, btn)
 		if IsShiftKeyDown() then
 			-- delete or sell item, depending on whether we're at a vendor or not
 			if MerchantFrame:IsShown() and cacheData.value > 0 then
-				BG_GlobalDB.moneyEarned	= BG_GlobalDB.moneyEarned + cacheData.value
-				BG_LocalDB.moneyEarned 	= BG_LocalDB.moneyEarned + cacheData.value
-				BG_GlobalDB.itemsSold 	= BG_GlobalDB.itemsSold + cacheData.count
-
-				ClearCursor()
-				UseContainerItem( BG.GetBagSlot(location) )
+				BG.Sell(location)
 			else
 				BG.Delete(location)
 			end
@@ -312,7 +308,7 @@ function BG.FormatMoney(amount, displayMode)
 	local silver = tmp%100
 	local gold   = math.floor(tmp/100)
 
-	displayMode = displayMode or BG_GlobalDB.showMoney
+	displayMode = displayMode or BG.db.global.moneyFormat
 
 	local text
 	local template = displayMode%2 == 0 and '%1$.2i' or '%1$i'
@@ -361,11 +357,12 @@ hooksecurefunc(GameTooltip, "SetBagItem", function(tooltip, container, slot)
 	local location = BG.GetLocation(container, slot)
 	local cacheData = BG.containers[location]
 
-	if BG_GlobalDB.showItemTooltipLabel and cacheData.item then
-		tooltip:AddDoubleLine(string.format("|cffee6622%s|r%s", addonName, BG_LocalDB.debug and " "..location or ""),
+	if BG.db.global.itemTooltip.showClassification and cacheData.item then
+		tooltip:AddDoubleLine(
+			string.format("|cffee6622%s|r", addonName),
 			(cacheData.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or "")..(BG.GetInfo(cacheData.label) or "") )
 
-		if BG_GlobalDB.showLabelReason then
+		if BG.db.global.itemTooltip.showReason then
 			local reason = BG.reason[ cacheData.reason ]
 			tooltip:AddDoubleLine(cacheData.priority, BG.locale["reason_"..reason])
 		end

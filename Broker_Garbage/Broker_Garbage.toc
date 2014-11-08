@@ -1,8 +1,7 @@
-## Interface: 50300
+## Interface: 60000
 ## Dependencies:
 ## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auc-Advanced, Enchantrix, WOWEcon_PriceMod, Auctional, ArkInventoryRules, Bagnon, ElvUI
-## SavedVariables: Broker_GarbageDB, BG_GlobalDB
-## SavedVariablesPerCharacter: BG_LocalDB
+## SavedVariables: Broker_GarbageDB
 
 ## Title: Broker_Garbage
 ## Author: ckaotik

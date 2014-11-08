@@ -1,5 +1,9 @@
 local _, BG = ...
 
+-- GLOBALS: _G, Wowecon, Auctional, AuctionLite, Enchantrix, AucAdvanced, GetAuctionBuyout, GetDisenchantValue
+-- GLOBALS: IsAddOnLoaded, Atr_GetAuctionBuyout, Atr_GetDisenchantValue, AucMasGetCurrentAuctionInfo
+-- GLOBALS: error, type, assert, table, floor pairs, unpack, select, tContains
+
 -- auction addons
 BG.auctionAddons = {}
 
@@ -19,32 +23,32 @@ function BG.AddPriceHandler(name, buyoutPriceHandler, disenchantPriceHandler, ov
 		buyout = buyoutPriceHandler,
 		disenchant = disenchantPriceHandler,
 
-		buyoutEnabled = not BG_GlobalDB.buyoutDisabledSources[name],
-		disenchantEnabled = not BG_GlobalDB.disenchantDisabledSources[name],
+		buyoutEnabled = not BG.db.global.dataSources.buyoutDisabled[name],
+		disenchantEnabled = not BG.db.global.dataSources.disenchantDisabled[name],
 	}
 
 	-- add us to the end of the list if not already present
-	if not BG.Find(BG_GlobalDB.auctionAddonOrder.buyout, name) then
-		table.insert(BG_GlobalDB.auctionAddonOrder.buyout, name)
+	if not tContains(BG.db.global.dataSources.buyout, name) then
+		table.insert(BG.db.global.dataSources.buyout, name)
 	end
-	if not BG.Find(BG_GlobalDB.auctionAddonOrder.disenchant, name) then
-		table.insert(BG_GlobalDB.auctionAddonOrder.disenchant, name)
+	if not tContains(BG.db.global.dataSources.disenchant, name) then
+		table.insert(BG.db.global.dataSources.disenchant, name)
 	end
 end
 function BG.EnablePriceHandler(name, buyout, disenchant)
 	assert(name and BG.auctionAddons[name], 'No price handler with this name was found')
 	if buyout ~= nil then
 		BG.auctionAddons[name].buyoutEnabled = buyout
-		BG_GlobalDB.buyoutDisabledSources[name] = not buyout and true or nil
+		BG.db.global.dataSources.buyoutDisabled[name] = not buyout and true or nil
 	end
 	if disenchant ~= nil then
 		BG.auctionAddons[name].disenchantEnabled = disenchant
-		BG_GlobalDB.disenchantDisabledSources[name] = not disenchant and true or nil
+		BG.db.global.dataSources.disenchantDisabled[name] = not disenchant and true or nil
 	end
 end
 function BG.ReOrderPriceHandler(name, displayType, index)
 	-- implements moving things up (to move down, simply have the next index move up)
-	local table = BG_GlobalDB.auctionAddonOrder[displayType]
+	local table = BG.db.global.dataSources[displayType]
 	if index > 1 and index <= #table then
         local temp = table[index]
         table[index] = table[index-1]
@@ -52,7 +56,7 @@ function BG.ReOrderPriceHandler(name, displayType, index)
     end
 end
 function BG.GetPriceHandlerOrder(displayType)
-	return BG_GlobalDB.auctionAddonOrder[displayType]
+	return BG.db.global.dataSources[displayType]
 end
 function BG.GetPriceHandler(name, noFallback)
 	if name and BG.auctionAddons[name] then
@@ -97,7 +101,7 @@ function BG.InitPriceHandlers()
 
 	if IsAddOnLoaded('AuctionMaster') then
 		-- some addon authors haven't heard of compatible namespacing :(
-		local AuctionMaster = vendor
+		local AuctionMaster = _G.vendor
 		disenchantHandler = function(itemLink)
 			return AuctionMaster.Disenchant:GetDisenchantValue(itemLink)
 		end
@@ -127,14 +131,14 @@ function BG.InitPriceHandlers()
 	end
 
 	-- remove stray entries so we can reorder without troubles
-	local addons, addonKey = BG_GlobalDB.auctionAddonOrder.buyout
+	local addons, addonKey = BG.db.global.dataSources.buyout
 	for i = #(addons), 1, -1 do
 		addonKey = addons[i]
 		if not BG.auctionAddons[addonKey] then
 			table.remove(addons, i)
 		end
 	end
-	addons, addonKey = BG_GlobalDB.auctionAddonOrder.disenchant
+	addons, addonKey = BG.db.global.dataSources.disenchant
 	for i = #(addons), 1, -1 do
 		addonKey = addons[i]
 		if not BG.auctionAddons[addonKey] then

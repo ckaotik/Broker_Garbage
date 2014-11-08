@@ -119,11 +119,11 @@ local function Options_BasicOptions(panel)
 
 	local overrideLPT = BGC.CreateCheckBox(behavior, nil, BGC.locale.overrideLPTTitle, "TOPLEFT", sell, "BOTTOMLEFT", 0, 4)
 	overrideLPT.tiptext = BGC.locale.overrideLPTTooltip .. BGC.locale.GlobalSetting
-	overrideLPT:SetChecked( Broker_Garbage:GetOption("overrideLPT", true) )
+	overrideLPT:SetChecked( Broker_Garbage:GetOption("LPTJunkIsJunk", true) )
 	local checksound = overrideLPT:GetScript("OnClick")
 	overrideLPT:SetScript("OnClick", function(self)
 		checksound(self)
-		Broker_Garbage:ToggleOption("overrideLPT", true)
+		Broker_Garbage:ToggleOption("LPTJunkIsJunk", true)
 		Broker_Garbage.Scan()
 	end)
 
@@ -186,23 +186,23 @@ local function Options_BasicOptions(panel)
 
 	local enchanter = BGC.CreateCheckBox(behavior, nil, BGC.locale.enchanterTitle, "TOPLEFT", guildrepair, "BOTTOMLEFT", -14, 4)
 	enchanter.tiptext = BGC.locale.enchanterTooltip .. BGC.locale.GlobalSetting
-	enchanter:SetChecked( Broker_Garbage:GetOption("hasEnchanter", true) )
+	enchanter:SetChecked( Broker_Garbage:GetOption("disenchantValues", true) )
 	local checksound = enchanter:GetScript("OnClick")
 	enchanter:SetScript("OnClick", function(self)
 		checksound(self)
-		Broker_Garbage:ToggleOption("hasEnchanter", true)
+		Broker_Garbage:ToggleOption("disenchantValues", true)
 	end)
 
 	local maxSkillRank = PROFESSION_RANKS[#PROFESSION_RANKS][1]
-	local laterDE, laterDEText, container, low, high = LibStub("tekKonfig-Slider").new(behavior, BGC.locale.keepForLaterDETitle .. ": " .. Broker_Garbage:GetOption("keepItemsForLaterDE", true), 0, maxSkillRank, "TOPLEFT", enchanter, "BOTTOMLEFT", 26, -2)
+	local laterDE, laterDEText, container, low, high = LibStub("tekKonfig-Slider").new(behavior, BGC.locale.keepForLaterDETitle .. ": " .. Broker_Garbage:GetOption("disenchantSkillOffset", true), 0, maxSkillRank, "TOPLEFT", enchanter, "BOTTOMLEFT", 26, -2)
 	laterDE.tiptext = BGC.locale.keepForLaterDETooltip .. BGC.locale.GlobalSetting
 	laterDE:SetWidth(130); container:SetWidth(140);
 	laterDEText:SetPoint("BOTTOMLEFT", laterDE, "TOPLEFT", 2, 0)
 	laterDE:SetValueStep(5)
-	laterDE:SetValue(Broker_Garbage:GetOption("keepItemsForLaterDE", true))
+	laterDE:SetValue(Broker_Garbage:GetOption("disenchantSkillOffset", true))
 	laterDE:SetScript("OnValueChanged", function(self)
-		Broker_Garbage:SetOption("keepItemsForLaterDE", true, self:GetValue())
-		laterDEText:SetText(BGC.locale.keepForLaterDETitle .. ": " .. Broker_Garbage:GetOption("keepItemsForLaterDE", true))
+		Broker_Garbage:SetOption("disenchantSkillOffset", true, self:GetValue())
+		laterDEText:SetText(BGC.locale.keepForLaterDETitle .. ": " .. Broker_Garbage:GetOption("disenchantSkillOffset", true))
 		Broker_Garbage.Scan()
 	end)
 
@@ -364,29 +364,29 @@ local function Options_BasicOptions(panel)
 	-- -----------------------------------------------------------------
 
 	local numItems, numItemsText, container, low, high = LibStub("tekKonfig-Slider").new(tooltip,
-		BGC.locale.maxItemsTitle .. ": " .. Broker_Garbage:GetOption("tooltipNumItems", true),
+		BGC.locale.maxItemsTitle .. ": " .. Broker_Garbage:GetOption("tooltip.numLines", true),
 		0, 50, "TOPLEFT", lineTooltip, "BOTTOMLEFT", 4, -4)
 	numItems.tiptext = BGC.locale.maxItemsText .. BGC.locale.GlobalSetting
 	numItems:SetWidth(150); container:SetWidth(160)
 	numItemsText:SetPoint("BOTTOMLEFT", numItems, "TOPLEFT", 2, 0)
 	numItems:SetValueStep(1);
-	numItems:SetValue( Broker_Garbage:GetOption("tooltipNumItems", true) )
+	numItems:SetValue( Broker_Garbage:GetOption("tooltip.numLines", true) )
 	numItems:SetScript("OnValueChanged", function(self)
-		Broker_Garbage:SetOption("tooltipNumItems", true, self:GetValue())
+		Broker_Garbage:SetOption("tooltip.numLines", true, self:GetValue())
 		numItemsText:SetText(BGC.locale.maxItemsTitle .. ": " .. self:GetValue())
 	end)
 	low:Hide(); high:Hide()
 
 	local tooltipHeight, tooltipHeightText, container, low, high = LibStub("tekKonfig-Slider").new(tooltip,
-		BGC.locale.maxHeightTitle .. ": " .. Broker_Garbage:GetOption("tooltipMaxHeight", true),
+		BGC.locale.maxHeightTitle .. ": " .. Broker_Garbage:GetOption("tooltip.height", true),
 		0, 500, "TOPLEFT", numItems, "BOTTOMLEFT", 0, -2)
 	tooltipHeight.tiptext = BGC.locale.maxHeightText .. BGC.locale.GlobalSetting
 	tooltipHeight:SetWidth(150); container:SetWidth(160);
 	tooltipHeightText:SetPoint("BOTTOMLEFT", tooltipHeight, "TOPLEFT", 2, 0)
 	tooltipHeight:SetValueStep(10);
-	tooltipHeight:SetValue( Broker_Garbage:GetOption("tooltipMaxHeight", true) )
+	tooltipHeight:SetValue( Broker_Garbage:GetOption("tooltip.height", true) )
 	tooltipHeight:SetScript("OnValueChanged", function(self)
-		Broker_Garbage:SetOption("tooltipMaxHeight", true, self:GetValue())
+		Broker_Garbage:SetOption("tooltip.height", true, self:GetValue())
 		tooltipHeightText:SetText(BGC.locale.maxHeightTitle .. ": " .. self:GetValue())
 	end)
 	low:Hide(); high:Hide()
@@ -436,9 +436,9 @@ local function Options_BasicOptions(panel)
 	junkText:SetSize(140, 32)
 	junkText:SetFontObject("GameFontHighlightSmall")
 	junkText:SetAutoFocus(false)
-	junkText:SetText( Broker_Garbage:GetOption("LDBformat", true) )
+	junkText:SetText( Broker_Garbage:GetOption("label", true) )
 	junkText.tiptext = BGC.locale.LDBDisplayTextTooltip .. BGC.locale.GlobalSetting
-	junkText.setting = "LDBformat"
+	junkText.setting = "label"
 
 	junkText:SetScript("OnEscapePressed", ResetEditBox)
 	junkText:SetScript("OnEnterPressed", SubmitEditBox)
@@ -461,9 +461,9 @@ local function Options_BasicOptions(panel)
 	noJunkText:SetAutoFocus(false)
 	noJunkText:SetSize(140, 32)
 	noJunkText:SetFontObject("GameFontHighlightSmall")
-	noJunkText:SetText(  Broker_Garbage:GetOption("LDBNoJunk", true))
+	noJunkText:SetText(  Broker_Garbage:GetOption("noJunkLabel", true))
 	noJunkText.tiptext = BGC.locale.LDBNoJunkTextTooltip .. BGC.locale.GlobalSetting
-	noJunkText.setting = "LDBNoJunk"
+	noJunkText.setting = "noJunkLabel"
 
 	noJunkText:SetScript("OnEscapePressed", ResetEditBox)
 	noJunkText:SetScript("OnEnterPressed", SubmitEditBox)
@@ -498,20 +498,20 @@ local function Options_BasicOptions(panel)
 
 	local itemTooltipLabel = BGC.CreateCheckBox(panel, nil, BGC.locale.showItemTooltipLabelTitle, "TOPLEFT", sellIcon, "BOTTOMLEFT", 0, 4)
 	itemTooltipLabel.tiptext = BGC.locale.showItemTooltipLabelText .. BGC.locale.GlobalSetting
-	itemTooltipLabel:SetChecked( Broker_Garbage:GetOption("showItemTooltipLabel", true) )
+	itemTooltipLabel:SetChecked( Broker_Garbage:GetOption("itemTooltip.showClassification", true) )
 	local checksound = itemTooltipLabel:GetScript("OnClick")
 	itemTooltipLabel:SetScript("OnClick", function(self)
 		checksound(self)
-		Broker_Garbage:ToggleOption("showItemTooltipLabel", true)
+		Broker_Garbage:ToggleOption("itemTooltip.showClassification", true)
 	end)
 
 	local itemTooltipLabelReason = BGC.CreateCheckBox(panel, nil, BGC.locale.showItemTooltipDetailTitle, "TOPLEFT", itemTooltipLabel, "BOTTOMLEFT", 0, 4)
 	itemTooltipLabelReason.tiptext = BGC.locale.showItemTooltipDetailText .. BGC.locale.GlobalSetting
-	itemTooltipLabelReason:SetChecked( Broker_Garbage:GetOption("showLabelReason", true) )
+	itemTooltipLabelReason:SetChecked( Broker_Garbage:GetOption("itemTooltip.showReason", true) )
 	local checksound = itemTooltipLabelReason:GetScript("OnClick")
 	itemTooltipLabelReason:SetScript("OnClick", function(self)
 		checksound(self)
-		Broker_Garbage:ToggleOption("showLabelReason", true)
+		Broker_Garbage:ToggleOption("itemTooltip.showReason", true)
 	end)
 
 	-- -----------------------------------------------------------------
@@ -532,13 +532,13 @@ local function Options_BasicOptions(panel)
 	local moneyFormatLabel = moneyFormat:CreateFontString(nil, "BACKGROUND", "GameFontNormalSmall")
 	moneyFormatLabel:SetPoint("BOTTOMLEFT", moneyFormat, "TOPLEFT", 20, 2)
 	moneyFormatLabel:SetText(BGC.locale.moneyFormatTitle)
-	UIDropDownMenu_SetSelectedValue(moneyFormat, Broker_Garbage:GetOption("showMoney", true))
+	UIDropDownMenu_SetSelectedValue(moneyFormat, Broker_Garbage:GetOption("moneyFormat", true))
 	UIDropDownMenu_SetText(moneyFormat, Broker_Garbage.FormatMoney(testValue))
 	UIDropDownMenu_SetWidth(moneyFormat, 150, 0)
 	UIDropDownMenu_JustifyText(moneyFormat, "LEFT")
 	local function MoneyFormatOnSelect(self)
 		UIDropDownMenu_SetSelectedValue(moneyFormat, self.value)
-		Broker_Garbage:SetOption("showMoney", true, self.value)
+		Broker_Garbage:SetOption("moneyFormat", true, self.value)
 		Broker_Garbage.Scan()
 	end
 	moneyFormat.initialize = function(self)
@@ -554,11 +554,11 @@ local function Options_BasicOptions(panel)
 
 	local hideZero = BGC.CreateCheckBox(display, nil, BGC.locale.hideZeroTitle, "TOPLEFT", moneyFormatLabel, "BOTTOMLEFT", -6, -30)
 	hideZero.tiptext = BGC.locale.hideZeroTooltip .. BGC.locale.GlobalSetting
-	hideZero:SetChecked( Broker_Garbage:GetOption("hideZeroValue", true) )
+	hideZero:SetChecked( Broker_Garbage:GetOption("ignoreZeroValue", true) )
 	local checksound = hideZero:GetScript("OnClick")
 	hideZero:SetScript("OnClick", function(self)
 		checksound(self)
-		Broker_Garbage:ToggleOption("hideZeroValue", true)
+		Broker_Garbage:ToggleOption("ignoreZeroValue", true)
 		Broker_Garbage.Scan()
 	end)
 
@@ -596,11 +596,11 @@ local function Options_BasicOptions(panel)
 	local reportDE, label = BGC.CreateCheckBox(output, nil, BGC.locale.reportDEGearTitle, "TOPLEFT", nothingToSell, "BOTTOMLEFT", 0, 4)
 	label:SetHeight(50)
 	reportDE.tiptext = BGC.locale.reportDEGearTooltip .. BGC.locale.GlobalSetting
-	reportDE:SetChecked( Broker_Garbage:GetOption("reportDisenchantOutdated", true) )
+	reportDE:SetChecked( Broker_Garbage:GetOption("disenchantSuggestions", true) )
 	local checksound = reportDE:GetScript("OnClick")
 	reportDE:SetScript("OnClick", function(self)
 		checksound(self)
-		Broker_Garbage:ToggleOption("reportDisenchantOutdated", true)
+		Broker_Garbage:ToggleOption("disenchantSuggestions", true)
 	end)
 
 	-- ------------------------------------------------------------------------
@@ -626,8 +626,8 @@ local function Options_BasicOptions(panel)
 	UpdateAuctionAddonList(panel)
 
 	panel:SetScript("OnShow", function(self)
-		junkText:SetText( Broker_Garbage:GetOption("LDBformat", true) )
-		noJunkText:SetText( Broker_Garbage:GetOption("LDBNoJunk", true) )
+		junkText:SetText( Broker_Garbage:GetOption("label", true) )
+		noJunkText:SetText( Broker_Garbage:GetOption("noJunkLabel", true) )
 
 		local min, max = numItems:GetMinMaxValues()
 		local num = Broker_Garbage:GetOption("tooltipNumItems", true)

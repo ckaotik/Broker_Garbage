@@ -45,7 +45,7 @@ function ns.InitializeLPTDropdown(self, menuLevel, menuList, clickFunc)
 		gsub(LibPeriodicTable:GetSetString(prefix) or '', '[^,]+', function(category)
 			if category ~= 'm' then
 				local _, _, subSet = find(category, "^"..prefix.."%.([^.]+)")
-				if subSet and not ns.Find(sortTable, subSet) then
+				if subSet and not tContains(sortTable, subSet) then
 					tinsert(sortTable, subSet)
 				end
 			end

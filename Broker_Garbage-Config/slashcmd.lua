@@ -55,9 +55,9 @@ local COMMAND_PARAMS = {
 	-- + change LDB display format
 	format = function(param)
 		if param == "reset" then
-			Broker_Garbage:SetOption("LDBformat", true, Broker_Garbage.defaultGlobalSettings.LDBformat)
+			Broker_Garbage:SetOption("label", true, Broker_Garbage.defaults.global.label)
 		else
-			Broker_Garbage:SetOption("LDBformat", true, param)
+			Broker_Garbage:SetOption("label", true, param)
 		end
 		Broker_Garbage:ScanInventory()
 	end,

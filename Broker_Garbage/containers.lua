@@ -1,7 +1,6 @@
 local _, ns = ...
 
--- GLOBALS: BG_GlobalDB, BG_LocalDB, NUM_BAG_SLOTS
--- GLOBALS: GetContainerNumSlots, GetContainerItemID, GetContainerItemInfo, GetItemInfo, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetAuctionItemSubClasses, IsEquippedItem, GetContainerItemEquipmentSetInfo, GetContainerItemLink
+-- GLOBALS: NUM_BAG_SLOTS, GetContainerNumSlots, GetContainerItemID, GetContainerItemInfo, GetItemInfo, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetAuctionItemSubClasses, IsEquippedItem, GetContainerItemEquipmentSetInfo, GetContainerItemLink
 -- GLOBALS: type, string, table, pairs, ipairs, wipe, print, tonumber, select, math
 
 local Unfit = LibStub("Unfit-1.0")
@@ -125,6 +124,8 @@ local function Classify(location)
 	cacheData.reason   = priorityReason
 	cacheData.sell     = doSell
 
+	-- ns:SendMessage('ITEM_SLOT_UPDATE', location, cacheData.item and cacheData.item.id, cacheData.label, cacheData.priority, cacheData.reason, cacheData.sell)
+
 	return cacheData
 end
 
@@ -172,7 +173,7 @@ function ns.UpdateBagSlot(container, slot, forced)
 			if cacheData.item then
 				-- remove old item from locations
 				local itemLocations = ns.locations[ cacheData.item.id ]
-				local oldLocation = ns.Find(itemLocations, location)
+				local oldLocation = tContains(itemLocations, location)
 				if itemLocations and oldLocation then
 					table.remove(itemLocations, oldLocation)
 				end
@@ -292,7 +293,7 @@ function ns.GetItemPriority(location)
 		return priority, listed == 1, reason
 	end
 
-	if BG_GlobalDB.overrideLPT and item.q == 0 then
+	if ns.db.global.LPTJunkIsJunk and item.q == 0 then
 		-- override categories that include gray items
 		priority = ns.priority.NEUTRAL
 		reason = ns.reason.GRAY_ITEM
@@ -320,14 +321,14 @@ function ns.GetItemPriority(location)
 	end
 
 	-- quest items
-	if BG_GlobalDB.keepQuestItems and item.cl == QUEST then
+	if ns.db.global.keepQuestItems and item.cl == QUEST then
 		priority = ns.priority.POSITIVE
 		reason = ns.reason.QUEST_ITEM
 		return priority, false, reason
 	end
 
 	-- unusable gear
-	if BG_GlobalDB.sellUnusable and item.q <= BG_GlobalDB.sellUnusableQuality and
+	if ns.db.global.sellUnusable and item.q <= ns.db.global.sellUnusableQuality and
 		item.slot ~= "" and item.slot ~= "INVTYPE_BAG" and item.bop and Unfit:IsItemUnusable(item.id) then
 		-- soulbound boe can't be unusable!
 		priority = ns.priority.NEUTRAL
@@ -336,7 +337,7 @@ function ns.GetItemPriority(location)
 	end
 
 	-- outdated gear
-	if BG_GlobalDB.sellOutdated and item.q <= BG_GlobalDB.sellOutdatedQuality and
+	if ns.db.global.sellOutdated and item.q <= ns.db.global.sellOutdatedQuality and
 		item.slot ~= "" and item.slot ~= "INVTYPE_BAG" and ns.IsItemSoulbound(location) then
 		local isOutdated, isHighestLevel = ns.IsOutdatedItem(location)
 		if isOutdated then
@@ -349,7 +350,7 @@ function ns.GetItemPriority(location)
 	end
 
 	-- items without value
-	if item.v == 0 and BG_GlobalDB.hideZeroValue then
+	if item.v == 0 and ns.db.global.ignoreZeroValue then
 		priority = ns.priority.IGNORE
 		reason = ns.reason.WORTHLESS
 		return priority, false, reason
@@ -363,7 +364,7 @@ function ns.GetItemPriority(location)
 	end
 
 	-- respect thresholds
-	if item.q > BG_GlobalDB.dropQuality then
+	if item.q > ns.db.global.dropQuality then
 		priority = ns.priority.IGNORE
 		reason = ns.reason.QUALITY
 		return priority, false, reason
@@ -378,14 +379,14 @@ function ns.GetItemAction(location)
 	local label, reason
 
 	-- custom prices for either this item or one of its categories
-	local userPrice = BG_GlobalDB.prices[item.id]
+	local userPrice = ns.db.global.prices[item.id]
 	if userPrice then
 		userPrice = userPrice == -1 and item.v or userPrice
 		reason = ns.reason.PRICE_ITEM
 	else
 		local maxCustomValue
 		for limiter, limit in pairs(item.limit or emptyTable) do
-			userPrice = BG_GlobalDB.prices[limiter]
+			userPrice = ns.db.global.prices[limiter]
 			if userPrice then
 				local value = (userPrice == -1) and item.v or userPrice
 				if not maxCustomValue or value > maxCustomValue then
@@ -402,7 +403,7 @@ function ns.GetItemAction(location)
 	local itemLink = GetContainerItemLink( ns.GetBagSlot(location) )
 	local unbound = not ns.IsItemSoulbound(location)
 
-	local disenchantPrice = ns.GetDisenchantValue(itemLink, unbound and BG_GlobalDB.hasEnchanter) or -1
+	local disenchantPrice = ns.GetDisenchantValue(itemLink, unbound and ns.db.global.disenchantValues) or -1
 	local auctionPrice
 
 	-- custom price rules override auction values
@@ -414,7 +415,7 @@ function ns.GetItemAction(location)
 	end
 
 	local maxPrice = math.max(disenchantPrice, auctionPrice, userPrice, item.v or 0, 0)
-	if maxPrice == 0 and BG_GlobalDB.hideZeroValue then
+	if maxPrice == 0 and ns.db.global.ignoreZeroValue then
 		label = ns.IGNORE
 		reason = ns.reason.WORTHLESS
 	elseif maxPrice == userPrice then
