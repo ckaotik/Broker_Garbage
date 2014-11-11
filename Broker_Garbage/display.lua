@@ -187,7 +187,7 @@ function BG.ShowTooltip(self)
 	if BG.db.global.tooltip.showUnopenedContainers and BG.containerInInventory then
 		lineNum = tooltip:AddLine()
 		          tooltip:SetCell(lineNum, 1, BG.locale.openPlease, nil, 'CENTER', numColumns)
-		tooltip:AddSeperator(2)
+		tooltip:AddSeparator(2)
 	end
 
 	-- shows up to n lines of deletable items
@@ -203,7 +203,7 @@ function BG.ShowTooltip(self)
 
 		-- adds lines: itemLink, count, itemPrice, source
 		local _, link, _, _, _, _, _, _, _, icon, _ = GetItemInfo(cacheData.item.id)
-		local text = (BG.global.db.tooltip.showIcon and "|T"..icon..":0|t " or "") .. link
+		local text = (BG.db.global.tooltip.showIcon and "|T"..icon..":0|t " or "") .. link
 		local source = BG.GetInfo(cacheData.label, true) or ""
 
 		lineNum = tooltip:AddLine(text, cacheData.count, BG.FormatMoney(cacheData.value), BG.db.global.tooltip.showReason and source or nil)

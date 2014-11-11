@@ -82,10 +82,11 @@ function BG:PortSettings()
 		end
 		for new, old in pairs(mappings) do
 			local new1, new2 = strsplit('.', new)
+			if new2 and not self.db.global[new1] then self.db.global[new1] = {} end
 			local newVar = new2 and self.db.global[new1] or self.db.global
 			local old1, old2 = strsplit('.', old)
 			local oldVar = old2 and db[old1] or db
-			newVar[new2 or new1] = newVar[new2 or new1] or oldVar[old2 or old1] or nil
+			newVar[new2 or new1] = oldVar[old2 or old1] or nil
 			oldVar[old2 or old1] = nil
 			if old2 and oldVar[old1] and not next(oldVar[old1]) then
 				oldVar[old1] = nil

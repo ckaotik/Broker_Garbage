@@ -11,9 +11,10 @@ function ns.IsDisabled()
 end
 
 -- character(optional): "Mychar - My Realm"
+local emptyTable = {}
 function ns:GetStatistics(character)
 	local moneyEarned, moneyLost, numSold, numDeleted = 0, 0, 0, 0
-	for char, variables in pairs(ns.db.sv.char) do
+	for char, variables in pairs(ns.db.sv.char or emptyTable) do
 		if not character or char == character then
 			moneyEarned = moneyEarned + (variables.moneyEarned or 0)
 			moneyLost   = moneyLost   + (variables.moneyLost or 0)
