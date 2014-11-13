@@ -1,5 +1,4 @@
 local addonName, addon, _ = ...
-addonName = addonName..'2'
 
 local function OpenConfiguration(self, args)
 	-- remove placeholder configuration panel
@@ -13,12 +12,26 @@ local function OpenConfiguration(self, args)
 	self:Hide()
 
 	-- initialize panel
-	local types = {}
-	types.ldbFormat = types.tooltipFormat
+	local types = {
+		disableKey = {
+			NONE  = _G['NONE_KEY'],
+			SHIFT = _G['SHIFT_KEY'],
+			ALT   = _G['ALT_KEY'],
+			CTRL  = _G['CTRL_KEY'],
+		},
+		moneyFormat = {
+			gsc  = addon.FormatMoney(540321, 'gsc'),
+			icon = addon.FormatMoney(540321, 'icon'),
+			dot  = addon.FormatMoney(540321, 'dot'),
+		},
+	}
+	for _, setting in pairs({'version', 'prices', 'keep', 'toss', 'moneyEarned', 'moneyLost', 'numDeleted', 'numSold'}) do
+		types[setting] = '*none*'
+	end
 
 	LibStub('LibDualSpec-1.0'):EnhanceDatabase(addon.db, addonName)
 	local AceConfig,AceConfigDialog = LibStub('AceConfig-3.0'), LibStub('AceConfigDialog-3.0')
-	local optionsTable = LibStub('LibOptionsGenerate-1.0'):GetOptionsTable(addon.db, types, nil, true)
+	local optionsTable = LibStub('LibOptionsGenerate-1.0'):GetOptionsTable(addon.db, types, nil, false)
 	      optionsTable.name = addonName
 	AceConfig:RegisterOptionsTable(addonName, optionsTable)
 	AceConfigDialog:AddToBlizOptions(addonName, nil, nil)
@@ -29,15 +42,10 @@ local function OpenConfiguration(self, args)
 		if AceConfigRegistry.tables[subModule.name] then
 			AceConfigDialog:AddToBlizOptions(subModule.name, name, addonName)
 		end
-		for subName, subSubModule in subModule:IterateModules() do
-			if AceConfigRegistry.tables[subSubModule.name] then
-				AceConfigDialog:AddToBlizOptions(subSubModule.name, subName, addonName)
-			end
-		end
-	end
-	local optionsTable = LibStub('AceDBOptions-3.0'):GetOptionsTable(addon.db)
-	      optionsTable.name = addonName .. ' - ' .. optionsTable.name
-	AceConfig:RegisterOptionsTable(addonName..'_profiles', optionsTable)
+	end --]]
+	local profileOptions = LibStub('AceDBOptions-3.0'):GetOptionsTable(addon.db)
+	      profileOptions.name = addonName .. ' - ' .. profileOptions.name
+	AceConfig:RegisterOptionsTable(addonName..'_profiles', profileOptions)
 	AceConfigDialog:AddToBlizOptions(addonName..'_profiles', 'Profiles', addonName)
 
 	-- do all this only once. next time, only show this panel
@@ -55,6 +63,6 @@ local panel = CreateFrame('Frame')
 InterfaceOptions_AddCategory(panel)
 
 -- use slash command to toggle config
--- local slashName = addonName:upper()
--- _G['SLASH_'..slashName..'1'] = '/'..addonName
--- _G.SlashCmdList[slashName] = function(args) OpenConfiguration(panel, args) end
+local slashName = addonName:upper()
+_G['SLASH_'..slashName..'1'] = '/'..addonName
+_G.SlashCmdList[slashName] = function(args) OpenConfiguration(panel, args) end

@@ -44,14 +44,15 @@ function plugin:ReportSelling(iteration, maxIteration)
 		self:ScheduleTimer(self.ReportSelling, 0.3, self, iteration+1, maxIteration)
 		return
 	elseif sellValue > 0 and repairCost > 0 then
+		-- reports use short money format
 		addon.Print(string.format(addon.locale.sellAndRepair,
-			addon.FormatMoney(sellValue),
-			addon.FormatMoney(repairCost),
+			addon.FormatMoney(sellValue, nil, true),
+			addon.FormatMoney(repairCost, nil, true),
 			guildRepair and addon.locale.guildRepair or '',
-			addon.FormatMoney(guildRepair and sellValue or (sellValue - repairCost))
+			addon.FormatMoney(guildRepair and sellValue or (sellValue - repairCost), nil, true)
 		))
 	elseif sellValue > 0 then
-		addon.Print(string.format(addon.locale.sell, addon.FormatMoney(sellValue)))
+		addon.Print(string.format(addon.locale.sell, addon.FormatMoney(sellValue, nil, true)))
 	end
 
 	-- regular sell unlock
@@ -80,7 +81,7 @@ function plugin:CheckSoldItems()
 			actualSellValue = actualSellValue + sellValue
 			numItemsSold = numItemsSold + count
 			if plugin.db.global.sellLog then
-				addon.Print(string.format(addon.locale.sellItem, itemLink, cacheData.count or '0', addon.FormatMoney(cacheData.value or '0')))
+				addon.Print(string.format(addon.locale.sellItem, itemLink, cacheData.count or '0', addon.FormatMoney(cacheData.value or '0', nil, true)))
 			end--]]
 			actualSellValue = sellValue
 		end
@@ -108,10 +109,10 @@ function plugin:AutoRepair()
 				RepairAllItems(false)
 			else
 				-- oops, guess we're broke
-				addon.Print(string.format(addon.locale.couldNotRepair, addon.FormatMoney(repairCost)))
+				addon.Print(string.format(addon.locale.couldNotRepair, addon.FormatMoney(repairCost, nil, true)))
 				repairCost = 0
 			end
-			addon.Print(string.format(addon.locale.repair, addon.FormatMoney(repairCost), guildRepair and addon.locale.guildRepair or ""))
+			addon.Print(string.format(addon.locale.repair, addon.FormatMoney(repairCost, nil, true), guildRepair and addon.locale.guildRepair or ""))
 		end
 	end
 end
@@ -127,7 +128,7 @@ local function GetSellButton(noCreate)
 	button:SetScript("OnClick", addon.AutoSell)
 	button:SetScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-		GameTooltip:SetText(addon.junkValue ~= 0 and string.format(addon.locale.autoSellTooltip, addon.FormatMoney(addon.junkValue))
+		GameTooltip:SetText(addon.junkValue ~= 0 and string.format(addon.locale.autoSellTooltip, addon.FormatMoney(addon.junkValue, nil, true))
 				or addon.locale.reportNothingToSell, nil, nil, nil, nil, true)
 	end)
 	button:SetScript("OnLeave", function() GameTooltip:Hide() end)

@@ -64,7 +64,7 @@ BG.defaults = {
 
 		LPTJunkIsJunk   = false,
 		ignoreZeroValue = true,
-		moneyFormat     = 0,
+		moneyFormat     = 'icon',
 
 		-- LibDataBroker Display
 		label = "[itemname]x[itemcount] ([itemvalue])",

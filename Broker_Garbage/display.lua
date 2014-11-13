@@ -26,7 +26,7 @@ end
 
 local formatReplaceFuncs = {
 	["[junkvalue]"] = function()
-		return BG.FormatMoney(BG.junkValue or 0)
+		return BG.FormatMoney(BG.junkValue or 0, nil, true) -- short display
 	end,
 	-- item based
 	["[itemname]"] = function()
@@ -297,49 +297,44 @@ local separators = {
 	{'|TInterface\\MoneyFrame\\UI-GoldIcon:0|t ', '|TInterface\\MoneyFrame\\UI-SilverIcon:0|t ', '|TInterface\\MoneyFrame\\UI-CopperIcon:0|t '},
 }
 
-local parts = {}
-function BG.FormatMoney(amount, displayMode)
-	if not amount then return '' end
-	local signum = amount < 0 and '-' or ''
-		  amount = math.abs(amount)
+function BG.FormatMoney(value, style, short)
+	style = style or BG.db.global.moneyFormat
+	local negative, amount = value < 0, tostring(math.abs(value))
+	local gold, silver, copper = amount:sub(1, -5), amount:sub(-4, -3), amount:sub(-2, -1)
+	      gold, silver, copper = tonumber(gold) or 0, tonumber(silver) or 0, tonumber(copper) or 0
 
-	local copper = amount%100
-	local tmp    = math.floor(amount/100)
-	local silver = tmp%100
-	local gold   = math.floor(tmp/100)
-
-	displayMode = displayMode or BG.db.global.moneyFormat
-
-	local text
-	local template = displayMode%2 == 0 and '%1$.2i' or '%1$i'
-	local unpaddedTemplate = '%1$i' -- e.g. gold does not need padding
-	if displayMode == 2 or displayMode == 3 then
-		template = "|cff%3$s"..template.."|r%2$s"
-		unpaddedTemplate = "|cff%3$s"..unpaddedTemplate.."|r%2$s"
-	else
-		template = template.."%2$s"
-		unpaddedTemplate = unpaddedTemplate.."%2$s"
-	end
-	local showEmptyDenominators = true -- TODO config?
-	local style = math.floor(displayMode/2)+1
-	if separators[style] then
-		wipe(parts)
-		if gold > 0 then
-			table.insert(parts, unpaddedTemplate:format(gold, separators[style][1], gColor))
-		end
-		if silver > 0 or (showEmptyDenominators and #parts > 0) then
-			table.insert(parts, (#parts > 0 and template or unpaddedTemplate):format(silver, separators[style][2], sColor))
-		end
-		if copper > 0 or showEmptyDenominators or #parts == 0 then
-			table.insert(parts, (#parts > 0 and template or unpaddedTemplate):format(copper, separators[style][3], cColor))
-		end
-		text = signum .. table.concat(parts, '')
-		text = strtrim(text, " ")
-	else
-		text = signum .. GetCoinTextureString(amount)
+	local prefix, goldSep, silverSep, copperSep = '', ' ', ' ', ''
+	if not style or style == 'icon' then
+		goldSep   = '|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t '
+		silverSep = '|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t '
+		copperSep = '|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t'
+	elseif style == 'gsc' then
+		prefix    = _G.HIGHLIGHT_FONT_COLOR_CODE
+		goldSep   = '|cffffd700g|r '.._G.HIGHLIGHT_FONT_COLOR_CODE
+		silverSep = '|cffc7c7cfs|r '.._G.HIGHLIGHT_FONT_COLOR_CODE
+		copperSep = '|cffeda55fc|r'
+	elseif style == 'dot' then
+		prefix    = '|cffffd700'
+		goldSep   = '|r.|cffc7c7cf'
+		silverSep = '|r.|cffeda55f'
+		copperSep = '|r'
 	end
 
-	return text or ''
+	local stringFormat = ''
+	if short then
+		-- w/o padding, w/o empty components, e.g. 1g 1c -or- 1s -or- 0c
+		stringFormat = string.join('', prefix,
+			(  gold > 0) and '%1$s' or '', gold > 0 and goldSep or '',
+			(silver > 0) and '%2$d' or '', silver > 0 and silverSep or '',
+			(copper > 0 or silver == 0) and '%3$d' or '', (copper > 0 or silver == 0) and copperSep or '')
+	else
+		-- w/ padding, w/ empty components, e.g. 1g 00s 01c -or- 1s 00c -or- 0c
+		stringFormat = string.join('', prefix,
+			(gold > 0 and '%1$s') or '', gold > 0 and goldSep or '',
+			(gold > 0 and '%2$02d') or (silver > 0 and '%2$d') or '', (gold > 0 or silver > 0) and silverSep or '',
+			(gold > 0 or silver > 0) and '%3$02d' or '%3$d', copperSep)
+	end
+	return (negative and '-' or '') .. string.format(stringFormat, BreakUpLargeNumbers(gold), silver, copper)
 end
 
 local LDB = LibDataBroker:NewDataObject(addonName, {

@@ -59,7 +59,6 @@ function BG:PortSettings()
 			sellJunk = 'autoSellIncludeItems',
 			LPTJunkIsJunk = 'overrideLPT',
 			ignoreZeroValue = 'hideZeroValue',
-			moneyFormat = 'showMoney',
 			label = 'LDBformat',
 			noJunkLabel = 'LDBNoJunk',
 			['tooltip.height'] = 'tooltipMaxHeight',
@@ -77,9 +76,11 @@ function BG:PortSettings()
 			['dataSources.disenchantDisabled'] = 'disenchantDisabledSources',
 		}
 		for _, variable in pairs(unchanged) do
-			self.db.global[variable] = self.db.global[variable] or db[variable] or nil
+			self.db.global[variable] = db[variable] or nil
 			db[variable] = nil
 		end
+		-- moneyFormat = 'showMoney',
+		self.db.global['moneyFormat'] = (db['showMoney'] <= 3 and 'dot') or (db['showMoney'] <= 5 and 'gsc') or 'icon'
 		for new, old in pairs(mappings) do
 			local new1, new2 = strsplit('.', new)
 			if new2 and not self.db.global[new1] then self.db.global[new1] = {} end
