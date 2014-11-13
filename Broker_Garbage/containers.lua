@@ -173,7 +173,7 @@ function ns.UpdateBagSlot(container, slot, forced)
 			if cacheData.item then
 				-- remove old item from locations
 				local itemLocations = ns.locations[ cacheData.item.id ]
-				local oldLocation = tContains(itemLocations, location)
+				local oldLocation = tContains(itemLocations or emptyTable, location)
 				if itemLocations and oldLocation then
 					table.remove(itemLocations, oldLocation)
 				end

@@ -630,14 +630,14 @@ local function Options_BasicOptions(panel)
 		noJunkText:SetText( Broker_Garbage:GetOption("noJunkLabel", true) )
 
 		local min, max = numItems:GetMinMaxValues()
-		local num = Broker_Garbage:GetOption("tooltipNumItems", true)
+		local num = Broker_Garbage:GetOption("tooltip.numLines", true)
 		if num >= min and num <= max then
 			numItems:SetValue( num )
 		end
 		numItemsText:SetText(BGC.locale.maxItemsTitle .. ": " .. num)
 
 		min, max = tooltipHeight:GetMinMaxValues()
-		local ttHeight = Broker_Garbage:GetOption("tooltipMaxHeight", true)
+		local ttHeight = Broker_Garbage:GetOption("tooltip.height", true)
 		if ttHeight > min and ttHeight < max then
 			tooltipHeight:SetValue( ttHeight )
 		end
@@ -653,7 +653,8 @@ if AddonLoader and AddonLoader.RemoveInterfaceOptions then
 end
 
 local frame = CreateFrame("Frame", nil, InterfaceOptionsFramePanelContainer)
-frame.name = "Broker_Garbage"
+frame.name = "General"
+frame.parent = "Broker_Garbage"
 frame:Hide()
 frame:SetScript("OnShow", Options_BasicOptions)
 InterfaceOptions_AddCategory(frame)

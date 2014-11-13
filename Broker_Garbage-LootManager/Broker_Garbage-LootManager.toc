@@ -4,7 +4,6 @@
 
 ## Interface: 60000
 ## Dependencies: Broker_Garbage
-## OptionalDeps: Broker_Garbage-Config
 
 ## Notes: Plugin for Broker_Garbage. Selective looting and more!
 ## Notes-deDE: Plugin für Broker_Garbage. Selektives Plündern und mehr!
@@ -17,9 +16,6 @@
 ## Notes-esES: @localization(locale="esES", key="TOC_Notes", namespace="LootManager")@
 ## Notes-zhTW: @localization(locale="zhTW", key="TOC_Notes", namespace="LootManager")@
 ## Notes-ptBR: @localization(locale="ptBR", key="TOC_Notes", namespace="LootManager")@
-
-## LoadManagers: AddonLoader, Addon Control Panel
-## LoadWith: Broker_Garbage, Broker_Garbage-Config
 
 ## X-Category: Inventory
 ## X-Credits: KarniCrap(Karnifex)

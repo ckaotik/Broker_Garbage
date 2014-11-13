@@ -144,3 +144,33 @@ function addon:PLAYER_REGEN_ENABLED()
 	self:UnregisterEvent("PLAYER_REGEN_ENABLED")
 	self:BAG_UPDATE_DELAYED()
 end
+
+
+--[[
+-- forceClear = false, -- use Blizzard's autoloot + inventory pruning instead
+-- TODO: this is something Broker_Garbage itself needs to do
+function plugin:ITEM_PUSH(event, arg1, ...)
+	if BGLM_LocalDB.autoDestroy and BGLM_LocalDB.autoDestroyInstant then
+		-- TODO
+		print('This should now delete items in your inventory. But it doesn\'t. Yet.')
+		if true then return end
+		local numOverflowSlots = BGLM_GlobalDB.tooFewSlots - Broker_Garbage.totalFreeSlots
+		if numOverflowSlots > 0 then
+			for i = 1, numOverflowSlots do
+				local success = self:DeleteCheapestItem(i)
+				if not success then break end
+			end
+		end
+	end
+end
+
+function plugin:DeleteCheapestItem(index)
+	local item = Broker_Garbage.cheapestItems and Broker_Garbage.cheapestItems[index or 1]
+	if item and not item.invalid and item.source ~= Broker_Garbage.IGNORE then
+		Broker_Garbage.Delete(item)
+		return true
+	else
+		self:Print(self.locale.LMAutoDestroy_ErrorNoItems)
+		return nil
+	end
+end --]]

@@ -1,8 +1,10 @@
-local addonName, addon, _ = ...
-LibStub('AceAddon-3.0'):NewAddon(addon, addonName, 'AceEvent-3.0')
+local addonName, plugin, _ = ...
 local L = LibStub('AceLocale-3.0'):GetLocale(addonName)
+local addon = _G.Broker_Garbage
 
--- GLOBALS: _G, BGLM_GlobalDB, BGLM_LocalDB, Broker_Garbage
+plugin = addon:NewModule('Loot Manager', 'AceEvent-3.0', 'AceTimer-3.0')
+
+-- GLOBALS: _G, LibStub
 -- GLOBALS: GetCVarBool, GetLootInfo, GetLootSlotLink, GetLootSlotInfo, GetLootSlotType, LootSlot, ConfirmLootSlot
 -- GLOBALS: GetProfessions, GetProfessionInfo, IsStealthed, IsFishingLoot, UnitClass, UnitIsDead, UnitCreatureType, GetItemInfo
 -- GLOBALS: pairs, table, print, select
@@ -31,13 +33,13 @@ local function UpdateLootButton(index)
 	local itemLink = GetLootSlotLink(slot)
 	if itemLink then
 		local _, _, count = GetLootSlotInfo(slot)
-		local isInteresting, alwaysLoot = addon:IsInteresting(itemLink, count)
+		local isInteresting, alwaysLoot = plugin:IsInteresting(itemLink, count)
 		if isInteresting or alwaysLoot then
-			_G["LootButton"..index.."IconTexture"]:SetDesaturated(false)
-			_G["LootButton"..index.."IconTexture"]:SetAlpha(1)
+			_G['LootButton'..index..'IconTexture']:SetDesaturated(false)
+			_G['LootButton'..index..'IconTexture']:SetAlpha(1)
 		else
-			_G["LootButton"..index.."IconTexture"]:SetDesaturated(true)
-			_G["LootButton"..index.."IconTexture"]:SetAlpha(0.5)
+			_G['LootButton'..index..'IconTexture']:SetDesaturated(true)
+			_G['LootButton'..index..'IconTexture']:SetAlpha(0.5)
 		end
 	end
 end
@@ -45,12 +47,12 @@ end
 -- --------------------------------------------------------
 --  Addon Setup
 -- --------------------------------------------------------
-function addon:OnInitialize()
+function plugin:OnInitialize()
 	_, playerClass = UnitClass('player')
 end
 
 local defaults = {
-	profile = {
+	global = {
 		enable = {
 			general    = false,
 			skinning   = true,
@@ -71,9 +73,9 @@ local defaults = {
 		},
 	},
 }
-function addon:OnEnable()
+function plugin:OnEnable()
 	-- initialize database and settings
-	self.db = Broker_Garbage.db:RegisterNamespace('LootManager', defaults)
+	self.db = addon.db:RegisterNamespace('LootManager', defaults)
 	self:RegisterEvent('LOOT_READY')
 	self:RegisterEvent('LOOT_BIND_CONFIRM')
 
@@ -82,7 +84,7 @@ function addon:OnEnable()
 		minQuality = 'itemquality',
 	}
 	local optionsTable = LibStub('LibOptionsGenerate-1.0'):GetOptionsTable(self.db, types, L)
-	      optionsTable.name = addonName .. ' - Loot Manager'
+	      optionsTable.name = addon:GetName() .. ' - Loot Manager'
 	LibStub('AceConfig-3.0'):RegisterOptionsTable(self.name, optionsTable)
 	-- LibStub('AceConfigDialog-3.0'):AddToBlizOptions(self.name, 'Loot Manager', 'Broker_Garbage')
 
@@ -93,7 +95,7 @@ function addon:OnEnable()
 	-- SetCVar('autoLootDefault', 0)
 end
 
-function addon:OnDisable()
+function plugin:OnDisable()
 	self:UnregisterEvent('LOOT_READY')
 	self:UnregisterEvent('LOOT_BIND_CONFIRM')
 end
@@ -101,14 +103,14 @@ end
 -- --------------------------------------------------------
 --  Event Handlers
 -- --------------------------------------------------------
-function addon:LOOT_BIND_CONFIRM()
+function plugin:LOOT_BIND_CONFIRM()
 	-- TODO
-	if not self.db.profile.confirmBind then
+	if not self.db.global.confirmBind then
 		self.keepWindowOpen = true
 	end
 end
 
-function addon:LOOT_READY(event)
+function plugin:LOOT_READY(event)
 	-- can't compete with Blizzard's autoloot
 	if GetCVarBool('autoLootDefault') then return end
 	local shouldAutoLoot, clearAll = self:ShouldAutoLoot()
@@ -128,19 +130,19 @@ function addon:LOOT_READY(event)
 				loot.autoloot = true
 			elseif isInteresting then
 				if loot.locked then
-					if self.db.profile.notify.locked then
+					if self.db.global.notify.locked then
 						self:Notify('%s is locked.', itemLink)
 					end
 				elseif loot.roll then
-					if self.db.profile.notify.lootRoll then
+					if self.db.global.notify.lootRoll then
 						self:Notify('%s is still being rolled for.', itemLink)
 					end
-				elseif loot.quality < self.db.profile.minQuality then
-					if self.db.profile.notify.quality then
+				elseif loot.quality < self.db.global.minQuality then
+					if self.db.global.notify.quality then
 						self:Notify('%s is of poor quality.', itemLink)
 					end
-				elseif value and value > 0 and value < self.db.profile.minValue then
-					if self.db.profile.notify.value then
+				elseif value and value > 0 and value < self.db.global.minValue then
+					if self.db.global.notify.value then
 						self:Notify('%s is worthless.', itemLink)
 					end
 				else
@@ -170,13 +172,13 @@ end
 -- --------------------------------------------------------
 --  Utility Functions
 -- --------------------------------------------------------
-function addon:Notify(reason, itemLink)
+function plugin:Notify(reason, itemLink)
 	local message = (L[reason] or reason):format(itemLink)
-	Broker_Garbage.Print('[LootManager] '..message)
+	addon.Print('[LootManager] '..message)
 end
 
 local SKINNING, MINING, HERBALISM = 393, 186, 182
-function addon:CanSkin()
+function plugin:CanSkin()
 	local prof1, prof2 = GetProfessions()
 	local name, _, rank, _, _, _, skillLine = GetProfessionInfo(prof1)
 	local skillRank = skillLine == SKINNING and rank or nil
@@ -188,14 +190,14 @@ function addon:CanSkin()
 end
 
 -- determines if an item should be looted. item: id or link, [count], [lootType]
-function addon:IsInteresting(item, count)
+function plugin:IsInteresting(item, count)
 	local isInteresting, alwaysLoot
-	local priority, label, value, sell, reason = Broker_Garbage.GetUnownedItemInfo(item, count)
+	local priority, label, value, sell, reason = addon.GetUnownedItemInfo(item, count)
 
-	if priority == Broker_Garbage.priority.POSITIVE then
+	if priority == addon.priority.POSITIVE then
 		isInteresting = true
-		alwaysLoot = self.db.profile.lootTreasure
-	elseif priority == Broker_Garbage.priority.NEGATIVE and self.db.profile.ignoreJunk then
+		alwaysLoot = self.db.global.lootTreasure
+	elseif priority == addon.priority.NEGATIVE and self.db.global.ignoreJunk then
 		isInteresting = false
 	else
 		isInteresting = true
@@ -209,40 +211,11 @@ function addon:IsInteresting(item, count)
 end
 
 -- returns <shouldAutoLoot:true|false>, <clearAll:true|false>
-function addon:ShouldAutoLoot()
-	local autoLoot = self.db.profile.enable.general
-	autoLoot = autoLoot or (self.db.profile.enable.fishing and IsFishingLoot())
-	autoLoot = autoLoot or (playerClass == 'ROGUE' and IsStealthed() and self.db.profile.enable.pickpocket)
-	autoLoot = autoLoot or (self.db.profile.enable.skinning and self:CanSkin()
+function plugin:ShouldAutoLoot()
+	local autoLoot = self.db.global.enable.general
+	autoLoot = autoLoot or (self.db.global.enable.fishing and IsFishingLoot())
+	autoLoot = autoLoot or (playerClass == 'ROGUE' and IsStealthed() and self.db.global.enable.pickpocket)
+	autoLoot = autoLoot or (self.db.global.enable.skinning and self:CanSkin()
 		and UnitIsDead('target') and UnitCreatureType('target') == _G.BATTLE_PET_NAME_8)
 	return autoLoot
 end
-
---[[
--- forceClear = false, -- use Blizzard's autoloot + inventory pruning instead
--- TODO: this is something Broker_Garbage itself needs to do
-function addon:ITEM_PUSH(event, arg1, ...)
-	if BGLM_LocalDB.autoDestroy and BGLM_LocalDB.autoDestroyInstant then
-		-- TODO
-		print('This should now delete items in your inventory. But it doesn\'t. Yet.')
-		if true then return end
-		local numOverflowSlots = BGLM_GlobalDB.tooFewSlots - Broker_Garbage.totalFreeSlots
-		if numOverflowSlots > 0 then
-			for i = 1, numOverflowSlots do
-				local success = self:DeleteCheapestItem(i)
-				if not success then break end
-			end
-		end
-	end
-end
-
-function addon:DeleteCheapestItem(index)
-	local item = Broker_Garbage.cheapestItems and Broker_Garbage.cheapestItems[index or 1]
-	if item and not item.invalid and item.source ~= Broker_Garbage.IGNORE then
-		Broker_Garbage.Delete(item)
-		return true
-	else
-		self:Print(self.locale.LMAutoDestroy_ErrorNoItems)
-		return nil
-	end
-end --]]
