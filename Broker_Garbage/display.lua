@@ -52,7 +52,7 @@ local formatReplaceFuncs = {
 	["[itemvalue]"] = function()
 		local cacheData = BG.containers[ BG.list[1] ]
 		if cacheData.item then
-			return BG.FormatMoney(cacheData.value or 0)
+			return BG.FormatMoney(cacheData.value or 0, nil, true)
 		end
 	end,
 

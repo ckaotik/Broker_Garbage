@@ -112,7 +112,9 @@ function plugin:AutoRepair()
 				addon.Print(string.format(addon.locale.couldNotRepair, addon.FormatMoney(repairCost, nil, true)))
 				repairCost = 0
 			end
-			addon.Print(string.format(addon.locale.repair, addon.FormatMoney(repairCost, nil, true), guildRepair and addon.locale.guildRepair or ""))
+			if sellValue == 0 then
+				addon.Print(string.format(addon.locale.repair, addon.FormatMoney(repairCost, nil, true), guildRepair and addon.locale.guildRepair or ""))
+			end
 		end
 	end
 end
