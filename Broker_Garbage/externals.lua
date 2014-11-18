@@ -1,5 +1,4 @@
 local addonName, ns, _ = ...
-_G[addonName] = ns
 
 -- GLOBALS: _G, ArkInventory, ArkInventoryRules, Bagnon
 -- GLOBALS: IsAddOnLoaded
@@ -122,11 +121,13 @@ function ns.InitArkInvFilter()
 	if not IsAddOnLoaded("ArkInventoryRules") then return end
 	if not ArkInventoryRules:IsEnabled() then
 		-- hook for when AIR activates
-		hooksecurefunc(ArkInventoryRules, "OnInitialize", ns.InitArkInvFilter) -- [TODO] make sure we only init once
+		hooksecurefunc(ArkInventoryRules, "OnInitialize", ns.InitArkInvFilter)
 		return
 	else
 		ArkInventoryRules.Register(ns, "brokergarbage", ns.ArkInventoryFilter, false)
 	end
+	-- make sure we only init once
+	ns.InitArkInvFilter = function() end
 end
 
 --[[ Status Icons
@@ -144,14 +145,29 @@ local function CreateIcon(button)
 
 	return icon
 end
+
+-- call with <itemLink>, <count> -or- <container>, <slot>
 local function UpdateJunkIcon(button, container, slot)
-	local location  = ns.GetLocation(container, slot)
-	local cacheData = ns.containers[location]
+	local sellItem, disenchantItem, itemQuality = false, false, 0
+	if type(container) == 'string' then
+		-- probably an item link
+		local _, _, quality = GetItemInfo(container)
+		local priority, label, value, sell, reason = ns.GetUnownedItemInfo(container, slot or 1)
+		disenchantItem  = label == ns.DISENCHANT
+		sellItem        = disenchantItem or sell
+		itemQuality     = quality
+	else
+		local location  = ns.GetLocation(container, slot)
+		local cacheData = ns.containers[location]
+		sellItem        = cacheData.sell
+		disenchantItem  = cacheData.label == ns.DISENCHANT
+		itemQuality     = cacheData.item and cacheData.item.q or nil
+	end
+
 	if ns.db.global.showJunkSellIcons then
-		local icon = button.JunkIcon or (cacheData.item and CreateIcon(button))
-		      icon:Hide()
-		if cacheData.sell then
-			if cacheData.label == ns.DISENCHANT then
+		local icon = button.JunkIcon or (sellItem and CreateIcon(button))
+		if sellItem then
+			if disenchantItem then
 				icon:SetVertexColor(1, 0.2, 1)
 				icon:SetDesaturated(true)
 			else
@@ -159,34 +175,47 @@ local function UpdateJunkIcon(button, container, slot)
 				icon:SetDesaturated(false)
 			end
 			icon:Show()
+		elseif icon then
+			icon:Hide()
 		end
-	elseif button.JunkIcon and button.JunkIcon:IsShown()
-		and not (cacheData.item and cacheData.item.q == _G.LE_ITEM_QUALITY_POOR) then
+	elseif button.JunkIcon and button.JunkIcon:IsShown() and quality ~= _G.LE_ITEM_QUALITY_POOR then
 		-- junk icon was shown by us
 		button.JunkIcon:Hide()
 	end
 end
 
 -- Bagnon
-if IsAddOnLoaded("Bagnon") then
-	hooksecurefunc(Bagnon.ItemSlot.mt.__index, "Update", function(button)
-		UpdateJunkIcon(button, button:GetBag(), button:GetID())
+if IsAddOnLoaded('Bagnon') then
+	-- Bagnon's updates fire earlier than our data updates, so we need to use unowned item data
+	hooksecurefunc(Bagnon.ItemSlot.mt.__index, 'Update', function(button)
+		local icon, count, locked, quality, readable, lootable, link = button:GetInfo()
+		UpdateJunkIcon(button, link, count)
 	end)
-	hooksecurefunc(ns, "Scan", function() Bagnon:UpdateFrames() end)
+	hooksecurefunc(ns, 'Scan', function() Bagnon:UpdateFrames() end)
+end
+
+-- ArkInventory
+if IsAddOnLoaded('ArkInventory') then
+	hooksecurefunc(ArkInventory, 'Frame_Item_Update', function(location, bag, slot)
+		if location ~= ArkInventory.Const.Location.Bag then return end
+		local button = _G[ArkInventory.ContainerItemNameGet(location, bag, slot)]
+		local data = ArkInventory.Frame_Item_GetDB(button)
+		UpdateJunkIcon(button, data.h, data.count)
+	end)
 end
 
 -- ElvUI
-if IsAddOnLoaded("ElvUI") then
+if IsAddOnLoaded('ElvUI') then
 	local ElvUISetup = false
 	local bagsModule = ElvUI[1]:GetModule('Bags')
 	if bagsModule then
-		hooksecurefunc(bagsModule, "UpdateSlot", function(containerFrame, bagID, slotID)
+		hooksecurefunc(bagsModule, 'UpdateSlot', function(containerFrame, bagID, slotID)
 			local button = containerFrame.Bags and containerFrame.Bags[bagID] and containerFrame.Bags[bagID][slotID]
 			if not button then return end
 			UpdateJunkIcon(button, bagID, slotID)
 
 			if not ElvUISetup then
-				hooksecurefunc(ns, "Scan", function()
+				hooksecurefunc(ns, 'Scan', function()
 					containerFrame:UpdateAllSlots()
 				end)
 				ElvUISetup = true

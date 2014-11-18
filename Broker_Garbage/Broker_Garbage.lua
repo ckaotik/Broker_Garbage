@@ -1,5 +1,6 @@
 local addonName, addon, _ = ...
 addon = LibStub('AceAddon-3.0'):NewAddon(addon, addonName, 'AceEvent-3.0')
+_G[addonName] = addon
 
 -- GLOBALS: LibStub, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S, INVSLOT_LAST_EQUIPPED
 -- GLOBALS: ContainerIDToInventoryID, InCombatLockdown, GetItemInfo
