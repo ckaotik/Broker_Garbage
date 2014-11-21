@@ -105,8 +105,9 @@ function BG.UpdateLDB()
 
 	for location, cacheData in pairs(BG.containers) do
 		local container, slot = BG.GetBagSlot(location)
+		if not container then print(location, container, slot) end
 		-- TODO: checking bag type on every slot sucks ...
-		local _, containerType = GetContainerNumFreeSlots(container)
+		local containerType = container and select(2, GetContainerNumFreeSlots(container)) or 0
 		-- update slot stats
 		if containerType == 0 then
 			BG.totalBagSpace = BG.totalBagSpace + 1
@@ -205,7 +206,7 @@ function BG.ShowTooltip(self)
 		local text = (BG.db.global.tooltip.showIcon and "|T"..icon..":0|t " or "") .. link
 		local source = BG.GetInfo(cacheData.label, true) or ""
 
-		lineNum = tooltip:AddLine(text, cacheData.count, BG.FormatMoney(cacheData.value), BG.db.global.tooltip.showReason and source or nil)
+		lineNum = tooltip:AddLine(text, cacheData.count, BG.FormatMoney(cacheData.value*cacheData.count), BG.db.global.tooltip.showReason and source or nil)
 		          tooltip:SetLineScript(lineNum, "OnMouseDown", BG.OnClick, location)
 
 		if BG.CanDisenchant(cacheData.item.id) then
