@@ -34,7 +34,7 @@ local function OpenConfiguration(self, args)
 	local optionsTable = LibStub('LibOptionsGenerate-1.0'):GetOptionsTable(addon.db, types, nil, false)
 	      optionsTable.name = addonName
 	AceConfig:RegisterOptionsTable(addonName, optionsTable)
-	AceConfigDialog:AddToBlizOptions(addonName, nil, nil)
+	local panel = AceConfigDialog:AddToBlizOptions(addonName, nil, nil)
 
 	-- add entries for submodules
 	local AceConfigRegistry = LibStub('AceConfigRegistry-3.0')
@@ -52,7 +52,7 @@ local function OpenConfiguration(self, args)
 	OpenConfiguration = function(panel, args)
 		InterfaceOptionsFrame_OpenToCategory(addonName)
 	end
-	OpenConfiguration(self, args)
+	OpenConfiguration(panel, args)
 end
 
 -- create a fake configuration panel
