@@ -1,4 +1,4 @@
-local MAJOR, MINOR = 'LibItemLocations', 2
+local MAJOR, MINOR = 'LibItemLocations', 3
 assert(LibStub, MAJOR..' requires LibStub')
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -10,7 +10,7 @@ local ITEM_INVENTORY_BAG_BIT_OFFSET   = ITEM_INVENTORY_BAG_BIT_OFFSET
 local ITEM_INVENTORY_LOCATION_BAGS    = ITEM_INVENTORY_LOCATION_BAGS
 local ITEM_INVENTORY_LOCATION_BANK    = ITEM_INVENTORY_LOCATION_BANK
 local ITEM_INVENTORY_LOCATION_PLAYER  = ITEM_INVENTORY_LOCATION_PLAYER
-local ITEM_INVENTORY_LOCATION_VOID    = ITEM_INVENTORY_LOCATION_VOIDSTORAGE
+local ITEM_INVENTORY_LOCATION_VAULT   = ITEM_INVENTORY_LOCATION_VOIDSTORAGE
 
 -- existing location container identifiers
 local BACKPACK_CONTAINER, BANK_CONTAINER, KEYRING_CONTAINER, REAGENTBANK_CONTAINER = _G.BACKPACK_CONTAINER, _G.BANK_CONTAINER, _G.KEYRING_CONTAINER, _G.REAGENTBANK_CONTAINER
@@ -34,7 +34,7 @@ function lib:PackInventoryLocation(container, slot, equipment, bank, bags, voidS
 	location = bor(location, equipment    and ITEM_INVENTORY_LOCATION_PLAYER  or 0)
 	location = bor(location, bags         and ITEM_INVENTORY_LOCATION_BAGS    or 0)
 	location = bor(location, bank         and ITEM_INVENTORY_LOCATION_BANK    or 0)
-	location = bor(location, voidStorage  and ITEM_INVENTORY_LOCATION_VOID    or 0)
+	location = bor(location, voidStorage  and ITEM_INVENTORY_LOCATION_VAULT   or 0)
 	location = bor(location, reagentBank  and ITEM_INVENTORY_LOCATION_REAGENTBANK or 0)
 	location = bor(location, guildBank    and ITEM_INVENTORY_LOCATION_GUILDBANK   or 0)
 	location = bor(location, mailbox      and ITEM_INVENTORY_LOCATION_MAIL    or 0)
@@ -43,7 +43,7 @@ function lib:PackInventoryLocation(container, slot, equipment, bank, bags, voidS
 	-- container (tab, bag, ...) and slot
 	location = location + (slot or 1)
 	if container and container > 0 then
-		location = lshift(container, ITEM_INVENTORY_BAG_BIT_OFFSET)
+		location = location + lshift(container, ITEM_INVENTORY_BAG_BIT_OFFSET)
 	end
 
 	return location
@@ -84,8 +84,9 @@ function lib:GetLocation(container, slot, index)
 		slot        = slot
 	elseif container >= BACKPACK_CONTAINER and container <= BACKPACK_CONTAINER + _G.NUM_BAG_SLOTS then
 		-- backpack container is only the main backpack, the slots after are bags
+		equipment   = true
 		bags        = true
-		container   = 0
+		container   = container
 		slot        = slot
 	elseif container == BANK_CONTAINER then
 		-- this is only the main container
