@@ -204,8 +204,8 @@ local function ItemSort(locationA, locationB)
 	-- order by priority, value, count, location
 	if itemA.priority ~= itemB.priority then
 		return itemA.priority < itemB.priority
-	elseif itemA.value ~= itemB.value then
-		return itemA.value < itemB.value
+	elseif itemA.value*itemA.count ~= itemB.value*itemB.count then
+		return itemA.value*itemA.count < itemB.value*itemB.count
 	elseif itemA.count ~= itemB.count then
 		return itemA.count < itemB.count
 	else
