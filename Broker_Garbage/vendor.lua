@@ -64,7 +64,7 @@ function plugin:CheckSoldItems()
 	local actualSellValue, numItemsSold = 0, 0
 
 	for index, location in pairs(sellLog) do
-		cacheData = addon.containers[location]
+		-- cacheData = addon.containers[location]
 		_, _, isLocked, _, _, _, itemLink = GetContainerItemInfo( addon.GetBagSlot(location) )
 
 		if itemLink and isLocked then

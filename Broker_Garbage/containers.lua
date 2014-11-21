@@ -4,8 +4,8 @@ local _, ns = ...
 -- GLOBALS: type, string, table, pairs, ipairs, wipe, print, tonumber, select, math
 
 local Unfit = LibStub("Unfit-1.0")
+local ItemLocations = LibStub('LibItemLocations')
 local QUEST = select(10, GetAuctionItemClasses())
-local EXTERNAL_ITEM = 0
 local emptyTable = {}
 
 --[[-- TODO --
@@ -54,9 +54,7 @@ local categoryLocations = setmetatable({}, {
 function ns.SlotIsOverLimit(location, limiter, limit)
 	if not location or not limit or limit == 0 then return end
 	local cacheData = ns.containers[location]
-	if not cacheData.item then
-		return
-	end
+	if not cacheData or not cacheData.item then return end
 
 	-- update limiter cache
 	cacheData.item.limit[limiter] = limit
@@ -81,29 +79,30 @@ function ns.SlotIsOverLimit(location, limiter, limit)
 end
 
 function ns.GetBagSlot(location)
-	local container = math.floor(location)
-	local slot = math.floor((location - container) * 100 + 0.5)
+	local container, slot, isEquipped, isInBank, isInBag, isInVault, isInReagents, isInMail, isInGuildBank, isInAuctionHouse = ItemLocations:UnpackInventoryLocation(location)
 	return container, slot
 end
 
 function ns.GetLocation(container, slot)
-	return tonumber(string.format("%d.%.2d", container, slot) or '')
+	local location = ItemLocations:GetLocation(container, slot)
+	return location
 end
 
 function ns.GetItemClassification(container, slot)
 	local location = ns.GetLocation(container, slot)
 	local cacheData = ns.containers[location]
-
-	if cacheData.item then
+	if cacheData and cacheData.item then
 		return cacheData.label or ns.IGNORE
 	end
+	return ns.IGNORE
 end
 
 -- --------------------------------------------------------
 --  Namespaced functions
 -- --------------------------------------------------------
 local function Classify(location)
-	local cacheData = ns.containers[location]
+	local cacheData = location == ns.EXTERNAL_ITEM_LOCATION and ns.externalItem or ns.containers[location]
+	if not cacheData then return end
 
 	local priority, doSell, priorityReason
 	if not cacheData.item then
@@ -129,7 +128,76 @@ local function Classify(location)
 	return cacheData
 end
 
-function ns.ItemSort(locationA, locationB)
+local changedLimits = {}
+-- returns true if something changed, nil otherwise
+function ns:UpdateBagSlot(container, slot, forced)
+	local newItem = GetContainerItemID(container, slot)
+	local _, newCount = GetContainerItemInfo(container, slot)
+
+	local location  = ns.GetLocation(container, slot)
+	local cacheData = ns.containers[location]
+
+	-- TODO: how do we react to binding/gem/... changes?
+	local itemChanged  = newItem ~= (cacheData.item and cacheData.item.id or nil)
+	local countChanged = newCount ~= cacheData.count
+	if not forced and not itemChanged and not countChanged then return false, nil end
+
+	local isLimited = false
+	local limiters  = cacheData.item and cacheData.item.limit
+	if limiters and #limiters > 0 then
+		-- limited items must be fully checked, in more than 1 slot
+		for limiter, _ in pairs(limiters) do
+			table.insert(changedLimits, limiter)
+		end
+		isLimited = true
+	end
+
+	if itemChanged then
+		if cacheData.item then
+			-- remove old item from locations
+			local itemLocations = ns.locations[ cacheData.item.id ]
+			local oldLocation = tContains(itemLocations or emptyTable, location)
+			if itemLocations and oldLocation then
+				table.remove(itemLocations, oldLocation)
+			end
+		end
+		if newItem then
+			-- add new item to locations
+			if not ns.locations[ newItem ] then
+				ns.locations[ newItem ] = {}
+			end
+			table.insert(ns.locations[ newItem ], location)
+			table.sort(ns.locations, LocationSort)
+		end
+	end
+
+	-- make sure to set all possible fields, otherwise you risk corrupt data
+	-- cacheData.loc   = location
+	cacheData.item  = newItem and ns.item[ newItem ] or nil
+	cacheData.count = newCount or 0
+	cacheData.sell  = nil
+
+	if newItem then
+		-- update fields
+		local label, actionValue, actionReason = ns.GetItemAction(location)
+		cacheData.label = label or ns.IGNORE
+		cacheData.value = (actionValue or 0) * (newCount or 0)
+		cacheData.priority = ns.priority.NEUTRAL
+	else
+		cacheData.label = ns.IGNORE
+		cacheData.value = 0
+		cacheData.priority = ns.priority.IGNORE
+	end
+
+	if not isLimited then
+		-- just this one slot affected, scan right away
+		Classify(location)
+	end
+
+	return true, isLimited
+end
+
+local function ItemSort(locationA, locationB)
 	local itemA = ns.containers[locationA]
 	local itemB = ns.containers[locationB]
 
@@ -145,113 +213,17 @@ function ns.ItemSort(locationA, locationB)
 	end
 end
 
-local changedLocations, changedLimits = {}, {}
--- returns true if something changed, nil otherwise
-function ns.UpdateBagSlot(container, slot, forced)
-	local location = ns.GetLocation(container, slot)
-	local cacheData = ns.containers[location]
-	local container, slot = ns.GetBagSlot(location)
-
-	local newItem = GetContainerItemID(container, slot)
-	local _, newCount = GetContainerItemInfo(container, slot)
-
-	local itemChanged  = forced or not cacheData.item or newItem ~= cacheData.item.id
-	local countChanged = forced or itemChanged or newCount ~= cacheData.count
-	if itemChanged or countChanged then
-		local limiters = cacheData.item and cacheData.item.limit
-		if limiters and #limiters > 0 then
-			-- limited items must be fully checked, in more than 1 slot
-			for limiter, _ in pairs(limiters) do
-				table.insert(changedLimits, limiter)
-			end
-		else
-			-- just this one slot affected
-			table.insert(changedLocations, location)
-		end
-
-		if itemChanged then
-			if cacheData.item then
-				-- remove old item from locations
-				local itemLocations = ns.locations[ cacheData.item.id ]
-				local oldLocation = tContains(itemLocations or emptyTable, location)
-				if itemLocations and oldLocation then
-					table.remove(itemLocations, oldLocation)
-				end
-			end
-			if newItem then
-				-- add new item to locations
-				if not ns.locations[ newItem ] then
-					ns.locations[ newItem ] = {}
-				end
-				table.insert(ns.locations[ newItem ], location)
-				table.sort(ns.locations, LocationSort)
-			end
-		end
-
-		-- make sure to set all possible fields, otherwise you risk corrupt data
-		cacheData.loc = location
-		cacheData.item = newItem and ns.item[ newItem ] or nil
-		cacheData.count = newCount or 0
-		cacheData.sell = nil
-
-		if newItem then
-			-- update fields
-			local label, actionValue, actionReason = ns.GetItemAction(location)
-			cacheData.label = label or ns.IGNORE
-			cacheData.value = (actionValue or 0) * (newCount or 0)
-			cacheData.priority = ns.priority.NEUTRAL
-		else
-			cacheData.label = ns.IGNORE
-			cacheData.value = 0
-			cacheData.priority = ns.priority.IGNORE
-		end
-
-		return true
-	end
-end
-
-function ns.Update(forced)
-	-- update bag caches
-	for container = 0, NUM_BAG_SLOTS do
-		if forced or ns.updateAvailable[container] then
-			for slot = 1, GetContainerNumSlots(container) or 0 do
-				ns.UpdateBagSlot(container, slot, forced)
-			end
-		end
-		ns.updateAvailable[container] = false
-	end
-end
-
--- updates all slots associated with item (itemID or category)
-function ns.UpdateItem(item)
-	for _, location in pairs(ns.locations[item] or emptyTable) do
-		local container, slot = ns.GetBagSlot(location)
-		-- saves changed items to changedLocations list
-		ns.UpdateBagSlot(container, slot, true)
-	end
-end
-
-function ns.Scan(scanFunc, ...)
-	wipe(categoryLocations)
-	wipe(changedLocations)
-	wipe(changedLimits)
-
-	-- do whatever
-	if type(scanFunc) == "function" then
-		scanFunc(...)
-	else
-		ns.Update(scanFunc, ...)
-	end
-
-	for _, location in pairs(changedLocations) do
-		Classify(location)
-	end
+function ns.Scan(...)
+	-- update classifications for items/limit groups
 	for _, limiter in pairs(changedLimits) do
 		for _, location in pairs( categoryLocations[limiter] ) do
 			Classify(location)
 		end
 	end
+	wipe(changedLimits)
+	wipe(categoryLocations)
 
+	-- update cheapest item list
 	wipe(ns.list)
 	for location, data in pairs(ns.containers) do
 		if data.item and data.priority ~= ns.priority.IGNORE then
@@ -259,8 +231,8 @@ function ns.Scan(scanFunc, ...)
 			table.insert(ns.list, location)
 		end
 	end
-	table.sort(ns.list, ns.ItemSort)
-	ns.UpdateLDB()
+	table.sort(ns.list, ItemSort)
+	ns.UpdateLDB() -- TODO: does not belong here
 end
 
 -- returns: priority, autoSell, reason
@@ -270,9 +242,9 @@ function ns.GetItemPriority(location)
 	--  allow SlotIsOverLimit with only checking *other* locations
 	--  adjust IsItemSoulbound to only use .bop if no location
 	local priority, reason
-	local item = ns.containers[location].item
-	if not item or not item.id then return
-		ns.priority.IGNORE, false, ns.reason.EMPTY_SLOT
+	local item = ns.containers[location] and ns.containers[location].item
+	if not item or not item.id then
+		return ns.priority.IGNORE, false, ns.reason.EMPTY_SLOT
 	end
 
 	-- check list config by itemID
@@ -360,6 +332,7 @@ function ns.GetItemPriority(location)
 	if item.q == 0 then -- TODO: config "autosell greys"
 		priority = ns.priority.NEUTRAL
 		reason = ns.reason.GRAY_ITEM
+		if location == 3146502 then print('junk', item.v) end
 		return priority, true, reason
 	end
 
@@ -445,20 +418,13 @@ function ns.GetUnownedItemInfo(item, count)
 	end
 
 	-- pretend to have this item in inventory
-	local location = EXTERNAL_ITEM
-	ns.containers[location].loc   = EXTERNAL_ITEM
-	ns.containers[location].count = count or 1
-	ns.containers[location].item  = ns.item[itemID]
-	ns.containers[location].item.link = itemLink
+	ns.externalItem.count = count or 1
+	ns.externalItem.item  = ns.item[itemID]
+	ns.externalItem.item.link = itemLink
 
 	-- get classification data
-	local data = Classify(location)
+	local data = Classify(ns.EXTERNAL_ITEM_LOCATION)
 	local priority, label, value, autoSell, reason = data.priority, data.label, data.value, data.sell, data.reason
-
-	-- remove item from fake inventory
-	ns.containers[location].item.link = nil
-	ns.containers[location].item = nil
-	Classify(location)
 
 	return priority, label, value, autoSell, reason
 end

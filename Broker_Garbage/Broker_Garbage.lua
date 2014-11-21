@@ -6,33 +6,24 @@ _G[addonName] = addon
 -- GLOBALS: ContainerIDToInventoryID, InCombatLockdown, GetItemInfo
 -- GLOBALS: string, table, tonumber, setmetatable, math, pairs, ipairs
 
-local function Merge(tableA, tableB)
-	local useTable = {}
-	for k, v in pairs(tableA) do
-		useTable[k] = math.max(v, useTable[k] or 0)
-	end
-	for k, v in pairs(tableB) do
-		useTable[k] = math.max(v, useTable[k] or 0)
-	end
-	return useTable
-end
-
-function addon:OnEnable()
-	self.db = LibStub('AceDB-3.0'):New(addonName..'DB', self.defaults, true)
-	self:PortSettings()
-
-	self.prices = self.db.global.prices
-	self.keep   = self.db.profile.keep
-	self.toss   = self.db.profile.toss
-
+-- --------------------------------------------------------
+--  Addon Setup
+-- --------------------------------------------------------
+function addon:OnInitialize()
 	self.list = {} 		-- { <location>, <location>, ...} to reference self.container[<location>]
-	self.locations = {} -- [<itemID|category>] = { <location>, ... }
+	self.locations = {} -- [<itemID -or- category>] = { <location>, ... }
+	self.EXTERNAL_ITEM_LOCATION = 0
+	self.externalItem = {
+		loc = EXTERNAL_ITEM_LOCATION,
+	}
 
 	-- contains dynamic data
 	self.containers = setmetatable({}, {
 		__index = function(containerTable, location)
+			if location == self.EXTERNAL_ITEM_LOCATION then return self.externalItem end
+			-- TODO: do not create empty tables when slot is empty
 			containerTable[location] = {
-				-- loc = location,
+				loc = location,
 				-- item = self.item[itemID],
 				-- count = count,
 				-- priority = priority,
@@ -74,78 +65,96 @@ function addon:OnEnable()
 
 	self.totalBagSpace = 0
 	self.totalFreeSlots = 0
+end
 
-	self.InitArkInvFilter()
+function addon:OnEnable()
+	self.db = LibStub('AceDB-3.0'):New(addonName..'DB', self.defaults, true)
+	self:PortSettings()
+
+	self.prices = self.db.global.prices
+	self.keep   = self.db.profile.keep
+	self.toss   = self.db.profile.toss
+
 	self.InitPriceHandlers()
+	self:Update()
 
 	-- initial scan
-	self.updateAvailable = {}
-	for i = 0, NUM_BAG_SLOTS do
-		self.updateAvailable[i] = true
+	--[[ self.updateAvailable = {}
+	for container = 0, _G.NUM_BAG_SLOTS do
+		-- self.updateAvailable[container] = true
+		self:UpdateContainer(container)
 	end
-	self:BAG_UPDATE_DELAYED()
+	-- self:UpdateLimits() --]]
 
-	self:RegisterEvent('BAG_UPDATE')
-	self:RegisterEvent('BAG_UPDATE_DELAYED')
-	self:RegisterEvent('CHAT_MSG_SKILL')
-	self:RegisterEvent('EQUIPMENT_SETS_CHANGED')
+	self:RegisterEvent('BAG_UPDATE', function(self, _, container) self:UpdateContainer(container) end, self)
+	self:RegisterEvent('BAG_UPDATE_DELAYED', function(self) self:UpdateLimits() end, self)
+	-- self:RegisterEvent('EQUIPMENT_SETS_CHANGED')
 	-- hooksecurefunc('SaveEquipmentSet', self.EQUIPMENT_SETS_CHANGED)
 end
 
 -- --------------------------------------------------------
 --  <stuff> update events
 -- --------------------------------------------------------
-local function UpdateEquipment()
+-- TODO: detect newly learned trade skills and create list entries accordingly
+-- TODO: update if equipment set rules
+--[[ local function UpdateEquipment()
 	for location, cacheData in pairs(addon.containers) do
 		if cacheData.item then
 			local invSlot = cacheData.item.slot
 			if invSlot ~= "" and invSlot ~= "INVTYPE_BAG" then
 				local container, slot = addon.GetBagSlot(location)
-				addon.UpdateBagSlot(container, slot, true)
+				addon:UpdateBagSlot(container, slot, true)
 			end
 		end
 	end
 end
 function addon:EQUIPMENT_SETS_CHANGED()
 	self.Print("Rescan equipment in bags")
-	self.Scan(UpdateEquipment)
-end
-
-function addon:CHAT_MSG_SKILL(event, msg)
-	-- TODO: detect newly learned trade skills and create list entries accordingly
-	--[[local skillName = string.match(msg, self.GetPatternFromFormat(ERR_SKILL_GAINED_S))
-	if skillName then
-		skillName = self.GetTradeSkill(skillName)
-		if skillName then
-			self.ModifyList_ExcludeSkill(skillName)
-			self.Print(self.locale.listsUpdatedPleaseCheck)
-		end
-	end --]]
-end
+	UpdateEquipment()
+	self.Scan()
+end --]]
 
 -- --------------------------------------------------------
 --  Bag scanning
 -- --------------------------------------------------------
-function addon:BAG_UPDATE(event, container)
-	if container >= 0 and container <= NUM_BAG_SLOTS then
-		-- TODO: reagent bank, bank etc
-		self.updateAvailable[container] = true
+local requiresFullScan = false
+-- TODO: split scan into "static" (BAG_UPDATE for itemID/category) and "dynamic" (BAG_UPDATE_DELAYED for limits)
+function addon:UpdateContainer(container)
+	-- TODO: reagent bank, bank etc
+	if not container or container < 0 or container > _G.NUM_BAG_SLOTS then return end
+	local hasItemLimit = false
+	for slot = 1, GetContainerNumSlots(container) do
+		local hasChanged, isLimitedItem = self:UpdateBagSlot(container, slot)
+		hasItemLimit = hasItemLimit or isLimitedItem
 	end
+
+	requiresFullScan = requiresFullScan or hasItemLimit
+	-- self.updateAvailable[container] = hasItemLimit -- TODO: deprecated
+
+	return hasItemLimit
 end
 
-function addon:BAG_UPDATE_DELAYED()
-	if InCombatLockdown() then
-		self:RegisterEvent("PLAYER_REGEN_ENABLED")
-		return
+-- updates limit info
+function addon:UpdateLimits()
+	requiresFullScan = false
+	self.Scan() -- TODO/FIXME: quick hack
+end
+
+-- perform a full update, rescanning everything
+function addon:Update()
+	local hasItemLimit
+	-- scan containers
+	for container = 1, _G.NUM_BAG_SLOTS do
+		local hasChanged, isLimitedItem = self:UpdateContainer(container)
+		hasItemLimit = hasItemLimit or isLimitedItem
 	end
-	self.Scan()
+	-- update dynamic limits
+	if hasItemLimit then
+		self:UpdateLimits()
+	end
+	-- update display
+	self:UpdateLDB()
 end
-
-function addon:PLAYER_REGEN_ENABLED()
-	self:UnregisterEvent("PLAYER_REGEN_ENABLED")
-	self:BAG_UPDATE_DELAYED()
-end
-
 
 --[[
 -- forceClear = false, -- use Blizzard's autoloot + inventory pruning instead

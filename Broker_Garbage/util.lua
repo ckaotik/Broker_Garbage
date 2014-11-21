@@ -14,15 +14,6 @@ function BG.GetItemID(itemLink)
 	return id and tonumber(id) or nil, linkType, data
 end
 
-function BG.GetPatternFromFormat(globalString)
-	if not globalString then return "" end
-	local returnString = globalString:gsub("%%[().]", "%%%1")
-	      returnString = returnString:gsub("%%[1-9]?$?s", "(.+)")
-	      returnString = returnString:gsub("%%[1-9]?$?c", "([+-]?)")
-	      returnString = returnString:gsub("%%[1-9]?$?d", "(%%d+)")
-	return returnString
-end
-
 function BG.GetInfo(label, short)
 	if BG.info[label] then
 		return BG.info[label][1] .. BG.info[label][ short and 2 or 3 ] .. "|r"
@@ -32,6 +23,7 @@ end
 -- --------------------------------------------------------
 --  Saved Variables
 -- --------------------------------------------------------
+local emptyTable = {}
 -- migrate old database to new AceDB structure
 function BG:PortSettings()
 	local currentProfile = self.db:GetCurrentProfile()
@@ -43,11 +35,11 @@ function BG:PortSettings()
 	local db = _G['BG_GlobalDB']
 	if db and currentProfile == 'Default' and db.version then
 		self.db.profile.keep = {}
-		for k, v in pairs(db.keep) do self.db.profile.keep[k] = v end
+		for k, v in pairs(db.keep or emptyTable) do self.db.profile.keep[k] = v end
 		self.db.profile.toss = {}
-		for k, v in pairs(db.toss) do self.db.profile.toss[k] = v end
+		for k, v in pairs(db.toss or emptyTable) do self.db.profile.toss[k] = v end
 		self.db.global.prices = {}
-		for k, v in pairs(db.prices) do self.db.global.prices[k] = v end
+		for k, v in pairs(db.prices or emptyTable) do self.db.global.prices[k] = v end
 		db.keep, db.toss, db.prices = nil, nil, nil
 
 		local unchanged = {'disableKey', 'dropQuality', 'keepHighestItemLevel', 'keepQuestItems', 'sellUnusable', 'sellUnusableQuality', 'sellOutdated', 'sellOutdatedQuality'}
@@ -115,7 +107,7 @@ function BG:PortSettings()
 
 	local db = _G['BG_LocalDB']
 	if db and not tContains(self.db:GetProfiles(), characterProfile) then
-		if next(db.keep) or next(db.toss) then
+		if next(db.keep or emptyTable) or next(db.toss or emptyTable) then
 			-- create character profile based on Default
 			self.db:SetProfile(characterProfile)
 			self.db:CopyProfile('Default')

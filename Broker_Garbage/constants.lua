@@ -47,7 +47,7 @@ BG.defaults = {
 		dropQuality = 0,
 		disableKey = "SHIFT",
 		prices = {}, -- item/category preset prices
-		showJunkSellIcons = false, -- FIXME config
+		showJunkSellIcons = false,
 
 		disenchantValues = true,
 		disenchantSkillOffset = 0,
@@ -55,12 +55,12 @@ BG.defaults = {
 
 		-- behavior
 		keepHighestItemLevel = true,
-		keepQuestItems = true, -- FIXME config
+		keepQuestItems = true,
 		sellJunk = false, -- was: autoSellIncludeItems
 		sellUnusable = false,
 		sellUnusableQuality = 3,
 		sellOutdated = false,
-		sellOutdatedQuality = 3, -- FIXME config
+		sellOutdatedQuality = 3,
 
 		LPTJunkIsJunk   = false,
 		ignoreZeroValue = true,

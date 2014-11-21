@@ -1,8 +1,8 @@
 Broker_Garbage
 ==============
 Author: ckaotik
-Version: 5.0v1
-WoW Version: 5.0.5
+Version: 6.0v1
+WoW Version: 6.0.3
 
 WoWInterface: http://www.wowinterface.com/downloads/info15531-Broker_Garbage.html
 Curse:        http://wow.curse.com/downloads/wow-addons/details/broker_garbage.aspx

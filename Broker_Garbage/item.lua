@@ -5,7 +5,6 @@ local _, ns = ...
 -- GLOBALS: type, select, string, ipairs, math, tonumber, wipe, pairs, table, strsplit
 
 local emptyTable = {}
-local EXTERNAL_ITEM = 0
 
 -- --------------------------------------------------------
 --  LPT caching
@@ -85,24 +84,20 @@ function ns.IsItemBoP(itemID)
 end
 
 function ns.IsItemSoulbound(location)
-	local item = ns.containers[location].item
-	if item then
-		if item.bop then
-			return true
-		else
-			scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-			if location ~= EXTERNAL_ITEM then
-				scanTooltip:SetBagItem( ns.GetBagSlot(location) )
-			elseif item.link then
-				scanTooltip:SetHyperlink(item.link)
-			else
-				return
-			end
-			local binding = _G[scanTooltip:GetName().."TextLeft2"]:GetText() == ITEM_SOULBOUND or
-		                    _G[scanTooltip:GetName().."TextLeft3"]:GetText() == ITEM_SOULBOUND
-			scanTooltip:Hide()
-			return binding
-		end
+	local item = ns.containers[location] and ns.containers[location].item
+	if not item then return end
+
+	if item.bop then
+		-- this applies to owned and unowned items
+		return true
+	elseif location ~= ns.EXTERNAL_ITEM_LOCATION then
+		scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+		scanTooltip:SetBagItem( ns.GetBagSlot(location) )
+
+		local binding = _G[scanTooltip:GetName().."TextLeft2"]:GetText() == ITEM_SOULBOUND or
+	                    _G[scanTooltip:GetName().."TextLeft3"]:GetText() == ITEM_SOULBOUND
+		scanTooltip:Hide()
+		return binding
 	end
 end
 
@@ -147,6 +142,8 @@ function ns.CanDisenchant(item)
 	local item = ns.item[item]
 	if notDisenchantable[item.id] or (item.cl ~= WEAPON and item.cl ~= ARMOR) or item.q < 2 or item.q > 4 then
 		return false
+	elseif false then
+		-- TODO: has enchanter's study & item is WoD & item is green/blue
 	else
 		local prof1, prof2 = GetProfessions()
 		if not prof1 then return false end
@@ -294,7 +291,7 @@ function ns.Delete(location, ...)
 		local cacheData = ns.containers[location]
 
 		-- TODO: also check item count?
-		if cacheData.item and GetContainerItemID(container, slot) == cacheData.item.id then
+		if cacheData and cacheData.item and GetContainerItemID(container, slot) == cacheData.item.id then
 			-- actually delete the item
 			ClearCursor()
 			PickupContainerItem(container, slot)
@@ -332,6 +329,8 @@ function ns.Sell(location)
 	end
 
 	local cacheData = ns.containers[location]
+	if not cacheData or not cacheData.item then return end
+
 	ns.UpdateSellStatistics(cacheData.value, cacheData.count)
 
 	ClearCursor()

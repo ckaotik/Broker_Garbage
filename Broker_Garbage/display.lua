@@ -105,7 +105,6 @@ function BG.UpdateLDB()
 
 	for location, cacheData in pairs(BG.containers) do
 		local container, slot = BG.GetBagSlot(location)
-
 		-- TODO: checking bag type on every slot sucks ...
 		local _, containerType = GetContainerNumFreeSlots(container)
 		-- update slot stats
@@ -262,7 +261,7 @@ function BG.OnClick(self, location, btn)
 	else
 		-- don't touch invalid/outdated items
 		local cacheData = BG.containers[location]
-		if not cacheData.item or cacheData.priority == BG.priority.IGNORE then -- or cacheData.label == BG.IGNORE then
+		if not cacheData or not cacheData.item or cacheData.priority == BG.priority.IGNORE then
 			BG.Print(BG.locale.noItems)
 			return
 		end
@@ -352,7 +351,7 @@ hooksecurefunc(GameTooltip, "SetBagItem", function(tooltip, container, slot)
 	local location = BG.GetLocation(container, slot)
 	local cacheData = BG.containers[location]
 
-	if BG.db.global.itemTooltip.showClassification and cacheData.item then
+	if BG.db.global.itemTooltip.showClassification and cacheData and cacheData.item then
 		tooltip:AddDoubleLine(
 			string.format("|cffee6622%s|r", addonName),
 			(cacheData.sell and "|TInterface\\BUTTONS\\UI-GroupLoot-Coin-Up:0|t " or "")..(BG.GetInfo(cacheData.label) or "") )
