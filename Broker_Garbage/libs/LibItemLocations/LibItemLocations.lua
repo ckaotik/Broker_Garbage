@@ -1,4 +1,4 @@
-local MAJOR, MINOR = 'LibItemLocations', 3
+local MAJOR, MINOR = 'LibItemLocations', 4
 assert(LibStub, MAJOR..' requires LibStub')
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -42,6 +42,10 @@ function lib:PackInventoryLocation(container, slot, equipment, bank, bags, voidS
 
 	-- container (tab, bag, ...) and slot
 	location = location + (slot or 1)
+	if bank and bags and container > _G.NUM_BAG_SLOTS then
+		-- store bank bags as 1-7 instead of 5-11
+		container = container - _G.ITEM_INVENTORY_BANK_BAG_OFFSET
+	end
 	if container and container > 0 then
 		location = location + lshift(container, ITEM_INVENTORY_BAG_BIT_OFFSET)
 	end
