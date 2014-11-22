@@ -1,7 +1,7 @@
 local _, ns = ...
 
 -- GLOBALS: NUM_BAG_SLOTS, GetContainerNumSlots, GetContainerItemID, GetContainerItemInfo, GetItemInfo, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetAuctionItemSubClasses, IsEquippedItem, GetContainerItemEquipmentSetInfo, GetContainerItemLink
--- GLOBALS: type, string, table, pairs, ipairs, wipe, print, tonumber, select, math
+-- GLOBALS: type, string, table, pairs, ipairs, wipe, tonumber, select, math, tContains
 
 local Unfit = LibStub("Unfit-1.0")
 local ItemLocations = LibStub('LibItemLocations')
@@ -16,7 +16,7 @@ local emptyTable = {}
 	* update list presets
 	* move code to proper files
 	* local X for frequently used funcs
-	* "fix" namespacing (BG. is dumb, use ns.)
+	* "fix" namespacing (BG. is dumb, use ns. or addon.)
 --]]
 
 -- --------------------------------------------------------
@@ -332,7 +332,6 @@ function ns.GetItemPriority(location)
 	if item.q == 0 then -- TODO: config "autosell greys"
 		priority = ns.priority.NEUTRAL
 		reason = ns.reason.GRAY_ITEM
-		if location == 3146502 then print('junk', item.v) end
 		return priority, true, reason
 	end
 
