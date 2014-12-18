@@ -105,7 +105,7 @@ function BG.UpdateLDB()
 
 	for location, cacheData in pairs(BG.containers) do
 		local container, slot = BG.GetBagSlot(location)
-		if not container then print(location, container, slot) end
+		if not container or not slot then print('location not parsed', location, container, slot) end
 		-- TODO: checking bag type on every slot sucks ...
 		local containerType = container and select(2, GetContainerNumFreeSlots(container)) or 0
 		-- update slot stats
@@ -117,7 +117,7 @@ function BG.UpdateLDB()
 			BG.freeSpecialSlots = BG.freeSpecialSlots + (cacheData.item and 0 or 1)
 		end
 
-		BG.containerInInventory = BG.containerInInventory or ( select(6, GetContainerItemInfo(container, slot)) )
+		BG.containerInInventory = BG.containerInInventory or select(6, GetContainerItemInfo(container, slot))
 
 		if cacheData.sell and cacheData.value > 0 then
 			-- update junk value
@@ -326,7 +326,7 @@ function BG.FormatMoney(value, style, short)
 		stringFormat = string.join('', prefix,
 			(  gold > 0) and '%1$s' or '', gold > 0 and goldSep or '',
 			(silver > 0) and '%2$d' or '', silver > 0 and silverSep or '',
-			(copper > 0 or silver == 0) and '%3$d' or '', (copper > 0 or silver == 0) and copperSep or '')
+			(copper > 0 or (amount == copper)) and '%3$d' or '', (copper > 0 or amount == copper) and copperSep or '')
 	else
 		-- w/ padding, w/ empty components, e.g. 1g 00s 01c -or- 1s 00c -or- 0c
 		stringFormat = string.join('', prefix,
