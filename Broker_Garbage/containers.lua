@@ -80,6 +80,9 @@ end
 
 function ns.GetBagSlot(location)
 	local container, slot, isEquipped, isInBank, isInBag, isInVault, isInReagents, isInMail, isInGuildBank, isInAuctionHouse = ItemLocations:UnpackInventoryLocation(location)
+	if isInBank and not container then
+		container = _G.BANK_CONTAINER
+	end
 	return container, slot
 end
 
