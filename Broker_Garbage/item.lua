@@ -5,6 +5,7 @@ local _, ns = ...
 -- GLOBALS: type, select, string, ipairs, math, tonumber, wipe, pairs, table, strsplit
 
 local emptyTable = {}
+local LibProcessable = LibStub('LibProcessable')
 
 -- --------------------------------------------------------
 --  LPT caching
@@ -136,67 +137,24 @@ function ns.GetDisenchantValue(itemLink, noSkillReq)
 end
 
 local WEAPON, ARMOR   = GetAuctionItemClasses()
-local ENCHANTING      = GetSpellInfo(7411)
-local enchBuildingIDs = select(14, C_Garrison.GetBuildingInfo(93))
-local notDisenchantable = {} -- TODO: fill with data
+local enchBuildingIDs = {93, 125, 126}
 function ns.CanDisenchant(item)
-	local item = ns.item[item]
-	if notDisenchantable[item.id] or (item.cl ~= WEAPON and item.cl ~= ARMOR) or item.q < 2 or item.q > 4 then
-		return false
-	end
+	local itemTable = ns.item[item]
+	if not itemTable or not itemTable.id then return end
 
-	local requiredSkill
-	-- see http://www.wowpedia.org/Disenchanting#Required_Enchanting_skill
-	if     item.l <=  20 then requiredSkill = 1
-	elseif item.l <   60 then requiredSkill = (math.floor(item.l / 5) - 3) * 25
-	elseif item.q == 2 then -- uncommon
-		if     item.l <=  99 then requiredSkill = 225
-		elseif item.l <= 120 then requiredSkill = 275
-		elseif item.l <= 150 then requiredSkill = 325
-		elseif item.l <= 182 then requiredSkill = 350
-		elseif item.l <= 318 then requiredSkill = 425
-		elseif item.l <= 437 then requiredSkill = 475
-		else
-			requiredSkill = 1
-		end
-	elseif item.q == 3 then -- rare
-		if     item.l <=  97 then requiredSkill = 225
-		elseif item.l <= 115 then requiredSkill = 275
-		elseif item.l <= 200 then requiredSkill = 325
-		elseif item.l <= 346 then requiredSkill = 450
-		elseif item.l <= 424 then requiredSkill = 525
-		elseif item.l <= 463 then requiredSkill = 550
-		else
-			requiredSkill = 1
-		end
-	elseif item.q == 4 then -- epic
-		if     item.l <=  95 then requiredSkill = 225
-		elseif item.l <= 164 then requiredSkill = 300
-		elseif item.l <= 277 then requiredSkill = 375
-		elseif item.l <= 416 then requiredSkill = 475
-		elseif item.l <= 575 then requiredSkill = 575
-		else
-			-- WoD items are easily disenchanted
-			requiredSkill = 1
-		end
-	end
-
-	local prof1, prof2 = GetProfessions()
-	if not prof1 then return false end
-	local name, _, mySkill = GetProfessionInfo(prof1)
-	if name ~= ENCHANTING and prof2 then _, _, mySkill = GetProfessionInfo(prof2) end
-	if not mySkill and item.q < 4 and item.l > 582 then
+	-- TODO: ns.db.global.disenchantSkillOffset
+	local canDisenchant, requiredSkill = LibProcessable:IsDisenchantable(itemTable.id)
+	if canDisenchant then
+		return true
+	elseif requiredSkill == 1 and itemTable.q < 4 and itemTable.l > 582 then
 		-- WoD item, check if we can garrison disenchant
 		local buildings = C_Garrison.GetBuildings()
 		for _, building in pairs(buildings) do
 			if tContains(enchBuildingIDs, building.buildingID) then
-				mySkill = 1
-				break
+				return true
 			end
 		end
 	end
-
-	return (mySkill + ns.db.global.disenchantSkillOffset) >= (requiredSkill or 1)
 end
 
 -- --------------------------------------------------------

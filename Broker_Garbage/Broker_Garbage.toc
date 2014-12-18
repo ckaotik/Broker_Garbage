@@ -36,6 +36,7 @@ libs\LibStub\LibStub.lua
 libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 libs\LibQTip-1.0\LibQTip-1.0.lua
 libs\LibItemUpgradeInfo-1.0\Core.lua
+libs\LibProcessable\LibProcessable.lua
 #@end-no-lib-strip@
 libs\LibItemLocations\LibItemLocations.lua
 libs\LibOptionsGenerate-1.0.lua
