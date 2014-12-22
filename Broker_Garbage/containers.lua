@@ -229,8 +229,8 @@ function ns.Scan(...)
 	-- update cheapest item list
 	wipe(ns.list)
 	for location, data in pairs(ns.containers) do
-		if data.item and data.priority ~= ns.priority.IGNORE then
-			-- only interested in slots with items
+		if data.item and (data.priority == ns.priority.NEGATIVE or data.priority == ns.priority.NEUTRAL) then
+			-- only interested in slots with items that are not categorized as keep
 			table.insert(ns.list, location)
 		end
 	end
