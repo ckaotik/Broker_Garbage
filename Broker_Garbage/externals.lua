@@ -110,7 +110,7 @@ end
 -- --------------------------------------------------------
 -- ArkInventory + ArkInventoryRules
 function ns.ArkInventoryFilter(label)
-	if not ArkInventoryRules.Object.h or ArkInventoryRules.Object.class ~= "item" then
+	if not ArkInventoryRules.Object.loc_id or not ArkInventoryRules.Object.h or ArkInventoryRules.Object.class ~= "item" then
 		return false
 	end
 	local container = ArkInventory.BagID_Blizzard(ArkInventoryRules.Object.loc_id, ArkInventoryRules.Object.bag_id)
