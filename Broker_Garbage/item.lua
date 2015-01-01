@@ -136,24 +136,13 @@ function ns.GetDisenchantValue(itemLink, noSkillReq)
 	return disenchantPrice
 end
 
-local WEAPON, ARMOR   = GetAuctionItemClasses()
-local enchBuildingIDs = {93, 125, 126}
 function ns.CanDisenchant(item)
 	local itemTable = ns.item[item]
 	if not itemTable or not itemTable.id then return end
 
-	-- TODO: ns.db.global.disenchantSkillOffset
-	local canDisenchant, requiredSkill = LibProcessable:IsDisenchantable(itemTable.id)
-	if canDisenchant then
+	local canDisenchant, requiredSkill, playerSkill = LibProcessable:IsDisenchantable(itemTable.id)
+	if canDisenchant or playerSkill + ns.db.global.disenchantSkillOffset >= requiredSkill then
 		return true
-	elseif requiredSkill == 1 and itemTable.q < 4 and itemTable.l > 582 then
-		-- WoD item, check if we can garrison disenchant
-		local buildings = C_Garrison.GetBuildings()
-		for _, building in pairs(buildings) do
-			if tContains(enchBuildingIDs, building.buildingID) then
-				return true
-			end
-		end
 	end
 end
 

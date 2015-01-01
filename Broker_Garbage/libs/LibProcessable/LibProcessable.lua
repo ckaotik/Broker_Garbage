@@ -1,4 +1,4 @@
-local MAJOR, MINOR = 'LibProcessable', 4
+local MAJOR, MINOR = 'LibProcessable', 5
 assert(LibStub, MAJOR .. ' requires LibStub')
 
 local lib, oldMinor = LibStub:NewLibrary(MAJOR, MINOR)
@@ -6,28 +6,46 @@ if(not lib) then
 	return
 end
 
-local data
+local data, enchantingBuilding
 local inscriptionSkill, jewelcraftingSkill, enchantingSkill, blacksmithingSkill
 
-local MILLING = 51005
-function lib:IsMillable(itemID)
+local MILLING, MORTAR = 51005, 114942
+--- API to verify if an item can be processed through the Milling skill or with the Draenic Mortar.
+-- @name LibProcessable:IsMillable
+-- @usage LibStub('LibProcessable'):IsMillable(itemID[, ignoreMortar])
+-- @param itemID The itemID of the item to check against
+-- @param ignoreMortar Ignore the Draenic Mortar, an item to mill Draenor herbs without needing Inscription
+-- @return isMillable Boolean indicating if the player can process the item
+-- @return skillRequired Number representing the required skill to process the item
+-- @return skillLevel Number representing the player's skill in Inscription
+-- @return mortarItemID Number representing the Draenic Mortar, if used
+function lib:IsMillable(itemID, ignoreMortar)
 	assert(tonumber(itemID), 'itemID needs to be a number or convertable to a number')
 	itemID = tonumber(itemID)
 
 	if(IsSpellKnown(MILLING)) then
 		local skillRequired = data.herbs[itemID]
-		return skillRequired and skillRequired <= inscriptionSkill, skillRequired
+		return skillRequired and skillRequired <= inscriptionSkill, skillRequired, inscriptionSkill
+	elseif(not ignoreMortar and GetItemCount(MORTAR) > 0) then
+		return itemID >= 109124 and itemID <= 109130, 1, nil, MORTAR
 	end
 end
 
 local PROSPECTING = 31252
+--- API to verify if an item can be processed through the Prospecting skill.
+-- @name LibProcessable:IsProspectable
+-- @usage LibStub('LibProcessable'):IsProspectable(itemID)
+-- @param itemID The itemID of the item to check against
+-- @return isProspectable Boolean indicating if the player can process the item
+-- @return skillRequired Number representing the required skill to process the item
+-- @return skillLevel Number representing the player's skill in Jewelcrafting
 function lib:IsProspectable(itemID)
 	assert(tonumber(itemID), 'itemID needs to be a number or convertable to a number')
 	itemID = tonumber(itemID)
 
 	if(IsSpellKnown(PROSPECTING)) then
 		local skillRequired = data.ores[itemID]
-		return skillRequired and skillRequired <= jewelcraftingSkill, skillRequired
+		return skillRequired and skillRequired <= jewelcraftingSkill, skillRequired, jewelcraftingSkill
 	end
 end
 
@@ -133,7 +151,15 @@ local function GetSkillRequired(quality, level)
 end
 
 local DISENCHANTING = 13262
-function lib:IsDisenchantable(itemID)
+--- API to verify if an item can be processed through the Disenchanting skill or garrison buildings.
+-- @name LibProcessable:IsDisenchantable
+-- @usage LibStub('LibProcessable'):IsDisenchantable(itemID[, ignoreGarrison])
+-- @param itemID The itemID of the item to check against
+-- @param ignoreGarrison Ignore the garrison enchanting buildings
+-- @return isDisenchantable Boolean indicating if the player can process the item
+-- @return skillRequired Number representing the required skill to process the item
+-- @return skillLevel Number representing the player's skill in Enchanting
+function lib:IsDisenchantable(itemID, ignoreGarrison)
 	assert(tonumber(itemID), 'itemID needs to be a number or convertable to a number')
 	itemID = tonumber(itemID)
 
@@ -141,7 +167,13 @@ function lib:IsDisenchantable(itemID)
 		local _, _, quality, level = GetItemInfo(itemID)
 		if(IsEquippableItem(itemID) and quality and level) then
 			local skillRequired = GetSkillRequired(quality, level)
-			return skillRequired and skillRequired <= enchantingSkill, skillRequired
+			return skillRequired and skillRequired <= enchantingSkill, skillRequired, enchantingSkill
+		end
+	elseif(not ignoreGarrison and enchantingBuilding) then
+		local _, _, quality, level = GetItemInfo(itemID)
+		if(IsEquippableItem(itemID) and quality and level) then
+			local skillRequired = GetSkillRequired(quality, level)
+			return skillRequired == 1, skillRequired
 		end
 	end
 end
@@ -167,50 +199,74 @@ local function GetSkeletonKey(pickLevel)
 	end
 end
 
-local LOCKPICKING = 1804
-local BLACKSMITH = 2018
-function lib:IsOpenable(itemID)
+local LOCKPICKING, BLACKSMITH = 1804, 2018
+--- API to verify if an item can be processed through the Lock Pick skill or with Blacksmithing skeleton keys.
+-- @name LibProcessable:IsOpenable
+-- @usage LibStub('LibProcessable'):IsOpenable(itemID[, ignoreSkeletonKeys])
+-- @param itemID The itemID of the item to check against
+-- @return isOpenable Boolean indicating if the player can process the item
+-- @return skillRequired Number representing the required skill in Lockpicking or Blacksmithing to process the item
+-- @return skillLevel Number representing the player's skill in Lockpicking or Blacksmithing
+-- @return skeletonKeyItemID Number representing the Skeleton Key, if used
+function lib:IsOpenable(itemID, ignoreSkeletonKeys)
 	assert(tonumber(itemID), 'itemID needs to be a number or convertable to a number')
 	itemID = tonumber(itemID)
 
 	local pickLevel = data.containers[itemID]
 	if(IsSpellKnown(LOCKPICKING)) then
-		return pickLevel and (pickLevel / 5) <= UnitLevel('player'), pickLevel
-	elseif(GetSpellBookItemInfo(GetSpellInfo(BLACKSMITH)) and pickLevel) then
-		local itemID, skillRequired = GetSkeletonKey(pickLevel)
-		return skillRequired <= blacksmithingSkill, skillRequired, itemID
+		local playerSkill = UnitLevel('player') * 5
+		return pickLevel and pickLevel <= playerSkill, pickLevel, playerSkill
+	elseif(not ignoreSkeletonKeys and pickLevel and GetSpellBookItemInfo(GetSpellInfo(BLACKSMITH))) then
+		local skeletonKeyID, skillRequired = GetSkeletonKey(pickLevel)
+		return skillRequired <= blacksmithingSkill, skillRequired, blacksmithingSkill, skeletonKeyID
 	end
 end
 
 local Handler = CreateFrame('Frame')
 Handler:RegisterEvent('SKILL_LINES_CHANGED')
-Handler:SetScript('OnEvent', function(s, event)
-	inscriptionSkill, jewelcraftingSkill, enchantingSkill, blacksmithingSkill = 0, 0, 0, 0
+Handler:RegisterEvent('GARRISON_BUILDING_ACTIVATED')
+Handler:RegisterEvent('GARRISON_BUILDING_REMOVED')
+Handler:RegisterEvent('GARRISON_BUILDING_UPDATE')
+Handler:RegisterEvent('PLAYER_LOGIN')
+Handler:SetScript('OnEvent', function(self, event)
+	if(event == 'SKILL_LINES_CHANGED') then
+		inscriptionSkill, jewelcraftingSkill, enchantingSkill, blacksmithingSkill = 0, 0, 0, 0
 
-	local first, second = GetProfessions()
-	if(first) then
-		local _, _, skill, _, _, _, id = GetProfessionInfo(first)
-		if(id == 773) then
-			inscriptionSkill = skill
-		elseif(id == 755) then
-			jewelcraftingSkill = skill
-		elseif(id == 333) then
-			enchantingSkill = skill
-		elseif(id == 164) then
-			blacksmithingSkill = skill
+		local first, second = GetProfessions()
+		if(first) then
+			local _, _, skill, _, _, _, id = GetProfessionInfo(first)
+			if(id == 773) then
+				inscriptionSkill = skill
+			elseif(id == 755) then
+				jewelcraftingSkill = skill
+			elseif(id == 333) then
+				enchantingSkill = skill
+			elseif(id == 164) then
+				blacksmithingSkill = skill
+			end
 		end
-	end
 
-	if(second) then
-		local _, _, skill, _, _, _, id = GetProfessionInfo(second)
-		if(id == 773) then
-			inscriptionSkill = skill
-		elseif(id == 755) then
-			jewelcraftingSkill = skill
-		elseif(id == 333) then
-			enchantingSkill = skill
-		elseif(id == 164) then
-			blacksmithingSkill = skill
+		if(second) then
+			local _, _, skill, _, _, _, id = GetProfessionInfo(second)
+			if(id == 773) then
+				inscriptionSkill = skill
+			elseif(id == 755) then
+				jewelcraftingSkill = skill
+			elseif(id == 333) then
+				enchantingSkill = skill
+			elseif(id == 164) then
+				blacksmithingSkill = skill
+			end
+		end
+	else
+		enchantingBuilding = false
+
+		for _, building in next, C_Garrison.GetBuildings() do
+			local buildingID = building.buildingID
+			if(buildingID == 93 or buildingID == 125 or buildingID == 126) then
+				enchantingBuilding = true
+				return
+			end
 		end
 	end
 end)
