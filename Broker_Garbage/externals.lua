@@ -105,6 +105,8 @@ function ns.ToggleShared(list, item)
 	ns.Add(list, item, value, not isGlobal)
 end
 
+-- TODO: Extend LibCustomSearch https://github.com/ckaotik/Midget/blob/8f64139272d237fa8eadc5dffc7222f55d227c39/functions.lua#L314
+
 -- --------------------------------------------------------
 --  Integration with third party addons
 -- --------------------------------------------------------
