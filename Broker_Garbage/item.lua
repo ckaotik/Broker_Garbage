@@ -140,8 +140,7 @@ function ns.CanDisenchant(item)
 	local itemTable = ns.item[item]
 	if not itemTable or not itemTable.id then return end
 	local canDisenchant, requiredSkill, playerSkill = LibProcessable:IsDisenchantable(itemTable.id)
-	if canDisenchant == nil then return end
-	if canDisenchant or playerSkill + ns.db.global.disenchantSkillOffset >= requiredSkill then
+	if canDisenchant or (playerSkill or 0) + ns.db.global.disenchantSkillOffset >= (requiredSkill or math.huge) then
 		return true
 	end
 end
