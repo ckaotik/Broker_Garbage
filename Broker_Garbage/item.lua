@@ -42,7 +42,7 @@ local isItemInCategory = setmetatable({}, {
 				wipe(tmpTable)
 				category = GetEquipmentSetInfo(categoryValue, tmpTable)
 			end
-			return tContains(GetEquipmentSetItemIDs(category), itemID)
+			return tContains(GetEquipmentSetItemIDs(category) or emptyTable, itemID)
 		elseif categoryType == "AC" then
 			-- armor class
 			categoryValue = tonumber(categoryValue)
