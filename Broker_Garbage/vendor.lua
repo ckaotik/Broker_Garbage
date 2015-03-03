@@ -93,12 +93,9 @@ end
 function plugin:AutoRepair()
 	repairCost, guildRepair = 0, nil
 	if self.db.global.autoRepair and CanMerchantRepair() then
-		local guildRepairFunds = CanGuildBankRepair() and GetGuildBankWithdrawMoney() or 0
 		repairCost = GetRepairAllCost()
-		guildRepair = self.db.char.repairGuildBank
-		if not CanGuildBankRepair() or (repairCost > GetGuildBankWithdrawMoney() and GetGuildBankWithdrawMoney() ~= -1) then
-			guildRepair = false
-		end
+		guildRepair = self.db.char.repairGuildBank and CanGuildBankRepair()
+		guildRepair = guildRepair and (GetGuildBankWithdrawMoney() == -1 or GetGuildBankWithdrawMoney() >= repairCost)
 
 		if repairCost > 0 then
 			if guildRepair then
@@ -112,13 +109,13 @@ function plugin:AutoRepair()
 				addon.Print(string.format(addon.locale.couldNotRepair, addon.FormatMoney(repairCost, nil, true)))
 				repairCost = 0
 			end
-			if sellValue == 0 then
+
+			if sellValue == 0 and repairCost > 0 then
 				addon.Print(string.format(addon.locale.repair, addon.FormatMoney(repairCost, nil, true), guildRepair and addon.locale.guildRepair or ""))
 			end
 		end
 	end
 end
-
 
 -- == Merchant Sell Icon ==
 local function GetSellButton(noCreate)
@@ -127,13 +124,14 @@ local function GetSellButton(noCreate)
 
 	button = CreateFrame("Button", addonName.."SellIcon", MerchantFrame, "ItemButtonTemplate")
 	button:SetScale(32/37)
-	button:SetScript("OnClick", addon.AutoSell)
+	button:SetScript("OnClick", function() plugin:AutoSell(true) end)
 	button:SetScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-		GameTooltip:SetText(addon.junkValue ~= 0 and string.format(addon.locale.autoSellTooltip, addon.FormatMoney(addon.junkValue, nil, true))
-				or addon.locale.reportNothingToSell, nil, nil, nil, nil, true)
+		GameTooltip:SetText(addon.junkValue == 0 and addon.locale.reportNothingToSell
+			or string.format(addon.locale.autoSellTooltip, addon.FormatMoney(addon.junkValue, nil, true)), 
+			nil, nil, nil, nil, true)
 	end)
-	button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+	button:SetScript("OnLeave", GameTooltip_Hide)
 	SetItemButtonTexture(button, "Interface\\Icons\\achievement_bg_returnxflags_def_wsg")
 
 	return button
@@ -176,6 +174,7 @@ local defaults = {
 function plugin:OnEnable()
 	self.db = addon.db:RegisterNamespace('Vendor', defaults)
 
+	hooksecurefunc(addon, 'UpdateLDB', UpdateMerchantButton)
 	hooksecurefunc('MerchantFrame_UpdateRepairButtons', UpdateMerchantButton)
 	hooksecurefunc('MerchantFrame_UpdateBuybackInfo', function()
 		local sellIcon = GetSellButton(true)
