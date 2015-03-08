@@ -199,7 +199,7 @@ function plugin:OnEnable()
 	if IsAddOnLoaded('Bagnon') then
 		-- FIXME: this approach fails on limited items
 		-- Bagnon's updates fire earlier than our data updates, so we need to use unowned item data
-		hooksecurefunc(Bagnon.ItemSlot.mt.__index, 'Update', function(button)
+		hooksecurefunc(Bagnon.ItemSlot, 'Update', function(button)
 			local icon, count, locked, quality, readable, lootable, link = button:GetInfo()
 			-- UpdateJunkIcon(button, link, count)
 			UpdateJunkIcon(button, button:GetBag(), button:GetID())
