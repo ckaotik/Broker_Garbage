@@ -1,4 +1,4 @@
-local MAJOR, MINOR = 'LibItemLocations', 4
+local MAJOR, MINOR = 'LibItemLocations', 5
 assert(LibStub, MAJOR..' requires LibStub')
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -151,10 +151,12 @@ function lib:GetLocation(container, slot, index)
 end
 
 function lib:GetLocationItemInfo(location)
+	-- local id, name, textureName, count, durability, maxDurability, invType, locked, start, duration, enable, setTooltip, gem1, gem2, gem3, quality = EquipmentManager_GetItemInfoByLocation(location)
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice, itemID
 
 	local container, slot, player, bank, bags, voidStorage, reagentBank, mailAttachment, guildBank, auctionHouse = lib:UnpackInventoryLocation(location)
-	if player or container == EQUIPMENT_CONTAINER then
+
+	if (player and not bags) or container == EQUIPMENT_CONTAINER then
 		-- slot: equipment slot
 		link = GetInventoryItemLink('player', slot)
 	elseif voidStorage then
