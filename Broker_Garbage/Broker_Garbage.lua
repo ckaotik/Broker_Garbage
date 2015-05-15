@@ -2,7 +2,7 @@ local addonName, addon, _ = ...
 addon = LibStub('AceAddon-3.0'):NewAddon(addon, addonName, 'AceEvent-3.0')
 _G[addonName] = addon
 
--- GLOBALS: LibStub, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S, INVSLOT_LAST_EQUIPPED
+-- GLOBALS: _G, LibStub, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S, INVSLOT_LAST_EQUIPPED
 -- GLOBALS: ContainerIDToInventoryID, InCombatLockdown, GetItemInfo
 -- GLOBALS: string, table, tonumber, setmetatable, math, pairs, ipairs
 
@@ -14,7 +14,7 @@ function addon:OnInitialize()
 	self.locations = {} -- [<itemID -or- category>] = { <location>, ... }
 	self.EXTERNAL_ITEM_LOCATION = 0
 	self.externalItem = {
-		loc = EXTERNAL_ITEM_LOCATION,
+		loc = self.EXTERNAL_ITEM_LOCATION,
 	}
 
 	-- contains dynamic data
