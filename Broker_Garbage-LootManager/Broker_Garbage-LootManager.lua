@@ -219,3 +219,33 @@ function plugin:ShouldAutoLoot()
 		and UnitIsDead('target') and UnitCreatureType('target') == _G.BATTLE_PET_NAME_8)
 	return autoLoot
 end
+
+
+
+-- TODO update and integrate slash command handling
+-- TODO: extend BGC.locale.slashCommandHelp
+
+--[[
+Broker_Garbage:RegisterSlashCommand('minvalue', function(param)
+	param = tonumber(param) or -1
+	if param < 0 then
+		BGC:Print(BGC.locale.invalidArgument)
+		return
+	end
+
+	Broker_Garbage_LootManager:Set("itemMinValue", param)
+	BGC:Print(format(BGC.locale.minValueSet, Broker_Garbage.FormatMoney(Broker_Garbage:GetOption("itemMinValue", false))))
+end , 'value')
+
+Broker_Garbage:RegisterSlashCommand('minfreeslots', function(param)
+	param = tonumber(param)
+	if not param then
+		BGC:Print(BGC.locale.invalidArgument)
+		return
+	end
+
+	Broker_Garbage_LootManager:Set("tooFewSlots", param, true)
+	BGC.Print(format(BGC.locale.minSlotsSet, Broker_Garbage:GetOption("tooFewSlots", false)))
+end , {'freeslots', 'minfree', 'slots', 'free'})
+
+--]]
