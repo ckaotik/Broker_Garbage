@@ -1,4 +1,4 @@
-local MAJOR, MINOR = 'LibItemLocations', 6
+local MAJOR, MINOR = 'LibItemLocations', 7
 assert(LibStub, MAJOR..' requires LibStub')
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -30,10 +30,10 @@ if not _G.ITEM_INVENTORY_LOCATION_MAIL        then _G.ITEM_INVENTORY_LOCATION_MA
 if not _G.ITEM_INVENTORY_LOCATION_AUCTION     then _G.ITEM_INVENTORY_LOCATION_AUCTION     = 134217728 end
 local ITEM_INVENTORY_LOCATION_REAGENTBANK, ITEM_INVENTORY_LOCATION_GUILDBANK, ITEM_INVENTORY_LOCATION_MAIL, ITEM_INVENTORY_LOCATION_AUCTION = ITEM_INVENTORY_LOCATION_REAGENTBANK, ITEM_INVENTORY_LOCATION_GUILDBANK, ITEM_INVENTORY_LOCATION_MAIL, ITEM_INVENTORY_LOCATION_AUCTION
 
-function lib:PackInventoryLocation(container, slot, equipment, bank, bags, voidStorage, reagentBank, mailbox, guildBank, auctionHouse)
+function lib:PackInventoryLocation(container, slot, player, bank, bags, voidStorage, reagentBank, mailbox, guildBank, auctionHouse)
 	local location = 0
 	-- basic flags
-	location = bor(location, equipment    and ITEM_INVENTORY_LOCATION_PLAYER  or 0)
+	location = bor(location, player       and ITEM_INVENTORY_LOCATION_PLAYER  or 0)
 	location = bor(location, bags         and ITEM_INVENTORY_LOCATION_BAGS    or 0)
 	location = bor(location, bank         and ITEM_INVENTORY_LOCATION_BANK    or 0)
 	location = bor(location, voidStorage  and ITEM_INVENTORY_LOCATION_VAULT   or 0)
@@ -43,11 +43,15 @@ function lib:PackInventoryLocation(container, slot, equipment, bank, bags, voidS
 	location = bor(location, auctionHouse and ITEM_INVENTORY_LOCATION_AUCTION or 0)
 
 	-- container (tab, bag, ...) and slot
-	location = location + (slot or 1)
 	if bank and bags and container > _G.NUM_BAG_SLOTS then
 		-- store bank bags as 1-7 instead of 5-11
 		container = container - _G.ITEM_INVENTORY_BANK_BAG_OFFSET
+	elseif bank and not bags then
+		-- add main bank slot offsets
+		slot = slot + BANK_CONTAINER_INVENTORY_OFFSET
 	end
+
+	location = location + (slot or 1)
 	if container and container > 0 then
 		location = location + lshift(container, ITEM_INVENTORY_BAG_BIT_OFFSET)
 	end
