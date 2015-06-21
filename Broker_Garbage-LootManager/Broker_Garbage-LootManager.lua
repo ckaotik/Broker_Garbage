@@ -112,7 +112,7 @@ end
 
 function plugin:LOOT_READY(event)
 	-- can't compete with Blizzard's autoloot
-	if GetCVarBool('autoLootDefault') then return end
+	if GetCVarBool('autoLootDefault') or addon.IsDisabled() then return end
 	local shouldAutoLoot, clearAll = self:ShouldAutoLoot()
 	if not shouldAutoLoot then return end
 
