@@ -20,6 +20,7 @@ function addon:OnInitialize()
 	-- contains dynamic data
 	self.containers = setmetatable({}, {
 		__index = function(containerTable, location)
+			if not location then return end
 			if location == self.EXTERNAL_ITEM_LOCATION then return self.externalItem end
 			-- TODO: do not create empty tables when slot is empty
 			containerTable[location] = {
