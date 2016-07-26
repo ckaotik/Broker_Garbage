@@ -187,6 +187,10 @@ local function IsHighestItemLevel(location)
 	return true
 end
 
+local function CanLearnTransmog(itemLink)
+	-- TODO
+end
+
 local function IsInterestingItem(itemLink)
 	local isInteresting = true
 	if TopFit and TopFit.IsInterestingItem then
@@ -196,7 +200,7 @@ local function IsInterestingItem(itemLink)
 		local upgrade, best, secondBest = PawnIsItemAnUpgrade( PawnGetItemData(itemLink), true )
 		isInteresting = isInteresting or upgrade or best or secondBest
 	end
-	return isInteresting
+	return isInteresting or CanLearnTransmog(itemLink)
 end
 
 function ns.IsOutdatedItem(location)

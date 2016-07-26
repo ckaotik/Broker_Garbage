@@ -1,11 +1,11 @@
 local _, ns = ...
 
--- GLOBALS: NUM_BAG_SLOTS, GetContainerNumSlots, GetContainerItemID, GetContainerItemInfo, GetItemInfo, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetAuctionItemSubClasses, IsEquippedItem, GetContainerItemEquipmentSetInfo, GetContainerItemLink
+-- GLOBALS: NUM_BAG_SLOTS, GetContainerNumSlots, GetContainerItemID, GetContainerItemInfo, GetItemInfo, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, IsEquippedItem, GetContainerItemEquipmentSetInfo, GetContainerItemLink
 -- GLOBALS: type, string, table, pairs, ipairs, wipe, tonumber, select, math, tContains
 
 local Unfit = LibStub("Unfit-1.0")
 local ItemLocations = LibStub('LibItemLocations')
-local QUEST = select(10, GetAuctionItemClasses())
+local QUEST = _G.AUCTION_CATEGORY_QUEST_ITEMS -- LE_ITEM_CLASS_QUESTITEM
 local emptyTable = {}
 
 --[[-- TODO --
