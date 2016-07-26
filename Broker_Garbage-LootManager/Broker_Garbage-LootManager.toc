@@ -2,7 +2,7 @@
 ## Author: ckaotik
 ## Version: @project-version@
 
-## Interface: 60000
+## Interface: 70000
 ## Dependencies: Broker_Garbage
 
 ## Notes: Plugin for Broker_Garbage. Selective looting and more!
