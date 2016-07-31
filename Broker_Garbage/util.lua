@@ -20,6 +20,31 @@ function BG.GetInfo(label, short)
 	end
 end
 
+--[[ Priority of an item
+
+	NEGATIVE = want to toss
+	NEUTRAL = may toss
+	POSITIVE = must not toss
+	IGNORE = irrelevant to the addon
+--]]
+BG.priority = { "NEGATIVE", "NEUTRAL", "POSITIVE", "IGNORE" }
+for i, priority in ipairs(BG.priority) do
+	BG.priority[ priority ] = i
+end
+function BG.GetPriorityInfo(priority)
+	return BG.priority[priority]
+end
+
+-- Reasons as to why an item is classified as it is.
+BG.reason = { "KEEP_ID", "KEEP_CAT", "TOSS_ID", "TOSS_CAT", "QUEST_ITEM", "UNUSABLE_ITEM", "OUTDATED_ITEM", "GRAY_ITEM", "PRICE_ITEM", "PRICE_CAT", "WORTHLESS", "EMPTY_SLOT", "HIGHEST_VALUE", "SOULBOUND", "QUALITY", "HIGHEST_LEVEL" }
+for i, reason in ipairs(BG.reason) do
+	BG.reason[reason] = i
+end
+function BG.GetReasonInfo(reasonID)
+	local reason = BG.reason[reasonID]
+	return reason, BG.locale["reason_"..reason]
+end
+
 -- --------------------------------------------------------
 --  Saved Variables
 -- --------------------------------------------------------
