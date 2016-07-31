@@ -55,8 +55,8 @@ end
 
 -- resets an option entry to its default value
 function ns.ResetOption(optionName)
-	local default = ns.defaults.global[optionName] or ns.defaults.profile[optionName]
-	ns:SetOption(optionName, ns.defaults.global[optionName], default)
+	local default = ns.db.defaults.global[optionName] or ns.db.defaults.profile[optionName]
+	ns:SetOption(optionName, ns.db.defaults.global[optionName], default)
 end
 
 -- --------------------------------------------------------

@@ -9,6 +9,65 @@ _G[addonName] = addon
 -- --------------------------------------------------------
 --  Addon Setup
 -- --------------------------------------------------------
+local defaults = {
+	global = {
+		version = 1,
+		dropQuality = 0,
+		disableKey = "SHIFT",
+		showJunkSellIcons = false,
+
+		disenchantValues = true,
+		disenchantSkillOffset = 0,
+		disenchantSuggestions = false,
+
+		-- behavior
+		keepHighestItemLevel = true,
+		keepQuestItems = true,
+		sellJunk = false, -- was: autoSellIncludeItems
+		sellUnusableQuality = 3,
+		sellOutdatedQuality = 3,
+
+		LPTJunkIsJunk   = false,
+		ignoreZeroValue = true,
+		moneyFormat     = 'icon',
+
+		-- LibDataBroker Display
+		label = "[itemname]x[itemcount] ([itemvalue])",
+		noJunkLabel = addon.locale.label,
+		tooltip = {
+			height = 220,
+			numLines = 9,
+			showIcon = true,
+			showMoneyLost = true,
+			showMoneyEarned = true,
+			showReason = true,
+			showUnopenedContainers = true, -- FIXME: deprecated
+		},
+		itemTooltip = {
+			showClassification = true,
+			showReason = false,
+		},
+
+		dataSources = {
+			buyout = {},
+			buyoutDisabled = {},
+			disenchant = {},
+			disenchantDisabled = {},
+		},
+		prices = {},
+	},
+	profile = {
+		keep = {},
+		toss = {},
+	},
+	char = {
+		moneyLost   = 0,
+		moneyEarned = 0,
+		numSold     = 0,
+		numDeleted  = 0,
+	},
+}
+
 function addon:OnInitialize()
 	self.list = {} 		-- { <location>, <location>, ...} to reference self.container[<location>]
 	self.locations = {} -- [<itemID -or- category>] = { <location>, ... }
@@ -69,7 +128,7 @@ function addon:OnInitialize()
 end
 
 function addon:OnEnable()
-	self.db = LibStub('AceDB-3.0'):New(addonName..'DB', self.defaults, true)
+	self.db = LibStub('AceDB-3.0'):New(addonName..'DB', defaults, true)
 	self:PortSettings()
 
 	self.prices = self.db.global.prices
