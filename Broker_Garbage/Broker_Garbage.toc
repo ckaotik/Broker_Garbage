@@ -59,7 +59,6 @@ locale\deDE.lua
 locale\curse.lua
 
 # main files
-constants.lua
 util.lua
 sources.lua
 display.lua
