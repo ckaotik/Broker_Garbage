@@ -185,10 +185,9 @@ function plugin:OnEnable()
 
 	self:RegisterEvent('MERCHANT_SHOW')
 
-	local optionsTable = LibStub('LibOptionsGenerate-1.0'):GetOptionsTable(self.db)
-	      optionsTable.name = addonName .. ' - Vendor'
+	local optionsTable = LibStub('LibOptionsGenerate-1.0'):GetOptionsTable(self.db, nil, addon.configLocale)
+	      optionsTable.name = addonName .. ' - ' .. self:GetName()
 	LibStub('AceConfig-3.0'):RegisterOptionsTable(self.name, optionsTable)
-	-- LibStub('AceConfigDialog-3.0'):AddToBlizOptions(self.name, 'Vendor', 'Broker_Garbage') --, 'general')
 end
 
 function plugin:MERCHANT_SHOW()
