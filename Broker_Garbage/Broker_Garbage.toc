@@ -69,4 +69,9 @@ Broker_Garbage.lua
 vendor.lua
 externals.lua
 slashcmd.lua
+
+# configuration
+locale\config.enUS.lua
+locale\config.deDE.lua
+locale\config.curse.lua
 config.lua
