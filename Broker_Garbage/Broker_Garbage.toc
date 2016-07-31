@@ -68,4 +68,5 @@ containers.lua
 Broker_Garbage.lua
 vendor.lua
 externals.lua
+slashcmd.lua
 config.lua
