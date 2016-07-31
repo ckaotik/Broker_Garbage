@@ -2,7 +2,7 @@ local addonName, plugin, _ = ...
 local L = plugin.locale
 local addon = _G.Broker_Garbage
 
-plugin = addon:NewModule('Loot Manager', 'AceEvent-3.0', 'AceTimer-3.0')
+plugin = addon:NewModule('Loot Manager', 'AceEvent-3.0')
 
 -- GLOBALS: _G, LibStub
 -- GLOBALS: GetCVarBool, GetLootInfo, GetLootSlotLink, GetLootSlotInfo, GetLootSlotType, LootSlot, ConfirmLootSlot
