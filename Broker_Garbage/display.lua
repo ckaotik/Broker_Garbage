@@ -203,7 +203,7 @@ function BG.ShowTooltip(self)
 
 		-- adds lines: itemLink, count, itemPrice, source
 		local _, link, _, _, _, _, _, _, _, icon, _ = GetItemInfo(cacheData.item.id)
-		local text = (BG.db.global.tooltip.showIcon and "|T"..icon..":0|t " or "") .. link
+		local text = (BG.db.global.tooltip.showIcon and "|T" .. (icon or 'Interface\\Icons\\INV_Misc_QuestionMark') .. ":0|t " or "") .. (link or _G.UNKNOWN)
 		local source = BG.GetInfo(cacheData.label, true) or ""
 
 		lineNum = tooltip:AddLine(text, cacheData.count, BG.FormatMoney(cacheData.value*cacheData.count), BG.db.global.tooltip.showReason and source or nil)
