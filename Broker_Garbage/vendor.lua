@@ -192,8 +192,7 @@ function plugin:OnEnable()
 end
 
 function plugin:MERCHANT_SHOW()
-	local disable = addon.disableKey[addon.db.global.disableKey]
-	if not (disable and disable()) then
+	if not addon:IsDisabled() then
 		self:AutoSell()
 		self:AutoRepair()
 	end

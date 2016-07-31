@@ -4,8 +4,14 @@ local addonName, ns, _ = ...
 -- GLOBALS: IsAddOnLoaded
 -- GLOBALS: string, tonumber, hooksecurefunc, pairs, strsplit
 
+local disableKeys = {
+	["NONE"] 	= function() return false end,
+	["SHIFT"] 	= IsShiftKeyDown,
+	["ALT"] 	= IsAltKeyDown,
+	["CTRL"] 	= IsControlKeyDown,
+}
 function ns.IsDisabled()
-	local disable = ns.disableKey[ns.db.global.disableKey]
+	local disable = disableKeys[ns.db.global.disableKey]
 	return (disable and disable())
 end
 
