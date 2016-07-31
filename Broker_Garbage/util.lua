@@ -14,9 +14,33 @@ function BG.GetItemID(itemLink)
 	return id and tonumber(id) or nil, linkType, data
 end
 
+-- item classifications
+BG.IGNORE = -1
+-- static list types
+BG.EXCLUDE = 0 -- unused
+BG.INCLUDE = 1 -- mostly unused
+BG.AUTOSELL = 2
+-- price types
+BG.AUCTION = 6
+BG.VENDOR = 7
+BG.DISENCHANT = 8
+BG.CUSTOM = 9
+
+local info = {
+	[BG.IGNORE]     = {"|cFFbbbbbb", "-", _G.IGNORE},
+	[BG.EXCLUDE]    = {"|cFFffffff", "K", BG.locale.listExclude}, -- keep
+	[BG.INCLUDE]    = {"|cFFb1b1b1", "J", BG.locale.listInclude}, -- junk
+	[BG.AUTOSELL]   = {"|cFFff592d", "V", BG.locale.listSell},
+	[BG.AUCTION]    = {"|cFF2bff58", "A", BG.locale.listAuction},
+	[BG.VENDOR]     = {"|cFFff9c5a", "V", BG.locale.listVendor},
+	[BG.DISENCHANT] = {"|cFFe052ff", "D", BG.locale.listDisenchant},
+	[BG.CUSTOM]     = {"|cFFf3d91b", "C", ""},
+}
+-- Label for the behavior/action that is suggested for an item.
 function BG.GetInfo(label, short)
-	if BG.info[label] then
-		return BG.info[label][1] .. BG.info[label][ short and 2 or 3 ] .. "|r"
+	if info[label] then
+		local color, singleChar, name = unpack(info[label])
+		return color .. (short and singleChar or name) .. "|r"
 	end
 end
 
