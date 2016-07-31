@@ -20,5 +20,6 @@
 ## X-Category: Inventory
 ## X-Credits: KarniCrap(Karnifex)
 
-locale.lua
+enUS.lua
+locale.curse.lua
 Broker_Garbage-LootManager.lua

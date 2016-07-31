@@ -1,5 +1,5 @@
 local addonName, plugin, _ = ...
-local L = LibStub('AceLocale-3.0'):GetLocale(addonName)
+local L = plugin.locale
 local addon = _G.Broker_Garbage
 
 plugin = addon:NewModule('Loot Manager', 'AceEvent-3.0', 'AceTimer-3.0')

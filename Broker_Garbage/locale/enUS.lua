@@ -1,9 +1,10 @@
 -- enUS / enGB / default localization file
-local _, BG = ...
-BG.locale = {}
-local L = BG.locale
+local _, addon = ...
+local L = {}
+addon.locale = L
 
 -- if GetLocale() == "enUS" then
+
 	L["label"] = "Junk, be gone!"
 
 	-- Chat Messages
