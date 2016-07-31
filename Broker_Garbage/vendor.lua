@@ -128,7 +128,7 @@ local function GetSellButton(noCreate)
 	button:SetScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 		GameTooltip:SetText(addon.junkValue == 0 and addon.locale.reportNothingToSell
-			or string.format(addon.locale.autoSellTooltip, addon.FormatMoney(addon.junkValue, nil, true)), 
+			or string.format(addon.locale.autoSellTooltip, addon.FormatMoney(addon.junkValue, nil, true)),
 			nil, nil, nil, nil, true)
 	end)
 	button:SetScript("OnLeave", GameTooltip_Hide)

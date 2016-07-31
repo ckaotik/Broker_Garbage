@@ -391,7 +391,7 @@ function ns.GetItemAction(location)
 
 	local maxPrice = math.max(disenchantPrice, auctionPrice, userPrice, item.v or 0, 0)
 	if maxPrice == 0 and ns.db.global.ignoreZeroValue then
-		label = ns.IGNORE
+		label = nil
 		reason = ns.reason.WORTHLESS
 	elseif maxPrice == userPrice then
 		label = ns.CUSTOM
