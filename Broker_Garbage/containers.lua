@@ -303,7 +303,7 @@ function ns.GetItemPriority(location)
 	end
 
 	-- unusable gear
-	if ns.db.global.sellUnusable and item.q <= ns.db.global.sellUnusableQuality and
+	if item.q <= ns.db.global.sellUnusableQuality and
 		item.slot ~= "" and item.slot ~= "INVTYPE_BAG" and item.bop and Unfit:IsItemUnusable(item.id) then
 		-- soulbound boe can't be unusable!
 		priority = ns.priority.NEUTRAL
@@ -312,7 +312,7 @@ function ns.GetItemPriority(location)
 	end
 
 	-- outdated gear
-	if ns.db.global.sellOutdated and item.q <= ns.db.global.sellOutdatedQuality and
+	if item.q <= ns.db.global.sellOutdatedQuality and
 		item.slot ~= "" and item.slot ~= "INVTYPE_BAG" and ns.IsItemSoulbound(location) then
 		local isOutdated, isHighestLevel = ns.IsOutdatedItem(location)
 		if isOutdated then

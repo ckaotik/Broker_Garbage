@@ -42,7 +42,7 @@ function BG:PortSettings()
 		for k, v in pairs(db.prices or emptyTable) do self.db.global.prices[k] = v end
 		db.keep, db.toss, db.prices = nil, nil, nil
 
-		local unchanged = {'disableKey', 'dropQuality', 'keepHighestItemLevel', 'keepQuestItems', 'sellUnusable', 'sellUnusableQuality', 'sellOutdated', 'sellOutdatedQuality'}
+		local unchanged = {'disableKey', 'dropQuality', 'keepHighestItemLevel', 'keepQuestItems'}
 		local mappings = {
 			showJunkSellIcons = 'showBagnonSellIcons',
 			disenchantValues = 'hasEnchanter',
@@ -71,6 +71,8 @@ function BG:PortSettings()
 			self.db.global[variable] = db[variable] or nil
 			db[variable] = nil
 		end
+		self.db.global.sellUnusableQuality = db.sellUnusable and db.sellUnusableQuality or -1
+		self.db.global.sellOutdatedQuality = db.sellOutdated and db.sellOutdatedQuality or -1
 		-- moneyFormat = 'showMoney',
 		self.db.global['moneyFormat'] = (db['showMoney'] <= 3 and 'dot') or (db['showMoney'] <= 5 and 'gsc') or 'icon'
 		for new, old in pairs(mappings) do
