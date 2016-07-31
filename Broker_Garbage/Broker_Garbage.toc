@@ -1,14 +1,14 @@
 ## Interface: 70000
 ## Dependencies:
-## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auc-Advanced, Enchantrix, WOWEcon_PriceMod, Auctional, ArkInventoryRules, Bagnon, ElvUI
+## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auc-Advanced, Enchantrix, WOWEcon_PriceMod, Auctional, ArkInventoryRules, Bagnon, ElvUI, Ace3, LibDualSpec-1.0, LibQTip-1.0, LibItemUpgradeInfo-1.0, LibProcessable
 ## SavedVariables: Broker_GarbageDB
 
 ## Title: Broker_Garbage
 ## Author: ckaotik
 ## Version: @project-version@
+
 ## Notes: Full bags no more! Distinguish between junk and treasure, find items to drop quickly.
 ## Notes-deDE: Unterscheide Trödel von Schätzen und finde billigen Müll zum Platzschaffen.
-
 ## Notes-frFR: @localization(locale="frFR", key="TOC_Notes", namespace="Core")@
 ## Notes-itIT: @localization(locale="itIT", key="TOC_Notes", namespace="Core")@
 ## Notes-koKR: @localization(locale="koKR", key="TOC_Notes", namespace="Core")@
@@ -30,18 +30,28 @@
 ## X-License: BSD
 
 # libraries
-#@no-lib-strip@
+libs\LibStub.lua
 libs\LibDataBroker-1.1.lua
-libs\LibStub\LibStub.lua
-libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
-libs\LibQTip-1.0\LibQTip-1.0.lua
+libs\CallbackHandler-1.0.lua
+
+#@no-lib-strip@
+libs\AceConfig-3.0\AceConfig-3.0.xml
+libs\AceDB-3.0\AceDB-3.0.xml
+libs\AceDBOption-3.0\AceDBOption-3.0.xml
+libs\AceEvent-3.0\AceEvent-3.0.xml
+libs\AceAddon-3.0\AceAddon-3.0.xml
+libs\LibDualSpec-1.0\LibDualSpec-1.0.lua
+
 libs\LibItemUpgradeInfo-1.0\Core.lua
 libs\LibProcessable\LibProcessable.lua
+libs\LibQTip-1.0\LibQTip-1.0.lua
 #@end-no-lib-strip@
-libs\LibItemLocations\LibItemLocations.lua
-libs\LibOptionsGenerate-1.0.lua
-# unfit is special, as curse's version is outdated
+
+# Unfit is special, as Curse's version is outdated
 libs\Unfit-1.0\Unfit-1.0.lua
+# Custom libraries.
+libs\LibItemLocations.lua
+libs\LibOptionsGenerate-1.0.lua
 
 # localization files
 locale\enUS.lua

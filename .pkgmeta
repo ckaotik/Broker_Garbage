@@ -2,36 +2,49 @@ package-as: Broker_Garbage
 
 ignore:
     - readme.creole
-    - Broker_Garbage/libs/CallbackHandler-1.0
-    - Broker_Garbage/libs/LibStub
-    - Broker_Garbage/libs/LibQTip-1.0
+    # - Broker_Garbage/libs/AceAddon-3.0
+    # - Broker_Garbage/libs/AceConfig-3.0
+    # - Broker_Garbage/libs/AceDB-3.0
+    # - Broker_Garbage/libs/AceDBOptions-3.0
+    # - Broker_Garbage/libs/AceEvent-3.0
+    - Broker_Garbage/libs/LibDualSpec-1.0
     - Broker_Garbage/libs/LibItemUpgradeInfo-1.0
+    - Broker_Garbage/libs/LibProcessable
+    - Broker_Garbage/libs/LibQTip-1.0
     - Broker_Garbage/libs/Unfit-1.0
 
 externals:
-    Broker_Garbage/libs/CallbackHandler-1.0:
-        url: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
-        tag: latest
-    Broker_Garbage/libs/LibStub:
-        url: svn://svn.wowace.com/wow/libstub/mainline/trunk
-        tag: latest
-    Broker_Garbage/libs/LibQTip-1.0:
-        url: svn://svn.wowace.com/wow/libqtip-1-0/mainline/trunk
+    Broker_Garbage/libs/LibDualSpec-1.0:
+        url: git://git.wowace.com/wow/libdualspec-1-0/mainline.git
         tag: latest
     Broker_Garbage/libs/LibItemUpgradeInfo-1.0:
         url: git://git.wowace.com/wow/libitemupgradeinfo-1-0/mainline.git
         tag: latest
+    Broker_Garbage/libs/LibProcessable:
+        url: git://git.curseforge.com/wow/libprocessable/mainline.git
+        tag: latest
+    Broker_Garbage/libs/LibQTip-1.0:
+        url: svn://svn.wowace.com/wow/libqtip-1-0/mainline/trunk
+        tag: latest
     Broker_Garbage/libs/Unfit-1.0:
         url: git://github.com/Jaliborc/Unfit-1.0.git
 
+# required-dependencies:
+#    - ace3
+
 optional-dependencies:
+    - ace3
+    - libqtip-1.0
+    - libitemupgradeInfo-1.0
+    - libprocessable
     - libperiodictable-3-1
 
 tools-used:
+    - libstub
+    - callbackhandler
     - libdatabroker-1-1
     - findglobals
 
 move-folders:
-    Broker_Garbage/Broker_Garbage-Config: Broker_Garbage-Config
     Broker_Garbage/Broker_Garbage-LootManager: Broker_Garbage-LootManager
     Broker_Garbage/Broker_Garbage: Broker_Garbage

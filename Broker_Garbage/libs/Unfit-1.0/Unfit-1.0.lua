@@ -1,5 +1,5 @@
 --[[
-Copyright 2011-2012 João Cardoso
+Copyright 2011-2015 João Cardoso
 Unfit is distributed under the terms of the GNU General Public License (Version 3).
 As a special exception, the copyright holders of this library give you permission to embed it
 with independent modules to produce an addon, regardless of the license terms of these
@@ -18,51 +18,96 @@ along with the library. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
 This file is part of Unfit.
 --]]
 
-local Lib = LibStub:NewLibrary('Unfit-1.0', 6)
+local Lib = LibStub:NewLibrary('Unfit-1.0', 9)
 if not Lib then
 	return
-else
-	Lib.unusable = Lib.unusable or {}
 end
 
 
 --[[ Data ]]--
 
-local _, Class = UnitClass('player')
-local Unusable = Lib.unusable
+do
+	local _, Class = UnitClass('player')
+	local Unusable
 
-if Class == 'DEATHKNIGHT' then
-	Unusable = {{3, 4, 10, 11, 13, 14, 15, 16}, {6}} -- weapons, armor, dual wield
-elseif Class == 'DRUID' then
-	Unusable = {{1, 2, 3, 4, 8, 9, 14, 15, 16}, {4, 5, 6}, true}
-elseif Class == 'HUNTER' then
-	Unusable = {{5, 6, 16}, {5, 6}}
-elseif Class == 'MAGE' then
-	Unusable = {{1, 2, 3, 4, 5, 6, 7, 9, 11, 14, 15}, {3, 4, 5, 6}, true}
-elseif Class == 'MONK' then
-	Unusable = {{2, 3, 4, 6, 9, 13, 14, 15, 16}, {4, 5, 6}}
-elseif Class == 'PALADIN' then
-	Unusable = {{3, 4, 10, 11, 13, 14, 15, 16}, {}, true}
-elseif Class == 'PRIEST' then
-	Unusable = {{1, 2, 3, 4, 6, 7, 8, 9, 11, 14, 15}, {3, 4, 5, 6}, true}
-elseif Class == 'ROGUE' then
-	Unusable = {{2, 6, 7, 9, 10, 16}, {4, 5, 6}}
-elseif Class == 'SHAMAN' then
-	Unusable = {{3, 4, 7, 8, 9, 14, 15, 16}, {5}}
-elseif Class == 'WARLOCK' then
-	Unusable = {{1, 2, 3, 4, 5, 6, 7, 9, 11, 14, 15}, {3, 4, 5, 6}, true}
-elseif Class == 'WARRIOR' then
-	Unusable = {{16}, {}}
-end
-
-for class = 1, 2 do
-	local subs = {GetAuctionItemSubClasses(class)}
-	for i, subclass in ipairs(Unusable[class]) do
-		Unusable[subs[subclass]] = true
+	if Class == 'DEATHKNIGHT' then
+		Unusable = { -- weapon, armor, dual-wield
+			{LE_ITEM_WEAPON_BOWS, LE_ITEM_WEAPON_GUNS, LE_ITEM_WEAPON_WARGLAIVE, LE_ITEM_WEAPON_STAFF,LE_ITEM_WEAPON_UNARMED, LE_ITEM_WEAPON_DAGGER, LE_ITEM_WEAPON_THROWN, LE_ITEM_WEAPON_CROSSBOW, LE_ITEM_WEAPON_WAND},
+			{LE_ITEM_ARMOR_SHIELD}
+		}
+	elseif Class == 'DEMONHUNTER' then
+		Unusable = {
+			{LE_ITEM_WEAPON_AXE2H, LE_ITEM_WEAPON_BOWS, LE_ITEM_WEAPON_GUNS, LE_ITEM_WEAPON_MACE1H, LE_ITEM_WEAPON_MACE2H, LE_ITEM_WEAPON_POLEARM, LE_ITEM_WEAPON_SWORD2H, LE_ITEM_WEAPON_STAFF, LE_ITEM_WEAPON_THROWN, LE_ITEM_WEAPON_CROSSBOW, LE_ITEM_WEAPON_WAND},
+			{LE_ITEM_ARMOR_MAIL, LE_ITEM_ARMOR_PLATE, LE_ITEM_ARMOR_SHIELD}
+		}
+	elseif Class == 'DRUID' then
+		Unusable = {
+			{LE_ITEM_WEAPON_AXE1H, LE_ITEM_WEAPON_AXE2H, LE_ITEM_WEAPON_BOWS, LE_ITEM_WEAPON_GUNS, LE_ITEM_WEAPON_SWORD1H, LE_ITEM_WEAPON_SWORD2H, LE_ITEM_WEAPON_WARGLAIVE, LE_ITEM_WEAPON_THROWN, LE_ITEM_WEAPON_CROSSBOW, LE_ITEM_WEAPON_WAND},
+			{LE_ITEM_ARMOR_MAIL, LE_ITEM_ARMOR_PLATE, LE_ITEM_ARMOR_SHIELD},
+			true
+		}
+	elseif Class == 'HUNTER' then
+		Unusable = {
+			{LE_ITEM_WEAPON_MACE1H, LE_ITEM_WEAPON_MACE2H, LE_ITEM_WEAPON_WARGLAIVE, LE_ITEM_WEAPON_THROWN, LE_ITEM_WEAPON_WAND},
+			{LE_ITEM_ARMOR_PLATE, LE_ITEM_ARMOR_SHIELD}
+		}
+	elseif Class == 'MAGE' then
+		Unusable = {
+			{LE_ITEM_WEAPON_AXE1H, LE_ITEM_WEAPON_AXE2H, LE_ITEM_WEAPON_BOWS, LE_ITEM_WEAPON_GUNS, LE_ITEM_WEAPON_MACE1H, LE_ITEM_WEAPON_MACE2H, LE_ITEM_WEAPON_POLEARM, LE_ITEM_WEAPON_SWORD2H, LE_ITEM_WEAPON_WARGLAIVE, LE_ITEM_WEAPON_UNARMED, LE_ITEM_WEAPON_THROWN, LE_ITEM_WEAPON_CROSSBOW},
+			{LE_ITEM_ARMOR_LEATHER, LE_ITEM_ARMOR_MAIL, LE_ITEM_ARMOR_PLATE, LE_ITEM_ARMOR_SHIELD},
+			true
+		}
+	elseif Class == 'MONK' then
+		Unusable = {
+			{LE_ITEM_WEAPON_AXE2H, LE_ITEM_WEAPON_BOWS, LE_ITEM_WEAPON_GUNS, LE_ITEM_WEAPON_MACE2H, LE_ITEM_WEAPON_SWORD2H, LE_ITEM_WEAPON_WARGLAIVE, LE_ITEM_WEAPON_DAGGER, LE_ITEM_WEAPON_THROWN, LE_ITEM_WEAPON_CROSSBOW, LE_ITEM_WEAPON_WAND},
+			{LE_ITEM_ARMOR_MAIL, LE_ITEM_ARMOR_PLATE, LE_ITEM_ARMOR_SHIELD}
+		}
+	elseif Class == 'PALADIN' then
+		Unusable = {
+			{LE_ITEM_WEAPON_BOWS, LE_ITEM_WEAPON_GUNS, LE_ITEM_WEAPON_WARGLAIVE, LE_ITEM_WEAPON_STAFF, LE_ITEM_WEAPON_UNARMED, LE_ITEM_WEAPON_DAGGER, LE_ITEM_WEAPON_THROWN, LE_ITEM_WEAPON_CROSSBOW, LE_ITEM_WEAPON_WAND},
+			{},
+			true
+		}
+	elseif Class == 'PRIEST' then
+		Unusable = {
+			{LE_ITEM_WEAPON_AXE1H, LE_ITEM_WEAPON_AXE2H, LE_ITEM_WEAPON_BOWS, LE_ITEM_WEAPON_GUNS, LE_ITEM_WEAPON_MACE2H, LE_ITEM_WEAPON_POLEARM, LE_ITEM_WEAPON_SWORD1H, LE_ITEM_WEAPON_SWORD2H, LE_ITEM_WEAPON_WARGLAIVE, LE_ITEM_WEAPON_UNARMED, LE_ITEM_WEAPON_THROWN, LE_ITEM_WEAPON_CROSSBOW},
+			{LE_ITEM_ARMOR_LEATHER, LE_ITEM_ARMOR_MAIL, LE_ITEM_ARMOR_PLATE, LE_ITEM_ARMOR_SHIELD},
+			true
+		}
+	elseif Class == 'ROGUE' then
+		Unusable = {
+			{LE_ITEM_WEAPON_AXE2H, LE_ITEM_WEAPON_MACE2H, LE_ITEM_WEAPON_POLEARM, LE_ITEM_WEAPON_SWORD2H, LE_ITEM_WEAPON_WARGLAIVE, LE_ITEM_WEAPON_STAFF, LE_ITEM_WEAPON_WAND},
+			{LE_ITEM_ARMOR_MAIL, LE_ITEM_ARMOR_PLATE, LE_ITEM_ARMOR_SHIELD}
+		}
+	elseif Class == 'SHAMAN' then
+		Unusable = {
+			{LE_ITEM_WEAPON_BOWS, LE_ITEM_WEAPON_GUNS, LE_ITEM_WEAPON_POLEARM, LE_ITEM_WEAPON_SWORD1H, LE_ITEM_WEAPON_SWORD2H, LE_ITEM_WEAPON_WARGLAIVE, LE_ITEM_WEAPON_THROWN, LE_ITEM_WEAPON_CROSSBOW, LE_ITEM_WEAPON_WAND},
+			{LE_ITEM_ARMOR_PLATEM}
+		}
+	elseif Class == 'WARLOCK' then
+		Unusable = {
+			{LE_ITEM_WEAPON_AXE1H, LE_ITEM_WEAPON_AXE2H, LE_ITEM_WEAPON_BOWS, LE_ITEM_WEAPON_GUNS, LE_ITEM_WEAPON_MACE1H, LE_ITEM_WEAPON_MACE2H, LE_ITEM_WEAPON_POLEARM, LE_ITEM_WEAPON_SWORD2H, LE_ITEM_WEAPON_WARGLAIVE, LE_ITEM_WEAPON_UNARMED, LE_ITEM_WEAPON_THROWN, LE_ITEM_WEAPON_CROSSBOW},
+			{LE_ITEM_ARMOR_LEATHER, LE_ITEM_ARMOR_MAIL, LE_ITEM_ARMOR_PLATE, LE_ITEM_ARMOR_SHIELD},
+			true
+		}
+	elseif Class == 'WARRIOR' then
+		Unusable = {{LE_ITEM_WEAPON_WARGLAIVE, LE_ITEM_WEAPON_WAND}, {}}
+	else
+		Unusable = {{}, {}}
 	end
+
+
+	Lib.unusable = {}
+	Lib.cannotDual = Unusable[3]
+
+	for i, class in ipairs({LE_ITEM_CLASS_WEAPON, LE_ITEM_CLASS_ARMOR}) do
+		local list = {}
+		for _, subclass in ipairs(Unusable[i]) do
+			list[subclass] = true
+		end
 		
-	Unusable[class] = nil
-	subs = nil
+		Lib.unusable[class] = list
+	end
 end
 
 
@@ -70,13 +115,13 @@ end
 
 function Lib:IsItemUnusable(...)
 	if ... then
-		local subclass, _, slot = select(7, GetItemInfo(...))
-		return Lib:IsClassUnusable(subclass, slot)
+		local slot, _,_, class, subclass = select(9, GetItemInfo(...))
+		return Lib:IsClassUnusable(class, subclass, slot)
 	end
 end
 
-function Lib:IsClassUnusable(subclass, slot)
-	if subclass then
-		return Unusable[subclass] or slot == 'INVTYPE_WEAPONOFFHAND' and Unusable[3]
+function Lib:IsClassUnusable(class, subclass, slot)
+	if class and subclass and Lib.unusable[class] then
+		return slot ~= '' and Lib.unusable[class][subclass] or slot == 'INVTYPE_WEAPONOFFHAND' and Lib.cannotDual
 	end
 end
