@@ -221,7 +221,7 @@ function BG.ShowTooltip(self)
 	end
 
 	-- add statistics information
-	local moneyEarned, moneyLost = BG:GetStatistics(BG.db.keys.profile)
+	local moneyEarned, moneyLost = BG:GetStatistics(BG.db.keys.char)
 	if (BG.db.global.tooltip.showMoneyLost and moneyLost ~= 0)
 		or (BG.db.global.tooltip.showMoneyEarned and moneyEarned ~= 0) then
 
