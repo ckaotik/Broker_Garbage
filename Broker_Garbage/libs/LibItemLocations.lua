@@ -1,4 +1,4 @@
-local MAJOR, MINOR = 'LibItemLocations', 7
+local MAJOR, MINOR = 'LibItemLocations', 8
 assert(LibStub, MAJOR..' requires LibStub')
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -188,4 +188,30 @@ function lib:GetLocationItemInfo(location)
 	name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice, itemID = GetItemInfo(link or itemID)
 
 	return itemID, name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
+end
+
+-- Pickup the item in a given location and put it on the cursor, if possible.
+function lib:PickupLocationItem(location)
+	local container, slot, player, bank, bags, voidStorage, reagentBank, mailAttachment, guildBank, auctionHouse = lib:UnpackInventoryLocation(location)
+
+	if (player and not bags) or container == EQUIPMENT_CONTAINER then
+		-- slot: equipment slot
+		PickupInventoryItem(slot)
+	elseif voidStorage then
+		-- container: tab, slot: slot
+		ClickVoidStorageSlot(container, slot)
+	elseif mailAttachment then
+		-- container: mailIndex, slot: attachmentIndex
+		TakeInboxItem(container, slot)
+	elseif guildBank then
+		-- container: tab, slot: slot
+		PickupGuildBankItem(container, slot)
+	elseif container == AUCTIONHOUSE_CONTAINER then
+		-- Items currently on the auction house cannot be picked up.
+	else
+		-- backpack, backpack bags, bank, bank bags, reagent bank
+		PickupContainerItem(container, slot)
+	end
+
+	return CursorHasItem()
 end
