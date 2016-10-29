@@ -10,9 +10,7 @@ local emptyTable = {}
 
 --[[-- TODO --
 	* handle specialty bags
-	* update Config addon
 	* fix statistics/assurance when selling items
-	* display reasons in item/ldb tooltip?
 	* update list presets
 	* move code to proper files
 	* local X for frequently used funcs

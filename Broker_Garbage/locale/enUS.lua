@@ -1,10 +1,9 @@
 -- enUS / enGB / default localization file
-local _, addon = ...
-local L = {}
-addon.locale = L
+local _, BG = ...
+BG.locale = {}
+local L = BG.locale
 
 -- if GetLocale() == "enUS" then
-
 	L["label"] = "Junk, be gone!"
 
 	-- Chat Messages
@@ -66,5 +65,4 @@ addon.locale = L
 	L["reason_SOULBOUND"] = "soulbound"
 	L["reason_QUALITY"] = "quality above threshold"
 	L["reason_HIGHEST_LEVEL"] = "outdated but highest ilvl"
-
 -- end
