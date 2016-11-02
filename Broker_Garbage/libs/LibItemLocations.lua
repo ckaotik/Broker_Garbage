@@ -1,4 +1,4 @@
-local MAJOR, MINOR = 'LibItemLocations', 8
+local MAJOR, MINOR = 'LibItemLocations', 9
 assert(LibStub, MAJOR..' requires LibStub')
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -182,10 +182,12 @@ function lib:GetLocationItemInfo(location)
 		link = GetContainerItemLink(container, slot)
 	end
 
-	if link and not itemID then
+	if not link then
+		return nil
+	elseif not itemID then
 		itemID = link:match('item:(%d+)')*1
 	end
-	name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice, itemID = GetItemInfo(link or itemID)
+	name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(link or itemID)
 
 	return itemID, name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
 end
