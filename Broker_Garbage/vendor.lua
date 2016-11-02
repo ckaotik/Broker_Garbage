@@ -22,7 +22,7 @@ function plugin:AutoSell(manualTrigger)
 	wipe(sellLog) -- reset data for refilling
 	for location, cacheData in pairs(addon.containers) do
 		if cacheData.sell then
-			sellValue = sellValue + (cacheData.item.v * cacheData.count)
+			sellValue = sellValue + (cacheData.value * cacheData.count)
 
 			ClearCursor()
 			UseContainerItem(addon.GetBagSlot(location))

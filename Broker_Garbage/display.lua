@@ -1,9 +1,10 @@
 local addonName, BG, _ = ...
 
-local LibDataBroker = LibStub("LibDataBroker-1.1")
+local LibDataBroker = LibStub('LibDataBroker-1.1')
+local ItemLocations = LibStub('LibItemLocations')
 
 -- GLOBALS: LibStub, NORMAL_FONT_COLOR
--- GLOBALS: GetItemInfo, GetContainerNumFreeSlots, GetContainerItemInfo, InterfaceOptionsFrame_OpenToCategory, LoadAddOn, IsAltKeyDown, IsShiftKeyDown, IsControlKeyDown, UseContainerItem, CreateFrame, ClearCursor, InCombatLockdown, GetCoinTextureString
+-- GLOBALS: GetItemInfoInstant, GetContainerNumFreeSlots, GetContainerItemInfo, InterfaceOptionsFrame_OpenToCategory, LoadAddOn, IsAltKeyDown, IsShiftKeyDown, IsControlKeyDown, UseContainerItem, CreateFrame, ClearCursor, InCombatLockdown, GetCoinTextureString
 -- GLOBALS: pairs, select, type, string, math
 
 -- returns a red-to-green color depending on the given percentage
@@ -32,15 +33,15 @@ local formatReplaceFuncs = {
 	["[itemname]"] = function()
 		local cacheData = BG.containers[ BG.list[1] ]
 		if cacheData.item then
-			local _, itemLink = GetItemInfo(cacheData.item.id)
+			local _, _, itemLink = ItemLocations:GetLocationItemInfo(cacheData.loc)
 			return itemLink
 		end
 	end,
 	["[itemicon]"] = function()
 		local cacheData = BG.containers[ BG.list[1] ]
 		if cacheData.item then
-			local icon = select(10, GetItemInfo(cacheData.item.id))
-			return "|T"..icon..":0|t"
+			local _, _, _, _, icon = GetItemInfoInstant(cacheData.item.id)
+			return "|T" .. icon .. ":0|t"
 		end
 	end,
 	["[itemcount]"] = function()
@@ -132,8 +133,9 @@ function BG.UpdateLDB()
 	local LDB = LibDataBroker:GetDataObjectByName(addonName)
 	if cheapestItem and cacheData.item and cacheData.label ~= BG.IGNORE then
 		-- update LDB text
+		local _, _, _, _, icon = GetItemInfoInstant(cacheData.item.id)
 		LDB.text = (BG.db.global.label or ""):gsub("%b[]", formatReplacements)
-		LDB.icon = select(10, GetItemInfo(cacheData.item.id))
+		LDB.icon = icon
 	else
 		LDB.text = (BG.db.global.noJunkLabel or ""):gsub("%b[]", formatReplacements)
 		LDB.icon = "Interface\\Icons\\achievement_bg_returnxflags_def_wsg"
@@ -202,8 +204,9 @@ function BG.ShowTooltip(self)
 		end
 
 		-- adds lines: itemLink, count, itemPrice, source
-		local _, link, _, _, _, _, _, _, _, icon, _ = GetItemInfo(cacheData.item.id)
-		local text = (BG.db.global.tooltip.showIcon and "|T" .. (icon or 'Interface\\Icons\\INV_Misc_QuestionMark') .. ":0|t " or "") .. (link or _G.UNKNOWN)
+		local _, _, itemLink = ItemLocations:GetLocationItemInfo(location)
+		local _, _, _, _, icon = GetItemInfoInstant(cacheData.item.id)
+		local text = (BG.db.global.tooltip.showIcon and "|T" .. (icon or 'Interface\\Icons\\INV_Misc_QuestionMark') .. ":0|t " or "") .. (itemLink or _G.UNKNOWN)
 		local source = BG.GetInfo(cacheData.label, true) or ""
 
 		lineNum = tooltip:AddLine(text, cacheData.count, BG.FormatMoney(cacheData.value*cacheData.count), BG.db.global.tooltip.showReason and source or nil)
@@ -268,7 +271,7 @@ function BG.OnClick(self, location, btn)
 		end
 
 		-- handle different clicks
-		local itemID = cacheData.item.id
+		local itemID, _, itemLink = ItemLocations:GetLocationItemInfo(cacheData.loc)
 		if IsShiftKeyDown() then
 			-- delete or sell item, depending on whether we're at a vendor or not
 			if MerchantFrame:IsShown() and cacheData.value > 0 then
@@ -276,14 +279,12 @@ function BG.OnClick(self, location, btn)
 			else
 				BG.Delete(location)
 			end
-
 		elseif IsControlKeyDown() then
 			BG.Add("keep", itemID)
-			BG.Print(string.format(BG.locale.addedTo_exclude, select(2, GetItemInfo(itemID))))
-
+			BG.Print(string.format(BG.locale.addedTo_exclude, itemLink))
 		elseif IsAltKeyDown() then
 			BG.Add("price", itemID)
-			BG.Print(string.format(BG.locale.addedTo_forceVendorPrice, select(2,GetItemInfo(itemID))))
+			BG.Print(string.format(BG.locale.addedTo_forceVendorPrice, itemLink))
 		end
 		-- FIXME: if config ui is shown, update. delete/sell: statistics, or list options
 	end

@@ -5,7 +5,6 @@ local _, ns = ...
 
 local Unfit = LibStub("Unfit-1.0")
 local ItemLocations = LibStub('LibItemLocations')
-local QUEST = _G.AUCTION_CATEGORY_QUEST_ITEMS -- LE_ITEM_CLASS_QUESTITEM
 local emptyTable = {}
 
 --[[-- TODO --
@@ -113,7 +112,7 @@ local function Classify(location)
 		priority, doSell, priorityReason = ns.GetItemPriority(location)
 		if doSell then
 			cacheData.label = ns.AUTOSELL
-			cacheData.value = cacheData.item.v
+			cacheData.value = select(12, ItemLocations:GetLocationItemInfo(location))
 		elseif priority == ns.priority.NEGATIVE and cacheData.label == ns.IGNORE then
 			-- FIXME: conflict
 			cacheData.label = ns.INCLUDE
@@ -243,10 +242,14 @@ function ns.GetItemPriority(location)
 	--  allow SlotIsOverLimit with only checking *other* locations
 	--  adjust IsItemSoulbound to only use .bop if no location
 	local priority, reason
-	local item = ns.containers[location] and ns.containers[location].item
+	local cacheData = ns.containers[location]
+	local item = cacheData and cacheData.item
 	if not item or not item.id then
 		return ns.priority.IGNORE, false, ns.reason.EMPTY_SLOT
 	end
+
+	-- get information based on item instance
+	local itemID, _, itemLink, quality, iLevel, _, _, _, _, _, _, vendorPrice = ItemLocations:GetLocationItemInfo(location)
 
 	-- check list config by itemID
 	local listed = ns.keep[ item.id ]
@@ -266,11 +269,11 @@ function ns.GetItemPriority(location)
 		return priority, listed == 1, reason
 	end
 
-	if ns.db.global.LPTJunkIsJunk and item.q == 0 then
+	if ns.db.global.LPTJunkIsJunk and quality == 0 then
 		-- override categories that include gray items
 		priority = ns.priority.NEUTRAL
 		reason = ns.reason.GRAY_ITEM
-		return priority, item.v and item.v > 0, reason
+		return priority, vendorPrice > 0, reason
 	end
 
 	-- check list config by category
@@ -294,14 +297,14 @@ function ns.GetItemPriority(location)
 	end
 
 	-- quest items
-	if ns.db.global.keepQuestItems and item.cl == QUEST then
+	if ns.db.global.keepQuestItems and select(6, GetItemInfoInstant(item.id)) == _G.LE_ITEM_CLASS_QUESTITEM then
 		priority = ns.priority.POSITIVE
 		reason = ns.reason.QUEST_ITEM
 		return priority, false, reason
 	end
 
 	-- unusable gear
-	if item.q <= ns.db.global.sellUnusableQuality and
+	if quality <= ns.db.global.sellUnusableQuality and
 		item.slot ~= "" and item.slot ~= "INVTYPE_BAG" and item.bop and Unfit:IsItemUnusable(item.id) then
 		-- soulbound boe can't be unusable!
 		priority = ns.priority.NEUTRAL
@@ -310,7 +313,7 @@ function ns.GetItemPriority(location)
 	end
 
 	-- outdated gear
-	if item.q <= ns.db.global.sellOutdatedQuality and
+	if quality <= ns.db.global.sellOutdatedQuality and
 		item.slot ~= "" and item.slot ~= "INVTYPE_BAG" and ns.IsItemSoulbound(location) then
 		local isOutdated, isHighestLevel = ns.IsOutdatedItem(location)
 		if isOutdated then
@@ -323,21 +326,21 @@ function ns.GetItemPriority(location)
 	end
 
 	-- items without value
-	if item.v == 0 and ns.db.global.ignoreZeroValue then
+	if vendorPrice == 0 and ns.db.global.ignoreZeroValue then
 		priority = ns.priority.IGNORE
 		reason = ns.reason.WORTHLESS
 		return priority, false, reason
 	end
 
 	-- gray quality items
-	if item.q == 0 then -- TODO: config "autosell greys"
+	if quality == 0 then -- TODO: config "autosell greys"
 		priority = ns.priority.NEUTRAL
 		reason = ns.reason.GRAY_ITEM
 		return priority, true, reason
 	end
 
 	-- respect thresholds
-	if item.q > ns.db.global.dropQuality then
+	if quality > ns.db.global.dropQuality then
 		priority = ns.priority.IGNORE
 		reason = ns.reason.QUALITY
 		return priority, false, reason
@@ -348,20 +351,20 @@ end
 
 function ns.GetItemAction(location)
 	-- TODO: we should probably cache this to item ...
-	local item = ns.containers[ location ].item
+	local cacheData = ns.containers[location]
 	local label, reason
 
 	-- custom prices for either this item or one of its categories
-	local userPrice = ns.db.global.prices[item.id]
+	local userPrice = ns.db.global.prices[cacheData.item.id]
 	if userPrice then
-		userPrice = userPrice == -1 and item.v or userPrice
+		userPrice = (userPrice == -1) and cacheData.value or userPrice
 		reason = ns.reason.PRICE_ITEM
 	else
 		local maxCustomValue
-		for limiter, limit in pairs(item.limit or emptyTable) do
+		for limiter, limit in pairs(cacheData.item.limit or emptyTable) do
 			userPrice = ns.db.global.prices[limiter]
 			if userPrice then
-				local value = (userPrice == -1) and item.v or userPrice
+				local value = (userPrice == -1) and cacheData.value or userPrice
 				if not maxCustomValue or value > maxCustomValue then
 					maxCustomValue = value
 				end
@@ -387,7 +390,7 @@ function ns.GetItemAction(location)
 		userPrice = -1
 	end
 
-	local maxPrice = math.max(disenchantPrice, auctionPrice, userPrice, item.v or 0, 0)
+	local maxPrice = math.max(disenchantPrice, auctionPrice, userPrice, cacheData.value or 0, 0)
 	if maxPrice == 0 and ns.db.global.ignoreZeroValue then
 		label = nil
 		reason = ns.reason.WORTHLESS
@@ -395,7 +398,7 @@ function ns.GetItemAction(location)
 		label = ns.CUSTOM
 		reason = reason
 	else
-		label = (maxPrice == item.v and ns.VENDOR) or
+		label = (maxPrice == cacheData.value and ns.VENDOR) or
 	            (maxPrice == disenchantPrice and ns.DISENCHANT) or
 	            (maxPrice == auctionPrice and ns.AUCTION) or
 	            ns.IGNORE

@@ -99,10 +99,7 @@ function addon:OnInitialize()
 	self.item = setmetatable({}, {
 		__mode = "kv",
 		__index = function(itemTable, item)
-			-- item info should be available, as we only check items we own
-			local _, link, quality, iLevel, _, itemClass, _, _, equipSlot, _, vendorPrice = GetItemInfo(item)
-			local itemID = link and tonumber(link:match('item:(%d+):') or '')
-
+			local itemID, _, _, equipSlot, _, itemClassID = GetItemInfoInstant(item)
 			if not itemID then
 				return {}
 			elseif itemID ~= item then
@@ -113,10 +110,6 @@ function addon:OnInitialize()
 				id     = itemID,
 				slot   = equipSlot,
 				limit  = {}, 				-- list of categories that contain this item
-				cl     = itemClass,
-				l      = iLevel,
-				q      = quality,
-				v      = vendorPrice,
 				bop    = self.IsItemBoP(itemID),
 			}
 			return itemTable[itemID]
