@@ -112,7 +112,9 @@ local function Classify(location)
 		priority, doSell, priorityReason = ns.GetItemPriority(location)
 		if doSell then
 			cacheData.label = ns.AUTOSELL
-			cacheData.value = select(12, ItemLocations:GetLocationItemInfo(location))
+			cacheData.value = location == ns.EXTERNAL_ITEM_LOCATION
+				and select(11, GetItemInfo(cacheData.link))
+				or select(12, ItemLocations:GetLocationItemInfo(location))
 		elseif priority == ns.priority.NEGATIVE and cacheData.label == ns.IGNORE then
 			-- FIXME: conflict
 			cacheData.label = ns.INCLUDE
@@ -254,7 +256,7 @@ function ns.GetItemPriority(location)
 	-- get information based on item instance
 	local itemID, itemLink, quality, iLevel, vendorPrice
 	if location == ns.EXTERNAL_ITEM_LOCATION then
-		itemID, itemLink = cacheData.item.id, cacheData.item.link
+		itemID, itemLink = cacheData.item.id, cacheData.link
 		_, _, quality, iLevel, _, _, _, _, _, _, vendorPrice = GetItemInfo(itemLink)
 	else
 		itemID, _, itemLink, quality, iLevel, _, _, _, _, _, _, vendorPrice = ItemLocations:GetLocationItemInfo(location)
@@ -432,7 +434,7 @@ function ns.GetUnownedItemInfo(item, count)
 	-- pretend to have this item in inventory
 	ns.externalItem.count = count or 1
 	ns.externalItem.item  = ns.item[itemID]
-	ns.externalItem.item.link = itemLink
+	ns.externalItem.link = itemLink
 
 	-- get classification data
 	local data = Classify(ns.EXTERNAL_ITEM_LOCATION)
