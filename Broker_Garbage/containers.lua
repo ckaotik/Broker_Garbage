@@ -179,6 +179,11 @@ function ns:UpdateBagSlot(container, slot, forced)
 	cacheData.count = newCount or 0
 	cacheData.sell  = nil
 
+	if not isLimited then
+		-- just this one slot affected, scan right away
+		Classify(location)
+	end
+
 	if newItem then
 		-- update fields
 		local label, actionValue, actionReason = ns.GetItemAction(location)
@@ -189,11 +194,6 @@ function ns:UpdateBagSlot(container, slot, forced)
 		cacheData.label = ns.IGNORE
 		cacheData.value = 0
 		cacheData.priority = ns.priority.IGNORE
-	end
-
-	if not isLimited then
-		-- just this one slot affected, scan right away
-		Classify(location)
 	end
 
 	return true, isLimited
