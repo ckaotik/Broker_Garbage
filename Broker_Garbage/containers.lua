@@ -121,7 +121,7 @@ local function Classify(location)
 
 	cacheData.priority = priority or ns.priority.NEUTRAL
 	cacheData.reason   = priorityReason
-	cacheData.sell     = doSell
+	cacheData.sell     = doSell or nil
 
 	-- ns:SendMessage('ITEM_SLOT_UPDATE', location, cacheData.item and cacheData.item.id, cacheData.label, cacheData.priority, cacheData.reason, cacheData.sell)
 
@@ -140,7 +140,9 @@ function ns:UpdateBagSlot(container, slot, forced)
 	-- TODO: how do we react to binding/gem/... changes?
 	local itemChanged  = newItem ~= (cacheData.item and cacheData.item.id or nil)
 	local countChanged = newCount ~= cacheData.count
-	if not forced and not itemChanged and not countChanged then return false, nil end
+	if not forced and not itemChanged and not countChanged then
+		return false, nil
+	end
 
 	local isLimited = false
 	local limiters  = cacheData.item and cacheData.item.limit
@@ -198,18 +200,18 @@ function ns:UpdateBagSlot(container, slot, forced)
 end
 
 local function ItemSort(locationA, locationB)
-	local itemA = ns.containers[locationA]
-	local itemB = ns.containers[locationB]
+	local cacheDataA = ns.containers[locationA]
+	local cacheDataB = ns.containers[locationB]
 
 	-- order by priority, value, count, location
-	if itemA.priority ~= itemB.priority then
-		return itemA.priority < itemB.priority
-	elseif itemA.value*itemA.count ~= itemB.value*itemB.count then
-		return itemA.value*itemA.count < itemB.value*itemB.count
-	elseif itemA.count ~= itemB.count then
-		return itemA.count < itemB.count
+	if cacheDataA.priority ~= cacheDataB.priority then
+		return cacheDataA.priority < cacheDataB.priority
+	elseif (cacheDataA.value * cacheDataA.count) ~= (cacheDataB.value * cacheDataB.count) then
+		return (cacheDataA.value * cacheDataA.count) < (cacheDataB.value * cacheDataB.count)
+	elseif cacheDataA.count ~= cacheDataB.count then
+		return cacheDataA.count < cacheDataB.count
 	else
-		return itemA.loc > itemB.loc
+		return cacheDataA.loc > cacheDataB.loc
 	end
 end
 

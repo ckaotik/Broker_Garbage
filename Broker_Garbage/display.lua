@@ -220,7 +220,7 @@ function BG.ShowTooltip(self)
 	end
 	if numLinesShown == 0 then
 		lineNum = tooltip:AddLine()
-				  tooltip:SetCell(lineNum, 1, BG.locale.noItems .. "\n" .. BG.locale.increaseTreshold, nil, "CENTER", numColumns)
+		tooltip:SetCell(lineNum, 1, BG.locale.noItems .. "\n" .. BG.locale.increaseTreshold, nil, "CENTER", numColumns)
 	end
 
 	-- add statistics information
