@@ -252,7 +252,13 @@ function ns.GetItemPriority(location)
 	end
 
 	-- get information based on item instance
-	local itemID, _, itemLink, quality, iLevel, _, _, _, _, _, _, vendorPrice = ItemLocations:GetLocationItemInfo(location)
+	local itemID, itemLink, quality, iLevel, vendorPrice
+	if location == ns.EXTERNAL_ITEM_LOCATION then
+		itemID, itemLink = cacheData.item.id, cacheData.item.link
+		_, _, quality, iLevel, _, _, _, _, _, _, vendorPrice = GetItemInfo(itemLink)
+	else
+		itemID, _, itemLink, quality, iLevel, _, _, _, _, _, _, vendorPrice = ItemLocations:GetLocationItemInfo(location)
+	end
 
 	-- check list config by itemID
 	local listed = ns.keep[ item.id ]
@@ -430,7 +436,5 @@ function ns.GetUnownedItemInfo(item, count)
 
 	-- get classification data
 	local data = Classify(ns.EXTERNAL_ITEM_LOCATION)
-	local priority, label, value, autoSell, reason = data.priority, data.label, data.value, data.sell, data.reason
-
-	return priority, label, value, autoSell, reason
+	return data.priority, data.label, data.value, data.sell, data.reason
 end
