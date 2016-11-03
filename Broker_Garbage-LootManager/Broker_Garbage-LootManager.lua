@@ -121,7 +121,7 @@ function plugin:LOOT_READY(event)
 		-- this data would get lost when sorting table
 		loot.slot = lootSlot
 
-		if GetLootSlotType(slot) == _G.LOOT_SLOT_ITEM then
+		if GetLootSlotType(lootSlot) == _G.LOOT_SLOT_ITEM then
 			local itemLink = GetLootSlotLink(lootSlot)
 			local isInteresting, alwaysLoot, value = self:IsInteresting(itemLink, loot.quantity)
 			value = value or select(11, GetItemInfo(itemLink))

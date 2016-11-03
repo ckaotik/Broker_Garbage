@@ -424,7 +424,7 @@ function ns.GetUnownedItemInfo(item, count)
 	if not item then
 		return
 	elseif type(item) == 'string' then
-		itemID = ns.GetItemID(item)
+		itemID = GetItemInfoInstant(item)
 		itemLink = item
 	elseif type(item) == 'number' then
 		itemID = item
