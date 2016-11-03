@@ -30,9 +30,9 @@ local function UpdateLootButton(index)
 	if not button or not button:IsShown() then return end
 
 	local slot = button.slot
-	local itemLink = GetLootSlotLink(slot)
-	if itemLink then
+	if GetLootSlotType(slot) == _G.LOOT_SLOT_ITEM then
 		local _, _, count = GetLootSlotInfo(slot)
+		local itemLink = GetLootSlotLink(slot)
 		local isInteresting, alwaysLoot = plugin:IsInteresting(itemLink, count)
 		if isInteresting or alwaysLoot then
 			_G['LootButton'..index..'IconTexture']:SetDesaturated(false)
@@ -121,8 +121,8 @@ function plugin:LOOT_READY(event)
 		-- this data would get lost when sorting table
 		loot.slot = lootSlot
 
-		local itemLink = GetLootSlotLink(lootSlot)
-		if itemLink then
+		if GetLootSlotType(slot) == _G.LOOT_SLOT_ITEM then
+			local itemLink = GetLootSlotLink(lootSlot)
 			local isInteresting, alwaysLoot, value = self:IsInteresting(itemLink, loot.quantity)
 			value = value or select(11, GetItemInfo(itemLink))
 
