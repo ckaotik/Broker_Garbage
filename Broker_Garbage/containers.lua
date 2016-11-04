@@ -258,8 +258,10 @@ function ns.GetItemPriority(location)
 	if location == ns.EXTERNAL_ITEM_LOCATION then
 		itemID, itemLink = cacheData.item.id, cacheData.link
 		_, _, quality, iLevel, _, _, _, _, _, _, vendorPrice = GetItemInfo(itemLink)
+		if not quality then return nil end
 	else
 		itemID, _, itemLink, quality, iLevel, _, _, _, _, _, _, vendorPrice = ItemLocations:GetLocationItemInfo(location)
+		if not quality then return nil end
 	end
 
 	-- check list config by itemID
