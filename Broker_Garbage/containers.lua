@@ -191,7 +191,7 @@ function ns:UpdateBagSlot(container, slot, forced)
 		-- update fields
 		local label, actionValue, actionReason = ns.GetItemAction(location)
 		cacheData.label = label or ns.IGNORE
-		cacheData.value = (actionValue or 0) * (newCount or 0)
+		cacheData.value = actionValue or 0
 		cacheData.priority = ns.priority.NEUTRAL
 	else
 		cacheData.label = ns.IGNORE
