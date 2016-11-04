@@ -78,8 +78,9 @@ function ns.Add(list, item, value, isGlobal, noUpdate)
 	end
 
 	if not noUpdate then
-		-- ns.UpdateItem()
-		-- ns.Scan(item)
+		ns:UpdateItem(item)
+		ns:Scan()
+		ns:UpdateLDB()
 	end
 end
 function ns.Remove(list, item, noUpdate)
@@ -90,13 +91,11 @@ function ns.Remove(list, item, noUpdate)
 	end
 
 	if not noUpdate then
-		-- ns.UpdateItem()
-		-- ns.Scan(item)
+		ns:UpdateItem(item)
+		ns:Scan()
+		ns:UpdateLDB()
 	end
-
-	-- TODO: update lists etc
-	-- Broker_Garbage:UpdateLDB()
-	-- Broker_Garbage.UpdateMerchantButton()
+	-- ns.UpdateMerchantButton()
 end
 function ns.Get(list, item)
 	return list == "prices" and ns.db.global[list][item] or ns.db.profile[list][item]

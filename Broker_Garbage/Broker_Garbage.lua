@@ -175,15 +175,9 @@ function addon:EQUIPMENT_SETS_CHANGED()
 end --]]
 
 function addon:GET_ITEM_INFO_RECEIVED(event, itemID)
-	local locations = self.locations[itemID]
-	if not rawget(self.item, itemID) or #locations == 0 then return end
+	if not rawget(self.item, itemID) or #self.locations[itemID] == 0 then return end
 	self.item[itemID].bop = self.IsItemBoP(itemID)
-
-	-- scan affected item locations
-	for _, location in pairs(locations) do
-		local container, slot = self.GetBagSlot(location)
-		self:UpdateBagSlot(container, slot, true)
-	end
+	self:UpdateItem(itemID)
 
 	-- update limits and display
 	self:Scan()
@@ -220,6 +214,18 @@ function addon:Update()
 	-- update dynamic limits and display
 	self:Scan()
 	self:UpdateLDB()
+end
+
+function addon:UpdateItem(item)
+	local itemID = GetItemInfoInstant(item) or item
+	local locations = self.locations[itemID]
+	if not locations then return end
+
+	-- scan affected item locations
+	for _, location in pairs(locations) do
+		local container, slot = self.GetBagSlot(location)
+		self:UpdateBagSlot(container, slot, true)
+	end
 end
 
 --[[
