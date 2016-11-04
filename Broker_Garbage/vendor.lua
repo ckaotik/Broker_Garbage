@@ -13,10 +13,20 @@ local plugin = addon:NewModule('Vendor', 'AceEvent-3.0', 'AceTimer-3.0')
 -- --------------------------------------------------------
 local sellLog = {}
 local sellValue, repairCost, guildRepair
+
+local function SellItem(event, container, slot)
+	if GetContainerItemLink(container, slot) then
+		ClearCursor()
+		UseContainerItem(container, slot)
+	end
+end
+
 function plugin:AutoSell(manualTrigger)
 	if not self.db.global.autoSell and not manualTrigger then
 		return
 	end
+
+	self:RegisterEvent('ITEM_UNLOCKED', SellItem)
 
 	sellValue = 0
 	wipe(sellLog) -- reset data for refilling
@@ -57,6 +67,7 @@ function plugin:ReportSelling(iteration, maxIteration)
 
 	-- regular sell unlock
 	addon.UpdateSellStatistics(sellValue, numItems)
+	self:UnregisterEvent('ITEM_UNLOCKED')
 end
 
 function plugin:CheckSoldItems()
