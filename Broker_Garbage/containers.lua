@@ -221,7 +221,7 @@ end
 function ns.Scan(...)
 	-- update classifications for items/limit groups
 	for _, limiter in pairs(changedLimits) do
-		for _, location in pairs( categoryLocations[limiter] ) do
+		for _, location in pairs(categoryLocations[limiter]) do
 			Classify(location)
 		end
 	end

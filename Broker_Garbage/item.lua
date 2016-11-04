@@ -204,10 +204,10 @@ local function IsInterestingItem(itemLink)
 end
 
 function ns.IsOutdatedItem(location)
-	local item = ns.containers[ location ].item
-	local invSlot = item and item.slot
+	local cacheData = ns.containers[ location ]
+	local invSlot = cacheData.item and cacheData.item.slot
 
-	if not item or invSlot == "" or invSlot == "INVTYPE_BAG" then
+	if not cacheData.item or invSlot == "" or invSlot == "INVTYPE_BAG" then
 		return
 	else
 		local itemLink = item.link or GetContainerItemLink( ns.GetBagSlot(location) )
