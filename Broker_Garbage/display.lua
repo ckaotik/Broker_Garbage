@@ -293,8 +293,8 @@ end
 local gColor, sColor, cColor = "ffd700", "c7c7cf", "eda55f"
 local separators = {
 	{'.', '.', ''},
-	{'|cff'..gColor..'.|r',  '|cff'..sColor..'.|r',  ''},
-	{'|cff'..gColor..'g|r ', '|cff'..sColor..'s|r ', '|cff'..cColor..'c|r '},
+	{'|cff' .. gColor .. '.|r',  '|cff' .. sColor .. '.|r',  ''},
+	{'|cff' .. gColor .. 'g|r ', '|cff' .. sColor .. 's|r ', '|cff' .. cColor .. 'c|r '},
 	{'|TInterface\\MoneyFrame\\UI-GoldIcon:0|t ', '|TInterface\\MoneyFrame\\UI-SilverIcon:0|t ', '|TInterface\\MoneyFrame\\UI-CopperIcon:0|t '},
 }
 
