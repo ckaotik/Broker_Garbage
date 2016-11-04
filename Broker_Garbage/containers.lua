@@ -218,7 +218,7 @@ local function ItemSort(locationA, locationB)
 	end
 end
 
-function ns.Scan(...)
+function ns:Scan()
 	-- update classifications for items/limit groups
 	for _, limiter in pairs(changedLimits) do
 		for _, location in pairs(categoryLocations[limiter]) do
@@ -238,7 +238,6 @@ function ns.Scan(...)
 		end
 	end
 	table.sort(ns.list, ItemSort)
-	ns.UpdateLDB() -- TODO: does not belong here
 end
 
 -- returns: priority, autoSell, reason

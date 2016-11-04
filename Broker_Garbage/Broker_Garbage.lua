@@ -212,17 +212,13 @@ end
 
 -- perform a full update, rescanning everything
 function addon:Update()
-	local hasItemLimit
 	-- scan containers
 	for container = 1, _G.NUM_BAG_SLOTS do
-		local hasChanged, isLimitedItem = self:UpdateContainer(container)
-		hasItemLimit = hasItemLimit or isLimitedItem
+		self:UpdateContainer(container)
 	end
-	-- update dynamic limits
-	if hasItemLimit then
-		self:UpdateLimits()
-	end
-	-- update display
+
+	-- update dynamic limits and display
+	self:Scan()
 	self:UpdateLDB()
 end
 
