@@ -210,7 +210,7 @@ function ns.IsOutdatedItem(location)
 	if not cacheData.item or invSlot == "" or invSlot == "INVTYPE_BAG" then
 		return
 	else
-		local itemLink = item.link or GetContainerItemLink( ns.GetBagSlot(location) )
+		local itemLink = cacheData.link or GetContainerItemLink(ns.GetBagSlot(location))
 		local isInteresting = IsInterestingItem(itemLink)
 		local isHighestItemLevel = not isInteresting and ns.db.global.keepHighestItemLevel and IsHighestItemLevel(location)
 
