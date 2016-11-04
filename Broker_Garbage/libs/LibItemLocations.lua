@@ -1,4 +1,4 @@
-local MAJOR, MINOR = 'LibItemLocations', 9
+local MAJOR, MINOR = 'LibItemLocations', 10
 assert(LibStub, MAJOR..' requires LibStub')
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -159,7 +159,8 @@ end
 
 function lib:GetLocationItemInfo(location)
 	-- local id, name, textureName, count, durability, maxDurability, invType, locked, start, duration, enable, setTooltip, gem1, gem2, gem3, quality = EquipmentManager_GetItemInfoByLocation(location)
-	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice, itemID
+	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
+	local itemID, itemLink
 
 	local container, slot, player, bank, bags, voidStorage, reagentBank, mailAttachment, guildBank, auctionHouse = lib:UnpackInventoryLocation(location)
 
@@ -185,11 +186,11 @@ function lib:GetLocationItemInfo(location)
 	if not link then
 		return nil
 	elseif not itemID then
-		itemID = link:match('item:(%d+)')*1
+		itemID = GetItemInfoInstant(link)
 	end
-	name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(link or itemID)
+	name, itemLink, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(link or itemID)
 
-	return itemID, name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
+	return itemID, name, itemLink or link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
 end
 
 -- Pickup the item in a given location and put it on the cursor, if possible.
