@@ -139,8 +139,15 @@ function addon:OnEnable()
 	end
 	-- self:UpdateLimits() --]]
 
-	self:RegisterEvent('BAG_UPDATE', function(self, _, container) self:UpdateContainer(container) end, self)
-	self:RegisterEvent('BAG_UPDATE_DELAYED', function(self) self:UpdateLimits() end, self)
+	self:RegisterEvent('BAG_UPDATE', function(self, event, container)
+		self:UpdateContainer(container)
+	end, self)
+	self:RegisterEvent('BAG_UPDATE_DELAYED', function(self, event, ...)
+		requiresFullScan = false
+		self:Scan()
+		self:UpdateLDB()
+	end, self)
+	self:RegisterEvent('GET_ITEM_INFO_RECEIVED')
 	-- self:RegisterEvent('EQUIPMENT_SETS_CHANGED')
 	-- hooksecurefunc('SaveEquipmentSet', self.EQUIPMENT_SETS_CHANGED)
 end
@@ -167,6 +174,22 @@ function addon:EQUIPMENT_SETS_CHANGED()
 	self.Scan()
 end --]]
 
+function addon:GET_ITEM_INFO_RECEIVED(event, itemID)
+	local locations = self.locations[itemID]
+	if not rawget(self.item, itemID) or #locations == 0 then return end
+	self.item[itemID].bop = self.IsItemBoP(itemID)
+
+	-- scan affected item locations
+	for _, location in pairs(locations) do
+		local container, slot = self.GetBagSlot(location)
+		self:UpdateBagSlot(container, slot, true)
+	end
+
+	-- update limits and display
+	self:Scan()
+	self:UpdateLDB()
+end
+
 -- --------------------------------------------------------
 --  Bag scanning
 -- --------------------------------------------------------
@@ -185,12 +208,6 @@ function addon:UpdateContainer(container)
 	-- self.updateAvailable[container] = hasItemLimit -- TODO: deprecated
 
 	return hasItemLimit
-end
-
--- updates limit info
-function addon:UpdateLimits()
-	requiresFullScan = false
-	self.Scan() -- TODO/FIXME: quick hack
 end
 
 -- perform a full update, rescanning everything
