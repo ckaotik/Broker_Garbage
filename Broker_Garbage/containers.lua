@@ -115,6 +115,7 @@ local function Classify(location)
 			cacheData.value = location == ns.EXTERNAL_ITEM_LOCATION
 				and select(11, GetItemInfo(cacheData.link))
 				or select(12, ItemLocations:GetLocationItemInfo(location))
+			cacheData.value = cacheData.value * cacheData.count
 		elseif priority == ns.priority.NEGATIVE and cacheData.label == ns.IGNORE then
 			-- FIXME: conflict
 			cacheData.label = ns.INCLUDE
@@ -208,8 +209,8 @@ local function ItemSort(locationA, locationB)
 	-- order by priority, value, count, location
 	if cacheDataA.priority ~= cacheDataB.priority then
 		return cacheDataA.priority < cacheDataB.priority
-	elseif (cacheDataA.value * cacheDataA.count) ~= (cacheDataB.value * cacheDataB.count) then
-		return (cacheDataA.value * cacheDataA.count) < (cacheDataB.value * cacheDataB.count)
+	elseif cacheDataA.value ~= cacheDataB.value then
+		return cacheDataA.value < cacheDataB.value
 	elseif cacheDataA.count ~= cacheDataB.count then
 		return cacheDataA.count < cacheDataB.count
 	else

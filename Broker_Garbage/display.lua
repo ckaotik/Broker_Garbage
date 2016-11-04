@@ -122,7 +122,7 @@ function BG.UpdateLDB()
 
 		if cacheData.sell and cacheData.value > 0 then
 			-- update junk value
-			BG.junkValue = BG.junkValue + (cacheData.value * cacheData.count)
+			BG.junkValue = BG.junkValue + cacheData.value
 		end
 	end
 
@@ -209,7 +209,7 @@ function BG.ShowTooltip(self)
 		local text = (BG.db.global.tooltip.showIcon and "|T" .. (icon or 'Interface\\Icons\\INV_Misc_QuestionMark') .. ":0|t " or "") .. (itemLink or _G.UNKNOWN)
 		local source = BG.GetInfo(cacheData.label, true) or ""
 
-		lineNum = tooltip:AddLine(text, cacheData.count, BG.FormatMoney(cacheData.value*cacheData.count), BG.db.global.tooltip.showReason and source or nil)
+		lineNum = tooltip:AddLine(text, cacheData.count, BG.FormatMoney(cacheData.value), BG.db.global.tooltip.showReason and source or nil)
 		          tooltip:SetLineScript(lineNum, "OnMouseDown", BG.OnClick, location)
 
 		if BG.CanDisenchant(cacheData.item.id) then
