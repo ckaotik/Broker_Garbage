@@ -44,6 +44,7 @@ function plugin:AutoSell(manualTrigger)
 		self:ScheduleTimer(self.ReportSelling, 0.3, self, 0, #sellLog)
 	elseif self.db.global.reportNothingToSell then
 		addon.Print(addon.locale.reportNothingToSell)
+		self:UnregisterEvent('ITEM_UNLOCKED')
 	end
 end
 
