@@ -187,7 +187,9 @@ function ns:UpdateBagSlot(container, slot, forced)
 		Classify(location)
 	end
 
-	if newItem then
+	if forced then
+		-- do nothing
+	elseif newItem then
 		-- update fields
 		local label, actionValue, actionReason = ns.GetItemAction(location)
 		cacheData.label = label or ns.IGNORE
