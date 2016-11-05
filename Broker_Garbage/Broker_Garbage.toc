@@ -1,4 +1,4 @@
-## Interface: 70000
+## Interface: 70100
 ## Dependencies:
 ## OptionalDeps: LibPeriodicTable-3.1, Auctionator, AuctionLite, Auc-Advanced, Enchantrix, WOWEcon_PriceMod, Auctional, TopFit, ArkInventoryRules, Bagnon, ElvUI, Ace3, LibDualSpec-1.0, LibQTip-1.0, LibItemUpgradeInfo-1.0, LibProcessable
 ## SavedVariables: Broker_GarbageDB
