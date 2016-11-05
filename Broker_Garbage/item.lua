@@ -8,6 +8,7 @@ local _, ns = ...
 
 local emptyTable = {}
 local LibProcessable = LibStub('LibProcessable')
+local LibItemUpgrade = LibStub("LibItemUpgradeInfo-1.0")
 
 -- --------------------------------------------------------
 --  LPT caching
@@ -150,17 +151,16 @@ end
 -- --------------------------------------------------------
 --  Interesting/Outdated items
 -- --------------------------------------------------------
-local LibItemUpgrade = LibStub("LibItemUpgradeInfo-1.0")
 local itemsForInvType = {}
 local function IsHighestItemLevel(location)
-	local item = ns.containers[ location ].item
-	local equipSlot = item.slot
+	local cacheData = ns.containers[location]
+	local equipSlot = cacheData.item.slot
 	local slots = (TopFit and TopFit.GetEquipLocationsByInvType and TopFit:GetEquipLocationsByInvType(equipSlot)) or
 		(PawnGetSlotsForItemType and { PawnGetSlotsForItemType(equipSlot) }) or
 		{}
 
 	local numSlots = #slots
-	local locationLevel = LibItemUpgrade:GetUpgradedItemLevel(item.link or GetContainerItemLink(ns.GetBagSlot(location)))
+	local locationLevel = LibItemUpgrade:GetUpgradedItemLevel(cacheData.link or GetContainerItemLink(ns.GetBagSlot(location)))
 
 	wipe(itemsForInvType)
 	-- compare with equipped item levels
@@ -199,7 +199,7 @@ local function IsInterestingItem(itemLink)
 		isInteresting = TopFit:IsInterestingItem(itemLink)
 	end
 	if PawnGetItemData and PawnIsItemAnUpgrade then
-		local upgrade, best, secondBest = PawnIsItemAnUpgrade( PawnGetItemData(itemLink), true )
+		local upgrade, best, secondBest = PawnIsItemAnUpgrade(PawnGetItemData(itemLink), true)
 		isInteresting = isInteresting or upgrade or best or secondBest
 	end
 	return isInteresting or CanLearnTransmog(itemLink)
