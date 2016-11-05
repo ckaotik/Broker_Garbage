@@ -3,9 +3,9 @@ local addonName, BG, _ = ...
 local LibDataBroker = LibStub('LibDataBroker-1.1')
 local ItemLocations = LibStub('LibItemLocations')
 
--- GLOBALS: LibStub, NORMAL_FONT_COLOR
--- GLOBALS: GetItemInfoInstant, GetContainerNumFreeSlots, GetContainerItemInfo, InterfaceOptionsFrame_OpenToCategory, LoadAddOn, IsAltKeyDown, IsShiftKeyDown, IsControlKeyDown, UseContainerItem, CreateFrame, ClearCursor, InCombatLockdown, GetCoinTextureString
--- GLOBALS: pairs, select, type, string, math
+-- GLOBALS: _G, LibStub, NORMAL_FONT_COLOR, MerchantFrame
+-- GLOBALS: GetItemInfoInstant, GetContainerNumFreeSlots, GetContainerItemInfo, InterfaceOptionsFrame_OpenToCategory, LoadAddOn, IsAltKeyDown, IsShiftKeyDown, IsControlKeyDown, UseContainerItem, CreateFrame, ClearCursor, InCombatLockdown, GetCoinTextureString, BreakUpLargeNumbers
+-- GLOBALS: pairs, select, type, string, math, tostring, tonumber, print
 
 -- returns a red-to-green color depending on the given percentage
 local function Colorize(minVal, maxVal)

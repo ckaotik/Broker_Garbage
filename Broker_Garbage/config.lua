@@ -2,7 +2,7 @@ local addonName, addon, _ = ...
 
 -- GLOBALS: _G, LibStub
 -- GLOBALS: InterfaceAddOnsList_Update, InterfaceOptionsList_DisplayPanel, GetItemInfo, GetCoinTextureString
--- GLOBALS: ipairs, type, select, setmetatable, math, tostring
+-- GLOBALS: pairs, ipairs, next, type, select, setmetatable, math, tostring
 
 local AceConfigDialog = LibStub('AceConfigDialog-3.0')
 

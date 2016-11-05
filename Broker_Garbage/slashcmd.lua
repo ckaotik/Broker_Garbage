@@ -212,7 +212,6 @@ end
 
 local slashName = addonName:upper()
 _G['SLASH_' .. addonName .. '1'] = "/garbage"
-_G['SLASH_' .. addonName .. '2'] = "/garb"
-_G['SLASH_' .. addonName .. '3'] = "/junk"
+_G['SLASH_' .. addonName .. '2'] = "/junk"
 
 SlashCmdList[addonName] = handler

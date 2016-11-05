@@ -1,6 +1,7 @@
 local _, ns = ...
 
--- GLOBALS: NUM_BAG_SLOTS, GetContainerNumSlots, GetContainerItemID, GetContainerItemInfo, GetItemInfo, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, IsEquippedItem, GetContainerItemEquipmentSetInfo, GetContainerItemLink
+-- GLOBALS: _G, NUM_BAG_SLOTS
+-- GLOBALS: GetContainerNumSlots, GetContainerItemID, GetContainerItemInfo, GetItemInfo, GetItemInfoInstant, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, IsEquippedItem, GetContainerItemEquipmentSetInfo, GetContainerItemLink
 -- GLOBALS: type, string, table, pairs, ipairs, wipe, tonumber, select, math, tContains
 
 local Unfit = LibStub("Unfit-1.0")

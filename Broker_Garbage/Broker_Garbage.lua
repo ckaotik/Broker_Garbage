@@ -3,8 +3,9 @@ addon = LibStub('AceAddon-3.0'):NewAddon(addon, addonName, 'AceEvent-3.0')
 _G[addonName] = addon
 
 -- GLOBALS: _G, LibStub, NUM_BAG_SLOTS, ERR_VENDOR_DOESNT_BUY, ERR_SKILL_GAINED_S, INVSLOT_LAST_EQUIPPED
--- GLOBALS: ContainerIDToInventoryID, InCombatLockdown, GetItemInfo
--- GLOBALS: string, table, tonumber, setmetatable, math, pairs, ipairs
+-- GLOBALS: GetItemInfoInstant, GetContainerNumSlots, ContainerIDToInventoryID, InCombatLockdown, GetItemInfo
+-- GLOBALS: string, table, tonumber, setmetatable, math, pairs, ipairs, rawget
+local requiresFullScan = false
 
 -- --------------------------------------------------------
 --  Addon Setup
@@ -187,7 +188,6 @@ end
 -- --------------------------------------------------------
 --  Bag scanning
 -- --------------------------------------------------------
-local requiresFullScan = false
 -- TODO: split scan into "static" (BAG_UPDATE for itemID/category) and "dynamic" (BAG_UPDATE_DELAYED for limits)
 function addon:UpdateContainer(container)
 	-- TODO: reagent bank, bank etc

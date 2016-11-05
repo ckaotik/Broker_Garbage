@@ -1,8 +1,10 @@
 local _, ns = ...
 
 -- GLOBALS: ITEM_BIND_ON_PICKUP, ITEM_SOULBOUND, ITEM_LEVEL, TopFit, PawnIsItemAnUpgrade, PawnGetItemData, PawnGetSlotsForItemType, _G, UIParent
--- GLOBALS: GetItemInfo, GetCursorInfo, DeleteCursorItem, ClearCursor, PickupContainerItem, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, GetInventoryItemLink, GetProfessions, GetProfessionInfo, GetContainerItemEquipmentSetInfo, GetInventoryItemsForSlot, EquipmentManager_UnpackLocation
--- GLOBALS: type, select, string, ipairs, math, tonumber, wipe, pairs, table, strsplit
+-- GLOBALS: GetItemInfo, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, GetInventoryItemLink, GetProfessions, GetProfessionInfo, GetInventoryItemsForSlot, GetAuctionItemSubClasses
+-- GLOBALS: GetCursorInfo, DeleteCursorItem, ClearCursor, PickupContainerItem, UseContainerItem
+-- GLOBALS: EquipmentManager_UnpackLocation, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetContainerItemEquipmentSetInfo
+-- GLOBALS: type, select, string, ipairs, math, tonumber, wipe, pairs, table, strsplit, tContains
 
 local emptyTable = {}
 local LibProcessable = LibStub('LibProcessable')

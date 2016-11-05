@@ -1,8 +1,8 @@
 local addonName, ns, _ = ...
 
--- GLOBALS: _G, ArkInventory, ArkInventoryRules, Bagnon
--- GLOBALS: IsAddOnLoaded
--- GLOBALS: string, tonumber, hooksecurefunc, pairs, strsplit
+-- GLOBALS: _G, ArkInventory, ArkInventoryRules, InitArkInvFilter, Bagnon, ElvUI
+-- GLOBALS: IsAddOnLoaded, GetItemInfo
+-- GLOBALS: string, tonumber, hooksecurefunc, pairs, strsplit, type
 
 local disableKeys = {
 	["NONE"] 	= function() return false end,
