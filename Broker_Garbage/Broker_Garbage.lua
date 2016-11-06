@@ -132,48 +132,24 @@ function addon:OnEnable()
 	self.InitPriceHandlers()
 	self:Update()
 
-	-- initial scan
-	--[[ self.updateAvailable = {}
-	for container = 0, _G.NUM_BAG_SLOTS do
-		-- self.updateAvailable[container] = true
-		self:UpdateContainer(container)
-	end
-	-- self:UpdateLimits() --]]
-
-	self:RegisterEvent('BAG_UPDATE', function(self, event, container)
-		self:UpdateContainer(container)
-	end, self)
-	self:RegisterEvent('BAG_UPDATE_DELAYED', function(self, event, ...)
-		requiresFullScan = false
-		self:Scan()
-		self:UpdateLDB()
-	end, self)
+	self:RegisterEvent('BAG_UPDATE')
+	self:RegisterEvent('BAG_UPDATE_DELAYED')
 	self:RegisterEvent('GET_ITEM_INFO_RECEIVED')
-	-- self:RegisterEvent('EQUIPMENT_SETS_CHANGED')
-	-- hooksecurefunc('SaveEquipmentSet', self.EQUIPMENT_SETS_CHANGED)
+	self:RegisterEvent('EQUIPMENT_SETS_CHANGED', 'Update')
 end
 
 -- --------------------------------------------------------
 --  <stuff> update events
 -- --------------------------------------------------------
--- TODO: detect newly learned trade skills and create list entries accordingly
--- TODO: update if equipment set rules
---[[ local function UpdateEquipment()
-	for location, cacheData in pairs(addon.containers) do
-		if cacheData.item then
-			local invSlot = cacheData.item.slot
-			if invSlot ~= "" and invSlot ~= "INVTYPE_BAG" then
-				local container, slot = addon.GetBagSlot(location)
-				addon:UpdateBagSlot(container, slot, true)
-			end
-		end
-	end
+function addon:BAG_UPDATE(event, container)
+	self:UpdateContainer(container)
 end
-function addon:EQUIPMENT_SETS_CHANGED()
-	self.Print("Rescan equipment in bags")
-	UpdateEquipment()
-	self.Scan()
-end --]]
+
+function addon:BAG_UPDATE_DELAYED(event, ...)
+	requiresFullScan = false
+	self:Scan()
+	self:UpdateLDB()
+end
 
 function addon:GET_ITEM_INFO_RECEIVED(event, itemID)
 	if not rawget(self.item, itemID) or #self.locations[itemID] == 0 then return end
@@ -189,12 +165,12 @@ end
 --  Bag scanning
 -- --------------------------------------------------------
 -- TODO: split scan into "static" (BAG_UPDATE for itemID/category) and "dynamic" (BAG_UPDATE_DELAYED for limits)
-function addon:UpdateContainer(container)
+function addon:UpdateContainer(container, force)
 	-- TODO: reagent bank, bank etc
 	if not container or container < 0 or container > _G.NUM_BAG_SLOTS then return end
 	local hasItemLimit = false
 	for slot = 1, GetContainerNumSlots(container) do
-		local hasChanged, isLimitedItem = self:UpdateBagSlot(container, slot)
+		local hasChanged, isLimitedItem = self:UpdateBagSlot(container, slot, force)
 		hasItemLimit = hasItemLimit or isLimitedItem
 	end
 
@@ -208,7 +184,7 @@ end
 function addon:Update()
 	-- scan containers
 	for container = 1, _G.NUM_BAG_SLOTS do
-		self:UpdateContainer(container)
+		self:UpdateContainer(container, true)
 	end
 
 	-- update dynamic limits and display
