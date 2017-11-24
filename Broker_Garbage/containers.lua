@@ -319,6 +319,13 @@ function ns.GetItemPriority(location)
 		return priority, false, reason
 	end
 
+	-- refundable items, they are unpredictable until the timer has expired
+	if ns.IsItemRefundable(location) then
+		priority = ns.priority.POSITIVE
+		reason = ns.reason.WORTHLESS
+		return priority, false, reason
+	end
+
 	-- unusable gear
 	if quality <= ns.db.global.sellUnusableQuality and
 		item.slot ~= "" and item.slot ~= "INVTYPE_BAG" and item.bop and Unfit:IsItemUnusable(item.id) then

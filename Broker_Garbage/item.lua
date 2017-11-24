@@ -105,6 +105,19 @@ function ns.IsItemSoulbound(location)
 	end
 end
 
+function ns.IsItemRefundable(location)
+	local item = ns.containers[location] and ns.containers[location].item
+	if not item then return end
+
+	if location == ns.EXTERNAL_ITEM_LOCATION then
+		return false
+	else
+		-- @see ContainerFrame_GetExtendedPriceString()
+		local money, items, timeLeft, currencies, hasEnchants = GetContainerItemPurchaseInfo(ns.GetBagSlot(location))
+		return timeLeft and true or false
+	end
+end
+
 -- --------------------------------------------------------
 --  Item Values
 -- --------------------------------------------------------

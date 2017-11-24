@@ -134,7 +134,9 @@ function addon:OnEnable()
 
 	self:RegisterEvent('BAG_UPDATE')
 	self:RegisterEvent('BAG_UPDATE_DELAYED')
+	self:RegisterEvent('ITEM_PUSH')
 	self:RegisterEvent('GET_ITEM_INFO_RECEIVED')
+	-- TODO This gets triggered for new items by TopFit
 	self:RegisterEvent('EQUIPMENT_SETS_CHANGED', 'Update')
 end
 
@@ -146,9 +148,34 @@ function addon:BAG_UPDATE(event, container)
 end
 
 function addon:BAG_UPDATE_DELAYED(event, ...)
-	requiresFullScan = false
-	self:Scan()
+	if true or requiresFullScan then
+		requiresFullScan = false
+		self:Scan()
+	end
 	self:UpdateLDB()
+end
+
+-- TODO This is a very instable approach, can we find a better solution to
+-- properly mark newly received refundable items?
+function addon:ITEM_PUSH(event, containerID, icon)
+	local container = containerID - _G.INVSLOT_LAST_EQUIPPED
+	-- Refund information is delayed, so we need to check again later.
+	C_Timer.After(0.5, function()
+		local requiresUpdate = false
+		for slot = 1, GetContainerNumSlots(container) do
+			local money, items, timeLeft, currencies, hasEnchants = GetContainerItemPurchaseInfo(container, slot)
+			if C_NewItems.IsNewItem(container, slot) and timeLeft then
+				local hasChanged, isLimitedItem = addon:UpdateBagSlot(container, slot, true)
+				requiresUpdate = requiresUpdate or hasChanged
+			end
+		end
+
+		if requiresUpdate then
+			-- At least one refundable was found in the container.
+			addon:Scan()
+			addon:UpdateLDB()
+		end
+	end)
 end
 
 function addon:GET_ITEM_INFO_RECEIVED(event, itemID)
