@@ -213,7 +213,7 @@ local function ItemSort(locationA, locationB)
 	if cacheDataA.priority ~= cacheDataB.priority then
 		return cacheDataA.priority < cacheDataB.priority
 	elseif cacheDataA.value ~= cacheDataB.value then
-		return cacheDataA.value < cacheDataB.value
+		return (cacheDataA.value or 0) < (cacheDataB.value or 0)
 	elseif cacheDataA.count ~= cacheDataB.count then
 		return cacheDataA.count < cacheDataB.count
 	else

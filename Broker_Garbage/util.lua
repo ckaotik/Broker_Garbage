@@ -45,7 +45,6 @@ function BG.GetInfo(label, short)
 end
 
 --[[ Priority of an item
-
 	NEGATIVE = want to toss
 	NEUTRAL = may toss
 	POSITIVE = must not toss

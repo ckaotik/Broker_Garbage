@@ -96,10 +96,10 @@ function ns.IsItemSoulbound(location)
 		return true
 	elseif location ~= ns.EXTERNAL_ITEM_LOCATION then
 		scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-		scanTooltip:SetBagItem( ns.GetBagSlot(location) )
+		scanTooltip:SetBagItem(ns.GetBagSlot(location))
 
-		local binding = _G[scanTooltip:GetName().."TextLeft2"]:GetText() == ITEM_SOULBOUND or
-	                    _G[scanTooltip:GetName().."TextLeft3"]:GetText() == ITEM_SOULBOUND
+		local binding = _G[scanTooltip:GetName() .. "TextLeft2"]:GetText() == ITEM_SOULBOUND or
+	                    _G[scanTooltip:GetName() .. "TextLeft3"]:GetText() == ITEM_SOULBOUND
 		scanTooltip:Hide()
 		return binding
 	end

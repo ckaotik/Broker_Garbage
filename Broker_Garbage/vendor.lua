@@ -32,6 +32,7 @@ function plugin:AutoSell(manualTrigger)
 	wipe(sellLog) -- reset data for refilling
 	for location, cacheData in pairs(addon.containers) do
 		if cacheData.sell then
+			-- TODO: Only increment sellValue when item was sold successfully.
 			sellValue = sellValue + cacheData.value
 
 			ClearCursor()

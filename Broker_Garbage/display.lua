@@ -131,7 +131,10 @@ function BG.UpdateLDB()
 	local cacheData = cheapestItem and BG.containers[cheapestItem]
 
 	local LDB = LibDataBroker:GetDataObjectByName(addonName)
-	if cheapestItem and cacheData.item and cacheData.label ~= BG.IGNORE then
+	if cheapestItem and cacheData.item
+		and cacheData.priority ~= BG.priority.IGNORE
+		-- and cacheData.label ~= BG.IGNORE
+	then
 		-- update LDB text
 		local _, _, _, _, icon = GetItemInfoInstant(cacheData.item.id)
 		LDB.text = (BG.db.global.label or ""):gsub("%b[]", formatReplacements)
@@ -176,7 +179,7 @@ function BG.ShowTooltip(self)
 	BG.tooltip = tooltip
 
 	tooltip:Clear()
-	tooltip:GetFont():SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+	tooltip:GetFont():SetTextColor(NORMAL_FONT_COLOR:GetRGB())
 
 	-- add header lines: these don't span across disenchant column!
 	lineNum = tooltip:AddHeader(addonName)
@@ -197,7 +200,10 @@ function BG.ShowTooltip(self)
 	for i = 1, BG.db.global.tooltip.numLines do
 		location = BG.list[i]
 		cacheData = location and BG.containers[location]
-		if not cacheData or not cacheData.item or cacheData.label == BG.IGNORE then
+		if not cacheData or not cacheData.item
+			or cacheData.label == BG.IGNORE
+			or cacheData.priority == BG.priority.IGNORE
+		then
 			-- not enough items to display
 			numLinesShown = i - 1
 			break
