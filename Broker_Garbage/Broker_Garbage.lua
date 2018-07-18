@@ -136,6 +136,7 @@ function addon:OnEnable()
 	self:RegisterEvent('BAG_UPDATE_DELAYED')
 	self:RegisterEvent('ITEM_PUSH')
 	self:RegisterEvent('GET_ITEM_INFO_RECEIVED')
+	self:RegisterEvent('ITEM_DATA_LOAD_RESULT')
 	-- TODO This gets triggered for new items by TopFit
 	self:RegisterEvent('EQUIPMENT_SETS_CHANGED', 'Update')
 end
@@ -179,6 +180,18 @@ function addon:ITEM_PUSH(event, containerID, icon)
 end
 
 function addon:GET_ITEM_INFO_RECEIVED(event, itemID)
+	if itemID == 0 then return end
+	if not rawget(self.item, itemID) or #self.locations[itemID] == 0 then return end
+	self.item[itemID].bop = self.IsItemBoP(itemID)
+	self:UpdateItem(itemID)
+
+	-- update limits and display
+	self:Scan()
+	self:UpdateLDB()
+end
+
+function addon:ITEM_DATA_LOAD_RESULT(event, itemID, success)
+	if not success then return end
 	if not rawget(self.item, itemID) or #self.locations[itemID] == 0 then return end
 	self.item[itemID].bop = self.IsItemBoP(itemID)
 	self:UpdateItem(itemID)

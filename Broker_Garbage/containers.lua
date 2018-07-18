@@ -162,7 +162,7 @@ function ns:UpdateBagSlot(container, slot, forced)
 		if cacheData.item then
 			-- remove old item from locations
 			local itemLocations = ns.locations[ cacheData.item.id ]
-			local oldLocation = tContains(itemLocations or emptyTable, location)
+			local oldLocation = tIndexOf(itemLocations or emptyTable, location)
 			if itemLocations and oldLocation then
 				table.remove(itemLocations, oldLocation)
 			end
@@ -195,7 +195,7 @@ function ns:UpdateBagSlot(container, slot, forced)
 		local label, actionValue, actionReason = ns.GetItemAction(location)
 		cacheData.label = label or ns.IGNORE
 		cacheData.value = actionValue or 0
-		cacheData.priority = ns.priority.NEUTRAL
+		-- cacheData.priority = ns.priority.NEUTRAL
 	else
 		cacheData.label = ns.IGNORE
 		cacheData.value = 0
@@ -261,10 +261,11 @@ function ns.GetItemPriority(location)
 	if location == ns.EXTERNAL_ITEM_LOCATION then
 		itemID, itemLink = cacheData.item.id, cacheData.link
 		_, _, quality, iLevel, _, _, _, _, _, _, vendorPrice = GetItemInfo(itemLink)
-		if not quality then return nil end
 	else
 		itemID, _, itemLink, quality, iLevel, _, _, _, _, _, _, vendorPrice = ItemLocations:GetLocationItemInfo(location)
-		if not quality then return nil end
+	end
+	if not quality then
+		return ns.priority.IGNORE, false, ns.reason.DATA_MISSING
 	end
 
 	-- check list config by itemID

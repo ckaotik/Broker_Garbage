@@ -8,7 +8,9 @@ local _, ns = ...
 
 local emptyTable = {}
 local LibProcessable = LibStub('LibProcessable')
-local LibItemUpgrade = LibStub("LibItemUpgradeInfo-1.0")
+
+-- Since 8.0, we can use C_Item, Item and ItemLocation APIs to get most info.
+local itemChecker = Item:CreateFromItemID(0)
 
 -- --------------------------------------------------------
 --  LPT caching
@@ -88,20 +90,17 @@ function ns.IsItemBoP(itemID)
 end
 
 function ns.IsItemSoulbound(location)
-	local item = ns.containers[location] and ns.containers[location].item
-	if not item then return end
+	local cacheData = ns.containers[location]
+	if not cacheData or not cacheData.item then return end
 
-	if item.bop then
+	if cacheData.item.bop then
 		-- this applies to owned and unowned items
 		return true
 	elseif location ~= ns.EXTERNAL_ITEM_LOCATION then
-		scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-		scanTooltip:SetBagItem(ns.GetBagSlot(location))
-
-		local binding = _G[scanTooltip:GetName() .. "TextLeft2"]:GetText() == ITEM_SOULBOUND or
-	                    _G[scanTooltip:GetName() .. "TextLeft3"]:GetText() == ITEM_SOULBOUND
-		scanTooltip:Hide()
-		return binding
+		local bagID, slotIndex = ns.GetBagSlot(location)
+		itemChecker:Clear()
+		itemChecker:SetItemLocation(ItemLocation:CreateFromBagAndSlot(bagID, slotIndex))
+		return C_Item.IsBound(itemChecker:GetItemLocation())
 	end
 end
 
@@ -166,6 +165,15 @@ end
 -- --------------------------------------------------------
 local itemsForInvType = {}
 local function IsHighestItemLevel(location)
+	local bagID, slotIndex = ns.GetBagSlot(location)
+	itemChecker:Clear()
+	itemChecker:SetItemLocation(ItemLocation:CreateFromBagAndSlot(bagID, slotIndex))
+	if not itemChecker:IsItemDataCached() then
+		-- @todo Trigger re-check once data exists using :ContinueOnItemLoad.
+		-- Do not throw anything away, as we just don't know.
+		return true
+	end
+
 	local cacheData = ns.containers[location]
 	local equipSlot = cacheData.item.slot
 	local slots = (TopFit and TopFit.GetEquipLocationsByInvType and TopFit:GetEquipLocationsByInvType(equipSlot)) or
@@ -173,13 +181,14 @@ local function IsHighestItemLevel(location)
 		{}
 
 	local numSlots = #slots
-	local locationLevel = LibItemUpgrade:GetUpgradedItemLevel(cacheData.link or GetContainerItemLink(ns.GetBagSlot(location)))
+	local locationLevel = itemChecker:GetCurrentItemLevel()
 
 	wipe(itemsForInvType)
 	-- compare with equipped item levels
 	for _, slot in ipairs(slots) do
-		local itemLink = GetInventoryItemLink("player", slot)
-		local itemLevel = itemLink and LibItemUpgrade:GetUpgradedItemLevel(itemLink)
+		itemChecker:Clear()
+		itemChecker:SetItemLocation(ItemLocation:CreateFromEquipmentSlot(slot))
+		local itemLevel = itemChecker:GetCurrentItemLevel()
 		if itemLevel and locationLevel and itemLevel > locationLevel then
 			numSlots = numSlots - 1
 		end
@@ -192,8 +201,9 @@ local function IsHighestItemLevel(location)
 	for location, inventoryItemID in pairs(itemsForInvType) do
 		local isEquipped, _, isInBags, _, slot, container = EquipmentManager_UnpackLocation(location)
 		-- use actual link for upgraded item levels
-		local itemLink = isInBags and GetContainerItemLink(container, slot)
-		local itemLevel = itemLink and LibItemUpgrade:GetUpgradedItemLevel(itemLink)
+		itemChecker:Clear()
+		itemChecker:SetItemLink(isInBags and GetContainerItemLink(container, slot))
+		local itemLevel = itemChecker:GetCurrentItemLevel()
 		if itemLink and itemLevel > locationLevel then
 			numSlots = numSlots - 1
 		end
