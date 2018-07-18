@@ -106,7 +106,6 @@ function BG.UpdateLDB()
 
 	for location, cacheData in pairs(BG.containers) do
 		local container, slot = BG.GetBagSlot(location)
-		if not container or not slot then print('location not parsed', location, container, slot) end
 		-- TODO: checking bag type on every slot sucks ...
 		local containerType = container and select(2, GetContainerNumFreeSlots(container)) or 0
 		-- update slot stats
@@ -321,7 +320,7 @@ function BG.FormatMoney(value, style, short)
 		silverSep = '|cffc7c7cfs|r '.._G.HIGHLIGHT_FONT_COLOR_CODE
 		copperSep = '|cffeda55fc|r'
 	elseif style == 'dot' then
-		prefix    = '|cffffd700'
+		prefix    = (gold > 0 and '|cffffd700') or (silver > 0 and '|cffc7c7cf') or '|cffeda55f'
 		goldSep   = '|r.|cffc7c7cf'
 		silverSep = '|r.|cffeda55f'
 		copperSep = '|r'
