@@ -4,7 +4,7 @@ local _, ns = ...
 -- GLOBALS: GetItemInfo, GetContainerItemInfo, GetContainerItemID, GetContainerItemLink, GetInventoryItemLink, GetProfessions, GetProfessionInfo, GetInventoryItemsForSlot, GetAuctionItemSubClasses
 -- GLOBALS: GetCursorInfo, DeleteCursorItem, ClearCursor, PickupContainerItem, UseContainerItem
 -- GLOBALS: EquipmentManager_UnpackLocation, GetNumEquipmentSets, GetEquipmentSetInfo, GetEquipmentSetItemIDs, GetContainerItemEquipmentSetInfo
--- GLOBALS: type, select, string, ipairs, math, tonumber, wipe, pairs, table, strsplit, tContains
+-- GLOBALS: type, select, string, ipairs, math, tonumber, wipe, pairs, table, strsplit, tIndexOf
 
 local emptyTable = {}
 local LibProcessable = LibStub('LibProcessable')
@@ -43,11 +43,7 @@ local isItemInCategory = setmetatable({}, {
 		elseif categoryType == "BEQ" then
 			-- equipment set
 			categoryValue = tonumber(categoryValue)
-			if categoryValue and categoryValue <= GetNumEquipmentSets() then
-				wipe(tmpTable)
-				category = GetEquipmentSetInfo(categoryValue, tmpTable)
-			end
-			return tContains(GetEquipmentSetItemIDs(category) or emptyTable, itemID)
+			return tIndexOf(C_EquipmentSet.GetItemIDs(categoryValue) or emptyTable, itemID)
 		elseif categoryType == "AC" then
 			-- armor class
 			categoryValue = tonumber(categoryValue)

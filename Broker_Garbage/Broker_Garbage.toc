@@ -37,7 +37,7 @@ libs\CallbackHandler-1.0.lua
 #@no-lib-strip@
 libs\AceConfig-3.0\AceConfig-3.0.xml
 libs\AceDB-3.0\AceDB-3.0.xml
-libs\AceDBOption-3.0\AceDBOption-3.0.xml
+libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
 libs\AceEvent-3.0\AceEvent-3.0.xml
 libs\AceAddon-3.0\AceAddon-3.0.xml
 libs\LibDualSpec-1.0\LibDualSpec-1.0.lua
