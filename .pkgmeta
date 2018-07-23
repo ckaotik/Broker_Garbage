@@ -35,7 +35,7 @@ externals:
 optional-dependencies:
     - ace3
     - libqtip-1.0
-    - libitemupgradeInfo-1.0
+    # - libitemupgradeInfo-1.0
     - libprocessable
     - libperiodictable-3-1
 
